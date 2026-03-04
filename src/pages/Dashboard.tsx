@@ -1,0 +1,101 @@
+import {
+  Target, Users, Calendar, Wrench, Truck, AlertTriangle, DollarSign,
+  Plus, CalendarPlus, ShoppingCart, PackagePlus, TicketPlus
+} from 'lucide-react';
+import KpiCard from '@/components/dashboard/KpiCard';
+import StatusBadge from '@/components/ui/StatusBadge';
+import { Button } from '@/components/ui/button';
+import { mockOpportunities, mockWorkItems, mockInventory, mockFinanceDocs, mockActivityLogs, getAccountById, getUserById } from '@/data/mockData';
+
+export default function Dashboard() {
+  const newLeads = mockOpportunities.filter(o => o.stage === 'NEW').length;
+  const activeOpps = mockOpportunities.filter(o => !['WON', 'LOST'].includes(o.stage)).length;
+  const upcomingDemos = mockWorkItems.filter(w => w.type === 'DEMO_EVENT' && w.status !== 'DONE').length;
+  const openTickets = mockWorkItems.filter(w => w.type === 'SERVICE_TICKET' && w.status !== 'DONE').length;
+  const pendingShipments = mockWorkItems.filter(w => w.type === 'SHIPMENT' && w.status !== 'DONE').length;
+  const inventoryAlerts = mockInventory.filter(i => i.status === 'OUT' || i.quantity <= 2).length;
+  const outstandingPayments = mockFinanceDocs.filter(f => f.paymentStatus === 'UNPAID').length;
+
+  const recentActivities = [...mockActivityLogs].sort((a, b) => new Date(b.performedAt).getTime() - new Date(a.performedAt).getTime()).slice(0, 8);
+
+  return (
+    <div className="space-y-6 animate-fade-in">
+      <div>
+        <h1 className="text-2xl font-bold text-foreground">Dashboard</h1>
+        <p className="text-sm text-muted-foreground">Optima Aesthetic OS — Overview</p>
+      </div>
+
+      {/* KPI Grid */}
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <KpiCard label="New Leads" value={newLeads} icon={Users} variant="accent" />
+        <KpiCard label="Active Opportunities" value={activeOpps} icon={Target} variant="default" />
+        <KpiCard label="Upcoming Demos" value={upcomingDemos} icon={Calendar} variant="warning" />
+        <KpiCard label="Open Service Tickets" value={openTickets} icon={Wrench} variant="destructive" />
+      </div>
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <KpiCard label="Pending Shipments" value={pendingShipments} icon={Truck} />
+        <KpiCard label="Inventory Alerts" value={inventoryAlerts} icon={AlertTriangle} variant="warning" />
+        <KpiCard label="Outstanding Payments" value={outstandingPayments} icon={DollarSign} variant="destructive" />
+      </div>
+
+      {/* Quick Actions */}
+      <div>
+        <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-3">Quick Actions</h2>
+        <div className="flex flex-wrap gap-2">
+          <Button size="sm" className="gap-1.5"><Plus size={14} /> Add Lead</Button>
+          <Button size="sm" variant="outline" className="gap-1.5"><CalendarPlus size={14} /> Schedule Demo</Button>
+          <Button size="sm" variant="outline" className="gap-1.5"><ShoppingCart size={14} /> Convert to Sales Order</Button>
+          <Button size="sm" variant="outline" className="gap-1.5"><PackagePlus size={14} /> Create Shipment</Button>
+          <Button size="sm" variant="outline" className="gap-1.5"><TicketPlus size={14} /> Open Service Ticket</Button>
+        </div>
+      </div>
+
+      {/* Recent Activity & Open Work Items */}
+      <div className="grid gap-6 lg:grid-cols-2">
+        {/* Recent Activity */}
+        <div className="rounded-lg border bg-card p-4">
+          <h3 className="text-sm font-semibold text-foreground mb-3">Recent Activity</h3>
+          <div className="space-y-3">
+            {recentActivities.map(activity => {
+              const account = getAccountById(activity.linkedAccountId);
+              const user = getUserById(activity.performedByUserId);
+              return (
+                <div key={activity.activityId} className="flex gap-3 text-sm">
+                  <div className="mt-1 h-2 w-2 shrink-0 rounded-full bg-accent" />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-foreground">{activity.message}</p>
+                    <p className="text-xs text-muted-foreground mt-0.5">
+                      {user?.name} · {account?.clinicName} · {new Date(activity.performedAt).toLocaleDateString()}
+                    </p>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Open Work Items */}
+        <div className="rounded-lg border bg-card p-4">
+          <h3 className="text-sm font-semibold text-foreground mb-3">Open Work Items</h3>
+          <div className="space-y-2">
+            {mockWorkItems.filter(w => w.status !== 'DONE' && w.status !== 'CANCELLED').slice(0, 6).map(item => {
+              const account = getAccountById(item.linkedAccountId);
+              return (
+                <div key={item.workItemId} className="flex items-center justify-between gap-2 rounded-md border px-3 py-2">
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-medium text-foreground truncate">{item.title}</p>
+                    <p className="text-xs text-muted-foreground">{account?.clinicName} · {item.departmentOwner}</p>
+                  </div>
+                  <div className="flex items-center gap-2 shrink-0">
+                    <StatusBadge status={item.priority} />
+                    <StatusBadge status={item.status} />
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
