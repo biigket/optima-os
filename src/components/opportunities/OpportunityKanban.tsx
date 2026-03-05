@@ -1,7 +1,11 @@
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
-import { Clock, AlertTriangle, Building2, Calendar, Phone, Eye, Users, Presentation, FileCheck } from 'lucide-react';
+import { Clock, AlertTriangle, Building2, Calendar, Phone, Eye, Users, Presentation, FileCheck, MoreHorizontal, Trophy, XCircle } from 'lucide-react';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { getAccountById } from '@/data/mockData';
+import { toast } from 'sonner';
 import type { Opportunity, OpportunityStage } from '@/types';
 
 const STAGES: OpportunityStage[] = ['NEW_LEAD', 'CONTACTED', 'DEMO_SCHEDULED', 'DEMO_DONE', 'NEGOTIATION', 'WON', 'LOST'];
@@ -22,17 +26,44 @@ const ACTIVITY_ICONS: Record<string, React.ElementType> = {
   CALL: Phone, VISIT: Eye, DEMO: Presentation, MEETING: Users, PROPOSAL: FileCheck,
 };
 
+const STUCK_REASONS = ['รอราคา', 'รอผู้ตัดสินใจ', 'รอ finance', 'รอ training', 'อื่นๆ'];
+
 interface Props {
   opportunities: Opportunity[];
   typeFilter: string;
+  onStageChange: (oppId: string, newStage: OpportunityStage) => void;
+  onUpdateOpportunity?: (oppId: string, updates: Partial<Opportunity>) => void;
 }
 
-export default function OpportunityKanban({ opportunities, typeFilter }: Props) {
+export default function OpportunityKanban({ opportunities, typeFilter, onStageChange, onUpdateOpportunity }: Props) {
   const navigate = useNavigate();
+  const [dragOverStage, setDragOverStage] = useState<string | null>(null);
 
   const filtered = opportunities.filter(o =>
     typeFilter === 'ALL' || o.opportunity_type === typeFilter
   );
+
+  const handleDragOver = (e: React.DragEvent, stage: string) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    setDragOverStage(stage);
+  };
+
+  const handleDragLeave = () => {
+    setDragOverStage(null);
+  };
+
+  const handleDrop = (e: React.DragEvent, newStage: OpportunityStage) => {
+    e.preventDefault();
+    setDragOverStage(null);
+    const oppId = e.dataTransfer.getData('text/plain');
+    if (!oppId) return;
+    const opp = opportunities.find(o => o.id === oppId);
+    if (!opp || opp.stage === newStage) return;
+    const account = getAccountById(opp.account_id);
+    onStageChange(oppId, newStage);
+    toast.success(`ย้าย ${account?.clinic_name || '-'} → ${STAGE_LABELS[newStage]}`);
+  };
 
   return (
     <ScrollArea className="w-full">
@@ -40,7 +71,6 @@ export default function OpportunityKanban({ opportunities, typeFilter }: Props) 
         {STAGES.map(stage => {
           const stageOpps = filtered
             .filter(o => o.stage === stage)
-            // Sort by next activity date (closest first) — task-driven like Pipedrive
             .sort((a, b) => {
               if (!a.next_activity_date && !b.next_activity_date) return 0;
               if (!a.next_activity_date) return 1;
@@ -51,11 +81,18 @@ export default function OpportunityKanban({ opportunities, typeFilter }: Props) 
           const stageTotal = stageOpps.reduce((s, o) => s + (o.expected_value || 0), 0);
           const prob = PROBABILITY[stage] || 0;
           const weightedTotal = Math.round(stageTotal * prob / 100);
+          const isDragOver = dragOverStage === stage;
 
           return (
-            <div key={stage} className="w-[280px] shrink-0">
+            <div
+              key={stage}
+              className="w-[280px] shrink-0"
+              onDragOver={(e) => handleDragOver(e, stage)}
+              onDragLeave={handleDragLeave}
+              onDrop={(e) => handleDrop(e, stage)}
+            >
               {/* Column Header */}
-              <div className={`rounded-t-lg px-3 py-2.5 border border-b-0 bg-muted/50`}>
+              <div className="rounded-t-lg px-3 py-2.5 border border-b-0 bg-muted/50">
                 <div className="flex items-center justify-between mb-1">
                   <div className="flex items-center gap-2">
                     <span className="text-xs font-bold text-foreground uppercase tracking-wide">{STAGE_LABELS[stage]}</span>
@@ -65,16 +102,23 @@ export default function OpportunityKanban({ opportunities, typeFilter }: Props) 
                 <div className="flex items-center gap-2 text-[10px] text-muted-foreground">
                   <span>฿{stageTotal.toLocaleString()}</span>
                   <span className="text-muted-foreground/60">·</span>
-                  <span className="text-muted-foreground">Weighted ฿{weightedTotal.toLocaleString()}</span>
+                  <span>Weighted ฿{weightedTotal.toLocaleString()}</span>
                   <span className="text-muted-foreground/60">·</span>
                   <span>{prob}%</span>
                 </div>
               </div>
 
               {/* Cards container */}
-              <div className="space-y-0 min-h-[120px] border border-t-0 rounded-b-lg bg-muted/20 p-2 space-y-2">
+              <div className={`min-h-[120px] border border-t-0 rounded-b-lg bg-muted/20 p-2 space-y-2 transition-all ${isDragOver ? 'ring-2 ring-primary/50 bg-primary/5' : ''}`}>
                 {stageOpps.map(opp => (
-                  <KanbanCard key={opp.id} opp={opp} stage={stage} navigate={navigate} />
+                  <KanbanCard
+                    key={opp.id}
+                    opp={opp}
+                    stage={stage}
+                    navigate={navigate}
+                    onStageChange={onStageChange}
+                    onUpdateOpportunity={onUpdateOpportunity}
+                  />
                 ))}
                 {stageOpps.length === 0 && (
                   <div className="flex items-center justify-center h-20 text-xs text-muted-foreground/50">
@@ -91,29 +135,45 @@ export default function OpportunityKanban({ opportunities, typeFilter }: Props) 
   );
 }
 
-function KanbanCard({ opp, stage, navigate }: { opp: Opportunity; stage: OpportunityStage; navigate: ReturnType<typeof useNavigate> }) {
+function KanbanCard({ opp, stage, navigate, onStageChange, onUpdateOpportunity }: {
+  opp: Opportunity;
+  stage: OpportunityStage;
+  navigate: ReturnType<typeof useNavigate>;
+  onStageChange: (oppId: string, newStage: OpportunityStage) => void;
+  onUpdateOpportunity?: (oppId: string, updates: Partial<Opportunity>) => void;
+}) {
+  const [isDragging, setIsDragging] = useState(false);
   const account = getAccountById(opp.account_id);
   const daysInStage = Math.floor((Date.now() - new Date(opp.created_at || Date.now()).getTime()) / 86400000);
   const isStuck = daysInStage > 14 && !['WON', 'LOST'].includes(stage);
   const noActivity = !opp.next_activity_type;
   const prob = PROBABILITY[stage] || 0;
   const weighted = Math.round((opp.expected_value || 0) * prob / 100);
-
-  // Close date warning
   const isOverdue = opp.close_date && new Date(opp.close_date) < new Date() && !['WON', 'LOST'].includes(stage);
-
-  // Next activity
   const ActivityIcon = opp.next_activity_type ? (ACTIVITY_ICONS[opp.next_activity_type] || Calendar) : Calendar;
   const activityDaysLeft = opp.next_activity_date
     ? Math.ceil((new Date(opp.next_activity_date).getTime() - Date.now()) / 86400000)
     : null;
 
+  const handleDragStart = (e: React.DragEvent) => {
+    e.dataTransfer.setData('text/plain', opp.id);
+    e.dataTransfer.effectAllowed = 'move';
+    setIsDragging(true);
+  };
+
+  const handleDragEnd = () => {
+    setIsDragging(false);
+  };
+
   return (
     <div
+      draggable
+      onDragStart={handleDragStart}
+      onDragEnd={handleDragEnd}
       onClick={() => navigate(`/opportunities/${opp.id}`)}
-      className={`p-3 rounded-lg border border-t-[3px] bg-card shadow-sm hover:shadow-md transition-all cursor-pointer group ${STAGE_COLORS[stage]} ${isStuck ? 'ring-1 ring-destructive/30' : ''}`}
+      className={`p-3 rounded-lg border border-t-[3px] bg-card shadow-sm hover:shadow-md transition-all cursor-grab active:cursor-grabbing group ${STAGE_COLORS[stage]} ${isStuck ? 'ring-1 ring-destructive/30' : ''} ${isDragging ? 'opacity-40 scale-95' : ''}`}
     >
-      {/* ROW 1: Clinic name + Amount (most important) */}
+      {/* ROW 1: Clinic name + Amount */}
       <div className="flex items-start justify-between gap-2 mb-2">
         <div className="min-w-0 flex-1">
           <p className="text-sm font-bold text-foreground leading-tight truncate flex items-center gap-1.5">
@@ -158,7 +218,7 @@ function KanbanCard({ opp, stage, navigate }: { opp: Opportunity; stage: Opportu
         </div>
       </div>
 
-      {/* ROW 3: Next Activity (the "action driver") */}
+      {/* ROW 3: Next Activity */}
       {opp.next_activity_type ? (
         <div className="flex items-center gap-1.5 text-[11px]">
           <div className={`w-5 h-5 rounded-full flex items-center justify-center shrink-0 ${
@@ -189,12 +249,87 @@ function KanbanCard({ opp, stage, navigate }: { opp: Opportunity; stage: Opportu
         </div>
       )}
 
-      {/* Stuck indicator bar */}
+      {/* Stuck indicator + Reason dropdown */}
       {isStuck && (
-        <div className="mt-2 text-[10px] text-destructive bg-destructive/5 rounded px-2 py-1 flex items-center gap-1">
-          <Clock size={10} /> ค้างอยู่ {daysInStage} วัน
+        <div className="mt-2 text-[10px] text-destructive bg-destructive/5 rounded px-2 py-1 space-y-1">
+          <div className="flex items-center gap-1">
+            <Clock size={10} /> ค้างอยู่ {daysInStage} วัน
+          </div>
+          <div onClick={e => e.stopPropagation()} onMouseDown={e => e.stopPropagation()}>
+            <Select
+              value={(opp as any).stuck_reason || ''}
+              onValueChange={(val) => onUpdateOpportunity?.(opp.id, { stuck_reason: val } as any)}
+            >
+              <SelectTrigger className="h-5 text-[10px] bg-background/50 border-destructive/20 px-1.5">
+                <SelectValue placeholder="เลือกเหตุผล..." />
+              </SelectTrigger>
+              <SelectContent>
+                {STUCK_REASONS.map(r => (
+                  <SelectItem key={r} value={r} className="text-xs">{r}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
         </div>
       )}
+
+      {/* Quick Actions (hover) */}
+      <div className="flex items-center gap-1 mt-2 pt-2 border-t border-border opacity-0 group-hover:opacity-100 transition-opacity">
+        <button
+          onClick={(e) => { e.stopPropagation(); toast.info(`โทรหา ${account?.clinic_name}`); }}
+          className="p-1.5 rounded hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
+          title="โทร"
+        >
+          <Phone size={12} />
+        </button>
+        <button
+          onClick={(e) => { e.stopPropagation(); toast.info('นัดกิจกรรม'); }}
+          className="p-1.5 rounded hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
+          title="นัดกิจกรรม"
+        >
+          <Calendar size={12} />
+        </button>
+        <div className="ml-auto" onClick={e => e.stopPropagation()}>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button className="p-1.5 rounded hover:bg-muted text-muted-foreground hover:text-foreground transition-colors">
+                <MoreHorizontal size={12} />
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-40">
+              <DropdownMenuItem className="text-xs" onClick={() => navigate(`/opportunities/${opp.id}`)}>
+                แก้ไข
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              {STAGES.filter(s => s !== stage).map(s => (
+                <DropdownMenuItem
+                  key={s}
+                  className="text-xs"
+                  onClick={() => {
+                    onStageChange(opp.id, s);
+                    toast.success(`ย้าย ${account?.clinic_name} → ${STAGE_LABELS[s]}`);
+                  }}
+                >
+                  → {STAGE_LABELS[s]}
+                </DropdownMenuItem>
+              ))}
+              <DropdownMenuSeparator />
+              <DropdownMenuItem className="text-xs text-emerald-600" onClick={() => {
+                onStageChange(opp.id, 'WON');
+                toast.success(`🎉 ${account?.clinic_name} — Won!`);
+              }}>
+                <Trophy size={12} className="mr-1" /> Mark Won
+              </DropdownMenuItem>
+              <DropdownMenuItem className="text-xs text-destructive" onClick={() => {
+                onStageChange(opp.id, 'LOST');
+                toast.info(`${account?.clinic_name} — Lost`);
+              }}>
+                <XCircle size={12} className="mr-1" /> Mark Lost
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+      </div>
     </div>
   );
 }
