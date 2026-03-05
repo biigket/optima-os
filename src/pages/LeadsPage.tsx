@@ -148,6 +148,10 @@ export default function LeadsPage() {
       notes: account.notes || '',
       grade: account.grade || '',
       single_or_chain: account.single_or_chain || '',
+      contact_name: '',
+      contact_role: '',
+      contact_phone: '',
+      contact_email: '',
     });
     setDialogOpen(true);
   };
