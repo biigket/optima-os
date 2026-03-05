@@ -117,6 +117,7 @@ export default function HistoryTimeline({ activities, stageHistory, notes, onUpd
                   onPin={onPinNote}
                   onUpdate={onUpdateActivity}
                   onAddComment={onAddComment}
+                  comments={commentsByParent.get(item.data.id) || []}
                 />
               )}
               {item.type === 'stage' && <StageItem data={item.data} />}
@@ -128,6 +129,7 @@ export default function HistoryTimeline({ activities, stageHistory, notes, onUpd
                   onDelete={onDeleteNote}
                   onPin={onPinNote}
                   onAddComment={onAddComment}
+                  comments={commentsByParent.get(item.data.id) || []}
                 />
               )}
             </div>
