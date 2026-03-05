@@ -1,65 +1,99 @@
-# Customer Card Interface Plan
+
+
+# Customer-Centric Opportunity System Plan
 
 ## Overview
+Transform the Opportunities module into a **customer-centric** system where every opportunity must be linked to a customer. Add a Kanban board view, Customer Select modal, and a structured Create Opportunity form.
 
-Build a full-page **Customer Card** view as a new route `/leads/:id` that serves as the central dashboard for each customer. When a user clicks a row in the Leads table, they navigate to this card instead of opening the edit dialog.
+## Changes
 
-## Files to Create/Modify
+### 1. Create `src/components/opportunities/CustomerSelectModal.tsx`
+- Modal with search bar (clinic name, phone, location)
+- Filter chips: Prospect / Customer / Dormant
+- Result list showing: clinic name, location, status badge, assigned sale, last activity
+- "Select" button per row
+- "Create New Customer" button at bottom → opens existing add-customer dialog, then auto-selects
+- Uses same mock account data from LeadsPage
 
-### 1. Create `src/pages/CustomerCardPage.tsx` (main page)
+### 2. Create `src/components/opportunities/CreateOpportunityForm.tsx`
+- **Sticky customer header** at top: clinic name (clickable link to `/leads/:id`), status badge, sales owner, quick actions (View Card, Add Contact)
+- Form fields:
+  - Opportunity Type: DEVICE / CONSUMABLE (required, radio or select)
+  - Product (from mock product catalog, required)
+  - Deal Value (required for DEVICE)
+  - Quantity (required for CONSUMABLE)
+  - Stage (auto-default: NEW_LEAD for DEVICE, CONTACTED for CONSUMABLE)
+  - Probability (auto-mapped by stage, shown as read-only for non-managers)
+  - Expected close date
+  - Lead source
+  - Notes
+  - **Next Activity Type** + **Next Activity Date** (required — Save disabled without these)
+- Contact check: if selected customer has no contacts, show warning dialog "กรุณาเพิ่มผู้ติดต่อก่อนสร้างโอกาสขาย" with button to add contact
+- On save → toast success, add to local state, redirect/close
 
-- Read account ID from URL params, find account from mock data
-- **Top Header**: clinic name, doctor name, location, sales owner, status badge, grade, potential score + right-side quick stats (Total Revenue, Machines Installed, Active Deals, Last Visit) + quick action buttons (Call, LINE, Add Note, Schedule Visit, Create Task)
-- **3-column layout** using CSS grid (`grid-cols-[280px_1fr_320px]`)
+### 3. Create `src/components/opportunities/OpportunityKanban.tsx`
+- Kanban board with columns per stage: ใหม่ → ติดต่อแล้ว → นัดสาธิต → สาธิตแล้ว → เจรจา → ปิดได้ → ปิดไม่ได้
+- Cards show: clinic name (prominent), product, deal value, sales owner, days in stage
+- **Stuck deal indicator**: red dot/icon if stage unchanged > 14 days (compare `created_at`)
+- **Warning icon** if no next activity set
+- Filter bar: All / Device / Consumable type filter
+- Clicking card → navigate to opportunity detail or expand inline
 
-### 2. Create `src/components/customer-card/CustomerLeftSidebar.tsx`
+### 4. Create `src/pages/OpportunityDetailPage.tsx`
+- Show full opportunity details with link back to Customer Card
+- Customer header section (same sticky header pattern)
+- Stage timeline visualization
+- Activity log section
+- Edit capability
 
-- Sections with collapsible cards:
-  - **Clinic Information**: name, address, province, phone, email, social links
-  - **Contact Persons**: list from mockContacts with role, phone, LINE
-  - **Internal Notes**: sales notes, strategy, preferences (editable textarea)
+### 5. Rewrite `src/pages/OpportunitiesPage.tsx`
+- Replace table-only view with toggle: **Kanban** (default) / **Table** view
+- "เพิ่มโอกาสขาย" button → opens **CustomerSelectModal** first → then **CreateOpportunityForm**
+- Keep existing filter bar (stage tabs) for table view
+- Add opportunity type filter (All / Device / Consumable)
 
-### 3. Create `src/components/customer-card/CustomerCenterPanel.tsx`
+### 6. Update `src/pages/CustomerCardPage.tsx`
+- Add "สร้างโอกาสขาย" button in the deals tab and in the action bar
+- Opens CreateOpportunityForm pre-filled with current customer (skip CustomerSelectModal)
 
-- Tabs: Overview | Timeline | Deals | Visits | Reports | Tasks
-- **Overview**: summary KPI cards (Last Visit, Next Action, Active Deals, Total Revenue, Machines, Last Order)
-- **Timeline**: chronological activity feed from mockActivityLogs (icon + date + user + description)
-- **Deals**: table of opportunities linked to this account from mockOpportunities
-- **Visits**: mock visit records with date, salesperson, purpose, summary
-- **Reports**: mock doctor feedback, competitor mentions, objections
-- **Tasks**: mock tasks linked to this customer from mockWorkItems
+### 7. Update `src/App.tsx`
+- Add route `/opportunities/:id` → OpportunityDetailPage
 
-### 4. Create `src/components/customer-card/CustomerRightPanel.tsx`
+### 8. Update `src/types/index.ts`
+- Add `opportunity_type?: 'DEVICE' | 'CONSUMABLE'` to Opportunity interface
+- Add `next_activity_type?: string` and `next_activity_date?: string` fields
 
-- Tabs: Devices | Consumables | Service | Purchases | Documents | Marketing
-- **Devices**: mock installed machines (name, serial, install date, warranty)
-- **Consumables**: cartridge usage mock data
-- **Service**: PM visits, repairs mock data
-- **Purchases**: purchase history with total lifetime revenue
-- **Documents**: file list (contract, quotation, invoice) — display only
-- **Marketing**: campaign participation mock data
+### 9. Update `src/data/mockData.ts`
+- Add `opportunity_type` and `next_activity` fields to existing mock opportunities
 
-### 5. Create `src/data/customerCardMockData.ts`
+## UX Flow Summary
 
-- Additional mock data for the Customer Card: installed devices, consumable usage, service history, visit records, purchase history, documents, marketing campaigns — all linked by account_id
+```text
+User clicks "เพิ่มโอกาสขาย"
+         │
+         ▼
+┌─────────────────────┐
+│ Customer Select Modal│
+│ - Search / Filter    │
+│ - Select or Create   │
+└────────┬────────────┘
+         │ customer selected
+         ▼
+  ┌── Has contacts? ──┐
+  │ No                 │ Yes
+  ▼                    ▼
+ Warning dialog   Create Opportunity Form
+ "Add contact     (customer header sticky)
+  first"          + required next activity
+                       │
+                       ▼
+                  Save → Kanban/Detail
+```
 
-### 6. Modify `src/App.tsx`
+## Design
+- Kanban columns: rounded cards with shadow-sm, color-coded top border by stage
+- Drag-and-drop: visual only (no library needed initially — click to change stage)
+- Mobile: Kanban scrolls horizontally, form stacks vertically
+- Stuck deals: small red clock icon on card
+- Customer name always most prominent text on opportunity cards
 
-- Add route: `<Route path="/leads/:id" element={<CustomerCardPage />} />`
-
-### 7. Modify `src/pages/LeadsPage.tsx`
-
-- Change table row click from `openEdit(account)` to `navigate(/leads/${account.id})`
-- Keep the edit dialog available via an "Edit" button on the Customer Card
-
-## Design Approach
-
-- White background, rounded cards with subtle shadows (`shadow-sm`)
-- Use existing shadcn components: Card, Tabs, Badge, Table, Button, ScrollArea
-- Icons from lucide-react for each section and tab
-- Responsive: on smaller screens, stack columns vertically
-- Back button to return to `/leads`
-
-## Mock Data Strategy
-
-All data is local mock — no database queries. Each panel references mock arrays filtered by `account_id`.
