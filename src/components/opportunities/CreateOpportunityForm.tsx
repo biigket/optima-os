@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import StatusBadge from '@/components/ui/StatusBadge';
 import { toast } from 'sonner';
 import { ExternalLink, Users, AlertTriangle } from 'lucide-react';
-import { mockProducts, mockContacts } from '@/data/mockData';
+import { supabase } from '@/integrations/supabase/client';
 import type { Account, OpportunityType, OpportunityStage, Opportunity } from '@/types';
 
 const STAGE_PROBABILITY: Record<string, number> = {
@@ -26,6 +26,19 @@ const ACTIVITY_TYPES = [
   { value: 'EMAIL', label: 'อีเมล' },
 ];
 
+interface Product {
+  id: string;
+  product_name: string;
+  category: string;
+  base_price: number | null;
+}
+
+interface Contact {
+  id: string;
+  account_id: string;
+  name: string;
+}
+
 interface CreateOpportunityFormProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -35,8 +48,8 @@ interface CreateOpportunityFormProps {
 
 export default function CreateOpportunityForm({ open, onOpenChange, customer, onSave }: CreateOpportunityFormProps) {
   const navigate = useNavigate();
-
-  const contacts = useMemo(() => mockContacts.filter(c => c.account_id === customer.id), [customer.id]);
+  const [products, setProducts] = useState<Product[]>([]);
+  const [contacts, setContacts] = useState<Contact[]>([]);
 
   const [form, setForm] = useState({
     opportunity_type: '' as OpportunityType | '',
@@ -51,9 +64,20 @@ export default function CreateOpportunityForm({ open, onOpenChange, customer, on
     next_activity_date: '',
   });
 
+  useEffect(() => {
+    if (!open) return;
+    Promise.all([
+      supabase.from('products').select('id, product_name, category, base_price'),
+      supabase.from('contacts').select('id, account_id, name').eq('account_id', customer.id),
+    ]).then(([prodRes, conRes]) => {
+      if (prodRes.data) setProducts(prodRes.data as Product[]);
+      if (conRes.data) setContacts(conRes.data as Contact[]);
+    });
+  }, [open, customer.id]);
+
   const set = (key: string, value: string) => setForm(f => ({ ...f, [key]: value }));
 
-  const filteredProducts = mockProducts.filter(p =>
+  const filteredProducts = products.filter(p =>
     !form.opportunity_type || p.category === form.opportunity_type
   );
 
@@ -65,17 +89,17 @@ export default function CreateOpportunityForm({ open, onOpenChange, customer, on
     (form.opportunity_type === 'DEVICE' ? !!form.deal_value : !!form.quantity);
 
   const handleSave = () => {
-    const selectedProduct = mockProducts.find(p => p.id === form.product_id);
+    const selectedProduct = products.find(p => p.id === form.product_id);
     const expectedValue = form.opportunity_type === 'DEVICE'
       ? Number(form.deal_value)
-      : Number(form.quantity) * (selectedProduct?.price || 0);
+      : Number(form.quantity) * (selectedProduct?.base_price || 0);
 
     const newOpp: Opportunity = {
       id: `opp-${Date.now()}`,
       account_id: customer.id,
       stage: currentStage as OpportunityStage,
       opportunity_type: form.opportunity_type || undefined,
-      interested_products: selectedProduct ? [selectedProduct.name] : [],
+      interested_products: selectedProduct ? [selectedProduct.product_name] : [],
       expected_value: expectedValue,
       assigned_sale: customer.assigned_sale || undefined,
       close_date: form.close_date || undefined,
@@ -148,7 +172,7 @@ export default function CreateOpportunityForm({ open, onOpenChange, customer, on
               <SelectContent>
                 {filteredProducts.map(p => (
                   <SelectItem key={p.id} value={p.id} className="text-xs">
-                    {p.name}{p.price ? ` — ฿${p.price.toLocaleString()}` : ''}
+                    {p.product_name}{p.base_price ? ` — ฿${p.base_price.toLocaleString()}` : ''}
                   </SelectItem>
                 ))}
               </SelectContent>

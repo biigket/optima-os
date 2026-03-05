@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Search, Plus, LayoutGrid, List, ArrowUpDown, Calendar, Building2, Clock, Filter } from 'lucide-react';
 import { Input } from '@/components/ui/input';
@@ -8,7 +8,7 @@ import StatusBadge from '@/components/ui/StatusBadge';
 import OpportunityKanban from '@/components/opportunities/OpportunityKanban';
 import CustomerSelectModal from '@/components/opportunities/CustomerSelectModal';
 import CreateOpportunityForm from '@/components/opportunities/CreateOpportunityForm';
-import { mockAccounts, mockContacts, mockProducts } from '@/data/mockData';
+import { supabase } from '@/integrations/supabase/client';
 import { useMockAuth, MOCK_SALES } from '@/hooks/useMockAuth';
 import { toast } from 'sonner';
 import type { Account, Opportunity, OpportunityStage } from '@/types';
@@ -41,16 +41,9 @@ export function getNotesForOpportunity(oppId: string) { return globalNotes.filte
 export function getNotesForAccount(accountId: string) { return globalNotes.filter(n => n.account_id === accountId); }
 export function addNoteGlobal(note: OpportunityNote) { globalNotes = [note, ...globalNotes]; }
 
-// Account cache built from mock data
+// Account cache — populated on demand from DB
 const accountCache: Record<string, { clinic_name: string; customer_status: string; assigned_sale?: string }> = {};
-mockAccounts.forEach(a => {
-  accountCache[a.id] = { clinic_name: a.clinic_name, customer_status: a.customer_status, assigned_sale: a.assigned_sale || undefined };
-});
 export function getCachedAccount(id: string) { return accountCache[id]; }
-
-// Local opportunities state (mock — no DB)
-let nextOppId = 1;
-function genOppId() { return `opp-${Date.now()}-${nextOppId++}`; }
 
 export default function OpportunitiesPage() {
   const navigate = useNavigate();
@@ -119,6 +112,7 @@ export default function OpportunitiesPage() {
   const handleCustomerSelect = (account: Account, hasContacts: boolean) => {
     setSelectModalOpen(false);
     setSelectedCustomer(account);
+    // Cache account for display
     accountCache[account.id] = { clinic_name: account.clinic_name, customer_status: account.customer_status, assigned_sale: account.assigned_sale || undefined };
     if (!hasContacts) {
       setNoContactWarning(true);
@@ -128,8 +122,7 @@ export default function OpportunitiesPage() {
   };
 
   const handleSave = (data: Opportunity) => {
-    // Ensure it has an id
-    if (!data.id) data.id = genOppId();
+    if (!data.id) data.id = `opp-${Date.now()}`;
     if (!data.created_at) data.created_at = new Date().toISOString();
     setOpportunities(prev => [data, ...prev]);
   };
