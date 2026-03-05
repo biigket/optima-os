@@ -123,11 +123,11 @@ export default function HistoryTimeline({ activities, stageHistory, notes, onUpd
   );
 }
 
-function ActivityItem({ data, clinicName, onDelete, onPin }: { data: Activity; clinicName?: string; onDelete?: (id: string) => void; onPin?: (id: string) => void }) {
+function ActivityItem({ data, clinicName, isPinned, onDelete, onPin }: { data: Activity; clinicName?: string; isPinned?: boolean; onDelete?: (id: string) => void; onPin?: (id: string) => void }) {
   const Icon = TYPE_ICONS[data.activity_type] || Building2;
   const colors = TYPE_COLORS[data.activity_type] || TYPE_COLORS.TASK;
   return (
-    <div className="flex items-start gap-2">
+    <div className={`flex items-start gap-2 ${isPinned ? 'bg-primary/5 -mx-2 px-2 py-1 rounded-lg' : ''}`}>
       <div className={`absolute -left-6 w-[18px] h-[18px] rounded-full ${colors} flex items-center justify-center mt-0.5`}>
         <Icon size={10} />
       </div>
@@ -135,6 +135,7 @@ function ActivityItem({ data, clinicName, onDelete, onPin }: { data: Activity; c
         <div className="flex items-center gap-2 flex-wrap">
           <span className="text-xs font-medium text-foreground flex-1">{data.title}</span>
           <CheckCircle2 size={11} className="text-emerald-500 shrink-0" />
+          {isPinned && <Pin size={11} className="text-primary fill-primary" />}
           {data.priority === 'HIGH' && (
             <span className="px-1.5 py-0.5 rounded text-[9px] font-semibold bg-red-100 text-red-700 dark:bg-red-900/50 dark:text-red-400">HIGH</span>
           )}
