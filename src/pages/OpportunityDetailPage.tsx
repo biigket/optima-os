@@ -8,9 +8,11 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import StatusBadge from '@/components/ui/StatusBadge';
 import {
   ArrowLeft, Building2, ExternalLink, Users, Calendar, Clock,
-  Phone, Eye, Presentation, FileCheck, AlertTriangle, DollarSign, Pencil, Trophy, XCircle, Check
+  Phone, Eye, Presentation, FileCheck, AlertTriangle, Pencil, Trophy, XCircle, Check, MessageSquare, Send
 } from 'lucide-react';
 import { mockOpportunities, getAccountById, mockContacts } from '@/data/mockData';
+import { useMockAuth } from '@/hooks/useMockAuth';
+import { getNotesForOpportunity, addNoteGlobal, type OpportunityNote } from '@/pages/OpportunitiesPage';
 import { toast } from 'sonner';
 import type { Opportunity, OpportunityStage } from '@/types';
 
@@ -25,20 +27,21 @@ const PROBABILITY: Record<string, number> = {
 const ACTIVITY_ICONS: Record<string, React.ElementType> = {
   CALL: Phone, VISIT: Eye, DEMO: Presentation, MEETING: Users, PROPOSAL: FileCheck,
 };
-
 const STUCK_REASONS = ['รอราคา', 'รอผู้ตัดสินใจ', 'รอ finance', 'รอ training', 'อื่นๆ'];
 
 export default function OpportunityDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { currentUser } = useMockAuth();
 
   const initialOpp = mockOpportunities.find(o => o.id === id);
   const [opp, setOpp] = useState<Opportunity | undefined>(initialOpp ? { ...initialOpp } : undefined);
   const [editOpen, setEditOpen] = useState(false);
   const [stageConfirm, setStageConfirm] = useState<OpportunityStage | null>(null);
   const [stageHistory, setStageHistory] = useState<{ from: string; to: string; date: string }[]>([]);
+  const [noteInput, setNoteInput] = useState('');
+  const [, forceUpdate] = useState(0);
 
-  // Edit form state
   const [editForm, setEditForm] = useState({
     expected_value: '',
     close_date: '',
@@ -65,6 +68,7 @@ export default function OpportunityDetailPage() {
   const weighted = Math.round((opp.expected_value || 0) * prob / 100);
   const isOverdue = opp.close_date && new Date(opp.close_date) < new Date() && !['WON', 'LOST'].includes(opp.stage);
   const ActivityIcon = opp.next_activity_type ? (ACTIVITY_ICONS[opp.next_activity_type] || Calendar) : Calendar;
+  const notes = getNotesForOpportunity(opp.id);
 
   const changeStage = (newStage: OpportunityStage) => {
     const oldStage = opp.stage;
@@ -96,6 +100,22 @@ export default function OpportunityDetailPage() {
     } : prev);
     setEditOpen(false);
     toast.success('บันทึกแล้ว');
+  };
+
+  const handleAddNote = () => {
+    if (!noteInput.trim()) return;
+    const note: OpportunityNote = {
+      id: `note-${Date.now()}`,
+      opportunity_id: opp.id,
+      account_id: opp.account_id,
+      content: noteInput.trim(),
+      created_by: currentUser?.name || 'Unknown',
+      created_at: new Date().toISOString(),
+    };
+    addNoteGlobal(note);
+    setNoteInput('');
+    forceUpdate(n => n + 1);
+    toast.success('บันทึกโน้ตแล้ว');
   };
 
   return (
@@ -143,9 +163,7 @@ export default function OpportunityDetailPage() {
             return (
               <div key={s} className="flex-1 min-w-[90px]">
                 <button
-                  onClick={() => {
-                    if (s !== opp.stage) setStageConfirm(s);
-                  }}
+                  onClick={() => { if (s !== opp.stage) setStageConfirm(s); }}
                   className={`w-full h-9 flex items-center justify-center text-[10px] font-semibold relative transition-all hover:opacity-80
                     ${isCurrent ? (isLost ? 'bg-destructive text-destructive-foreground' : 'bg-primary text-primary-foreground') :
                       isPast ? 'bg-primary/15 text-primary' : 'bg-muted text-muted-foreground hover:bg-muted/80'}
@@ -255,6 +273,45 @@ export default function OpportunityDetailPage() {
         </div>
       </div>
 
+      {/* Internal Notes */}
+      <div className="rounded-xl border bg-card p-4 shadow-sm">
+        <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3 flex items-center gap-1.5">
+          <MessageSquare size={13} /> บันทึกภายใน
+        </p>
+        
+        {/* Add note */}
+        <div className="flex gap-2 mb-4">
+          <Input
+            value={noteInput}
+            onChange={e => setNoteInput(e.target.value)}
+            placeholder="เพิ่มบันทึก..."
+            className="h-8 text-sm flex-1"
+            onKeyDown={e => { if (e.key === 'Enter') handleAddNote(); }}
+          />
+          <Button size="sm" className="h-8 gap-1" onClick={handleAddNote} disabled={!noteInput.trim()}>
+            <Send size={12} /> บันทึก
+          </Button>
+        </div>
+
+        {/* Notes list */}
+        {notes.length > 0 ? (
+          <div className="space-y-2">
+            {notes.map(n => (
+              <div key={n.id} className="p-2.5 rounded-lg bg-muted/30 border border-border">
+                <div className="flex items-center gap-2 text-[10px] text-muted-foreground mb-1">
+                  <span className="font-semibold text-foreground">{n.created_by}</span>
+                  <span>·</span>
+                  <span>{new Date(n.created_at).toLocaleDateString('th-TH', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}</span>
+                </div>
+                <p className="text-xs text-foreground">{n.content}</p>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <p className="text-xs text-muted-foreground text-center py-4">ยังไม่มีบันทึก</p>
+        )}
+      </div>
+
       {/* Activity Timeline */}
       <div className="rounded-xl border bg-card p-4 shadow-sm">
         <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3">Activity Timeline</p>
@@ -335,11 +392,9 @@ export default function OpportunityDetailPage() {
 
 function InfoRow({ label, value, highlight, warn }: { label: string; value: string; highlight?: boolean; warn?: boolean }) {
   return (
-    <div className="flex justify-between text-xs">
-      <span className="text-muted-foreground">{label}</span>
-      <span className={`font-medium text-right max-w-[60%] ${warn ? 'text-destructive' : highlight ? 'text-foreground text-sm' : 'text-foreground'}`}>
-        {value}
-      </span>
+    <div className="flex items-start justify-between gap-2">
+      <span className="text-[11px] text-muted-foreground shrink-0">{label}</span>
+      <span className={`text-xs text-right ${highlight ? 'font-bold text-foreground' : warn ? 'text-destructive font-medium' : 'text-foreground'}`}>{value}</span>
     </div>
   );
 }

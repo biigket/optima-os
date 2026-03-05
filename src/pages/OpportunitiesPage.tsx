@@ -1,13 +1,15 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search, Plus, LayoutGrid, List, ArrowUpDown, Calendar, Building2, Clock } from 'lucide-react';
+import { Search, Plus, LayoutGrid, List, ArrowUpDown, Calendar, Building2, Clock, Filter } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import StatusBadge from '@/components/ui/StatusBadge';
 import OpportunityKanban from '@/components/opportunities/OpportunityKanban';
 import CustomerSelectModal from '@/components/opportunities/CustomerSelectModal';
 import CreateOpportunityForm from '@/components/opportunities/CreateOpportunityForm';
 import { mockOpportunities, getAccountById } from '@/data/mockData';
+import { useMockAuth, MOCK_SALES } from '@/hooks/useMockAuth';
 import { toast } from 'sonner';
 import type { Account, Opportunity, OpportunityStage } from '@/types';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
@@ -24,11 +26,32 @@ const PROBABILITY: Record<string, number> = {
 
 type SortKey = 'next_activity' | 'value' | 'close_date' | 'days_in_stage';
 
+// Internal notes store (shared across app via export)
+export interface OpportunityNote {
+  id: string;
+  opportunity_id: string;
+  account_id: string;
+  content: string;
+  created_by: string;
+  created_at: string;
+}
+
+// Global notes store
+let globalNotes: OpportunityNote[] = [];
+export function getNotesForOpportunity(oppId: string) { return globalNotes.filter(n => n.opportunity_id === oppId); }
+export function getNotesForAccount(accountId: string) { return globalNotes.filter(n => n.account_id === accountId); }
+export function addNoteGlobal(note: OpportunityNote) { globalNotes = [note, ...globalNotes]; }
+
 export default function OpportunitiesPage() {
   const navigate = useNavigate();
+  const { currentUser } = useMockAuth();
+  const isAdmin = currentUser?.role === 'ADMIN';
+  const salesUsers = MOCK_SALES.filter(u => u.role === 'SALE');
+
   const [search, setSearch] = useState('');
   const [stageFilter, setStageFilter] = useState<OpportunityStage | 'ALL'>('ALL');
   const [typeFilter, setTypeFilter] = useState<string>('ALL');
+  const [saleFilter, setSaleFilter] = useState<string>('ALL');
   const [viewMode, setViewMode] = useState<'kanban' | 'table'>('kanban');
   const [sortKey, setSortKey] = useState<SortKey>('next_activity');
 
@@ -38,8 +61,19 @@ export default function OpportunitiesPage() {
   const [createFormOpen, setCreateFormOpen] = useState(false);
   const [noContactWarning, setNoContactWarning] = useState(false);
   const [opportunities, setOpportunities] = useState<Opportunity[]>(mockOpportunities);
+  const [, forceUpdate] = useState(0);
 
-  const filtered = opportunities.filter(o => {
+  // Role-based filtering: sales see only their own
+  const roleFiltered = useMemo(() => {
+    if (isAdmin) {
+      if (saleFilter === 'ALL') return opportunities;
+      return opportunities.filter(o => o.assigned_sale === saleFilter);
+    }
+    // Sales user sees only their own
+    return opportunities.filter(o => o.assigned_sale === currentUser?.name);
+  }, [opportunities, isAdmin, saleFilter, currentUser?.name]);
+
+  const filtered = roleFiltered.filter(o => {
     const account = getAccountById(o.account_id);
     const matchSearch = !search || account?.clinic_name.toLowerCase().includes(search.toLowerCase());
     const matchStage = stageFilter === 'ALL' || o.stage === stageFilter;
@@ -96,6 +130,21 @@ export default function OpportunitiesPage() {
     setOpportunities(prev => prev.map(o => o.id === oppId ? { ...o, ...updates } : o));
   };
 
+  const handleAddNote = (oppId: string, content: string) => {
+    const opp = opportunities.find(o => o.id === oppId);
+    if (!opp) return;
+    const note: OpportunityNote = {
+      id: `note-${Date.now()}`,
+      opportunity_id: oppId,
+      account_id: opp.account_id,
+      content,
+      created_by: currentUser?.name || 'Unknown',
+      created_at: new Date().toISOString(),
+    };
+    addNoteGlobal(note);
+    forceUpdate(n => n + 1);
+  };
+
   return (
     <div className="space-y-4 animate-fade-in">
       {/* Header */}
@@ -108,6 +157,12 @@ export default function OpportunitiesPage() {
             <span>รวม ฿{totalValue.toLocaleString()}</span>
             <span className="text-muted-foreground/40">·</span>
             <span>Weighted ฿{totalWeighted.toLocaleString()}</span>
+            {!isAdmin && currentUser && (
+              <>
+                <span className="text-muted-foreground/40">·</span>
+                <span className="text-primary font-medium">{currentUser.name}</span>
+              </>
+            )}
           </div>
         </div>
         <Button size="sm" className="gap-1.5" onClick={() => setSelectModalOpen(true)}>
@@ -133,6 +188,24 @@ export default function OpportunitiesPage() {
             </button>
           ))}
         </div>
+
+        {/* Sale filter (admin only) */}
+        {isAdmin && (
+          <div className="flex items-center gap-1.5">
+            <Filter size={12} className="text-muted-foreground" />
+            <Select value={saleFilter} onValueChange={setSaleFilter}>
+              <SelectTrigger className="h-8 w-[140px] text-xs">
+                <SelectValue placeholder="เซลล์ทั้งหมด" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="ALL" className="text-xs">เซลล์ทั้งหมด</SelectItem>
+                {salesUsers.map(s => (
+                  <SelectItem key={s.id} value={s.name} className="text-xs">{s.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        )}
 
         {viewMode === 'table' && (
           <div className="flex gap-1 items-center">
@@ -185,6 +258,7 @@ export default function OpportunitiesPage() {
           typeFilter={typeFilter}
           onStageChange={handleStageChange}
           onUpdateOpportunity={handleUpdateOpportunity}
+          onAddNote={handleAddNote}
         />
       ) : (
         <div className="rounded-lg border bg-card overflow-hidden">
@@ -206,10 +280,14 @@ export default function OpportunitiesPage() {
               {sorted.map(opp => {
                 const account = getAccountById(opp.account_id);
                 const daysInStage = Math.floor((Date.now() - new Date(opp.created_at || Date.now()).getTime()) / 86400000);
-                const isStuck = daysInStage > 14 && !['WON', 'LOST'].includes(opp.stage);
-                const isOverdue = opp.close_date && new Date(opp.close_date) < new Date() && !['WON', 'LOST'].includes(opp.stage);
+                const isTerminal = ['WON', 'LOST'].includes(opp.stage);
+                const isOverdue = opp.close_date && new Date(opp.close_date) < new Date() && !isTerminal;
                 const prob = PROBABILITY[opp.stage] || 0;
                 const weighted = Math.round((opp.expected_value || 0) * prob / 100);
+                const daysColor = isTerminal ? 'text-muted-foreground' :
+                  daysInStage >= 7 ? 'text-destructive' :
+                  daysInStage >= 3 ? 'text-warning' :
+                  'text-emerald-600';
 
                 return (
                   <tr key={opp.id} className="border-b last:border-0 hover:bg-muted/30 transition-colors cursor-pointer" onClick={() => navigate(`/opportunities/${opp.id}`)}>
@@ -241,8 +319,8 @@ export default function OpportunitiesPage() {
                       {opp.close_date ? new Date(opp.close_date).toLocaleDateString('th-TH', { day: 'numeric', month: 'short' }) : '—'}
                     </td>
                     <td className="px-4 py-3 text-center">
-                      <span className={`text-xs font-semibold ${isStuck ? 'text-destructive' : 'text-muted-foreground'}`}>
-                        {isStuck && <Clock size={10} className="inline mr-0.5" />}
+                      <span className={`text-xs font-semibold ${daysColor}`}>
+                        <Clock size={10} className="inline mr-0.5" />
                         {daysInStage}d
                       </span>
                     </td>
