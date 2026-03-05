@@ -7,7 +7,7 @@ import {
   Megaphone, Gift, Star,
   GraduationCap, BookOpen,
   TrendingUp, BarChart3,
-  Lock
+  Lock, Bot, Brain, Zap
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -94,6 +94,15 @@ const navGroups = [
       { to: '/analytics', icon: BarChart3, label: 'วิเคราะห์' },
     ],
   },
+  {
+    label: 'AI AUTOMATION',
+    phase: 3,
+    items: [
+      { to: '/ai-pipeline', icon: Brain, label: 'AI วิเคราะห์ Pipeline', locked: true },
+      { to: '/ai-reorder', icon: Zap, label: 'AI ทำนาย Reorder', locked: true },
+      { to: '/ai-marketing', icon: Bot, label: 'AI แนะนำ Marketing', locked: true },
+    ],
+  },
 ];
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
@@ -124,16 +133,17 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
         <nav className="flex-1 overflow-y-auto py-3 px-2 space-y-4">
           {navGroups.map((group, gi) => {
-            const isPhase2 = group.phase === 2;
             const prevGroup = navGroups[gi - 1];
-            const showDivider = isPhase2 && prevGroup && prevGroup.phase === 1;
+            const showDivider = prevGroup && group.phase !== prevGroup.phase;
+            const dividerLabel = group.phase === 2 ? 'Phase 2' : group.phase === 3 ? 'Phase 3' : '';
+            const isLocked = group.phase === 2 || group.phase === 3;
 
             return (
               <div key={group.label}>
                 {showDivider && !collapsed && (
                   <div className="flex items-center gap-2 px-2 mb-3 mt-2">
                     <div className="flex-1 border-t border-sidebar-border" />
-                    <span className="text-[9px] font-semibold tracking-widest text-sidebar-muted/60 uppercase">Phase 2</span>
+                    <span className="text-[9px] font-semibold tracking-widest text-sidebar-muted/60 uppercase">{dividerLabel}</span>
                     <div className="flex-1 border-t border-sidebar-border" />
                   </div>
                 )}
@@ -143,7 +153,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                 {!collapsed && (
                   <p className={cn(
                     'px-2 mb-1 text-[10px] font-semibold tracking-widest uppercase',
-                    isPhase2 ? 'text-sidebar-muted/50' : 'text-sidebar-muted'
+                    isLocked ? 'text-sidebar-muted/50' : 'text-sidebar-muted'
                   )}>
                     {group.label}
                   </p>
