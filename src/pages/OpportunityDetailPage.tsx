@@ -56,7 +56,7 @@ export default function OpportunityDetailPage() {
   const [activeActivityId, setActiveActivityId] = useState<string | null>(null);
   const [formPreview, setFormPreview] = useState<Partial<Activity> | null>(null);
   const [activeTab, setActiveTab] = useState('activity');
-  const [stakeholdersOpen, setStakeholdersOpen] = useState(true);
+  const [quickScheduleDefaults, setQuickScheduleDefaults] = useState<{ start_time: string; end_time: string; activity_date: string } | null>(null);
   const [addContactOpen, setAddContactOpen] = useState(false);
   const [newContact, setNewContact] = useState({ name: '', role: '', phone: '' });
   const [editingContactId, setEditingContactId] = useState<string | null>(null);

@@ -26,6 +26,12 @@ const ACTIVITY_TYPES: { type: ActivityType; label: string; icon: React.ElementTy
   { type: 'DEADLINE', label: 'Deadline', icon: Target, color: 'text-red-600 bg-red-100' },
 ];
 
+interface QuickScheduleDefaults {
+  start_time: string;
+  end_time: string;
+  activity_date: string;
+}
+
 interface ActivityFormProps {
   opportunityId: string;
   accountId: string;
@@ -34,6 +40,7 @@ interface ActivityFormProps {
   onActivityUpdated?: (activity: Activity) => void;
   onCancelEdit?: () => void;
   onFormChange?: (preview: Partial<Activity>) => void;
+  quickScheduleDefaults?: QuickScheduleDefaults | null;
 }
 
 export default function ActivityForm({
