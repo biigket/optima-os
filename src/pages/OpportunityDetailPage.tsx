@@ -251,19 +251,6 @@ export default function OpportunityDetailPage() {
             </div>
           </div>
 
-          {/* Needs */}
-          <div>
-            <span className="text-[11px] text-muted-foreground">ความต้องการ</span>
-            {opp.needs && opp.needs.length > 0 ? (
-              <div className="flex flex-wrap gap-1 mt-1">
-                {opp.needs.map(n => (
-                  <span key={n} className="px-2 py-0.5 rounded-full bg-primary/10 text-primary text-[10px] font-medium">{n}</span>
-                ))}
-              </div>
-            ) : (
-              <p className="text-xs text-muted-foreground mt-0.5">-</p>
-            )}
-          </div>
 
           <InfoRow label="งบประมาณ" value={opp.budget_range || '-'} />
           <InfoRow label="ช่องทางชำระ" value={opp.payment_method ? (PAYMENT_LABELS[opp.payment_method] || opp.payment_method) : '-'} />
