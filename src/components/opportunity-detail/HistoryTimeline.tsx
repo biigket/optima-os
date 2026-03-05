@@ -246,6 +246,7 @@ function ActivityItem({ data, clinicName, isPinned, onDelete, onPin, onUpdate, o
     </div>
   );
 }
+function StageItem({ data }: { data: { from: string; to: string; date: string } }) {
   return (
     <div className="flex items-start gap-2">
       <div className="absolute -left-6 w-[18px] h-[18px] rounded-full border-2 border-primary bg-card mt-0.5" />
