@@ -21,7 +21,7 @@ import type { Opportunity, OpportunityStage, Account, Contact, Activity } from '
 import ActivityForm from '@/components/opportunity-detail/ActivityForm';
 import FocusPanel from '@/components/opportunity-detail/FocusPanel';
 import HistoryTimeline from '@/components/opportunity-detail/HistoryTimeline';
-import CalendarPanel from '@/components/opportunity-detail/CalendarPanel';
+
 
 const STAGES: OpportunityStage[] = ['NEW_LEAD', 'CONTACTED', 'DEMO_SCHEDULED', 'DEMO_DONE', 'NEGOTIATION', 'WON', 'LOST'];
 const STAGE_LABELS: Record<string, string> = {
@@ -52,11 +52,9 @@ export default function OpportunityDetailPage() {
   const [, forceUpdate] = useState(0);
   const [activities, setActivities] = useState<Activity[]>([]);
   const [pinnedIds, setPinnedIds] = useState<Set<string>>(new Set());
-  const [selectedDate, setSelectedDate] = useState(new Date());
-  const [activeActivityId, setActiveActivityId] = useState<string | null>(null);
-  const [formPreview, setFormPreview] = useState<Partial<Activity> | null>(null);
-  const [activeTab, setActiveTab] = useState('activity');
-  const [quickScheduleDefaults, setQuickScheduleDefaults] = useState<{ start_time: string; end_time: string; activity_date: string } | null>(null);
+   const [activeActivityId, setActiveActivityId] = useState<string | null>(null);
+   const [formPreview, setFormPreview] = useState<Partial<Activity> | null>(null);
+   const [activeTab, setActiveTab] = useState('activity');
   const [stakeholdersOpen, setStakeholdersOpen] = useState(true);
   const [addContactOpen, setAddContactOpen] = useState(false);
   const [newContact, setNewContact] = useState({ name: '', role: '', phone: '' });
@@ -178,32 +176,6 @@ export default function OpportunityDetailPage() {
     setFormPreview(null);
   };
 
-  const handleCalendarActivityClick = (activity: Activity) => {
-    setActiveActivityId(activity.id);
-    setActiveTab('activity');
-  };
-
-  const handleActivityReschedule = async (activityId: string, newStartTime: string, newEndTime: string | null) => {
-    const { error } = await supabase.from('activities').update({
-      start_time: newStartTime,
-      end_time: newEndTime,
-    }).eq('id', activityId);
-    if (error) { toast.error('ย้ายเวลาไม่สำเร็จ'); return; }
-    setActivities(prev => prev.map(a => a.id === activityId ? { ...a, start_time: newStartTime, end_time: newEndTime || a.end_time } : a));
-    toast.success(`ย้ายไป ${newStartTime} แล้ว`);
-  };
-
-  const handleQuickScheduleClick = (startTime: string, endTime: string) => {
-    setActiveTab('activity');
-    setActiveActivityId(null);
-    const dateStr = format(selectedDate, 'yyyy-MM-dd');
-    setQuickScheduleDefaults({ start_time: startTime, end_time: endTime, activity_date: dateStr });
-    setFormPreview({
-      start_time: startTime,
-      end_time: endTime,
-      activity_date: dateStr,
-    });
-  };
 
   const editingActivity = activeActivityId ? activities.find(a => a.id === activeActivityId) || null : null;
 
@@ -454,15 +426,13 @@ export default function OpportunityDetailPage() {
 
               <TabsContent value="activity">
                 <ActivityForm
-                  key={quickScheduleDefaults ? `qs-${quickScheduleDefaults.start_time}-${quickScheduleDefaults.end_time}` : 'default'}
                   opportunityId={opp.id}
                   accountId={opp.account_id}
-                  onActivityCreated={(a) => { handleActivityCreated(a); setQuickScheduleDefaults(null); }}
+                  onActivityCreated={handleActivityCreated}
                   editingActivity={editingActivity}
                   onActivityUpdated={handleActivityUpdated}
-                  onCancelEdit={() => { setActiveActivityId(null); setFormPreview(null); setQuickScheduleDefaults(null); }}
+                  onCancelEdit={() => { setActiveActivityId(null); setFormPreview(null); }}
                   onFormChange={setFormPreview}
-                  quickScheduleDefaults={quickScheduleDefaults}
                 />
               </TabsContent>
 
@@ -530,17 +500,6 @@ export default function OpportunityDetailPage() {
             }}
           />
 
-          {/* Calendar Panel */}
-          <CalendarPanel
-            activities={activities}
-            selectedDate={selectedDate}
-            onDateChange={setSelectedDate}
-            activeActivityId={activeActivityId}
-            onActivityClick={handleCalendarActivityClick}
-            previewOverrides={formPreview}
-            onActivityReschedule={handleActivityReschedule}
-            onQuickScheduleClick={handleQuickScheduleClick}
-          />
         </div>
       </div>
 
