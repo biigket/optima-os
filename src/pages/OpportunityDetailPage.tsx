@@ -89,8 +89,10 @@ export default function OpportunityDetailPage() {
   const ActivityIcon = opp.next_activity_type ? (ACTIVITY_ICONS[opp.next_activity_type] || Calendar) : Calendar;
   const notes = getNotesForOpportunity(opp.id);
 
-  const changeStage = (newStage: OpportunityStage) => {
+  const changeStage = async (newStage: OpportunityStage) => {
     const oldStage = opp.stage;
+    const { error } = await supabase.from('opportunities').update({ stage: newStage }).eq('id', opp.id);
+    if (error) { toast.error('อัปเดตไม่สำเร็จ'); return; }
     setStageHistory(prev => [...prev, { from: oldStage, to: newStage, date: new Date().toISOString() }]);
     setOpp(prev => prev ? { ...prev, stage: newStage } : prev);
     toast.success(`ย้ายไป ${STAGE_LABELS[newStage]}`);
