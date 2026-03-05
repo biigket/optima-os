@@ -10,7 +10,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Slider } from '@/components/ui/slider';
 import StatusBadge from '@/components/ui/StatusBadge';
 import { toast } from 'sonner';
-import { ExternalLink, Users, AlertTriangle, X, Plus } from 'lucide-react';
+import { ExternalLink, Users, AlertTriangle, X, UserPlus } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import type { Account, OpportunityStage, Opportunity } from '@/types';
 import { differenceInDays } from 'date-fns';
@@ -40,8 +40,6 @@ const CREDIT_CARD_OPTIONS = [
   { value: 'INST_6', label: 'ผ่อน 6 เดือน' },
   { value: 'INST_10', label: 'ผ่อน 10 เดือน' },
 ];
-
-const PRESET_NEEDS = ['ลดริ้วรอย', 'หน้าเรียว', 'ผิวกระจ่างใส', 'รักษาสิว', 'ลดรอยดำ', 'กระชับผิว'];
 
 interface Product {
   id: string;
@@ -83,18 +81,13 @@ function TagChipInput({ label, tags, onChange, placeholder }: { label: string; t
           </span>
         ))}
       </div>
-      <div className="flex gap-1.5">
-        <Input
-          value={input}
-          onChange={e => setInput(e.target.value)}
-          onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); addTag(input); } }}
-          className="h-8 text-xs flex-1"
-          placeholder={placeholder || 'พิมพ์แล้วกด Enter'}
-        />
-        <Button type="button" variant="outline" size="sm" className="h-8 px-2" onClick={() => addTag(input)} disabled={!input.trim()}>
-          <Plus size={12} />
-        </Button>
-      </div>
+      <Input
+        value={input}
+        onChange={e => setInput(e.target.value)}
+        onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); addTag(input); } }}
+        className="h-8 text-xs"
+        placeholder={placeholder || 'พิมพ์แล้วกด Enter'}
+      />
     </div>
   );
 }
@@ -103,6 +96,9 @@ export default function CreateOpportunityForm({ open, onOpenChange, customer, on
   const navigate = useNavigate();
   const [products, setProducts] = useState<Product[]>([]);
   const [contacts, setContacts] = useState<ContactItem[]>([]);
+  const [showAddContact, setShowAddContact] = useState(false);
+  const [newContactName, setNewContactName] = useState('');
+  const [newContactPhone, setNewContactPhone] = useState('');
 
   const [form, setForm] = useState({
     selectedProductIds: [] as string[],
@@ -123,7 +119,7 @@ export default function CreateOpportunityForm({ open, onOpenChange, customer, on
   useEffect(() => {
     if (!open) return;
     Promise.all([
-      supabase.from('products').select('id, product_name, category, base_price'),
+      supabase.from('products').select('id, product_name, category, base_price').eq('category', 'DEVICE'),
       supabase.from('contacts').select('id, account_id, name, phone, is_decision_maker').eq('account_id', customer.id),
     ]).then(([prodRes, conRes]) => {
       if (prodRes.data) setProducts(prodRes.data as Product[]);
@@ -154,6 +150,26 @@ export default function CreateOpportunityForm({ open, onOpenChange, customer, on
     : null;
 
   const canSave = form.selectedProductIds.length > 0 && !!form.deal_value;
+
+  const handleAddContact = async () => {
+    if (!newContactName.trim()) return;
+    const { data, error } = await supabase.from('contacts').insert({
+      account_id: customer.id,
+      name: newContactName.trim(),
+      phone: newContactPhone.trim() || null,
+      is_decision_maker: true,
+    }).select('id, account_id, name, phone, is_decision_maker').single();
+    if (error) { toast.error('เพิ่มผู้ติดต่อไม่สำเร็จ'); return; }
+    if (data) {
+      const newContact = data as ContactItem;
+      setContacts(prev => [...prev, newContact]);
+      set('authority_contact_id', newContact.id);
+      toast.success('เพิ่มผู้ติดต่อแล้ว');
+    }
+    setNewContactName('');
+    setNewContactPhone('');
+    setShowAddContact(false);
+  };
 
   const handleSave = () => {
     const selectedProducts = products.filter(p => form.selectedProductIds.includes(p.id));
@@ -196,13 +212,6 @@ export default function CreateOpportunityForm({ open, onOpenChange, customer, on
     authority_contact_id: '', needs: [],
   });
 
-  const toggleNeed = (need: string) => {
-    setForm(f => ({
-      ...f,
-      needs: f.needs.includes(need) ? f.needs.filter(n => n !== need) : [...f.needs, need],
-    }));
-  };
-
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-lg max-h-[90vh] flex flex-col p-0">
@@ -226,7 +235,7 @@ export default function CreateOpportunityForm({ open, onOpenChange, customer, on
           </div>
         </DialogHeader>
 
-        {contacts.length === 0 && (
+        {contacts.length === 0 && !showAddContact && (
           <div className="mx-5 mt-3 p-3 rounded-md bg-destructive/10 border border-destructive/20 flex items-start gap-2">
             <AlertTriangle size={14} className="text-destructive shrink-0 mt-0.5" />
             <div className="text-xs">
@@ -240,7 +249,10 @@ export default function CreateOpportunityForm({ open, onOpenChange, customer, on
           {/* Authority (คนมีอำนาจตัดสินใจ) */}
           <div className="space-y-1.5">
             <Label className="text-xs">ผู้มีอำนาจตัดสินใจ (Authority)</Label>
-            <Select value={form.authority_contact_id} onValueChange={v => set('authority_contact_id', v)}>
+            <Select value={form.authority_contact_id} onValueChange={v => {
+              if (v === '__add_new__') { setShowAddContact(true); return; }
+              set('authority_contact_id', v);
+            }}>
               <SelectTrigger className="h-9 text-xs"><SelectValue placeholder="เลือกผู้มีอำนาจตัดสินใจ" /></SelectTrigger>
               <SelectContent>
                 {contacts.map(c => (
@@ -248,6 +260,9 @@ export default function CreateOpportunityForm({ open, onOpenChange, customer, on
                     {c.name} {c.phone ? `(${c.phone})` : ''} {c.is_decision_maker ? '⭐' : ''}
                   </SelectItem>
                 ))}
+                <SelectItem value="__add_new__" className="text-xs text-primary">
+                  <span className="flex items-center gap-1"><UserPlus size={10} /> เพิ่มผู้ติดต่อใหม่</span>
+                </SelectItem>
               </SelectContent>
             </Select>
             {form.authority_contact_id && (() => {
@@ -256,57 +271,44 @@ export default function CreateOpportunityForm({ open, onOpenChange, customer, on
                 <p className="text-[10px] text-muted-foreground">📞 {sel.phone}</p>
               ) : null;
             })()}
-          </div>
 
-          {/* Need (ความต้องการ) — tag chips */}
-          <div className="space-y-1.5">
-            <Label className="text-xs">ความต้องการ (Need)</Label>
-            <div className="flex flex-wrap gap-1.5">
-              {PRESET_NEEDS.map(n => (
-                <button
-                  key={n}
-                  type="button"
-                  onClick={() => toggleNeed(n)}
-                  className={`px-2.5 py-1 rounded-full text-xs font-medium border transition-colors ${form.needs.includes(n) ? 'bg-primary text-primary-foreground border-primary' : 'bg-background text-muted-foreground border-input hover:bg-muted/50'}`}
-                >
-                  {n}
-                </button>
-              ))}
-            </div>
-            {/* Custom need input */}
-            {(() => {
-              const customNeeds = form.needs.filter(n => !PRESET_NEEDS.includes(n));
-              return customNeeds.length > 0 ? (
-                <div className="flex flex-wrap gap-1.5">
-                  {customNeeds.map(n => (
-                    <span key={n} className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-primary/10 text-primary text-xs font-medium">
-                      {n}
-                      <button onClick={() => toggleNeed(n)} className="hover:text-destructive"><X size={10} /></button>
-                    </span>
-                  ))}
+            {/* Inline add contact */}
+            {showAddContact && (
+              <div className="p-3 rounded-md border border-primary/20 bg-primary/5 space-y-2">
+                <p className="text-xs font-medium text-foreground">เพิ่มผู้ติดต่อใหม่</p>
+                <Input
+                  value={newContactName}
+                  onChange={e => setNewContactName(e.target.value)}
+                  className="h-8 text-xs"
+                  placeholder="ชื่อผู้ติดต่อ *"
+                />
+                <Input
+                  value={newContactPhone}
+                  onChange={e => setNewContactPhone(e.target.value)}
+                  className="h-8 text-xs"
+                  placeholder="เบอร์โทร"
+                />
+                <div className="flex gap-2">
+                  <Button type="button" size="sm" className="h-7 text-xs" onClick={handleAddContact} disabled={!newContactName.trim()}>
+                    บันทึก
+                  </Button>
+                  <Button type="button" variant="ghost" size="sm" className="h-7 text-xs" onClick={() => setShowAddContact(false)}>
+                    ยกเลิก
+                  </Button>
                 </div>
-              ) : null;
-            })()}
-            <div className="flex gap-1.5">
-              <Input
-                id="custom-need"
-                className="h-7 text-xs flex-1"
-                placeholder="เพิ่มความต้องการอื่น..."
-                onKeyDown={e => {
-                  if (e.key === 'Enter') {
-                    e.preventDefault();
-                    const val = (e.target as HTMLInputElement).value.trim();
-                    if (val && !form.needs.includes(val)) {
-                      set('needs', [...form.needs, val]);
-                      (e.target as HTMLInputElement).value = '';
-                    }
-                  }
-                }}
-              />
-            </div>
+              </div>
+            )}
           </div>
 
-          {/* สินค้า Multi-select */}
+          {/* Need (ความต้องการ) — tag chips free input */}
+          <TagChipInput
+            label="ความต้องการ (Need)"
+            tags={form.needs}
+            onChange={t => set('needs', t)}
+            placeholder="เช่น ลดริ้วรอย, หน้าเรียว..."
+          />
+
+          {/* สินค้า Multi-select (DEVICE only) */}
           <div className="space-y-1.5">
             <Label className="text-xs">สินค้า <span className="text-destructive">*</span> <span className="text-muted-foreground">(เลือกได้หลายรายการ)</span></Label>
             {form.selectedProductIds.length > 0 && (
