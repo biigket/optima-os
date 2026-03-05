@@ -184,9 +184,15 @@ function InlineEditCard({ activity, clinicName, onSave, onCancel }: {
       </div>
       <div className="flex items-center gap-2">
         <Input type="date" value={date} onChange={e => setDate(e.target.value)} className="h-7 text-[10px] w-[130px]" />
-        <Input type="time" value={startTime} onChange={e => setStartTime(e.target.value)} className="h-7 text-[10px] w-[90px]" placeholder="Start" />
+        <Select value={startTime} onValueChange={setStartTime}>
+          <SelectTrigger className="h-7 text-[10px] w-[90px]"><SelectValue placeholder="เริ่ม" /></SelectTrigger>
+          <SelectContent>{TIME_OPTIONS.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}</SelectContent>
+        </Select>
         <span className="text-[10px] text-muted-foreground">-</span>
-        <Input type="time" value={endTime} onChange={e => setEndTime(e.target.value)} className="h-7 text-[10px] w-[90px]" placeholder="End" />
+        <Select value={endTime} onValueChange={setEndTime}>
+          <SelectTrigger className="h-7 text-[10px] w-[90px]"><SelectValue placeholder="สิ้นสุด" /></SelectTrigger>
+          <SelectContent>{TIME_OPTIONS.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}</SelectContent>
+        </Select>
       </div>
       {clinicName && <p className="text-[10px] text-muted-foreground">{clinicName}</p>}
       <Textarea
