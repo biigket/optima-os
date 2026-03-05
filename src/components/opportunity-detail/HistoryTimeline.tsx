@@ -128,9 +128,33 @@ export default function HistoryTimeline({ activities, stageHistory, notes, onUpd
   );
 }
 
-function ActivityItem({ data, clinicName, isPinned, onDelete, onPin }: { data: Activity; clinicName?: string; isPinned?: boolean; onDelete?: (id: string) => void; onPin?: (id: string) => void }) {
+function ActivityItem({ data, clinicName, isPinned, onDelete, onPin, onUpdate, onAddComment }: {
+  data: Activity; clinicName?: string; isPinned?: boolean;
+  onDelete?: (id: string) => void; onPin?: (id: string) => void;
+  onUpdate?: (activity: Activity) => void;
+  onAddComment?: (parentId: string, comment: string) => void;
+}) {
   const Icon = TYPE_ICONS[data.activity_type] || Building2;
   const colors = TYPE_COLORS[data.activity_type] || TYPE_COLORS.TASK;
+  const [editing, setEditing] = useState(false);
+  const [editTitle, setEditTitle] = useState(data.title);
+  const [editNotes, setEditNotes] = useState(data.notes || '');
+  const [saving, setSaving] = useState(false);
+  const [showComment, setShowComment] = useState(false);
+  const [comment, setComment] = useState('');
+
+  const handleSave = async () => {
+    if (!editTitle.trim()) return;
+    setSaving(true);
+    const updates = { title: editTitle.trim(), notes: editNotes.trim() || null };
+    const { error } = await supabase.from('activities').update(updates).eq('id', data.id);
+    setSaving(false);
+    if (error) { toast.error('บันทึกไม่สำเร็จ'); return; }
+    toast.success('อัปเดตกิจกรรมแล้ว');
+    onUpdate?.({ ...data, ...updates });
+    setEditing(false);
+  };
+
   return (
     <div className={`flex items-start gap-2 ${isPinned ? 'bg-primary/5 -mx-2 px-2 py-1 rounded-lg' : ''}`}>
       <div className={`absolute -left-6 w-[18px] h-[18px] rounded-full ${colors} flex items-center justify-center mt-0.5`}>
@@ -148,6 +172,9 @@ function ActivityItem({ data, clinicName, isPinned, onDelete, onPin }: { data: A
             <button onClick={() => onPin?.(data.id)} className="p-1 rounded hover:bg-muted text-muted-foreground" title="Pin">
               <Pin size={11} />
             </button>
+            <button onClick={() => setShowComment(!showComment)} className="p-1 rounded hover:bg-muted text-muted-foreground" title="Comment">
+              <MessageSquare size={11} />
+            </button>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <button className="p-1 rounded hover:bg-muted text-muted-foreground">
@@ -155,6 +182,9 @@ function ActivityItem({ data, clinicName, isPinned, onDelete, onPin }: { data: A
                 </button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="text-xs min-w-[120px]">
+                <DropdownMenuItem onClick={() => { setEditing(true); setEditTitle(data.title); setEditNotes(data.notes || ''); }}>
+                  <Pencil size={11} className="mr-1.5" /> Edit
+                </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => onDelete?.(data.id)} className="text-destructive">
                   <Trash2 size={11} className="mr-1.5" /> Delete
                 </DropdownMenuItem>
@@ -168,15 +198,54 @@ function ActivityItem({ data, clinicName, isPinned, onDelete, onPin }: { data: A
         {clinicName && (
           <p className="text-[10px] text-muted-foreground">{clinicName}</p>
         )}
-        {data.notes && (
-          <p className="text-[10px] text-muted-foreground mt-1 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded px-2 py-1">{data.notes}</p>
+
+        {editing ? (
+          <div className="mt-1.5 space-y-1.5 border border-primary/30 rounded-lg p-2 bg-primary/5">
+            <Input
+              value={editTitle}
+              onChange={e => setEditTitle(e.target.value)}
+              className="h-7 text-xs font-medium"
+              autoFocus
+            />
+            <Textarea
+              value={editNotes}
+              onChange={e => setEditNotes(e.target.value)}
+              placeholder="Notes..."
+              className="text-[10px] min-h-[36px] resize-none"
+            />
+            <div className="flex justify-end gap-1">
+              <Button variant="ghost" size="sm" className="h-6 text-[10px] px-2" onClick={() => setEditing(false)} disabled={saving}>
+                <X size={10} className="mr-0.5" /> Cancel
+              </Button>
+              <Button size="sm" className="h-6 text-[10px] px-2" onClick={handleSave} disabled={saving || !editTitle.trim()}>
+                <Check size={10} className="mr-0.5" /> Save
+              </Button>
+            </div>
+          </div>
+        ) : (
+          data.notes && (
+            <p className="text-[10px] text-muted-foreground mt-1 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded px-2 py-1">{data.notes}</p>
+          )
+        )}
+
+        {showComment && (
+          <div className="mt-1.5 ml-4 flex gap-1.5">
+            <input
+              value={comment}
+              onChange={e => setComment(e.target.value)}
+              placeholder="Add a comment..."
+              className="flex-1 text-[10px] h-6 px-2 rounded border border-border bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring"
+              autoFocus
+            />
+            <Button size="sm" className="h-6 text-[10px] px-2" disabled={!comment.trim()} onClick={() => { if (comment.trim()) { onAddComment?.(data.id, comment.trim()); setComment(''); setShowComment(false); } }}>
+              Post
+            </Button>
+          </div>
         )}
       </div>
     </div>
   );
 }
-
-function StageItem({ data }: { data: { from: string; to: string; date: string } }) {
   return (
     <div className="flex items-start gap-2">
       <div className="absolute -left-6 w-[18px] h-[18px] rounded-full border-2 border-primary bg-card mt-0.5" />
