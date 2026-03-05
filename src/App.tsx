@@ -15,9 +15,17 @@ import CalendarPage from "@/pages/CalendarPage";
 import DevicesPage from "@/pages/DevicesPage";
 import ConsumablesPage from "@/pages/ConsumablesPage";
 import MaintenancePage from "@/pages/MaintenancePage";
+import Phase2Placeholder from "@/pages/Phase2Placeholder";
 import NotFound from "@/pages/NotFound";
 
 const queryClient = new QueryClient();
+
+const phase2Routes = [
+  '/quotations', '/sales-orders', '/inventory', '/invoices',
+  '/campaigns', '/promotions', '/kol',
+  '/training', '/lms',
+  '/forecast', '/analytics',
+];
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
@@ -38,6 +46,9 @@ const App = () => (
             <Route path="/devices" element={<DevicesPage />} />
             <Route path="/consumables" element={<ConsumablesPage />} />
             <Route path="/maintenance" element={<MaintenancePage />} />
+            {phase2Routes.map(path => (
+              <Route key={path} path={path} element={<Phase2Placeholder />} />
+            ))}
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AppLayout>
