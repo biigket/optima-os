@@ -1,10 +1,14 @@
 import { useState } from 'react';
-import { Phone, Users, Building2, Target, AlertTriangle, MoreHorizontal, ChevronDown, Pencil, Trash2, X, Check } from 'lucide-react';
+import { format, parse } from 'date-fns';
+import { Phone, Users, Building2, Target, AlertTriangle, MoreHorizontal, ChevronDown, Pencil, Trash2, X, Check, CalendarIcon } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+import { Calendar } from '@/components/ui/calendar';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { cn } from '@/lib/utils';
 
 const TIME_OPTIONS = Array.from({ length: 96 }, (_, i) => {
   const h = Math.floor(i / 4).toString().padStart(2, '0');
@@ -183,7 +187,23 @@ function InlineEditCard({ activity, clinicName, onSave, onCancel }: {
         />
       </div>
       <div className="flex items-center gap-2">
-        <Input type="date" value={date} onChange={e => setDate(e.target.value)} className="h-7 text-[10px] w-[130px]" />
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button variant="outline" className={cn("h-7 text-[10px] w-[140px] justify-start font-normal", !date && "text-muted-foreground")}>
+              <CalendarIcon size={10} className="mr-1" />
+              {date ? format(parse(date, 'yyyy-MM-dd', new Date()), 'dd MMM yyyy') : 'เลือกวันที่'}
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-auto p-0" align="start">
+            <Calendar
+              mode="single"
+              selected={date ? parse(date, 'yyyy-MM-dd', new Date()) : undefined}
+              onSelect={(d) => d && setDate(format(d, 'yyyy-MM-dd'))}
+              initialFocus
+              className={cn("p-3 pointer-events-auto")}
+            />
+          </PopoverContent>
+        </Popover>
         <Select value={startTime} onValueChange={setStartTime}>
           <SelectTrigger className="h-7 text-[10px] w-[90px]"><SelectValue placeholder="เริ่ม" /></SelectTrigger>
           <SelectContent>{TIME_OPTIONS.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}</SelectContent>
