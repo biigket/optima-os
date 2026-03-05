@@ -322,8 +322,11 @@ export type Database = {
         Row: {
           account_id: string
           assigned_sale: string | null
+          budget_range: string | null
           close_date: string | null
+          competitors: string | null
           created_at: string
+          current_devices: string | null
           customer_grade: string | null
           expected_value: number | null
           id: string
@@ -332,14 +335,20 @@ export type Database = {
           next_activity_type: string | null
           notes: string | null
           opportunity_type: string | null
+          order_frequency: string | null
+          payment_method: string | null
+          probability: number | null
           stage: string
           stuck_reason: string | null
         }
         Insert: {
           account_id: string
           assigned_sale?: string | null
+          budget_range?: string | null
           close_date?: string | null
+          competitors?: string | null
           created_at?: string
+          current_devices?: string | null
           customer_grade?: string | null
           expected_value?: number | null
           id?: string
@@ -348,14 +357,20 @@ export type Database = {
           next_activity_type?: string | null
           notes?: string | null
           opportunity_type?: string | null
+          order_frequency?: string | null
+          payment_method?: string | null
+          probability?: number | null
           stage?: string
           stuck_reason?: string | null
         }
         Update: {
           account_id?: string
           assigned_sale?: string | null
+          budget_range?: string | null
           close_date?: string | null
+          competitors?: string | null
           created_at?: string
+          current_devices?: string | null
           customer_grade?: string | null
           expected_value?: number | null
           id?: string
@@ -364,6 +379,9 @@ export type Database = {
           next_activity_type?: string | null
           notes?: string | null
           opportunity_type?: string | null
+          order_frequency?: string | null
+          payment_method?: string | null
+          probability?: number | null
           stage?: string
           stuck_reason?: string | null
         }

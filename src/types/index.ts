@@ -74,6 +74,13 @@ export interface Opportunity {
   close_date?: string;
   next_activity_type?: string;
   next_activity_date?: string;
+  probability?: number;
+  budget_range?: string;
+  payment_method?: string;
+  competitors?: string;
+  current_devices?: string;
+  order_frequency?: string;
+  stuck_reason?: string;
   created_at: string;
 }
 
