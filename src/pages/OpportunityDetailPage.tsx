@@ -384,7 +384,7 @@ export default function OpportunityDetailPage() {
                       </>
                     )}
                   </div>
-                ))
+                ))}
                 {contacts.length === 0 && <p className="text-xs text-muted-foreground py-2 text-center">ไม่มีผู้ติดต่อ</p>}
                 <Button variant="outline" size="sm" className="w-full text-xs gap-1 h-7 mt-1" onClick={() => setAddContactOpen(true)}>
                   <Plus size={12} /> เพิ่มผู้ติดต่อ
