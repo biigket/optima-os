@@ -5,17 +5,16 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import AppLayout from "@/components/layout/AppLayout";
 import Dashboard from "@/pages/Dashboard";
-import AccountsPage from "@/pages/AccountsPage";
-import AccountDetailPage from "@/pages/AccountDetailPage";
+import LeadsPage from "@/pages/LeadsPage";
 import OpportunitiesPage from "@/pages/OpportunitiesPage";
-import WorkItemsPage from "@/pages/WorkItemsPage";
+import VisitCheckinPage from "@/pages/VisitCheckinPage";
+import VisitReportsPage from "@/pages/VisitReportsPage";
+import DemosPage from "@/pages/DemosPage";
+import TasksPage from "@/pages/TasksPage";
 import CalendarPage from "@/pages/CalendarPage";
-import InventoryPage from "@/pages/InventoryPage";
-import ShipmentsPage from "@/pages/ShipmentsPage";
-import ServicePage from "@/pages/ServicePage";
-import FinancePage from "@/pages/FinancePage";
-import MarketingPage from "@/pages/MarketingPage";
-import SettingsPage from "@/pages/SettingsPage";
+import DevicesPage from "@/pages/DevicesPage";
+import ConsumablesPage from "@/pages/ConsumablesPage";
+import MaintenancePage from "@/pages/MaintenancePage";
 import NotFound from "@/pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -29,17 +28,16 @@ const App = () => (
         <AppLayout>
           <Routes>
             <Route path="/" element={<Dashboard />} />
-            <Route path="/accounts" element={<AccountsPage />} />
-            <Route path="/accounts/:accountId" element={<AccountDetailPage />} />
+            <Route path="/leads" element={<LeadsPage />} />
             <Route path="/opportunities" element={<OpportunitiesPage />} />
-            <Route path="/work-items" element={<WorkItemsPage />} />
+            <Route path="/visit-checkin" element={<VisitCheckinPage />} />
+            <Route path="/visit-reports" element={<VisitReportsPage />} />
+            <Route path="/demos" element={<DemosPage />} />
+            <Route path="/tasks" element={<TasksPage />} />
             <Route path="/calendar" element={<CalendarPage />} />
-            <Route path="/inventory" element={<InventoryPage />} />
-            <Route path="/shipments" element={<ShipmentsPage />} />
-            <Route path="/service" element={<ServicePage />} />
-            <Route path="/finance" element={<FinancePage />} />
-            <Route path="/marketing" element={<MarketingPage />} />
-            <Route path="/settings" element={<SettingsPage />} />
+            <Route path="/devices" element={<DevicesPage />} />
+            <Route path="/consumables" element={<ConsumablesPage />} />
+            <Route path="/maintenance" element={<MaintenancePage />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AppLayout>

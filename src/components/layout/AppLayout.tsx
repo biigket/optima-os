@@ -1,41 +1,51 @@
 import { useState } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import {
-  LayoutDashboard, Users, Target, ListTodo, Calendar, Package, Truck,
-  FileText, Megaphone, Wrench, ChevronLeft, ChevronRight, LogOut, Settings, Bell
+  LayoutDashboard, Users, Target, MapPin, FileText, Presentation,
+  ListTodo, Calendar, Cpu, Package, Wrench, ChevronLeft, ChevronRight, Bell
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const navGroups = [
   {
-    label: 'OVERVIEW',
-    items: [
-      { to: '/', icon: LayoutDashboard, label: 'Dashboard' },
-      { to: '/calendar', icon: Calendar, label: 'Calendar' },
-      { to: '/work-items', icon: ListTodo, label: 'Work Items' },
-    ],
-  },
-  {
     label: 'CRM',
     items: [
-      { to: '/accounts', icon: Users, label: 'Accounts' },
-      { to: '/opportunities', icon: Target, label: 'Opportunities' },
+      { to: '/leads', icon: Users, label: 'ลีด' },
+      { to: '/opportunities', icon: Target, label: 'โอกาสขาย' },
     ],
   },
   {
-    label: 'OPERATIONS',
+    label: 'SALES OPERATION',
     items: [
-      { to: '/inventory', icon: Package, label: 'Inventory' },
-      { to: '/shipments', icon: Truck, label: 'Shipments' },
-      { to: '/service', icon: Wrench, label: 'Service' },
+      { to: '/visit-checkin', icon: MapPin, label: 'เช็คอินเยี่ยมลูกค้า' },
+      { to: '/visit-reports', icon: FileText, label: 'รายงานเยี่ยมลูกค้า' },
+      { to: '/demos', icon: Presentation, label: 'สาธิตสินค้า' },
     ],
   },
   {
-    label: 'ADMIN',
+    label: 'OPERATION',
     items: [
-      { to: '/finance', icon: FileText, label: 'Finance' },
-      { to: '/marketing', icon: Megaphone, label: 'Marketing' },
-      { to: '/settings', icon: Settings, label: 'Settings' },
+      { to: '/tasks', icon: ListTodo, label: 'งาน' },
+      { to: '/calendar', icon: Calendar, label: 'ปฏิทิน' },
+    ],
+  },
+  {
+    label: 'INSTALLED BASE',
+    items: [
+      { to: '/devices', icon: Cpu, label: 'เครื่องมือ' },
+      { to: '/consumables', icon: Package, label: 'วัสดุสิ้นเปลือง' },
+    ],
+  },
+  {
+    label: 'SERVICE',
+    items: [
+      { to: '/maintenance', icon: Wrench, label: 'ซ่อมบำรุง' },
+    ],
+  },
+  {
+    label: 'ANALYTICS',
+    items: [
+      { to: '/', icon: LayoutDashboard, label: 'แดชบอร์ด' },
     ],
   },
 ];
@@ -46,14 +56,12 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="flex h-screen overflow-hidden">
-      {/* Sidebar */}
       <aside
         className={cn(
           'sidebar-gradient flex flex-col border-r border-sidebar-border transition-all duration-200',
           collapsed ? 'w-16' : 'w-60'
         )}
       >
-        {/* Logo */}
         <div className="flex h-14 items-center justify-between px-4 border-b border-sidebar-border">
           {!collapsed && (
             <span className="text-sm font-semibold tracking-wide text-sidebar-primary-foreground">
@@ -68,7 +76,6 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           </button>
         </div>
 
-        {/* Nav */}
         <nav className="flex-1 overflow-y-auto py-3 px-2 space-y-4">
           {navGroups.map((group) => (
             <div key={group.label}>
@@ -101,7 +108,6 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           ))}
         </nav>
 
-        {/* Footer */}
         <div className="border-t border-sidebar-border p-2">
           <div className={cn('flex items-center gap-3 rounded-md px-2.5 py-2', collapsed && 'justify-center')}>
             <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-sidebar-primary text-sidebar-primary-foreground text-xs font-bold">
@@ -109,17 +115,15 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             </div>
             {!collapsed && (
               <div className="flex-1 min-w-0">
-                <p className="text-xs font-medium text-sidebar-accent-foreground truncate">Somchai Patel</p>
-                <p className="text-[10px] text-sidebar-muted">Super Admin</p>
+                <p className="text-xs font-medium text-sidebar-accent-foreground truncate">สมชาย พาเทล</p>
+                <p className="text-[10px] text-sidebar-muted">ผู้ดูแลระบบ</p>
               </div>
             )}
           </div>
         </div>
       </aside>
 
-      {/* Main content */}
       <div className="flex flex-1 flex-col overflow-hidden">
-        {/* Top bar */}
         <header className="flex h-14 items-center justify-between border-b bg-card px-6">
           <div />
           <div className="flex items-center gap-3">
@@ -129,8 +133,6 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             </button>
           </div>
         </header>
-
-        {/* Page content */}
         <main className="flex-1 overflow-y-auto p-6">
           {children}
         </main>
