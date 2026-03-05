@@ -430,6 +430,31 @@ export default function LeadsPage() {
               <Label>เกรด</Label>
               <Input value={form.grade || ''} onChange={e => updateField('grade', e.target.value)} />
             </div>
+            {/* Contact fields - only for new accounts */}
+            {!editingAccount && (
+              <div className="sm:col-span-2 space-y-3 p-3 rounded-md border border-primary/30 bg-primary/5">
+                <p className="text-sm font-medium text-foreground">ผู้ติดต่อหลัก <span className="text-destructive">*</span></p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div className="space-y-1.5">
+                    <Label>ชื่อผู้ติดต่อ <span className="text-destructive">*</span></Label>
+                    <Input value={form.contact_name} onChange={e => updateField('contact_name', e.target.value)} placeholder="เช่น นพ. สมชาย" />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label>ตำแหน่ง / บทบาท</Label>
+                    <Input value={form.contact_role} onChange={e => updateField('contact_role', e.target.value)} placeholder="เช่น Owner, Doctor" />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label>เบอร์โทรผู้ติดต่อ</Label>
+                    <Input value={form.contact_phone} onChange={e => updateField('contact_phone', e.target.value)} placeholder="08x-xxx-xxxx" />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label>อีเมลผู้ติดต่อ</Label>
+                    <Input type="email" value={form.contact_email} onChange={e => updateField('contact_email', e.target.value)} placeholder="email@example.com" />
+                  </div>
+                </div>
+              </div>
+            )}
+
             <div className="space-y-1.5 sm:col-span-2">
               <Label>หมายเหตุ</Label>
               <Textarea value={form.notes || ''} onChange={e => updateField('notes', e.target.value)} rows={3} />
