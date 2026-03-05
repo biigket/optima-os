@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Search, Plus, SlidersHorizontal, Building2 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -108,6 +109,7 @@ function daysSince(dateStr: string | null): string {
 }
 
 export default function LeadsPage() {
+  const navigate = useNavigate();
   const { currentUser } = useMockAuth();
   const [accounts, setAccounts] = useState<Account[]>(mockAccounts);
   const [search, setSearch] = useState('');
@@ -256,7 +258,7 @@ export default function LeadsPage() {
                 <TableRow
                   key={account.id}
                   className="cursor-pointer hover:bg-muted/50 transition-colors"
-                  onClick={() => openEdit(account)}
+                  onClick={() => navigate(`/leads/${account.id}`)}
                 >
                   <TableCell>
                     <div className="flex items-center gap-3">

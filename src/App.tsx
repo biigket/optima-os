@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import AppLayout from "@/components/layout/AppLayout";
 import Dashboard from "@/pages/Dashboard";
 import LeadsPage from "@/pages/LeadsPage";
+import CustomerCardPage from "@/pages/CustomerCardPage";
 import OpportunitiesPage from "@/pages/OpportunitiesPage";
 import VisitCheckinPage from "@/pages/VisitCheckinPage";
 import VisitReportsPage from "@/pages/VisitReportsPage";
@@ -42,6 +43,7 @@ function AppRoutes() {
       <Routes>
         <Route path="/" element={<Dashboard />} />
         <Route path="/leads" element={<LeadsPage />} />
+        <Route path="/leads/:id" element={<CustomerCardPage />} />
         <Route path="/opportunities" element={<OpportunitiesPage />} />
         <Route path="/visit-checkin" element={<VisitCheckinPage />} />
         <Route path="/visit-reports" element={<VisitReportsPage />} />
