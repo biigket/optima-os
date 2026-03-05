@@ -1,9 +1,10 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
-import { Clock, AlertTriangle, Building2, Calendar, Phone, Eye, Users, Presentation, FileCheck, MoreHorizontal, Trophy, XCircle } from 'lucide-react';
+import { Clock, AlertTriangle, Building2, Calendar, Phone, Eye, Users, Presentation, FileCheck, MoreHorizontal, Trophy, XCircle, MessageSquare } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Input } from '@/components/ui/input';
 import { getAccountById } from '@/data/mockData';
 import { toast } from 'sonner';
 import type { Opportunity, OpportunityStage } from '@/types';
@@ -28,14 +29,25 @@ const ACTIVITY_ICONS: Record<string, React.ElementType> = {
 
 const STUCK_REASONS = ['รอราคา', 'รอผู้ตัดสินใจ', 'รอ finance', 'รอ training', 'อื่นๆ'];
 
+function getDaysInStage(opp: Opportunity): number {
+  return Math.floor((Date.now() - new Date(opp.created_at || Date.now()).getTime()) / 86400000);
+}
+
+function getStuckColor(days: number): { bg: string; text: string; label: string } {
+  if (days >= 7) return { bg: 'bg-destructive/10', text: 'text-destructive', label: 'แดง' };
+  if (days >= 3) return { bg: 'bg-warning/10', text: 'text-warning', label: 'ส้ม' };
+  return { bg: 'bg-emerald-500/10', text: 'text-emerald-600', label: 'เขียว' };
+}
+
 interface Props {
   opportunities: Opportunity[];
   typeFilter: string;
   onStageChange: (oppId: string, newStage: OpportunityStage) => void;
   onUpdateOpportunity?: (oppId: string, updates: Partial<Opportunity>) => void;
+  onAddNote?: (oppId: string, note: string) => void;
 }
 
-export default function OpportunityKanban({ opportunities, typeFilter, onStageChange, onUpdateOpportunity }: Props) {
+export default function OpportunityKanban({ opportunities, typeFilter, onStageChange, onUpdateOpportunity, onAddNote }: Props) {
   const navigate = useNavigate();
   const [dragOverStage, setDragOverStage] = useState<string | null>(null);
 
@@ -91,7 +103,6 @@ export default function OpportunityKanban({ opportunities, typeFilter, onStageCh
               onDragLeave={handleDragLeave}
               onDrop={(e) => handleDrop(e, stage)}
             >
-              {/* Column Header */}
               <div className="rounded-t-lg px-3 py-2.5 border border-b-0 bg-muted/50">
                 <div className="flex items-center justify-between mb-1">
                   <div className="flex items-center gap-2">
@@ -108,7 +119,6 @@ export default function OpportunityKanban({ opportunities, typeFilter, onStageCh
                 </div>
               </div>
 
-              {/* Cards container */}
               <div className={`min-h-[120px] border border-t-0 rounded-b-lg bg-muted/20 p-2 space-y-2 transition-all ${isDragOver ? 'ring-2 ring-primary/50 bg-primary/5' : ''}`}>
                 {stageOpps.map(opp => (
                   <KanbanCard
@@ -118,6 +128,7 @@ export default function OpportunityKanban({ opportunities, typeFilter, onStageCh
                     navigate={navigate}
                     onStageChange={onStageChange}
                     onUpdateOpportunity={onUpdateOpportunity}
+                    onAddNote={onAddNote}
                   />
                 ))}
                 {stageOpps.length === 0 && (
@@ -135,25 +146,34 @@ export default function OpportunityKanban({ opportunities, typeFilter, onStageCh
   );
 }
 
-function KanbanCard({ opp, stage, navigate, onStageChange, onUpdateOpportunity }: {
+function KanbanCard({ opp, stage, navigate, onStageChange, onUpdateOpportunity, onAddNote }: {
   opp: Opportunity;
   stage: OpportunityStage;
   navigate: ReturnType<typeof useNavigate>;
   onStageChange: (oppId: string, newStage: OpportunityStage) => void;
   onUpdateOpportunity?: (oppId: string, updates: Partial<Opportunity>) => void;
+  onAddNote?: (oppId: string, note: string) => void;
 }) {
   const [isDragging, setIsDragging] = useState(false);
+  const [otherReason, setOtherReason] = useState('');
+  const [showOtherInput, setShowOtherInput] = useState(false);
+  const [quickNote, setQuickNote] = useState('');
+  const [showNoteInput, setShowNoteInput] = useState(false);
+
   const account = getAccountById(opp.account_id);
-  const daysInStage = Math.floor((Date.now() - new Date(opp.created_at || Date.now()).getTime()) / 86400000);
-  const isStuck = daysInStage > 14 && !['WON', 'LOST'].includes(stage);
+  const daysInStage = getDaysInStage(opp);
+  const isTerminal = ['WON', 'LOST'].includes(stage);
   const noActivity = !opp.next_activity_type;
   const prob = PROBABILITY[stage] || 0;
   const weighted = Math.round((opp.expected_value || 0) * prob / 100);
-  const isOverdue = opp.close_date && new Date(opp.close_date) < new Date() && !['WON', 'LOST'].includes(stage);
+  const isOverdue = opp.close_date && new Date(opp.close_date) < new Date() && !isTerminal;
   const ActivityIcon = opp.next_activity_type ? (ACTIVITY_ICONS[opp.next_activity_type] || Calendar) : Calendar;
   const activityDaysLeft = opp.next_activity_date
     ? Math.ceil((new Date(opp.next_activity_date).getTime() - Date.now()) / 86400000)
     : null;
+
+  // Color-coded days indicator (always show for non-terminal)
+  const stuckColor = !isTerminal ? getStuckColor(daysInStage) : null;
 
   const handleDragStart = (e: React.DragEvent) => {
     e.dataTransfer.setData('text/plain', opp.id);
@@ -165,13 +185,39 @@ function KanbanCard({ opp, stage, navigate, onStageChange, onUpdateOpportunity }
     setIsDragging(false);
   };
 
+  const handleStuckReasonChange = (val: string) => {
+    if (val === 'อื่นๆ') {
+      setShowOtherInput(true);
+      onUpdateOpportunity?.(opp.id, { stuck_reason: val } as any);
+    } else {
+      setShowOtherInput(false);
+      onUpdateOpportunity?.(opp.id, { stuck_reason: val } as any);
+    }
+  };
+
+  const handleSaveOtherReason = () => {
+    if (otherReason.trim()) {
+      onUpdateOpportunity?.(opp.id, { stuck_reason: `อื่นๆ: ${otherReason.trim()}` } as any);
+      toast.success('บันทึกเหตุผลแล้ว');
+    }
+  };
+
+  const handleSaveNote = () => {
+    if (quickNote.trim()) {
+      onAddNote?.(opp.id, quickNote.trim());
+      setQuickNote('');
+      setShowNoteInput(false);
+      toast.success('บันทึกโน้ตแล้ว');
+    }
+  };
+
   return (
     <div
       draggable
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
       onClick={() => navigate(`/opportunities/${opp.id}`)}
-      className={`p-3 rounded-lg border border-t-[3px] bg-card shadow-sm hover:shadow-md transition-all cursor-grab active:cursor-grabbing group ${STAGE_COLORS[stage]} ${isStuck ? 'ring-1 ring-destructive/30' : ''} ${isDragging ? 'opacity-40 scale-95' : ''}`}
+      className={`p-3 rounded-lg border border-t-[3px] bg-card shadow-sm hover:shadow-md transition-all cursor-grab active:cursor-grabbing group ${STAGE_COLORS[stage]} ${isDragging ? 'opacity-40 scale-95' : ''}`}
     >
       {/* ROW 1: Clinic name + Amount */}
       <div className="flex items-start justify-between gap-2 mb-2">
@@ -190,7 +236,7 @@ function KanbanCard({ opp, stage, navigate, onStageChange, onUpdateOpportunity }
         </div>
       </div>
 
-      {/* ROW 2: Close date + Owner + Indicators */}
+      {/* ROW 2: Close date + Owner + Days indicator */}
       <div className="flex items-center gap-2 text-[10px] mb-2 pb-2 border-b border-border">
         <span className={`flex items-center gap-0.5 ${isOverdue ? 'text-destructive font-semibold' : 'text-muted-foreground'}`}>
           <Calendar size={10} />
@@ -204,18 +250,18 @@ function KanbanCard({ opp, stage, navigate, onStageChange, onUpdateOpportunity }
             {opp.opportunity_type === 'DEVICE' ? 'เครื่อง' : 'สิ้นเปลือง'}
           </span>
         )}
-        <div className="flex gap-1 shrink-0">
-          {isStuck && (
-            <span className="text-destructive" title={`ค้าง ${daysInStage} วัน`}>
-              <Clock size={12} />
-            </span>
-          )}
-          {noActivity && (
-            <span className="text-warning" title="ไม่มีกิจกรรมถัดไป">
-              <AlertTriangle size={12} />
-            </span>
-          )}
-        </div>
+        {/* Color-coded days indicator */}
+        {stuckColor && (
+          <span className={`flex items-center gap-0.5 font-semibold ${stuckColor.text}`} title={`อยู่ในสถานะ ${daysInStage} วัน`}>
+            <Clock size={10} />
+            {daysInStage}d
+          </span>
+        )}
+        {noActivity && !isTerminal && (
+          <span className="text-warning" title="ไม่มีกิจกรรมถัดไป">
+            <AlertTriangle size={12} />
+          </span>
+        )}
       </div>
 
       {/* ROW 3: Next Activity */}
@@ -243,24 +289,26 @@ function KanbanCard({ opp, stage, navigate, onStageChange, onUpdateOpportunity }
           )}
         </div>
       ) : (
-        <div className="flex items-center gap-1.5 text-[11px] text-warning">
-          <AlertTriangle size={11} />
-          <span className="font-medium">ยังไม่มีกิจกรรมถัดไป</span>
-        </div>
+        !isTerminal && (
+          <div className="flex items-center gap-1.5 text-[11px] text-warning">
+            <AlertTriangle size={11} />
+            <span className="font-medium">ยังไม่มีกิจกรรมถัดไป</span>
+          </div>
+        )
       )}
 
-      {/* Stuck indicator + Reason dropdown */}
-      {isStuck && (
-        <div className="mt-2 text-[10px] text-destructive bg-destructive/5 rounded px-2 py-1 space-y-1">
-          <div className="flex items-center gap-1">
-            <Clock size={10} /> ค้างอยู่ {daysInStage} วัน
+      {/* Stuck reason (days >= 3) */}
+      {!isTerminal && daysInStage >= 3 && (
+        <div className={`mt-2 text-[10px] rounded px-2 py-1.5 space-y-1 ${stuckColor!.bg}`}>
+          <div className={`flex items-center gap-1 font-semibold ${stuckColor!.text}`}>
+            <Clock size={10} /> อยู่ในสถานะ {daysInStage} วัน
           </div>
           <div onClick={e => e.stopPropagation()} onMouseDown={e => e.stopPropagation()}>
             <Select
-              value={(opp as any).stuck_reason || ''}
-              onValueChange={(val) => onUpdateOpportunity?.(opp.id, { stuck_reason: val } as any)}
+              value={(opp as any).stuck_reason?.startsWith('อื่นๆ') ? 'อื่นๆ' : (opp as any).stuck_reason || ''}
+              onValueChange={handleStuckReasonChange}
             >
-              <SelectTrigger className="h-5 text-[10px] bg-background/50 border-destructive/20 px-1.5">
+              <SelectTrigger className="h-5 text-[10px] bg-background/50 border-border px-1.5">
                 <SelectValue placeholder="เลือกเหตุผล..." />
               </SelectTrigger>
               <SelectContent>
@@ -269,12 +317,51 @@ function KanbanCard({ opp, stage, navigate, onStageChange, onUpdateOpportunity }
                 ))}
               </SelectContent>
             </Select>
+            {(showOtherInput || (opp as any).stuck_reason?.startsWith('อื่นๆ')) && (
+              <div className="mt-1 flex gap-1">
+                <Input
+                  value={otherReason}
+                  onChange={e => setOtherReason(e.target.value)}
+                  placeholder="ระบุเหตุผล..."
+                  className="h-5 text-[10px] flex-1"
+                  onClick={e => e.stopPropagation()}
+                />
+                <button
+                  onClick={(e) => { e.stopPropagation(); handleSaveOtherReason(); }}
+                  className="px-1.5 h-5 text-[10px] bg-primary text-primary-foreground rounded hover:bg-primary/90"
+                >
+                  บันทึก
+                </button>
+              </div>
+            )}
           </div>
         </div>
       )}
 
-      {/* Quick Actions (hover) */}
-      <div className="flex items-center gap-1 mt-2 pt-2 border-t border-border opacity-0 group-hover:opacity-100 transition-opacity">
+      {/* Quick Note input */}
+      {showNoteInput && (
+        <div className="mt-2" onClick={e => e.stopPropagation()} onMouseDown={e => e.stopPropagation()}>
+          <div className="flex gap-1">
+            <Input
+              value={quickNote}
+              onChange={e => setQuickNote(e.target.value)}
+              placeholder="พิมพ์บันทึก..."
+              className="h-6 text-[10px] flex-1"
+              autoFocus
+              onKeyDown={e => { if (e.key === 'Enter') handleSaveNote(); if (e.key === 'Escape') setShowNoteInput(false); }}
+            />
+            <button
+              onClick={handleSaveNote}
+              className="px-1.5 h-6 text-[10px] bg-primary text-primary-foreground rounded hover:bg-primary/90"
+            >
+              บันทึก
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Quick Actions — always visible */}
+      <div className="flex items-center gap-1 mt-2 pt-2 border-t border-border">
         <button
           onClick={(e) => { e.stopPropagation(); toast.info(`โทรหา ${account?.clinic_name}`); }}
           className="p-1.5 rounded hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
@@ -288,6 +375,13 @@ function KanbanCard({ opp, stage, navigate, onStageChange, onUpdateOpportunity }
           title="นัดกิจกรรม"
         >
           <Calendar size={12} />
+        </button>
+        <button
+          onClick={(e) => { e.stopPropagation(); setShowNoteInput(!showNoteInput); }}
+          className="p-1.5 rounded hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
+          title="บันทึกภายใน"
+        >
+          <MessageSquare size={12} />
         </button>
         <div className="ml-auto" onClick={e => e.stopPropagation()}>
           <DropdownMenu>

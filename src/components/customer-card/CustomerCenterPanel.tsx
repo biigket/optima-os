@@ -6,13 +6,14 @@ import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import StatusBadge from '@/components/ui/StatusBadge';
 import {
   LayoutDashboard, Clock, Handshake, MapPin, FileText, CheckSquare,
-  Eye, Phone as PhoneIcon, Presentation, Users, FileCheck, Wrench, GraduationCap
+  Eye, Phone as PhoneIcon, Presentation, Users, FileCheck, Wrench, GraduationCap, MessageSquare
 } from 'lucide-react';
 import {
   getTimelineForAccount, getVisitsForAccount, getReportsForAccount,
   getLifetimeRevenue, getDevicesForAccount
 } from '@/data/customerCardMockData';
 import { mockWorkItems, type WorkItem } from '@/data/mockData';
+import { getNotesForAccount } from '@/pages/OpportunitiesPage';
 
 interface Opportunity {
   id: string;
@@ -53,6 +54,7 @@ export default function CustomerCenterPanel({ accountId, opportunities }: Props)
   const devices = getDevicesForAccount(accountId);
   const revenue = getLifetimeRevenue(accountId);
   const tasks = mockWorkItems.filter((w: WorkItem) => w.linkedAccountId === accountId);
+  const internalNotes = getNotesForAccount(accountId);
 
   const lastVisit = visits.length > 0 ? visits[0].date : '-';
   const activeDeals = opportunities.filter(o => !['WON', 'LOST', 'CLOSED'].includes(o.stage)).length;
@@ -75,6 +77,12 @@ export default function CustomerCenterPanel({ accountId, opportunities }: Props)
               <TabsTrigger value="visits" className="text-xs gap-1.5 rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none px-3 py-2.5">
                 <MapPin size={13} /> การเยี่ยม
               </TabsTrigger>
+              <TabsTrigger value="notes" className="text-xs gap-1.5 rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none px-3 py-2.5">
+                <MessageSquare size={13} /> บันทึกภายใน
+                {internalNotes.length > 0 && (
+                  <span className="ml-1 text-[10px] bg-primary/10 text-primary rounded-full px-1.5 py-0.5 font-semibold">{internalNotes.length}</span>
+                )}
+              </TabsTrigger>
               <TabsTrigger value="reports" className="text-xs gap-1.5 rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none px-3 py-2.5">
                 <FileText size={13} /> รายงาน
               </TabsTrigger>
@@ -94,7 +102,7 @@ export default function CustomerCenterPanel({ accountId, opportunities }: Props)
               <KpiMini label="ดีลที่เปิดอยู่" value={`${activeDeals} รายการ`} />
               <KpiMini label="รายได้รวม" value={formatCurrency(revenue)} />
               <KpiMini label="เครื่องที่ติดตั้ง" value={`${devices.length} เครื่อง`} />
-              <KpiMini label="สั่ง Cartridge ล่าสุด" value={visits.length > 0 ? visits[0].date : '-'} />
+              <KpiMini label="บันทึกภายใน" value={`${internalNotes.length} รายการ`} />
               <KpiMini label="แอคชั่นถัดไป" value={visits.length > 0 ? visits[0].nextStep : '-'} />
             </div>
           </TabsContent>
@@ -102,9 +110,18 @@ export default function CustomerCenterPanel({ accountId, opportunities }: Props)
           {/* Timeline */}
           <TabsContent value="timeline" className="mt-0">
             <div className="space-y-4">
-              {timeline.map(ev => {
-                const Icon = TIMELINE_ICONS[ev.type] || Clock;
-                const colorClass = TIMELINE_COLORS[ev.type] || 'bg-muted text-muted-foreground';
+              {/* Show internal notes in timeline too */}
+              {[...timeline.map(ev => ({ ...ev, isNote: false })), ...internalNotes.map(n => ({
+                id: n.id,
+                accountId: n.account_id,
+                date: n.created_at.split('T')[0],
+                user: n.created_by,
+                type: 'NOTE' as const,
+                description: `[บันทึก] ${n.content}`,
+                isNote: true,
+              }))].sort((a, b) => b.date.localeCompare(a.date)).map(ev => {
+                const Icon = ev.isNote ? MessageSquare : (TIMELINE_ICONS[ev.type] || Clock);
+                const colorClass = ev.isNote ? 'bg-primary/10 text-primary' : (TIMELINE_COLORS[ev.type] || 'bg-muted text-muted-foreground');
                 return (
                   <div key={ev.id} className="flex gap-3 items-start">
                     <div className={`flex items-center justify-center w-7 h-7 rounded-full shrink-0 ${colorClass}`}>
@@ -121,7 +138,7 @@ export default function CustomerCenterPanel({ accountId, opportunities }: Props)
                   </div>
                 );
               })}
-              {timeline.length === 0 && <Empty text="ยังไม่มีกิจกรรม" />}
+              {timeline.length === 0 && internalNotes.length === 0 && <Empty text="ยังไม่มีกิจกรรม" />}
             </div>
           </TabsContent>
 
@@ -171,6 +188,28 @@ export default function CustomerCenterPanel({ accountId, opportunities }: Props)
                 </div>
               ))}
               {visits.length === 0 && <Empty text="ยังไม่มีบันทึกการเยี่ยม" />}
+            </div>
+          </TabsContent>
+
+          {/* Internal Notes */}
+          <TabsContent value="notes" className="mt-0">
+            <div className="space-y-3">
+              {internalNotes.length > 0 ? internalNotes.map(n => (
+                <div key={n.id} className="p-3 rounded-md bg-muted/30 border space-y-1.5">
+                  <div className="flex justify-between items-center">
+                    <span className="text-xs font-semibold text-foreground">{n.created_by}</span>
+                    <span className="text-[10px] text-muted-foreground">
+                      {new Date(n.created_at).toLocaleDateString('th-TH', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
+                    </span>
+                  </div>
+                  <p className="text-sm text-foreground">{n.content}</p>
+                  <p className="text-[10px] text-muted-foreground">
+                    จากโอกาสขาย: {n.opportunity_id}
+                  </p>
+                </div>
+              )) : (
+                <Empty text="ยังไม่มีบันทึกภายใน — บันทึกจากโอกาสขายจะแสดงที่นี่" />
+              )}
             </div>
           </TabsContent>
 
