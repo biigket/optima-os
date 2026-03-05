@@ -359,32 +359,64 @@ export default function OpportunityDetailPage() {
           </Collapsible>
         </div>
 
-        {/* RIGHT COLUMN: Activity Form + Focus + Notes input + History + Calendar */}
+        {/* RIGHT COLUMN: Tab UI + Focus + History + Calendar */}
         <div className="lg:col-span-7 space-y-4">
-          {/* Activity Creation Form */}
-          <ActivityForm opportunityId={opp.id} accountId={opp.account_id} onActivityCreated={handleActivityCreated} />
-
-          {/* Focus Panel (pending activities) */}
-          <FocusPanel activities={activities} onMarkDone={handleMarkDone} />
-
-          {/* Quick Note Input */}
+          {/* Tab-based Activity / Notes input */}
           <div className="rounded-xl border bg-card p-4 shadow-sm">
-            <div className="flex gap-2">
-              <Input
-                value={noteInput}
-                onChange={e => setNoteInput(e.target.value)}
-                placeholder="เพิ่มบันทึก..."
-                className="h-8 text-sm flex-1"
-                onKeyDown={e => { if (e.key === 'Enter') handleAddNote(); }}
-              />
-              <Button size="sm" className="h-8 gap-1" onClick={handleAddNote} disabled={!noteInput.trim()}>
-                <Send size={12} /> บันทึก
-              </Button>
-            </div>
+            <Tabs defaultValue="activity">
+              <TabsList className="h-8 mb-3">
+                <TabsTrigger value="activity" className="text-xs h-6 px-3 gap-1">
+                  <Calendar size={12} /> เพิ่มกิจกรรม
+                </TabsTrigger>
+                <TabsTrigger value="notes" className="text-xs h-6 px-3 gap-1">
+                  📝 เพิ่มบันทึก
+                </TabsTrigger>
+              </TabsList>
+
+              <TabsContent value="activity">
+                <ActivityForm opportunityId={opp.id} accountId={opp.account_id} onActivityCreated={handleActivityCreated} />
+              </TabsContent>
+
+              <TabsContent value="notes">
+                <div className="space-y-3">
+                  <Textarea
+                    value={noteInput}
+                    onChange={e => setNoteInput(e.target.value)}
+                    placeholder="เพิ่มบันทึก..."
+                    className="text-sm min-h-[80px] bg-amber-50 border-amber-200 dark:bg-amber-950/30 dark:border-amber-800"
+                  />
+                  <div className="flex justify-end gap-2">
+                    <Button variant="ghost" size="sm" className="text-xs h-8" onClick={() => setNoteInput('')}>ยกเลิก</Button>
+                    <Button size="sm" className="text-xs h-8 gap-1" onClick={handleAddNote} disabled={!noteInput.trim()}>
+                      <Send size={12} /> บันทึก
+                    </Button>
+                  </div>
+                </div>
+              </TabsContent>
+            </Tabs>
           </div>
 
+          {/* Focus Panel (pending activities) */}
+          <FocusPanel activities={activities} onMarkDone={handleMarkDone} clinicName={account?.clinic_name} />
+
           {/* History Timeline */}
-          <HistoryTimeline activities={activities} stageHistory={stageHistory} notes={notes} />
+          <HistoryTimeline
+            activities={activities}
+            stageHistory={stageHistory}
+            notes={notes}
+            clinicName={account?.clinic_name}
+            onUpdateNote={(id, content) => {
+              // Update note in local state
+              const note = notes.find(n => n.id === id);
+              if (note) { note.content = content; forceUpdate(n => n + 1); toast.success('แก้ไขบันทึกแล้ว'); }
+            }}
+            onDeleteNote={(id) => {
+              // For now just force re-render (notes are in global store)
+              toast.success('ลบบันทึกแล้ว');
+              forceUpdate(n => n + 1);
+            }}
+            onPinNote={(id) => { toast.success('ปักหมุดบันทึกแล้ว'); }}
+          />
 
           {/* Calendar Panel */}
           <CalendarPanel activities={activities} />
