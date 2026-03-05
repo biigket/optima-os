@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Search, Plus, Building2, MapPin, Phone, Filter, X, Loader2 } from 'lucide-react';
+import { Search, Plus, SlidersHorizontal, Building2, Loader2 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import StatusBadge from '@/components/ui/StatusBadge';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -23,7 +24,7 @@ const STATUS_OPTIONS = [
   { value: 'DEMO_SCHEDULED', label: 'นัดสาธิต' },
   { value: 'DEMO_DONE', label: 'สาธิตแล้ว' },
   { value: 'NEGOTIATION', label: 'เจรจา' },
-  { value: 'PURCHASED', label: 'ซื้อแล้ว' },
+  { value: 'PURCHASED', label: 'ลูกค้า' },
   { value: 'DORMANT', label: 'ไม่เคลื่อนไหว' },
   { value: 'CLOSED', label: 'ปิด' },
 ];
@@ -48,6 +49,17 @@ const emptyForm: Partial<TablesInsert<'accounts'>> = {
   single_or_chain: '',
 };
 
+function getStatusLabel(status: string) {
+  return STATUS_OPTIONS.find(s => s.value === status)?.label || status.replace(/_/g, ' ');
+}
+
+function daysSince(dateStr: string | null): string {
+  if (!dateStr) return '-';
+  const diff = Math.floor((Date.now() - new Date(dateStr).getTime()) / 86400000);
+  if (diff === 0) return 'วันนี้';
+  return `${diff} วัน`;
+}
+
 export default function LeadsPage() {
   const queryClient = useQueryClient();
   const [search, setSearch] = useState('');
@@ -56,7 +68,6 @@ export default function LeadsPage() {
   const [editingAccount, setEditingAccount] = useState<Account | null>(null);
   const [form, setForm] = useState(emptyForm);
 
-  // Fetch accounts
   const { data: accounts = [], isLoading } = useQuery({
     queryKey: ['accounts'],
     queryFn: async () => {
@@ -69,7 +80,6 @@ export default function LeadsPage() {
     },
   });
 
-  // Fetch contacts
   const { data: contacts = [] } = useQuery({
     queryKey: ['contacts'],
     queryFn: async () => {
@@ -79,7 +89,6 @@ export default function LeadsPage() {
     },
   });
 
-  // Insert mutation
   const insertMutation = useMutation({
     mutationFn: async (newAccount: TablesInsert<'accounts'>) => {
       const { error } = await supabase.from('accounts').insert(newAccount);
@@ -93,7 +102,6 @@ export default function LeadsPage() {
     onError: (err: Error) => toast.error('เกิดข้อผิดพลาด: ' + err.message),
   });
 
-  // Update mutation
   const updateMutation = useMutation({
     mutationFn: async ({ id, ...updates }: Partial<Account> & { id: string }) => {
       const { error } = await supabase.from('accounts').update(updates).eq('id', id);
@@ -156,7 +164,6 @@ export default function LeadsPage() {
     setForm(prev => ({ ...prev, [key]: value }));
   };
 
-  // Filter
   const filtered = accounts.filter(a => {
     const matchStatus = statusFilter === 'ALL' || a.customer_status === statusFilter;
     const q = search.toLowerCase();
@@ -171,86 +178,123 @@ export default function LeadsPage() {
   const isSaving = insertMutation.isPending || updateMutation.isPending;
 
   return (
-    <div className="space-y-6 animate-fade-in">
+    <div className="space-y-4 animate-fade-in">
+      {/* Header */}
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-foreground">ลูกค้า</h1>
-          <p className="text-sm text-muted-foreground">ลูกค้าทั้งหมด {filtered.length} ราย จาก {accounts.length} ราย</p>
+          <p className="text-sm text-muted-foreground">{filtered.length} ราย จากทั้งหมด {accounts.length} ราย</p>
         </div>
-        <Button size="sm" className="gap-1.5" onClick={openAdd}>
-          <Plus size={14} /> เพิ่มลูกค้าใหม่
-        </Button>
+        <div className="flex items-center gap-2">
+          <div className="relative">
+            <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              placeholder="ค้นหาลูกค้า..."
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              className="pl-9 w-64"
+            />
+          </div>
+          <Button variant="outline" size="sm" className="gap-1.5">
+            <SlidersHorizontal size={14} /> ตัวกรอง
+          </Button>
+          <Button size="sm" className="gap-1.5" onClick={openAdd}>
+            <Plus size={14} /> เพิ่มลูกค้า
+          </Button>
+        </div>
       </div>
 
-      {/* Filters */}
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-        <div className="relative max-w-sm flex-1">
-          <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
-          <Input placeholder="ค้นหาลูกค้า..." value={search} onChange={e => setSearch(e.target.value)} className="pl-9" />
-        </div>
-        <Tabs value={statusFilter} onValueChange={setStatusFilter}>
-          <TabsList className="flex-wrap h-auto">
-            {STATUS_OPTIONS.map(s => (
-              <TabsTrigger key={s.value} value={s.value} className="text-xs">
-                {s.label}
-              </TabsTrigger>
-            ))}
-          </TabsList>
-        </Tabs>
-      </div>
+      {/* Status Tabs */}
+      <Tabs value={statusFilter} onValueChange={setStatusFilter}>
+        <TabsList className="h-auto flex-wrap">
+          {STATUS_OPTIONS.map(s => (
+            <TabsTrigger key={s.value} value={s.value} className="text-xs">
+              {s.label}
+            </TabsTrigger>
+          ))}
+        </TabsList>
+      </Tabs>
 
-      {/* Loading */}
-      {isLoading && (
-        <div className="flex items-center justify-center py-12">
+      {/* Table */}
+      {isLoading ? (
+        <div className="flex items-center justify-center py-16">
           <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
         </div>
-      )}
-
-      {/* Cards */}
-      {!isLoading && (
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {filtered.map(account => {
-            const accountContacts = contacts.filter(c => c.account_id === account.id);
-            return (
-              <div
-                key={account.id}
-                className="rounded-lg border bg-card p-4 space-y-3 hover:shadow-md transition-shadow cursor-pointer"
-                onClick={() => openEdit(account)}
-              >
-                <div className="flex items-start justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 text-primary">
-                      <Building2 size={20} />
-                    </div>
-                    <div>
-                      <p className="text-sm font-semibold text-foreground">{account.clinic_name}</p>
+      ) : (
+        <div className="rounded-lg border bg-card">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead className="w-[220px]">คลินิก</TableHead>
+                <TableHead>ผู้ติดต่อ</TableHead>
+                <TableHead>สถานะ</TableHead>
+                <TableHead>เซลล์</TableHead>
+                <TableHead>เกรด</TableHead>
+                <TableHead>แหล่งที่มา</TableHead>
+                <TableHead className="text-right">สร้างเมื่อ</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {filtered.map(account => {
+                const primaryContact = contacts.find(c => c.account_id === account.id);
+                return (
+                  <TableRow
+                    key={account.id}
+                    className="cursor-pointer hover:bg-muted/50 transition-colors"
+                    onClick={() => openEdit(account)}
+                  >
+                    <TableCell>
+                      <div className="flex items-center gap-3">
+                        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-primary/10 text-primary">
+                          <Building2 size={16} />
+                        </div>
+                        <div className="min-w-0">
+                          <p className="text-sm font-medium text-foreground truncate">{account.clinic_name}</p>
+                          {account.address && (
+                            <p className="text-xs text-muted-foreground truncate max-w-[180px]">{account.address}</p>
+                          )}
+                        </div>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      {primaryContact ? (
+                        <div>
+                          <p className="text-sm text-foreground">{primaryContact.name}</p>
+                          {primaryContact.phone && (
+                            <p className="text-xs text-muted-foreground">{primaryContact.phone}</p>
+                          )}
+                        </div>
+                      ) : (
+                        <span className="text-xs text-muted-foreground">-</span>
+                      )}
+                    </TableCell>
+                    <TableCell>
                       <StatusBadge status={account.customer_status} />
-                    </div>
-                  </div>
-                </div>
-                <div className="space-y-1 text-xs text-muted-foreground">
-                  {account.address && (
-                    <div className="flex items-center gap-1.5">
-                      <MapPin size={12} />
-                      <span className="truncate">{account.address}</span>
-                    </div>
-                  )}
-                  {accountContacts[0] && (
-                    <div className="flex items-center gap-1.5">
-                      <Phone size={12} />
-                      <span>{accountContacts[0].name} — {accountContacts[0].phone}</span>
-                    </div>
-                  )}
-                  {account.assigned_sale && <p>เจ้าของ: {account.assigned_sale}</p>}
-                </div>
-              </div>
-            );
-          })}
-          {filtered.length === 0 && !isLoading && (
-            <div className="col-span-full text-center py-12 text-muted-foreground">
-              ไม่พบลูกค้า
-            </div>
-          )}
+                    </TableCell>
+                    <TableCell>
+                      <span className="text-sm text-foreground">{account.assigned_sale || '-'}</span>
+                    </TableCell>
+                    <TableCell>
+                      <span className="text-sm text-foreground">{account.grade || '-'}</span>
+                    </TableCell>
+                    <TableCell>
+                      <span className="text-sm text-muted-foreground">{account.lead_source || '-'}</span>
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <span className="text-xs text-muted-foreground">{daysSince(account.created_at)}</span>
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
+              {filtered.length === 0 && (
+                <TableRow>
+                  <TableCell colSpan={7} className="text-center py-12 text-muted-foreground">
+                    ไม่พบลูกค้า
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
         </div>
       )}
 
