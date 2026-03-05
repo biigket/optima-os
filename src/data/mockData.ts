@@ -62,12 +62,23 @@ export const mockContacts: Contact[] = [
   { id: 'c3', account_id: 'a3', name: 'Nurse Ploy Rattanakorn', role: 'Clinic Manager', phone: '+66834567890', email: 'ploy@skinperfect.co', created_at: '' },
 ];
 
+export const mockProducts = [
+  { id: 'p1', name: 'PicoStar Pro Laser', category: 'DEVICE' as const, price: 2500000 },
+  { id: 'p2', name: 'HydraGlow Facial System', category: 'DEVICE' as const, price: 1800000 },
+  { id: 'p3', name: 'CoolSculpt Body Contouring', category: 'DEVICE' as const, price: 3200000 },
+  { id: 'p4', name: 'RF Needle Cartridge (25pin)', category: 'CONSUMABLE' as const, price: 500 },
+  { id: 'p5', name: 'HydraGlow Serum Cartridge', category: 'CONSUMABLE' as const, price: 1750 },
+  { id: 'p6', name: 'Cryo Gel Pads (Pack of 50)', category: 'CONSUMABLE' as const, price: 2500 },
+  { id: 'p7', name: 'Laser Handpiece Tip (532nm)', category: 'CONSUMABLE' as const, price: 8500 },
+];
+
 export const mockOpportunities: Opportunity[] = [
-  { id: 'o1', account_id: 'a2', stage: 'DEMO_SCHEDULED', expected_value: 2500000, close_date: '2026-04-15', assigned_sale: 'Narin Lee', interested_products: ['HydraGlow Facial System'], created_at: '' },
-  { id: 'o2', account_id: 'a3', stage: 'CONTACTED', expected_value: 1800000, close_date: '2026-04-30', assigned_sale: 'Narin Lee', interested_products: ['PicoStar Pro Laser'], created_at: '' },
-  { id: 'o3', account_id: 'a1', stage: 'NEGOTIATION', expected_value: 350000, close_date: '2026-03-20', assigned_sale: 'Narin Lee', interested_products: ['Consumables'], created_at: '' },
-  { id: 'o4', account_id: 'a4', stage: 'WON', expected_value: 150000, close_date: '2026-02-28', assigned_sale: 'Narin Lee', interested_products: ['Service Contract'], created_at: '' },
-  { id: 'o5', account_id: 'a1', stage: 'NEW_LEAD', expected_value: 900000, close_date: '2026-05-15', assigned_sale: 'Narin Lee', interested_products: ['CoolSculpt'], created_at: '' },
+  { id: 'o1', account_id: 'a2', stage: 'DEMO_SCHEDULED', opportunity_type: 'DEVICE', expected_value: 2500000, close_date: '2026-04-15', assigned_sale: 'Narin Lee', interested_products: ['HydraGlow Facial System'], next_activity_type: 'DEMO', next_activity_date: '2026-03-10', created_at: '2026-02-20' },
+  { id: 'o2', account_id: 'a3', stage: 'CONTACTED', opportunity_type: 'DEVICE', expected_value: 1800000, close_date: '2026-04-30', assigned_sale: 'Narin Lee', interested_products: ['PicoStar Pro Laser'], next_activity_type: 'CALL', next_activity_date: '2026-03-06', created_at: '2026-03-01' },
+  { id: 'o3', account_id: 'a1', stage: 'NEGOTIATION', opportunity_type: 'CONSUMABLE', expected_value: 350000, close_date: '2026-03-20', assigned_sale: 'Narin Lee', interested_products: ['Consumables'], quantity: 200, next_activity_type: 'MEETING', next_activity_date: '2026-03-08', created_at: '2026-02-15' },
+  { id: 'o4', account_id: 'a4', stage: 'WON', opportunity_type: 'DEVICE', expected_value: 150000, close_date: '2026-02-28', assigned_sale: 'Narin Lee', interested_products: ['Service Contract'], created_at: '2026-01-10' },
+  { id: 'o5', account_id: 'a1', stage: 'NEW_LEAD', opportunity_type: 'DEVICE', expected_value: 900000, close_date: '2026-05-15', assigned_sale: 'Narin Lee', interested_products: ['CoolSculpt'], created_at: '2026-02-01' },
+  { id: 'o6', account_id: 'a5', stage: 'CONTACTED', opportunity_type: 'CONSUMABLE', expected_value: 85000, close_date: '2026-04-10', assigned_sale: 'Narin Lee', interested_products: ['RF Needle Cartridge (25pin)'], quantity: 100, created_at: '2026-01-15' },
 ];
 
 export const mockWorkItems: WorkItem[] = [

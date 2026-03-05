@@ -58,16 +58,22 @@ export interface Product {
   created_at: string;
 }
 
+export type OpportunityType = 'DEVICE' | 'CONSUMABLE';
+
 export interface Opportunity {
   id: string;
   account_id: string;
   stage: OpportunityStage;
+  opportunity_type?: OpportunityType;
   interested_products?: string[];
   expected_value?: number;
+  quantity?: number;
   assigned_sale?: string;
   customer_grade?: string;
   notes?: string;
   close_date?: string;
+  next_activity_type?: string;
+  next_activity_date?: string;
   created_at: string;
 }
 
