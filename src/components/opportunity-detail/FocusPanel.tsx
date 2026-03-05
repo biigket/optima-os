@@ -1,9 +1,16 @@
 import { useState } from 'react';
 import { Phone, Users, Building2, Target, AlertTriangle, MoreHorizontal, ChevronDown, Pencil, Trash2, X, Check } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+
+const TIME_OPTIONS = Array.from({ length: 96 }, (_, i) => {
+  const h = Math.floor(i / 4).toString().padStart(2, '0');
+  const m = ((i % 4) * 15).toString().padStart(2, '0');
+  return `${h}:${m}`;
+});
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import type { Activity } from '@/types';
@@ -177,9 +184,15 @@ function InlineEditCard({ activity, clinicName, onSave, onCancel }: {
       </div>
       <div className="flex items-center gap-2">
         <Input type="date" value={date} onChange={e => setDate(e.target.value)} className="h-7 text-[10px] w-[130px]" />
-        <Input type="time" value={startTime} onChange={e => setStartTime(e.target.value)} className="h-7 text-[10px] w-[90px]" placeholder="Start" />
+        <Select value={startTime} onValueChange={setStartTime}>
+          <SelectTrigger className="h-7 text-[10px] w-[90px]"><SelectValue placeholder="เริ่ม" /></SelectTrigger>
+          <SelectContent>{TIME_OPTIONS.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}</SelectContent>
+        </Select>
         <span className="text-[10px] text-muted-foreground">-</span>
-        <Input type="time" value={endTime} onChange={e => setEndTime(e.target.value)} className="h-7 text-[10px] w-[90px]" placeholder="End" />
+        <Select value={endTime} onValueChange={setEndTime}>
+          <SelectTrigger className="h-7 text-[10px] w-[90px]"><SelectValue placeholder="สิ้นสุด" /></SelectTrigger>
+          <SelectContent>{TIME_OPTIONS.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}</SelectContent>
+        </Select>
       </div>
       {clinicName && <p className="text-[10px] text-muted-foreground">{clinicName}</p>}
       <Textarea
