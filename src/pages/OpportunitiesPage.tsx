@@ -1,6 +1,6 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search, Plus, LayoutGrid, List, ArrowUpDown, Calendar, Building2, Clock, Filter } from 'lucide-react';
+import { Search, Plus, LayoutGrid, List, ArrowUpDown, Calendar, Building2, Clock, Filter, Loader2 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -8,7 +8,7 @@ import StatusBadge from '@/components/ui/StatusBadge';
 import OpportunityKanban from '@/components/opportunities/OpportunityKanban';
 import CustomerSelectModal from '@/components/opportunities/CustomerSelectModal';
 import CreateOpportunityForm from '@/components/opportunities/CreateOpportunityForm';
-import { mockOpportunities, getAccountById } from '@/data/mockData';
+import { supabase } from '@/integrations/supabase/client';
 import { useMockAuth, MOCK_SALES } from '@/hooks/useMockAuth';
 import { toast } from 'sonner';
 import type { Account, Opportunity, OpportunityStage } from '@/types';
@@ -36,11 +36,14 @@ export interface OpportunityNote {
   created_at: string;
 }
 
-// Global notes store
 let globalNotes: OpportunityNote[] = [];
 export function getNotesForOpportunity(oppId: string) { return globalNotes.filter(n => n.opportunity_id === oppId); }
 export function getNotesForAccount(accountId: string) { return globalNotes.filter(n => n.account_id === accountId); }
 export function addNoteGlobal(note: OpportunityNote) { globalNotes = [note, ...globalNotes]; }
+
+// Cache for account names (fetched from DB)
+const accountCache: Record<string, { clinic_name: string; customer_status: string; assigned_sale?: string }> = {};
+export function getCachedAccount(id: string) { return accountCache[id]; }
 
 export default function OpportunitiesPage() {
   const navigate = useNavigate();
@@ -55,27 +58,67 @@ export default function OpportunitiesPage() {
   const [viewMode, setViewMode] = useState<'kanban' | 'table'>('kanban');
   const [sortKey, setSortKey] = useState<SortKey>('next_activity');
 
-  // Creation flow state
   const [selectModalOpen, setSelectModalOpen] = useState(false);
   const [selectedCustomer, setSelectedCustomer] = useState<Account | null>(null);
   const [createFormOpen, setCreateFormOpen] = useState(false);
   const [noContactWarning, setNoContactWarning] = useState(false);
-  const [opportunities, setOpportunities] = useState<Opportunity[]>(mockOpportunities);
+  const [opportunities, setOpportunities] = useState<Opportunity[]>([]);
+  const [loading, setLoading] = useState(true);
   const [, forceUpdate] = useState(0);
 
-  // Role-based filtering: sales see only their own
+  // Fetch opportunities from DB
+  useEffect(() => {
+    const fetchOpps = async () => {
+      setLoading(true);
+      const { data: opps, error } = await supabase
+        .from('opportunities')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        toast.error('โหลดข้อมูลผิดพลาด');
+        setLoading(false);
+        return;
+      }
+
+      // Fetch account info for all opportunity account_ids
+      const accountIds = [...new Set((opps || []).map(o => o.account_id))];
+      if (accountIds.length > 0) {
+        const { data: accounts } = await supabase
+          .from('accounts')
+          .select('id, clinic_name, customer_status, assigned_sale')
+          .in('id', accountIds);
+        if (accounts) {
+          accounts.forEach(a => {
+            accountCache[a.id] = { clinic_name: a.clinic_name, customer_status: a.customer_status, assigned_sale: a.assigned_sale || undefined };
+          });
+        }
+      }
+
+      setOpportunities((opps || []).map(o => ({
+        ...o,
+        stage: o.stage as OpportunityStage,
+        opportunity_type: (o as any).opportunity_type || undefined,
+        next_activity_type: (o as any).next_activity_type || undefined,
+        next_activity_date: (o as any).next_activity_date || undefined,
+      })) as Opportunity[]);
+      setLoading(false);
+    };
+    fetchOpps();
+  }, []);
+
+  // Role-based filtering
   const roleFiltered = useMemo(() => {
     if (isAdmin) {
       if (saleFilter === 'ALL') return opportunities;
       return opportunities.filter(o => o.assigned_sale === saleFilter);
     }
-    // Sales user sees only their own
     return opportunities.filter(o => o.assigned_sale === currentUser?.name);
   }, [opportunities, isAdmin, saleFilter, currentUser?.name]);
 
   const filtered = roleFiltered.filter(o => {
-    const account = getAccountById(o.account_id);
-    const matchSearch = !search || account?.clinic_name.toLowerCase().includes(search.toLowerCase());
+    const acc = accountCache[o.account_id];
+    const matchSearch = !search || acc?.clinic_name.toLowerCase().includes(search.toLowerCase());
     const matchStage = stageFilter === 'ALL' || o.stage === stageFilter;
     const matchType = typeFilter === 'ALL' || o.opportunity_type === typeFilter;
     return matchSearch && matchStage && matchType;
@@ -111,6 +154,8 @@ export default function OpportunitiesPage() {
   const handleCustomerSelect = (account: Account, hasContacts: boolean) => {
     setSelectModalOpen(false);
     setSelectedCustomer(account);
+    // Cache account
+    accountCache[account.id] = { clinic_name: account.clinic_name, customer_status: account.customer_status, assigned_sale: account.assigned_sale || undefined };
     if (!hasContacts) {
       setNoContactWarning(true);
     } else {
@@ -119,15 +164,26 @@ export default function OpportunitiesPage() {
   };
 
   const handleSave = (data: Opportunity) => {
-    setOpportunities(prev => [...prev, data]);
+    setOpportunities(prev => [data, ...prev]);
   };
 
-  const handleStageChange = (oppId: string, newStage: OpportunityStage) => {
+  const handleStageChange = async (oppId: string, newStage: OpportunityStage) => {
     setOpportunities(prev => prev.map(o => o.id === oppId ? { ...o, stage: newStage } : o));
+    await supabase.from('opportunities').update({ stage: newStage }).eq('id', oppId);
   };
 
-  const handleUpdateOpportunity = (oppId: string, updates: Partial<Opportunity>) => {
+  const handleUpdateOpportunity = async (oppId: string, updates: Partial<Opportunity>) => {
     setOpportunities(prev => prev.map(o => o.id === oppId ? { ...o, ...updates } : o));
+    // Only persist known DB columns
+    const dbUpdates: Record<string, any> = {};
+    if ('stuck_reason' in updates) dbUpdates.stuck_reason = (updates as any).stuck_reason;
+    if ('expected_value' in updates) dbUpdates.expected_value = updates.expected_value;
+    if ('close_date' in updates) dbUpdates.close_date = updates.close_date;
+    if ('notes' in updates) dbUpdates.notes = updates.notes;
+    if ('stage' in updates) dbUpdates.stage = updates.stage;
+    if (Object.keys(dbUpdates).length > 0) {
+      await supabase.from('opportunities').update(dbUpdates as any).eq('id', oppId);
+    }
   };
 
   const handleAddNote = (oppId: string, content: string) => {
@@ -147,7 +203,6 @@ export default function OpportunitiesPage() {
 
   return (
     <div className="space-y-4 animate-fade-in">
-      {/* Header */}
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-foreground">Pipeline</h1>
@@ -170,7 +225,6 @@ export default function OpportunitiesPage() {
         </Button>
       </div>
 
-      {/* Filters */}
       <div className="flex items-center gap-3 flex-wrap">
         <div className="relative max-w-sm">
           <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
@@ -189,7 +243,6 @@ export default function OpportunitiesPage() {
           ))}
         </div>
 
-        {/* Sale filter (admin only) */}
         {isAdmin && (
           <div className="flex items-center gap-1.5">
             <Filter size={12} className="text-muted-foreground" />
@@ -251,8 +304,11 @@ export default function OpportunitiesPage() {
         </div>
       )}
 
-      {/* Content */}
-      {viewMode === 'kanban' ? (
+      {loading ? (
+        <div className="flex items-center justify-center py-20">
+          <Loader2 className="animate-spin text-muted-foreground" size={24} />
+        </div>
+      ) : viewMode === 'kanban' ? (
         <OpportunityKanban
           opportunities={filtered}
           typeFilter={typeFilter}
@@ -278,7 +334,7 @@ export default function OpportunitiesPage() {
             </thead>
             <tbody>
               {sorted.map(opp => {
-                const account = getAccountById(opp.account_id);
+                const acc = accountCache[opp.account_id];
                 const daysInStage = Math.floor((Date.now() - new Date(opp.created_at || Date.now()).getTime()) / 86400000);
                 const isTerminal = ['WON', 'LOST'].includes(opp.stage);
                 const isOverdue = opp.close_date && new Date(opp.close_date) < new Date() && !isTerminal;
@@ -294,7 +350,7 @@ export default function OpportunitiesPage() {
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-1.5">
                         <Building2 size={12} className="text-muted-foreground shrink-0" />
-                        <span className="font-semibold text-foreground">{account?.clinic_name}</span>
+                        <span className="font-semibold text-foreground">{acc?.clinic_name || '-'}</span>
                       </div>
                     </td>
                     <td className="px-4 py-3 text-xs text-muted-foreground max-w-[140px] truncate">
@@ -327,6 +383,9 @@ export default function OpportunitiesPage() {
                   </tr>
                 );
               })}
+              {sorted.length === 0 && (
+                <tr><td colSpan={9} className="text-center py-12 text-muted-foreground text-sm">ยังไม่มีดีล — กดปุ่ม "เพิ่มดีล" เพื่อเริ่มต้น</td></tr>
+              )}
             </tbody>
           </table>
         </div>
