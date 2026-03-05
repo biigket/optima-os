@@ -1,50 +1,40 @@
 
 
-# Opportunity Module — Add Functional Features
+## Plan: ทำให้ Pin, Delete, Comment ใช้งานได้จริง
 
-## Overview
-Add drag-and-drop stage changes, quick stage editing, inline actions, and other interactive functionality to the Opportunity module.
+### ปัญหาปัจจุบัน
 
-## Changes
+1. **Pin** — แค่แสดง toast ไม่ได้ทำอะไรจริง
+2. **Delete** — `onDeleteNote` แสดง toast แต่ไม่ลบ note ออกจาก `globalNotes`
+3. **Comment** — ปุ่ม Post แค่ clear state ไม่ได้บันทึก comment
 
-### 1. Drag & Drop on Kanban (`OpportunityKanban.tsx`)
-- Lift `opportunities` state up: pass `onStageChange(oppId, newStage)` callback from `OpportunitiesPage`
-- Implement native HTML5 drag-and-drop (no library needed):
-  - `draggable` on each `KanbanCard`
-  - `onDragStart` sets `oppId` in dataTransfer
-  - Each column acts as a drop zone with `onDragOver` + `onDrop`
-  - Visual feedback: highlight column border on drag-over, ghost opacity on dragged card
-- On drop: call `onStageChange` → update state + show toast "ย้าย [clinic] → [stage]"
-- Log stage change in a local `stageHistory` array (for future timeline)
+### แก้ไข
 
-### 2. Quick Actions on Kanban Cards (`OpportunityKanban.tsx`)
-- Add a hover-visible action row at bottom of each card:
-  - **Phone** icon → toast "โทรหา [clinic]"
-  - **Calendar** icon → toast "นัดกิจกรรม"  
-  - **MoreHorizontal** → dropdown with "แก้ไข", "เปลี่ยน Stage", "Mark Won/Lost"
-- Prevent card click navigation when clicking action buttons (`e.stopPropagation()`)
+#### 1. `OpportunitiesPage.tsx` — เพิ่ม helper functions
+- เพิ่ม `deleteNoteGlobal(id)` — filter note ออกจาก `globalNotes` array
+- เพิ่ม `updateNoteGlobal(id, content)` — แก้ content ใน `globalNotes`
+- Export ทั้ง 2 functions
 
-### 3. Stage Change on Detail Page (`OpportunityDetailPage.tsx`)
-- Make stage path segments clickable
-- On click → confirm dialog "ย้ายไป [stage]?" → update local state + toast
-- Add "Mark Won" / "Mark Lost" buttons in the header area
+#### 2. `OpportunityDetailPage.tsx` — wire up callbacks จริง
+- **Pin**: เพิ่ม `pinnedNoteIds` state (Set), toggle pin on/off, ส่ง pinned status ไป HistoryTimeline เพื่อแสดง pinned notes ด้านบนสุด
+- **Delete Note**: เรียก `deleteNoteGlobal(id)` แล้ว re-derive notes จาก `getNotesForOpportunity`
+- **Delete Activity**: เรียก `supabase.from('activities').delete()` + RLS policy ต้องเพิ่ม DELETE permission
+- **Comment**: เรียก `addNoteGlobal()` สร้าง note ใหม่ที่มี content เป็น `"↳ {comment}"` (reply format)
+- **Update Note**: เรียก `updateNoteGlobal(id, content)`
 
-### 4. Inline Edit on Detail Page (`OpportunityDetailPage.tsx`)
-- Add edit button next to Deal Info section
-- Opens a dialog/inline form to edit: expected_value, close_date, notes, next_activity_type, next_activity_date
-- Save updates local state + toast
+#### 3. `HistoryTimeline.tsx` — เพิ่ม props และ logic
+- เพิ่ม `onDeleteActivity` prop สำหรับลบ activity
+- เพิ่ม `onAddComment` prop สำหรับ comment
+- เพิ่ม `pinnedIds` prop → pinned items แสดง icon สีเข้ม + เรียงขึ้นบนสุด
+- ActivityItem: ใช้ `onDeleteActivity` แทน `onDeleteNote` สำหรับ delete
+- NoteItem: ปุ่ม Post เรียก `onAddComment(data.id, comment)`
 
-### 5. Update State Management (`OpportunitiesPage.tsx`)
-- Pass `setOpportunities` updater to Kanban and Detail via props or shared state
-- `onStageChange` handler: finds opportunity by ID, updates stage, re-renders Kanban
-- Wire route params so Detail page can also update the shared opportunities array
+#### 4. Database — เพิ่ม DELETE RLS policy สำหรับ activities
+- Migration: `CREATE POLICY "Allow delete activities" ON activities FOR DELETE USING (true);`
 
-### 6. Add "Reason Stuck" dropdown
-- When a deal is stuck (>14 days), show a small dropdown on the card: "รอราคา / รอผู้ตัดสินใจ / รอ finance / รอ training / อื่นๆ"
-- Store as `stuck_reason` on the opportunity object
-
-## Technical Notes
-- Using native HTML5 drag-and-drop keeps bundle size small — no new dependencies
-- All state changes are local (mock data) — ready for database migration later
-- Drop zones use `e.preventDefault()` on `dragOver` to allow drops
+### ไฟล์ที่แก้ไข
+1. `src/pages/OpportunitiesPage.tsx` — เพิ่ม `deleteNoteGlobal`, `updateNoteGlobal`
+2. `src/pages/OpportunityDetailPage.tsx` — ทำ Pin/Delete/Comment ให้ทำงานจริง
+3. `src/components/opportunity-detail/HistoryTimeline.tsx` — เพิ่ม props + pinned logic
+4. DB migration — เพิ่ม DELETE policy บน activities table
 
