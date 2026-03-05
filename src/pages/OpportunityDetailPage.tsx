@@ -54,6 +54,8 @@ export default function OpportunityDetailPage() {
   const [stakeholdersOpen, setStakeholdersOpen] = useState(true);
   const [addContactOpen, setAddContactOpen] = useState(false);
   const [newContact, setNewContact] = useState({ name: '', role: '', phone: '' });
+  const [editingContactId, setEditingContactId] = useState<string | null>(null);
+  const [editContactForm, setEditContactForm] = useState({ name: '', role: '' });
 
   const [editForm, setEditForm] = useState({
     expected_value: '', close_date: '', notes: '',
