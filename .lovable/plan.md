@@ -1,50 +1,89 @@
+## Plan: เพิ่มระบบ Activity + History Timeline + Calendar Panel
 
+### 1. Database Migration — สร้างตาราง `activities`
 
-# Opportunity Module — Add Functional Features
+```sql
+CREATE TABLE public.activities (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  opportunity_id uuid NOT NULL,
+  account_id uuid NOT NULL,
+  activity_type text NOT NULL DEFAULT 'CALL',
+  title text NOT NULL,
+  activity_date date NOT NULL,
+  start_time text,
+  end_time text,
+  priority text DEFAULT 'NORMAL',
+  location text,
+  description text,
+  notes text,
+  assigned_to text,
+  contact_id uuid,
+  is_done boolean DEFAULT false,
+  created_at timestamptz DEFAULT now(),
+  created_by text
+);
 
-## Overview
-Add drag-and-drop stage changes, quick stage editing, inline actions, and other interactive functionality to the Opportunity module.
+ALTER TABLE public.activities ENABLE ROW LEVEL SECURITY;
 
-## Changes
+CREATE POLICY "Anon can view activities" ON public.activities FOR SELECT TO anon USING (true);
+CREATE POLICY "Anon can insert activities" ON public.activities FOR INSERT TO anon WITH CHECK (true);
+CREATE POLICY "Anon can update activities" ON public.activities FOR UPDATE TO anon USING (true);
+CREATE POLICY "Auth can view activities" ON public.activities FOR SELECT TO authenticated USING (true);
+CREATE POLICY "Auth can insert activities" ON public.activities FOR INSERT TO authenticated WITH CHECK (true);
+CREATE POLICY "Auth can update activities" ON public.activities FOR UPDATE TO authenticated USING (true);
 
-### 1. Drag & Drop on Kanban (`OpportunityKanban.tsx`)
-- Lift `opportunities` state up: pass `onStageChange(oppId, newStage)` callback from `OpportunitiesPage`
-- Implement native HTML5 drag-and-drop (no library needed):
-  - `draggable` on each `KanbanCard`
-  - `onDragStart` sets `oppId` in dataTransfer
-  - Each column acts as a drop zone with `onDragOver` + `onDrop`
-  - Visual feedback: highlight column border on drag-over, ghost opacity on dragged card
-- On drop: call `onStageChange` → update state + show toast "ย้าย [clinic] → [stage]"
-- Log stage change in a local `stageHistory` array (for future timeline)
+ALTER PUBLICATION supabase_realtime ADD TABLE public.activities;
+```
 
-### 2. Quick Actions on Kanban Cards (`OpportunityKanban.tsx`)
-- Add a hover-visible action row at bottom of each card:
-  - **Phone** icon → toast "โทรหา [clinic]"
-  - **Calendar** icon → toast "นัดกิจกรรม"  
-  - **MoreHorizontal** → dropdown with "แก้ไข", "เปลี่ยน Stage", "Mark Won/Lost"
-- Prevent card click navigation when clicking action buttons (`e.stopPropagation()`)
+### 2. เพิ่ม `Activity` interface ใน `src/types/index.ts`
 
-### 3. Stage Change on Detail Page (`OpportunityDetailPage.tsx`)
-- Make stage path segments clickable
-- On click → confirm dialog "ย้ายไป [stage]?" → update local state + toast
-- Add "Mark Won" / "Mark Lost" buttons in the header area
+### 3. ปรับ `OpportunityDetailPage.tsx` — เปลี่ยนโครงสร้างใหม่ทั้งหมด
 
-### 4. Inline Edit on Detail Page (`OpportunityDetailPage.tsx`)
-- Add edit button next to Deal Info section
-- Opens a dialog/inline form to edit: expected_value, close_date, notes, next_activity_type, next_activity_date
-- Save updates local state + toast
+#### Layout ใหม่: 2 columns โดยซ้าย 30% ขวา 70% โดยลบ section nextactions ออกให้หมด
 
-### 5. Update State Management (`OpportunitiesPage.tsx`)
-- Pass `setOpportunities` updater to Kanban and Detail via props or shared state
-- `onStageChange` handler: finds opportunity by ID, updates stage, re-renders Kanban
-- Wire route params so Detail page can also update the shared opportunities array
+- **ซ้าย (col-span-1):** Deal Info + Stakeholders (collapsible) ใต้ Deal Info
+- **ขวา (col-span-2):** Activity Form (Focus) + History Timeline + Calendar Panel  
+  
+Stakeholders เปลี่ยนชื่อเป็น ผู้มีอำนาจตัดสินใจ สามารถ edit เพิ่มลบได้  
+นำเอาบันทึกภายในออก
 
-### 6. Add "Reason Stuck" dropdown
-- When a deal is stuck (>14 days), show a small dropdown on the card: "รอราคา / รอผู้ตัดสินใจ / รอ finance / รอ training / อื่นๆ"
-- Store as `stuck_reason` on the opportunity object
+#### A. Activity Creation Form (Focus panel)
 
-## Technical Notes
-- Using native HTML5 drag-and-drop keeps bundle size small — no new dependencies
-- All state changes are local (mock data) — ready for database migration later
-- Drop zones use `e.preventDefault()` on `dragOver` to allow drops
+- แถว icon เลือกประเภท: 📞 Call, 👥 Meeting, 🏢 Task, 🎯 Deadline
+- ช่อง Title, วันที่ + เวลาเริ่ม-สิ้นสุด
+- Priority dropdown (Low / Normal / High)
+- Optional: Location, Description
+- Notes (yellow bg box)
+- ปุ่ม "Mark as done" checkbox + Cancel + Save
+- บันทึกลง DB `activities` table
 
+#### B. Focus Panel
+
+- Activities ที่ยังไม่ done แสดงที่นี่ (เรียงตามวันที่)
+- เมื่อ mark as done → ย้ายไป History Timeline
+
+#### C. History Timeline ยังคงบันทึกหากมีการเปลี่ยน stage ด้วย
+
+- Tab filters: All | Activities | Notes | Changelog
+- Timeline แบบ dashed line + icon
+  - Notes: 📝 + yellow bg
+  - Stage changes: ○ + "Stage: X → Y" + timestamp
+  - Activities (done): icon ตามประเภท + title + status
+- เรียงจากใหม่ → เก่า
+- รวม notes + stage history + done activities
+
+#### D. Calendar Panel
+
+- Header: แสดงวัน/วันที่ + ปุ่ม ◀ ▶ + ปุ่ม Today
+- Daily Activity List: รายการกิจกรรมของวันที่เลือก
+- Time Grid: 0:00–24:00 พร้อมเส้นเวลาแดง (ถ้าวันนี้)
+- Activity Blocks: render ตาม start_time/end_time + สีตาม type
+- คลิก block → เปิดแก้ไข
+
+#### E. Stakeholders → ย้ายไปซ้ายใต้ Deal Info + Collapsible และมีปุ่มให้ edit
+
+### ไฟล์ที่แก้ไข
+
+1. **Database migration** — สร้างตาราง `activities` + RLS + realtime
+2. `**src/types/index.ts**` — เพิ่ม `Activity` interface
+3. `**src/pages/OpportunityDetailPage.tsx**` — ปรับโครงสร้างใหม่ทั้งหมดตาม layout ข้างบน
