@@ -64,14 +64,9 @@ const mockContacts: Contact[] = [
 
 const STATUS_OPTIONS = [
   { value: 'ALL', label: 'ทั้งหมด' },
-  { value: 'NEW_LEAD', label: 'ลูกค้าใหม่' },
-  { value: 'CONTACTED', label: 'ติดต่อแล้ว' },
-  { value: 'DEMO_SCHEDULED', label: 'นัดสาธิต' },
-  { value: 'DEMO_DONE', label: 'สาธิตแล้ว' },
-  { value: 'NEGOTIATION', label: 'เจรจา' },
-  { value: 'PURCHASED', label: 'ลูกค้า' },
+  { value: 'PROSPECT', label: 'ยังไม่ซื้อ' },
+  { value: 'PURCHASED', label: 'ซื้อแล้ว' },
   { value: 'DORMANT', label: 'ไม่เคลื่อนไหว' },
-  { value: 'CLOSED', label: 'ปิด' },
 ];
 
 const ENTITY_TYPES = ['บุคคลธรรมดา', 'นิติบุคคล', 'คลินิก', 'โรงพยาบาล'];
@@ -168,7 +163,12 @@ export default function LeadsPage() {
   };
 
   const filtered = accounts.filter(a => {
-    const matchStatus = statusFilter === 'ALL' || a.customer_status === statusFilter;
+    let matchStatus = true;
+    if (statusFilter === 'PROSPECT') {
+      matchStatus = a.customer_status !== 'PURCHASED' && a.customer_status !== 'DORMANT';
+    } else if (statusFilter !== 'ALL') {
+      matchStatus = a.customer_status === statusFilter;
+    }
     const q = search.toLowerCase();
     const matchSearch = !q ||
       a.clinic_name.toLowerCase().includes(q) ||
