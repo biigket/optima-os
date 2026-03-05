@@ -40,6 +40,8 @@ let globalNotes: OpportunityNote[] = [];
 export function getNotesForOpportunity(oppId: string) { return globalNotes.filter(n => n.opportunity_id === oppId); }
 export function getNotesForAccount(accountId: string) { return globalNotes.filter(n => n.account_id === accountId); }
 export function addNoteGlobal(note: OpportunityNote) { globalNotes = [note, ...globalNotes]; }
+export function deleteNoteGlobal(id: string) { globalNotes = globalNotes.filter(n => n.id !== id); }
+export function updateNoteGlobal(id: string, content: string) { globalNotes = globalNotes.map(n => n.id === id ? { ...n, content } : n); }
 
 // Account cache — populated on demand from DB
 const accountCache: Record<string, { clinic_name: string; customer_status: string; assigned_sale?: string }> = {};

@@ -14,7 +14,7 @@ import {
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useMockAuth } from '@/hooks/useMockAuth';
-import { getNotesForOpportunity, addNoteGlobal, type OpportunityNote } from '@/pages/OpportunitiesPage';
+import { getNotesForOpportunity, addNoteGlobal, deleteNoteGlobal, updateNoteGlobal, type OpportunityNote } from '@/pages/OpportunitiesPage';
 import { toast } from 'sonner';
 import { differenceInDays } from 'date-fns';
 import type { Opportunity, OpportunityStage, Account, Contact, Activity } from '@/types';
