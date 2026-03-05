@@ -10,6 +10,7 @@ import {
   Lock, Bot, Brain, Zap, LogOut
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useMockAuth } from '@/hooks/useMockAuth';
 
 const navGroups = [
   {
@@ -108,8 +109,9 @@ const navGroups = [
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const [collapsed, setCollapsed] = useState(false);
   const location = useLocation();
-  const displayName = 'Admin';
-  const initials = 'AD';
+  const { currentUser, logout } = useMockAuth();
+  const displayName = currentUser?.name || 'Guest';
+  const initials = displayName.slice(0, 2).toUpperCase();
 
   return (
     <div className="flex h-screen overflow-hidden">
@@ -198,9 +200,14 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
               {initials}
             </div>
             {!collapsed && (
-              <div className="flex-1 min-w-0">
-                <p className="text-xs font-medium text-sidebar-accent-foreground truncate">{displayName}</p>
-              </div>
+              <>
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs font-medium text-sidebar-accent-foreground truncate">{displayName}</p>
+                </div>
+                <button onClick={logout} className="p-1 rounded hover:bg-sidebar-accent text-sidebar-muted" title="ออกจากระบบ">
+                  <LogOut size={14} />
+                </button>
+              </>
             )}
           </div>
         </div>

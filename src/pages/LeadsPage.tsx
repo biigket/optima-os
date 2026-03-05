@@ -10,6 +10,7 @@ import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import StatusBadge from '@/components/ui/StatusBadge';
 import { toast } from 'sonner';
+import { useMockAuth, MOCK_SALES } from '@/hooks/useMockAuth';
 
 interface Account {
   id: string;
@@ -41,14 +42,16 @@ interface Contact {
 
 // ── Mock Data ──
 const mockAccounts: Account[] = [
-  { id: '1', clinic_name: 'Clarity Clinic', company_name: 'Clarity Co., Ltd.', address: 'สุขุมวิท 39, กรุงเทพฯ', tax_id: null, entity_type: 'คลินิก', branch_type: 'สำนักงานใหญ่', phone: '02-123-4567', email: 'info@clarity.co.th', customer_status: 'DEMO_SCHEDULED', assigned_sale: 'Palm', lead_source: 'งานแสดงสินค้า', notes: null, grade: 'A', single_or_chain: 'สาขาเดียว', created_at: '2026-03-02T10:00:00' },
-  { id: '2', clinic_name: 'Aura Med Spa', company_name: 'Aura Group', address: 'นิมมานเหมินทร์, เชียงใหม่', tax_id: null, entity_type: 'คลินิก', branch_type: 'สำนักงานใหญ่', phone: '053-222-333', email: 'hello@aura.co.th', customer_status: 'PURCHASED', assigned_sale: 'Nicole', lead_source: 'แนะนำ', notes: null, grade: 'A', single_or_chain: 'เชน', created_at: '2026-02-28T09:00:00' },
-  { id: '3', clinic_name: 'Derma Plus', company_name: null, address: 'พัทยาใต้, ชลบุรี', tax_id: null, entity_type: 'คลินิก', branch_type: null, phone: '038-111-222', email: null, customer_status: 'NEW_LEAD', assigned_sale: 'Palm', lead_source: 'เว็บไซต์', notes: null, grade: 'B', single_or_chain: 'สาขาเดียว', created_at: '2026-03-04T14:00:00' },
-  { id: '4', clinic_name: 'Skin Lab Bangkok', company_name: 'Skin Lab Co., Ltd.', address: 'ทองหล่อ ซอย 10, กรุงเทพฯ', tax_id: null, entity_type: 'นิติบุคคล', branch_type: 'สำนักงานใหญ่', phone: '02-999-8888', email: 'contact@skinlab.co.th', customer_status: 'NEGOTIATION', assigned_sale: 'Nicole', lead_source: 'งานแสดงสินค้า', notes: 'สนใจ Doublo Gold', grade: 'A', single_or_chain: 'เชน', created_at: '2026-02-25T11:00:00' },
-  { id: '5', clinic_name: 'Glow Aesthetic', company_name: null, address: 'หาดใหญ่, สงขลา', tax_id: null, entity_type: 'คลินิก', branch_type: null, phone: '074-333-444', email: 'glow@email.com', customer_status: 'CONTACTED', assigned_sale: 'Palm', lead_source: 'Facebook', notes: null, grade: 'B', single_or_chain: 'สาขาเดียว', created_at: '2026-03-03T16:30:00' },
-  { id: '6', clinic_name: 'Radiance Center', company_name: 'Radiance Medical', address: 'ราชดำริ, กรุงเทพฯ', tax_id: null, entity_type: 'โรงพยาบาล', branch_type: 'สำนักงานใหญ่', phone: '02-555-6666', email: 'info@radiance.co.th', customer_status: 'DORMANT', assigned_sale: 'Nicole', lead_source: 'แนะนำ', notes: 'เคยซื้อ Ultraformer แต่หยุดใช้', grade: 'C', single_or_chain: 'สาขาเดียว', created_at: '2026-01-15T08:00:00' },
-  { id: '7', clinic_name: 'Beauty First', company_name: 'BF Clinic Co., Ltd.', address: 'เซ็นทรัลเวิลด์, กรุงเทพฯ', tax_id: null, entity_type: 'นิติบุคคล', branch_type: 'สาขา', phone: '02-777-8888', email: 'bf@beautyfirst.co.th', customer_status: 'PURCHASED', assigned_sale: 'Palm', lead_source: 'งานแสดงสินค้า', notes: null, grade: 'A', single_or_chain: 'เชน', created_at: '2026-02-20T13:00:00' },
-  { id: '8', clinic_name: 'Nova Skin Clinic', company_name: null, address: 'ขอนแก่น', tax_id: null, entity_type: 'คลินิก', branch_type: null, phone: '043-222-111', email: null, customer_status: 'DEMO_DONE', assigned_sale: 'Nicole', lead_source: 'เว็บไซต์', notes: 'รอผลตัดสินใจ', grade: 'B', single_or_chain: 'สาขาเดียว', created_at: '2026-03-01T10:30:00' },
+  { id: '1', clinic_name: 'Clarity Clinic', company_name: 'Clarity Co., Ltd.', address: 'สุขุมวิท 39, กรุงเทพฯ', tax_id: null, entity_type: 'คลินิก', branch_type: 'สำนักงานใหญ่', phone: '02-123-4567', email: 'info@clarity.co.th', customer_status: 'DEMO_SCHEDULED', assigned_sale: 'FORD', lead_source: 'งานแสดงสินค้า', notes: null, grade: 'A', single_or_chain: 'สาขาเดียว', created_at: '2026-03-02T10:00:00' },
+  { id: '2', clinic_name: 'Aura Med Spa', company_name: 'Aura Group', address: 'นิมมานเหมินทร์, เชียงใหม่', tax_id: null, entity_type: 'คลินิก', branch_type: 'สำนักงานใหญ่', phone: '053-222-333', email: 'hello@aura.co.th', customer_status: 'PURCHASED', assigned_sale: 'VARN', lead_source: 'แนะนำ', notes: null, grade: 'A', single_or_chain: 'เชน', created_at: '2026-02-28T09:00:00' },
+  { id: '3', clinic_name: 'Derma Plus', company_name: null, address: 'พัทยาใต้, ชลบุรี', tax_id: null, entity_type: 'คลินิก', branch_type: null, phone: '038-111-222', email: null, customer_status: 'NEW_LEAD', assigned_sale: 'PETCH', lead_source: 'เว็บไซต์', notes: null, grade: 'B', single_or_chain: 'สาขาเดียว', created_at: '2026-03-04T14:00:00' },
+  { id: '4', clinic_name: 'Skin Lab Bangkok', company_name: 'Skin Lab Co., Ltd.', address: 'ทองหล่อ ซอย 10, กรุงเทพฯ', tax_id: null, entity_type: 'นิติบุคคล', branch_type: 'สำนักงานใหญ่', phone: '02-999-8888', email: 'contact@skinlab.co.th', customer_status: 'NEGOTIATION', assigned_sale: 'FAH', lead_source: 'งานแสดงสินค้า', notes: 'สนใจ Doublo Gold', grade: 'A', single_or_chain: 'เชน', created_at: '2026-02-25T11:00:00' },
+  { id: '5', clinic_name: 'Glow Aesthetic', company_name: null, address: 'หาดใหญ่, สงขลา', tax_id: null, entity_type: 'คลินิก', branch_type: null, phone: '074-333-444', email: 'glow@email.com', customer_status: 'CONTACTED', assigned_sale: 'VI', lead_source: 'Facebook', notes: null, grade: 'B', single_or_chain: 'สาขาเดียว', created_at: '2026-03-03T16:30:00' },
+  { id: '6', clinic_name: 'Radiance Center', company_name: 'Radiance Medical', address: 'ราชดำริ, กรุงเทพฯ', tax_id: null, entity_type: 'โรงพยาบาล', branch_type: 'สำนักงานใหญ่', phone: '02-555-6666', email: 'info@radiance.co.th', customer_status: 'DORMANT', assigned_sale: 'FORD', lead_source: 'แนะนำ', notes: 'เคยซื้อ Ultraformer แต่หยุดใช้', grade: 'C', single_or_chain: 'สาขาเดียว', created_at: '2026-01-15T08:00:00' },
+  { id: '7', clinic_name: 'Beauty First', company_name: 'BF Clinic Co., Ltd.', address: 'เซ็นทรัลเวิลด์, กรุงเทพฯ', tax_id: null, entity_type: 'นิติบุคคล', branch_type: 'สาขา', phone: '02-777-8888', email: 'bf@beautyfirst.co.th', customer_status: 'PURCHASED', assigned_sale: 'PETCH', lead_source: 'งานแสดงสินค้า', notes: null, grade: 'A', single_or_chain: 'เชน', created_at: '2026-02-20T13:00:00' },
+  { id: '8', clinic_name: 'Nova Skin Clinic', company_name: null, address: 'ขอนแก่น', tax_id: null, entity_type: 'คลินิก', branch_type: null, phone: '043-222-111', email: null, customer_status: 'DEMO_DONE', assigned_sale: 'VARN', lead_source: 'เว็บไซต์', notes: 'รอผลตัดสินใจ', grade: 'B', single_or_chain: 'สาขาเดียว', created_at: '2026-03-01T10:30:00' },
+  { id: '9', clinic_name: 'Zen Clinic', company_name: null, address: 'เอกมัย, กรุงเทพฯ', tax_id: null, entity_type: 'คลินิก', branch_type: null, phone: '02-444-5555', email: 'zen@email.com', customer_status: 'NEW_LEAD', assigned_sale: 'FAH', lead_source: 'Instagram', notes: null, grade: 'B', single_or_chain: 'สาขาเดียว', created_at: '2026-03-04T09:00:00' },
+  { id: '10', clinic_name: 'Luxe Dermatology', company_name: 'Luxe Med Co., Ltd.', address: 'สีลม, กรุงเทพฯ', tax_id: null, entity_type: 'นิติบุคคล', branch_type: 'สำนักงานใหญ่', phone: '02-666-7777', email: 'info@luxe.co.th', customer_status: 'CONTACTED', assigned_sale: 'VI', lead_source: 'งานแสดงสินค้า', notes: null, grade: 'A', single_or_chain: 'เชน', created_at: '2026-02-18T14:00:00' },
 ];
 
 const mockContacts: Contact[] = [
@@ -105,12 +108,16 @@ function daysSince(dateStr: string | null): string {
 }
 
 export default function LeadsPage() {
+  const { currentUser } = useMockAuth();
   const [accounts, setAccounts] = useState<Account[]>(mockAccounts);
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('ALL');
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingAccount, setEditingAccount] = useState<Account | null>(null);
   const [form, setForm] = useState(emptyForm);
+
+  // Filter to only show accounts assigned to current user
+  const myAccounts = accounts.filter(a => a.assigned_sale === currentUser?.name);
 
   const closeDialog = () => {
     setDialogOpen(false);
@@ -157,6 +164,7 @@ export default function LeadsPage() {
       const newAccount: Account = {
         ...emptyForm,
         ...form,
+        assigned_sale: currentUser?.name || form.assigned_sale,
         id: crypto.randomUUID(),
         created_at: new Date().toISOString(),
       } as Account;
@@ -170,7 +178,7 @@ export default function LeadsPage() {
     setForm(prev => ({ ...prev, [key]: value }));
   };
 
-  const filtered = accounts.filter(a => {
+  const filtered = myAccounts.filter(a => {
     let matchStatus = true;
     if (statusFilter === 'PROSPECT') {
       matchStatus = !isFollowUp(a) && a.customer_status !== 'PURCHASED' && a.customer_status !== 'DORMANT';
@@ -194,7 +202,7 @@ export default function LeadsPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-foreground">ลูกค้า</h1>
-          <p className="text-sm text-muted-foreground">{filtered.length} ราย จากทั้งหมด {accounts.length} ราย</p>
+          <p className="text-sm text-muted-foreground">{filtered.length} ราย จากทั้งหมด {myAccounts.length} ราย</p>
         </div>
         <div className="flex items-center gap-2">
           <div className="relative">
@@ -369,7 +377,12 @@ export default function LeadsPage() {
             </div>
             <div className="space-y-1.5">
               <Label>เซลล์ผู้ดูแล</Label>
-              <Input value={form.assigned_sale || ''} onChange={e => updateField('assigned_sale', e.target.value)} />
+              <Select value={form.assigned_sale || ''} onValueChange={v => updateField('assigned_sale', v)}>
+                <SelectTrigger><SelectValue placeholder="เลือกเซลล์" /></SelectTrigger>
+                <SelectContent>
+                  {MOCK_SALES.map(s => <SelectItem key={s.id} value={s.name}>{s.name}</SelectItem>)}
+                </SelectContent>
+              </Select>
             </div>
             <div className="space-y-1.5">
               <Label>แหล่งที่มา</Label>
