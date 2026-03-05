@@ -54,6 +54,8 @@ export default function OpportunityDetailPage() {
   const [stakeholdersOpen, setStakeholdersOpen] = useState(true);
   const [addContactOpen, setAddContactOpen] = useState(false);
   const [newContact, setNewContact] = useState({ name: '', role: '', phone: '' });
+  const [editingContactId, setEditingContactId] = useState<string | null>(null);
+  const [editContactForm, setEditContactForm] = useState({ name: '', role: '' });
 
   const [editForm, setEditForm] = useState({
     expected_value: '', close_date: '', notes: '',
@@ -177,6 +179,24 @@ export default function OpportunityDetailPage() {
     setNewContact({ name: '', role: '', phone: '' });
     setAddContactOpen(false);
     toast.success('เพิ่มผู้ติดต่อแล้ว');
+  };
+
+  const handleEditContact = async (contactId: string) => {
+    if (!editContactForm.name.trim()) { toast.error('กรุณากรอกชื่อ'); return; }
+    const { error } = await supabase.from('contacts').update({
+      name: editContactForm.name.trim(), role: editContactForm.role || null,
+    }).eq('id', contactId);
+    if (error) { toast.error('แก้ไขไม่สำเร็จ'); return; }
+    setContacts(prev => prev.map(c => c.id === contactId ? { ...c, name: editContactForm.name.trim(), role: editContactForm.role || null } : c));
+    setEditingContactId(null);
+    toast.success('แก้ไขแล้ว');
+  };
+
+  const handleDeleteContact = async (contactId: string) => {
+    const { error } = await supabase.from('contacts').delete().eq('id', contactId);
+    if (error) { toast.error('ลบไม่สำเร็จ'); return; }
+    setContacts(prev => prev.filter(c => c.id !== contactId));
+    toast.success('ลบผู้ติดต่อแล้ว');
   };
 
   return (
@@ -340,14 +360,29 @@ export default function OpportunityDetailPage() {
                     <div className="w-7 h-7 rounded-full bg-primary/10 text-primary flex items-center justify-center text-xs font-bold">
                       {c.name.charAt(0)}
                     </div>
-                    <div className="min-w-0 flex-1">
-                      <p className="text-xs font-medium text-foreground truncate">
-                        {c.name}
-                        {opp.authority_contact_id === c.id && <span className="ml-1 text-[9px] text-primary font-bold">⭐ ผู้ตัดสินใจ</span>}
-                      </p>
-                      <p className="text-[10px] text-muted-foreground">{c.role || '-'}</p>
-                    </div>
-                    {c.phone && <span className="text-[10px] text-muted-foreground">{c.phone}</span>}
+                    {editingContactId === c.id ? (
+                      <div className="flex-1 space-y-1">
+                        <Input value={editContactForm.name} onChange={e => setEditContactForm(f => ({ ...f, name: e.target.value }))} className="h-6 text-xs" placeholder="ชื่อ" />
+                        <Input value={editContactForm.role} onChange={e => setEditContactForm(f => ({ ...f, role: e.target.value }))} className="h-6 text-xs" placeholder="ตำแหน่ง" />
+                        <div className="flex gap-1">
+                          <Button size="sm" className="h-5 text-[10px] px-2" onClick={() => handleEditContact(c.id)}><Check size={10} /> บันทึก</Button>
+                          <Button variant="ghost" size="sm" className="h-5 text-[10px] px-2" onClick={() => setEditingContactId(null)}>ยกเลิก</Button>
+                        </div>
+                      </div>
+                    ) : (
+                      <>
+                        <div className="min-w-0 flex-1">
+                          <p className="text-xs font-medium text-foreground truncate">
+                            {c.name}
+                            {opp.authority_contact_id === c.id && <span className="ml-1 text-[9px] text-primary font-bold">⭐ ผู้ตัดสินใจ</span>}
+                          </p>
+                          <p className="text-[10px] text-muted-foreground">{c.role || '-'}</p>
+                        </div>
+                        {c.phone && <span className="text-[10px] text-muted-foreground">{c.phone}</span>}
+                        <button onClick={() => { setEditingContactId(c.id); setEditContactForm({ name: c.name, role: c.role || '' }); }} className="p-1 rounded hover:bg-muted text-muted-foreground"><Pencil size={11} /></button>
+                        <button onClick={() => handleDeleteContact(c.id)} className="p-1 rounded hover:bg-destructive/10 text-muted-foreground hover:text-destructive"><Trash2 size={11} /></button>
+                      </>
+                    )}
                   </div>
                 ))}
                 {contacts.length === 0 && <p className="text-xs text-muted-foreground py-2 text-center">ไม่มีผู้ติดต่อ</p>}
