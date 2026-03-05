@@ -56,6 +56,7 @@ export default function OpportunityDetailPage() {
   const [activeActivityId, setActiveActivityId] = useState<string | null>(null);
   const [formPreview, setFormPreview] = useState<Partial<Activity> | null>(null);
   const [activeTab, setActiveTab] = useState('activity');
+  const [quickScheduleDefaults, setQuickScheduleDefaults] = useState<{ start_time: string; end_time: string; activity_date: string } | null>(null);
   const [stakeholdersOpen, setStakeholdersOpen] = useState(true);
   const [addContactOpen, setAddContactOpen] = useState(false);
   const [newContact, setNewContact] = useState({ name: '', role: '', phone: '' });
@@ -195,10 +196,12 @@ export default function OpportunityDetailPage() {
   const handleQuickScheduleClick = (startTime: string, endTime: string) => {
     setActiveTab('activity');
     setActiveActivityId(null);
+    const dateStr = format(selectedDate, 'yyyy-MM-dd');
+    setQuickScheduleDefaults({ start_time: startTime, end_time: endTime, activity_date: dateStr });
     setFormPreview({
       start_time: startTime,
       end_time: endTime,
-      activity_date: format(selectedDate, 'yyyy-MM-dd'),
+      activity_date: dateStr,
     });
   };
 
@@ -451,13 +454,15 @@ export default function OpportunityDetailPage() {
 
               <TabsContent value="activity">
                 <ActivityForm
+                  key={quickScheduleDefaults ? `qs-${quickScheduleDefaults.start_time}-${quickScheduleDefaults.end_time}` : 'default'}
                   opportunityId={opp.id}
                   accountId={opp.account_id}
-                  onActivityCreated={handleActivityCreated}
+                  onActivityCreated={(a) => { handleActivityCreated(a); setQuickScheduleDefaults(null); }}
                   editingActivity={editingActivity}
                   onActivityUpdated={handleActivityUpdated}
-                  onCancelEdit={() => { setActiveActivityId(null); setFormPreview(null); }}
+                  onCancelEdit={() => { setActiveActivityId(null); setFormPreview(null); setQuickScheduleDefaults(null); }}
                   onFormChange={setFormPreview}
+                  quickScheduleDefaults={quickScheduleDefaults}
                 />
               </TabsContent>
 

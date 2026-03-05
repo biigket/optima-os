@@ -26,6 +26,12 @@ const ACTIVITY_TYPES: { type: ActivityType; label: string; icon: React.ElementTy
   { type: 'DEADLINE', label: 'Deadline', icon: Target, color: 'text-red-600 bg-red-100' },
 ];
 
+interface QuickScheduleDefaults {
+  start_time: string;
+  end_time: string;
+  activity_date: string;
+}
+
 interface ActivityFormProps {
   opportunityId: string;
   accountId: string;
@@ -34,17 +40,19 @@ interface ActivityFormProps {
   onActivityUpdated?: (activity: Activity) => void;
   onCancelEdit?: () => void;
   onFormChange?: (preview: Partial<Activity>) => void;
+  quickScheduleDefaults?: QuickScheduleDefaults | null;
 }
 
 export default function ActivityForm({
   opportunityId, accountId, onActivityCreated,
   editingActivity, onActivityUpdated, onCancelEdit, onFormChange,
+  quickScheduleDefaults,
 }: ActivityFormProps) {
   const [selectedType, setSelectedType] = useState<ActivityType>('CALL');
   const [title, setTitle] = useState('');
-  const [activityDate, setActivityDate] = useState(new Date().toISOString().split('T')[0]);
-  const [startTime, setStartTime] = useState('');
-  const [endTime, setEndTime] = useState('');
+  const [activityDate, setActivityDate] = useState(quickScheduleDefaults?.activity_date || new Date().toISOString().split('T')[0]);
+  const [startTime, setStartTime] = useState(quickScheduleDefaults?.start_time || '');
+  const [endTime, setEndTime] = useState(quickScheduleDefaults?.end_time || '');
   const [priority, setPriority] = useState<ActivityPriority>('NORMAL');
   const [location, setLocation] = useState('');
   const [description, setDescription] = useState('');
@@ -72,7 +80,16 @@ export default function ActivityForm({
     }
   }, [editingActivity?.id]);
 
-  // Fire optimistic preview on field changes
+  // Apply quick schedule defaults
+  useEffect(() => {
+    if (quickScheduleDefaults && !editingActivity) {
+      setStartTime(quickScheduleDefaults.start_time);
+      setEndTime(quickScheduleDefaults.end_time);
+      setActivityDate(quickScheduleDefaults.activity_date);
+    }
+  }, [quickScheduleDefaults?.start_time, quickScheduleDefaults?.end_time, quickScheduleDefaults?.activity_date]);
+
+
   useEffect(() => {
     if (!onFormChange) return;
     onFormChange({
