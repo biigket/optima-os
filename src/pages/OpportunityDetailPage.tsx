@@ -60,17 +60,16 @@ export default function OpportunityDetailPage() {
     });
   }, [id]);
 
-  // When opp is set (from pipeline navigation), fetch account & contacts from DB
+  // Fetch account & contacts from DB when opp is loaded
   useEffect(() => {
     if (!opp) return;
-    const cached = getCachedAccount(opp.account_id);
-    if (cached) {
-      setAccount({ id: opp.account_id, clinic_name: cached.clinic_name, customer_status: cached.customer_status, assigned_sale: cached.assigned_sale, created_at: '' } as Account);
-    }
+    supabase.from('accounts').select('*').eq('id', opp.account_id).single().then(({ data }) => {
+      if (data) setAccount(data as unknown as Account);
+    });
     supabase.from('contacts').select('*').eq('account_id', opp.account_id).then(({ data }) => {
       if (data) setContacts(data as unknown as Contact[]);
     });
-  }, [opp]);
+  }, [opp?.account_id]);
 
   if (!opp) {
     return (
