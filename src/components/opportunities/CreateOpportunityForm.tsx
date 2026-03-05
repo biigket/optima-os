@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
@@ -9,8 +9,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import StatusBadge from '@/components/ui/StatusBadge';
 import { toast } from 'sonner';
 import { ExternalLink, Users, AlertTriangle } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
-import type { Account, OpportunityType, OpportunityStage } from '@/types';
+import { mockProducts, mockContacts } from '@/data/mockData';
+import type { Account, OpportunityType, OpportunityStage, Opportunity } from '@/types';
 
 const STAGE_PROBABILITY: Record<string, number> = {
   NEW_LEAD: 10, CONTACTED: 20, DEMO_SCHEDULED: 40, DEMO_DONE: 60,
@@ -26,30 +26,17 @@ const ACTIVITY_TYPES = [
   { value: 'EMAIL', label: 'อีเมล' },
 ];
 
-interface Product {
-  id: string;
-  product_name: string;
-  category: string;
-  base_price: number | null;
-}
-
-interface Contact {
-  id: string;
-  account_id: string;
-  name: string;
-}
-
 interface CreateOpportunityFormProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   customer: Account;
-  onSave: (data: any) => void;
+  onSave: (data: Opportunity) => void;
 }
 
 export default function CreateOpportunityForm({ open, onOpenChange, customer, onSave }: CreateOpportunityFormProps) {
   const navigate = useNavigate();
-  const [products, setProducts] = useState<Product[]>([]);
-  const [contacts, setContacts] = useState<Contact[]>([]);
+
+  const contacts = useMemo(() => mockContacts.filter(c => c.account_id === customer.id), [customer.id]);
 
   const [form, setForm] = useState({
     opportunity_type: '' as OpportunityType | '',
@@ -64,20 +51,9 @@ export default function CreateOpportunityForm({ open, onOpenChange, customer, on
     next_activity_date: '',
   });
 
-  useEffect(() => {
-    if (!open) return;
-    Promise.all([
-      supabase.from('products').select('id, product_name, category, base_price'),
-      supabase.from('contacts').select('id, account_id, name').eq('account_id', customer.id),
-    ]).then(([prodRes, conRes]) => {
-      if (prodRes.data) setProducts(prodRes.data as Product[]);
-      if (conRes.data) setContacts(conRes.data as Contact[]);
-    });
-  }, [open, customer.id]);
-
   const set = (key: string, value: string) => setForm(f => ({ ...f, [key]: value }));
 
-  const filteredProducts = products.filter(p =>
+  const filteredProducts = mockProducts.filter(p =>
     !form.opportunity_type || p.category === form.opportunity_type
   );
 
@@ -88,38 +64,29 @@ export default function CreateOpportunityForm({ open, onOpenChange, customer, on
   const canSave = form.opportunity_type && form.product_id && form.next_activity_type && form.next_activity_date &&
     (form.opportunity_type === 'DEVICE' ? !!form.deal_value : !!form.quantity);
 
-  const handleSave = async () => {
-    const selectedProduct = products.find(p => p.id === form.product_id);
+  const handleSave = () => {
+    const selectedProduct = mockProducts.find(p => p.id === form.product_id);
     const expectedValue = form.opportunity_type === 'DEVICE'
       ? Number(form.deal_value)
-      : Number(form.quantity) * (selectedProduct?.base_price || 0);
+      : Number(form.quantity) * (selectedProduct?.price || 0);
 
-    const { data, error } = await supabase.from('opportunities').insert({
+    const newOpp: Opportunity = {
+      id: `opp-${Date.now()}`,
       account_id: customer.id,
-      stage: currentStage,
-      opportunity_type: form.opportunity_type || null,
-      interested_products: selectedProduct ? [selectedProduct.product_name] : [],
+      stage: currentStage as OpportunityStage,
+      opportunity_type: form.opportunity_type || undefined,
+      interested_products: selectedProduct ? [selectedProduct.name] : [],
       expected_value: expectedValue,
-      assigned_sale: customer.assigned_sale,
-      close_date: form.close_date || null,
-      next_activity_type: form.next_activity_type || null,
-      next_activity_date: form.next_activity_date || null,
-      notes: form.notes || null,
-    } as any).select().single();
-
-    if (error) {
-      toast.error('เกิดข้อผิดพลาด: ' + error.message);
-      return;
-    }
-
-    // Pass back with local fields for UI
-    onSave({
-      ...data,
-      opportunity_type: form.opportunity_type,
-      next_activity_type: form.next_activity_type,
-      next_activity_date: form.next_activity_date,
+      assigned_sale: customer.assigned_sale || undefined,
+      close_date: form.close_date || undefined,
+      next_activity_type: form.next_activity_type || undefined,
+      next_activity_date: form.next_activity_date || undefined,
+      notes: form.notes || undefined,
+      created_at: new Date().toISOString(),
       quantity: form.quantity ? Number(form.quantity) : undefined,
-    });
+    };
+
+    onSave(newOpp);
     toast.success('สร้างโอกาสขายสำเร็จ');
     onOpenChange(false);
     setForm({ opportunity_type: '', product_id: '', deal_value: '', quantity: '', stage: '', close_date: '', lead_source: '', notes: '', next_activity_type: '', next_activity_date: '' });
@@ -181,7 +148,7 @@ export default function CreateOpportunityForm({ open, onOpenChange, customer, on
               <SelectContent>
                 {filteredProducts.map(p => (
                   <SelectItem key={p.id} value={p.id} className="text-xs">
-                    {p.product_name}{p.base_price ? ` — ฿${p.base_price.toLocaleString()}` : ''}
+                    {p.name}{p.price ? ` — ฿${p.price.toLocaleString()}` : ''}
                   </SelectItem>
                 ))}
               </SelectContent>
