@@ -1,0 +1,2 @@
+CREATE POLICY "Allow delete activities for anon" ON public.activities FOR DELETE TO anon USING (true);
+CREATE POLICY "Allow delete activities for authenticated" ON public.activities FOR DELETE TO authenticated USING (true);

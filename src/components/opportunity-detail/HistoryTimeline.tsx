@@ -34,6 +34,9 @@ interface HistoryTimelineProps {
   onUpdateNote?: (id: string, content: string) => void;
   onDeleteNote?: (id: string) => void;
   onPinNote?: (id: string) => void;
+  onDeleteActivity?: (id: string) => void;
+  onAddComment?: (parentId: string, comment: string) => void;
+  pinnedIds?: Set<string>;
   clinicName?: string;
 }
 
@@ -43,7 +46,7 @@ type TimelineItem = {
   data: any;
 };
 
-export default function HistoryTimeline({ activities, stageHistory, notes, onUpdateNote, onDeleteNote, onPinNote, clinicName }: HistoryTimelineProps) {
+export default function HistoryTimeline({ activities, stageHistory, notes, onUpdateNote, onDeleteNote, onPinNote, onDeleteActivity, onAddComment, pinnedIds, clinicName }: HistoryTimelineProps) {
   const [filter, setFilter] = useState('all');
 
   const doneActivities = activities.filter(a => a.is_done);
@@ -60,7 +63,15 @@ export default function HistoryTimeline({ activities, stageHistory, notes, onUpd
     notes.forEach(n => items.push({ type: 'note', date: n.created_at, data: n }));
   }
 
-  items.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+  // Sort: pinned first, then by date desc
+  items.sort((a, b) => {
+    const aId = a.data?.id || '';
+    const bId = b.data?.id || '';
+    const aPinned = pinnedIds?.has(aId) ? 1 : 0;
+    const bPinned = pinnedIds?.has(bId) ? 1 : 0;
+    if (aPinned !== bPinned) return bPinned - aPinned;
+    return new Date(b.date).getTime() - new Date(a.date).getTime();
+  });
 
   return (
     <div className="rounded-xl border bg-card p-4 shadow-sm space-y-3">
@@ -84,14 +95,24 @@ export default function HistoryTimeline({ activities, stageHistory, notes, onUpd
 
           {items.map((item, idx) => (
             <div key={idx} className="relative">
-              {item.type === 'activity' && <ActivityItem data={item.data} clinicName={clinicName} onDelete={onDeleteNote} onPin={onPinNote} />}
+              {item.type === 'activity' && (
+                <ActivityItem
+                  data={item.data}
+                  clinicName={clinicName}
+                  isPinned={pinnedIds?.has(item.data.id)}
+                  onDelete={onDeleteActivity}
+                  onPin={onPinNote}
+                />
+              )}
               {item.type === 'stage' && <StageItem data={item.data} />}
               {item.type === 'note' && (
                 <NoteItem
                   data={item.data}
+                  isPinned={pinnedIds?.has(item.data.id)}
                   onUpdate={onUpdateNote}
                   onDelete={onDeleteNote}
                   onPin={onPinNote}
+                  onAddComment={onAddComment}
                 />
               )}
             </div>
@@ -102,11 +123,11 @@ export default function HistoryTimeline({ activities, stageHistory, notes, onUpd
   );
 }
 
-function ActivityItem({ data, clinicName, onDelete, onPin }: { data: Activity; clinicName?: string; onDelete?: (id: string) => void; onPin?: (id: string) => void }) {
+function ActivityItem({ data, clinicName, isPinned, onDelete, onPin }: { data: Activity; clinicName?: string; isPinned?: boolean; onDelete?: (id: string) => void; onPin?: (id: string) => void }) {
   const Icon = TYPE_ICONS[data.activity_type] || Building2;
   const colors = TYPE_COLORS[data.activity_type] || TYPE_COLORS.TASK;
   return (
-    <div className="flex items-start gap-2">
+    <div className={`flex items-start gap-2 ${isPinned ? 'bg-primary/5 -mx-2 px-2 py-1 rounded-lg' : ''}`}>
       <div className={`absolute -left-6 w-[18px] h-[18px] rounded-full ${colors} flex items-center justify-center mt-0.5`}>
         <Icon size={10} />
       </div>
@@ -114,6 +135,7 @@ function ActivityItem({ data, clinicName, onDelete, onPin }: { data: Activity; c
         <div className="flex items-center gap-2 flex-wrap">
           <span className="text-xs font-medium text-foreground flex-1">{data.title}</span>
           <CheckCircle2 size={11} className="text-emerald-500 shrink-0" />
+          {isPinned && <Pin size={11} className="text-primary fill-primary" />}
           {data.priority === 'HIGH' && (
             <span className="px-1.5 py-0.5 rounded text-[9px] font-semibold bg-red-100 text-red-700 dark:bg-red-900/50 dark:text-red-400">HIGH</span>
           )}
@@ -170,11 +192,13 @@ function StageItem({ data }: { data: { from: string; to: string; date: string } 
   );
 }
 
-function NoteItem({ data, onUpdate, onDelete, onPin }: {
+function NoteItem({ data, isPinned, onUpdate, onDelete, onPin, onAddComment }: {
   data: OpportunityNote;
+  isPinned?: boolean;
   onUpdate?: (id: string, content: string) => void;
   onDelete?: (id: string) => void;
   onPin?: (id: string) => void;
+  onAddComment?: (parentId: string, comment: string) => void;
 }) {
   const [editing, setEditing] = useState(false);
   const [editContent, setEditContent] = useState(data.content);
@@ -188,7 +212,7 @@ function NoteItem({ data, onUpdate, onDelete, onPin }: {
   };
 
   return (
-    <div className="flex items-start gap-2">
+    <div className={`flex items-start gap-2 ${isPinned ? 'bg-primary/5 -mx-2 px-2 py-1 rounded-lg' : ''}`}>
       <div className="absolute -left-6 w-[18px] h-[18px] rounded-full bg-amber-100 text-amber-700 dark:bg-amber-900/50 flex items-center justify-center mt-0.5">
         <FileText size={10} />
       </div>
@@ -198,10 +222,10 @@ function NoteItem({ data, onUpdate, onDelete, onPin }: {
           <div className="absolute top-1.5 right-1.5 flex items-center gap-0.5">
             <button
               onClick={() => onPin?.(data.id)}
-              className="p-1 rounded hover:bg-amber-200/50 text-amber-700 dark:text-amber-400"
-              title="Pin this note"
+              className={`p-1 rounded hover:bg-amber-200/50 ${isPinned ? 'text-primary' : 'text-amber-700 dark:text-amber-400'}`}
+              title={isPinned ? 'Unpin' : 'Pin this note'}
             >
-              <Pin size={11} />
+              <Pin size={11} className={isPinned ? 'fill-primary' : ''} />
             </button>
             <button
               onClick={() => setShowComment(!showComment)}
@@ -262,7 +286,7 @@ function NoteItem({ data, onUpdate, onDelete, onPin }: {
               className="flex-1 text-[10px] h-6 px-2 rounded border border-border bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring"
               autoFocus
             />
-            <Button size="sm" className="h-6 text-[10px] px-2" onClick={() => { setComment(''); setShowComment(false); }}>
+            <Button size="sm" className="h-6 text-[10px] px-2" disabled={!comment.trim()} onClick={() => { if (comment.trim()) { onAddComment?.(data.id, comment.trim()); setComment(''); setShowComment(false); } }}>
               Post
             </Button>
           </div>

@@ -14,7 +14,7 @@ import {
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useMockAuth } from '@/hooks/useMockAuth';
-import { getNotesForOpportunity, addNoteGlobal, type OpportunityNote } from '@/pages/OpportunitiesPage';
+import { getNotesForOpportunity, addNoteGlobal, deleteNoteGlobal, updateNoteGlobal, type OpportunityNote } from '@/pages/OpportunitiesPage';
 import { toast } from 'sonner';
 import { differenceInDays } from 'date-fns';
 import type { Opportunity, OpportunityStage, Account, Contact, Activity } from '@/types';
@@ -51,6 +51,7 @@ export default function OpportunityDetailPage() {
   const [noteInput, setNoteInput] = useState('');
   const [, forceUpdate] = useState(0);
   const [activities, setActivities] = useState<Activity[]>([]);
+  const [pinnedIds, setPinnedIds] = useState<Set<string>>(new Set());
   const [stakeholdersOpen, setStakeholdersOpen] = useState(true);
   const [addContactOpen, setAddContactOpen] = useState(false);
   const [newContact, setNewContact] = useState({ name: '', role: '', phone: '' });
@@ -440,17 +441,40 @@ export default function OpportunityDetailPage() {
             stageHistory={stageHistory}
             notes={notes}
             clinicName={account?.clinic_name}
+            pinnedIds={pinnedIds}
             onUpdateNote={(id, content) => {
-              // Update note in local state
-              const note = notes.find(n => n.id === id);
-              if (note) { note.content = content; forceUpdate(n => n + 1); toast.success('แก้ไขบันทึกแล้ว'); }
+              updateNoteGlobal(id, content);
+              forceUpdate(n => n + 1);
+              toast.success('แก้ไขบันทึกแล้ว');
             }}
             onDeleteNote={(id) => {
-              // For now just force re-render (notes are in global store)
-              toast.success('ลบบันทึกแล้ว');
+              deleteNoteGlobal(id);
               forceUpdate(n => n + 1);
+              toast.success('ลบบันทึกแล้ว');
             }}
-            onPinNote={(id) => { toast.success('ปักหมุดบันทึกแล้ว'); }}
+            onPinNote={(id) => {
+              setPinnedIds(prev => {
+                const next = new Set(prev);
+                if (next.has(id)) { next.delete(id); toast.success('ยกเลิกปักหมุดแล้ว'); }
+                else { next.add(id); toast.success('ปักหมุดแล้ว'); }
+                return next;
+              });
+            }}
+            onDeleteActivity={async (id) => {
+              const { error } = await supabase.from('activities').delete().eq('id', id);
+              if (error) { toast.error('ลบกิจกรรมไม่สำเร็จ'); return; }
+              setActivities(prev => prev.filter(a => a.id !== id));
+              toast.success('ลบกิจกรรมแล้ว');
+            }}
+            onAddComment={(parentId, comment) => {
+              const note: OpportunityNote = {
+                id: `note-${Date.now()}`, opportunity_id: opp.id, account_id: opp.account_id,
+                content: `↳ ${comment}`, created_by: currentUser?.name || 'Unknown', created_at: new Date().toISOString(),
+              };
+              addNoteGlobal(note);
+              forceUpdate(n => n + 1);
+              toast.success('เพิ่มความคิดเห็นแล้ว');
+            }}
           />
 
           {/* Calendar Panel */}
