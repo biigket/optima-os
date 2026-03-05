@@ -51,25 +51,25 @@ export default function OpportunityDetailPage() {
     next_activity_date: '',
   });
 
-  // Try to get account info from cache first, then fetch from DB for contacts
+  // Fetch opportunity from DB
   useEffect(() => {
     if (!id) return;
-    // The opp is passed via in-memory state from the pipeline page
-    // If user navigates directly, we won't have it
-    // Try to find account from cache if opp exists
+    supabase.from('opportunities').select('*').eq('id', id).single().then(({ data, error }) => {
+      if (data) setOpp(data as unknown as Opportunity);
+      if (error) console.error('Failed to fetch opportunity:', error);
+    });
   }, [id]);
 
-  // When opp is set (from pipeline navigation), fetch account & contacts from DB
+  // Fetch account & contacts from DB when opp is loaded
   useEffect(() => {
     if (!opp) return;
-    const cached = getCachedAccount(opp.account_id);
-    if (cached) {
-      setAccount({ id: opp.account_id, clinic_name: cached.clinic_name, customer_status: cached.customer_status, assigned_sale: cached.assigned_sale, created_at: '' } as Account);
-    }
+    supabase.from('accounts').select('*').eq('id', opp.account_id).single().then(({ data }) => {
+      if (data) setAccount(data as unknown as Account);
+    });
     supabase.from('contacts').select('*').eq('account_id', opp.account_id).then(({ data }) => {
       if (data) setContacts(data as unknown as Contact[]);
     });
-  }, [opp]);
+  }, [opp?.account_id]);
 
   if (!opp) {
     return (
@@ -89,8 +89,10 @@ export default function OpportunityDetailPage() {
   const ActivityIcon = opp.next_activity_type ? (ACTIVITY_ICONS[opp.next_activity_type] || Calendar) : Calendar;
   const notes = getNotesForOpportunity(opp.id);
 
-  const changeStage = (newStage: OpportunityStage) => {
+  const changeStage = async (newStage: OpportunityStage) => {
     const oldStage = opp.stage;
+    const { error } = await supabase.from('opportunities').update({ stage: newStage }).eq('id', opp.id);
+    if (error) { toast.error('อัปเดตไม่สำเร็จ'); return; }
     setStageHistory(prev => [...prev, { from: oldStage, to: newStage, date: new Date().toISOString() }]);
     setOpp(prev => prev ? { ...prev, stage: newStage } : prev);
     toast.success(`ย้ายไป ${STAGE_LABELS[newStage]}`);
@@ -108,7 +110,7 @@ export default function OpportunityDetailPage() {
     setEditOpen(true);
   };
 
-  const saveEdit = () => {
+  const saveEdit = async () => {
     const updates = {
       expected_value: Number(editForm.expected_value) || opp.expected_value,
       close_date: editForm.close_date || opp.close_date,
@@ -116,6 +118,8 @@ export default function OpportunityDetailPage() {
       next_activity_type: editForm.next_activity_type || opp.next_activity_type,
       next_activity_date: editForm.next_activity_date || opp.next_activity_date,
     };
+    const { error } = await supabase.from('opportunities').update(updates).eq('id', opp.id);
+    if (error) { toast.error('อัปเดตไม่สำเร็จ'); return; }
     setOpp(prev => prev ? { ...prev, ...updates } : prev);
     setEditOpen(false);
     toast.success('บันทึกแล้ว');
