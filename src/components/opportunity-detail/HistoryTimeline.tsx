@@ -142,11 +142,13 @@ export default function HistoryTimeline({ activities, stageHistory, notes, onUpd
   );
 }
 
-function ActivityItem({ data, clinicName, isPinned, onDelete, onPin, onUpdate, onAddComment, comments = [] }: {
+function ActivityItem({ data, clinicName, isPinned, onDelete, onPin, onUpdate, onAddComment, onUpdateComment, onDeleteComment, comments = [] }: {
   data: Activity; clinicName?: string; isPinned?: boolean;
   onDelete?: (id: string) => void; onPin?: (id: string) => void;
   onUpdate?: (activity: Activity) => void;
   onAddComment?: (parentId: string, comment: string) => void;
+  onUpdateComment?: (id: string, content: string) => void;
+  onDeleteComment?: (id: string) => void;
   comments?: OpportunityNote[];
 }) {
   const Icon = TYPE_ICONS[data.activity_type] || Building2;
@@ -260,7 +262,7 @@ function ActivityItem({ data, clinicName, isPinned, onDelete, onPin, onUpdate, o
 
         {/* Nested comments */}
         {comments.length > 0 && (
-          <CommentList comments={comments} onUpdateNote={onUpdate ? (id, content) => {} : undefined} onDeleteNote={onDelete ? (id) => {} : undefined} />
+          <CommentList comments={comments} onUpdate={onUpdateComment} onDelete={onDeleteComment} />
         )}
       </div>
     </div>
@@ -284,13 +286,15 @@ function StageItem({ data }: { data: { from: string; to: string; date: string } 
   );
 }
 
-function NoteItem({ data, isPinned, onUpdate, onDelete, onPin, onAddComment, comments = [] }: {
+function NoteItem({ data, isPinned, onUpdate, onDelete, onPin, onAddComment, onUpdateComment, onDeleteComment, comments = [] }: {
   data: OpportunityNote;
   isPinned?: boolean;
   onUpdate?: (id: string, content: string) => void;
   onDelete?: (id: string) => void;
   onPin?: (id: string) => void;
   onAddComment?: (parentId: string, comment: string) => void;
+  onUpdateComment?: (id: string, content: string) => void;
+  onDeleteComment?: (id: string) => void;
   comments?: OpportunityNote[];
 }) {
   const [editing, setEditing] = useState(false);
