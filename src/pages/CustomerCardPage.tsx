@@ -565,9 +565,23 @@ export default function CustomerCardPage() {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setEditOpen(false)}>ยกเลิก</Button>
-            <Button onClick={() => {
+            <Button onClick={async () => {
+              const { error } = await supabase.from('accounts').update({
+                clinic_name: editForm.clinic_name,
+                company_name: editForm.company_name || null,
+                address: editForm.address || null,
+                phone: editForm.phone || null,
+                email: editForm.email || null,
+                customer_status: editForm.customer_status || 'NEW_LEAD',
+                assigned_sale: editForm.assigned_sale || null,
+                grade: editForm.grade || null,
+              }).eq('id', account.id);
+              if (error) { toast.error('บันทึกไม่สำเร็จ'); return; }
               toast.success('บันทึกข้อมูลสำเร็จ');
               setEditOpen(false);
+              // Refresh
+              const { data } = await supabase.from('accounts').select('*').eq('id', account.id).single();
+              if (data) setAccount(data as unknown as LocalAccount);
             }}>บันทึก</Button>
           </DialogFooter>
         </DialogContent>
