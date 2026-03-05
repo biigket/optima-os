@@ -47,7 +47,7 @@ type TimelineItem = {
   data: any;
 };
 
-export default function HistoryTimeline({ activities, stageHistory, notes, onUpdateNote, onDeleteNote, onPinNote, onDeleteActivity, onAddComment, pinnedIds, clinicName }: HistoryTimelineProps) {
+export default function HistoryTimeline({ activities, stageHistory, notes, onUpdateNote, onDeleteNote, onPinNote, onDeleteActivity, onUpdateActivity, onAddComment, pinnedIds, clinicName }: HistoryTimelineProps) {
   const [filter, setFilter] = useState('all');
 
   const doneActivities = activities.filter(a => a.is_done);
