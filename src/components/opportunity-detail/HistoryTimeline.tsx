@@ -117,6 +117,8 @@ export default function HistoryTimeline({ activities, stageHistory, notes, onUpd
                   onPin={onPinNote}
                   onUpdate={onUpdateActivity}
                   onAddComment={onAddComment}
+                  onUpdateComment={onUpdateNote}
+                  onDeleteComment={onDeleteNote}
                   comments={commentsByParent.get(item.data.id) || []}
                 />
               )}
