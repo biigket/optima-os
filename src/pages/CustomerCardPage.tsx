@@ -89,6 +89,7 @@ export default function CustomerCardPage() {
   const [editForm, setEditForm] = useState<Record<string, string>>({});
   const [account, setAccount] = useState<LocalAccount | null>(null);
   const [contacts, setContacts] = useState<LocalContact[]>([]);
+  const [opportunities, setOpportunities] = useState<Opportunity[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
