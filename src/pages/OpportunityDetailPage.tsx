@@ -196,10 +196,12 @@ export default function OpportunityDetailPage() {
   const handleQuickScheduleClick = (startTime: string, endTime: string) => {
     setActiveTab('activity');
     setActiveActivityId(null);
+    const dateStr = format(selectedDate, 'yyyy-MM-dd');
+    setQuickScheduleDefaults({ start_time: startTime, end_time: endTime, activity_date: dateStr });
     setFormPreview({
       start_time: startTime,
       end_time: endTime,
-      activity_date: format(selectedDate, 'yyyy-MM-dd'),
+      activity_date: dateStr,
     });
   };
 
