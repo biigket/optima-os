@@ -132,7 +132,7 @@ export type Database = {
       }
       demos: {
         Row: {
-          account_id: string
+          account_id: string | null
           created_at: string
           demo_date: string | null
           demo_note: string | null
@@ -152,7 +152,7 @@ export type Database = {
           visited_by: string[] | null
         }
         Insert: {
-          account_id: string
+          account_id?: string | null
           created_at?: string
           demo_date?: string | null
           demo_note?: string | null
@@ -172,7 +172,7 @@ export type Database = {
           visited_by?: string[] | null
         }
         Update: {
-          account_id?: string
+          account_id?: string | null
           created_at?: string
           demo_date?: string | null
           demo_note?: string | null
