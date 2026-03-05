@@ -419,7 +419,7 @@ export default function OpportunityDetailPage() {
         <div className="lg:col-span-7 space-y-4">
           {/* Tab-based Activity / Notes input */}
           <div className="rounded-xl border bg-card p-4 shadow-sm">
-            <Tabs defaultValue="activity">
+            <Tabs value={activeTab} onValueChange={setActiveTab}>
               <TabsList className="h-8 mb-3">
                 <TabsTrigger value="activity" className="text-xs h-6 px-3 gap-1">
                   <Calendar size={12} /> เพิ่มกิจกรรม
@@ -430,7 +430,15 @@ export default function OpportunityDetailPage() {
               </TabsList>
 
               <TabsContent value="activity">
-                <ActivityForm opportunityId={opp.id} accountId={opp.account_id} onActivityCreated={handleActivityCreated} />
+                <ActivityForm
+                  opportunityId={opp.id}
+                  accountId={opp.account_id}
+                  onActivityCreated={handleActivityCreated}
+                  editingActivity={editingActivity}
+                  onActivityUpdated={handleActivityUpdated}
+                  onCancelEdit={() => { setActiveActivityId(null); setFormPreview(null); }}
+                  onFormChange={setFormPreview}
+                />
               </TabsContent>
 
               <TabsContent value="notes">
