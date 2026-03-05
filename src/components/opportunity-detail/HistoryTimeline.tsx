@@ -134,7 +134,7 @@ function ActivityItem({ data, clinicName, isPinned, onDelete, onPin }: { data: A
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2 flex-wrap">
           <span className="text-xs font-medium text-foreground flex-1">{data.title}</span>
-          <CheckCircle2 size={11} className="text-emerald-500 shrink-0" />
+          
           {isPinned && <Pin size={11} className="text-primary fill-primary" />}
           {data.priority === 'HIGH' && (
             <span className="px-1.5 py-0.5 rounded text-[9px] font-semibold bg-red-100 text-red-700 dark:bg-red-900/50 dark:text-red-400">HIGH</span>
@@ -150,9 +150,6 @@ function ActivityItem({ data, clinicName, isPinned, onDelete, onPin }: { data: A
                 </button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="text-xs min-w-[120px]">
-                <DropdownMenuItem onClick={() => onPin?.(data.id)}>
-                  <Pin size={11} className="mr-1.5" /> Pin
-                </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => onDelete?.(data.id)} className="text-destructive">
                   <Trash2 size={11} className="mr-1.5" /> Delete
                 </DropdownMenuItem>
@@ -243,9 +240,6 @@ function NoteItem({ data, isPinned, onUpdate, onDelete, onPin, onAddComment }: {
               <DropdownMenuContent align="end" className="text-xs min-w-[120px]">
                 <DropdownMenuItem onClick={() => { setEditing(true); setEditContent(data.content); }}>
                   <Pencil size={11} className="mr-1.5" /> Edit
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => onPin?.(data.id)}>
-                  <Pin size={11} className="mr-1.5" /> Pin this note
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => onDelete?.(data.id)} className="text-destructive">
                   <Trash2 size={11} className="mr-1.5" /> Delete
