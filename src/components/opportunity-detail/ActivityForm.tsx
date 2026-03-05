@@ -1,13 +1,23 @@
 import { useState, useEffect } from 'react';
+import { format, parse } from 'date-fns';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Phone, Users, Building2, Target, ChevronDown, ChevronUp } from 'lucide-react';
+import { Calendar } from '@/components/ui/calendar';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Phone, Users, Building2, Target, ChevronDown, ChevronUp, CalendarIcon } from 'lucide-react';
 import { toast } from 'sonner';
+import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
 import type { Activity, ActivityType, ActivityPriority } from '@/types';
+
+const TIME_OPTIONS = Array.from({ length: 96 }, (_, i) => {
+  const h = Math.floor(i / 4).toString().padStart(2, '0');
+  const m = ((i % 4) * 15).toString().padStart(2, '0');
+  return `${h}:${m}`;
+});
 
 const ACTIVITY_TYPES: { type: ActivityType; label: string; icon: React.ElementType; color: string }[] = [
   { type: 'CALL', label: 'Call', icon: Phone, color: 'text-blue-600 bg-blue-100' },
@@ -175,15 +185,41 @@ export default function ActivityForm({
       <div className="grid grid-cols-3 gap-2">
         <div>
           <label className="text-[10px] text-muted-foreground">วันที่</label>
-          <Input type="date" value={activityDate} onChange={e => setActivityDate(e.target.value)} className="h-8 text-xs" />
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button variant="outline" className={cn("h-8 w-full justify-start text-xs font-normal", !activityDate && "text-muted-foreground")}>
+                <CalendarIcon className="mr-1.5 h-3 w-3" />
+                {activityDate ? format(parse(activityDate, 'yyyy-MM-dd', new Date()), 'dd MMM yyyy') : 'เลือกวันที่'}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="start">
+              <Calendar
+                mode="single"
+                selected={activityDate ? parse(activityDate, 'yyyy-MM-dd', new Date()) : undefined}
+                onSelect={d => d && setActivityDate(format(d, 'yyyy-MM-dd'))}
+                initialFocus
+                className="p-3 pointer-events-auto"
+              />
+            </PopoverContent>
+          </Popover>
         </div>
         <div>
           <label className="text-[10px] text-muted-foreground">เริ่ม</label>
-          <Input type="time" value={startTime} onChange={e => setStartTime(e.target.value)} className="h-8 text-xs" />
+          <Select value={startTime || undefined} onValueChange={setStartTime}>
+            <SelectTrigger className="h-8 text-xs"><SelectValue placeholder="--:--" /></SelectTrigger>
+            <SelectContent className="max-h-48">
+              {TIME_OPTIONS.map(t => <SelectItem key={t} value={t} className="text-xs">{t}</SelectItem>)}
+            </SelectContent>
+          </Select>
         </div>
         <div>
           <label className="text-[10px] text-muted-foreground">สิ้นสุด</label>
-          <Input type="time" value={endTime} onChange={e => setEndTime(e.target.value)} className="h-8 text-xs" />
+          <Select value={endTime || undefined} onValueChange={setEndTime}>
+            <SelectTrigger className="h-8 text-xs"><SelectValue placeholder="--:--" /></SelectTrigger>
+            <SelectContent className="max-h-48">
+              {TIME_OPTIONS.map(t => <SelectItem key={t} value={t} className="text-xs">{t}</SelectItem>)}
+            </SelectContent>
+          </Select>
         </div>
       </div>
 
