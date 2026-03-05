@@ -55,6 +55,15 @@ export default function HistoryTimeline({ activities, stageHistory, notes, onUpd
 
   const doneActivities = activities.filter(a => a.is_done);
 
+  // Separate top-level notes from comments (notes with parent_id)
+  const topLevelNotes = notes.filter(n => !n.parent_id);
+  const commentsByParent = new Map<string, OpportunityNote[]>();
+  notes.filter(n => n.parent_id).forEach(n => {
+    const list = commentsByParent.get(n.parent_id!) || [];
+    list.push(n);
+    commentsByParent.set(n.parent_id!, list);
+  });
+
   const items: TimelineItem[] = [];
 
   if (filter === 'all' || filter === 'activities') {
@@ -64,7 +73,7 @@ export default function HistoryTimeline({ activities, stageHistory, notes, onUpd
     stageHistory.forEach(s => items.push({ type: 'stage', date: s.date, data: s }));
   }
   if (filter === 'all' || filter === 'notes') {
-    notes.forEach(n => items.push({ type: 'note', date: n.created_at, data: n }));
+    topLevelNotes.forEach(n => items.push({ type: 'note', date: n.created_at, data: n }));
   }
 
   // Sort: pinned first, then by date desc

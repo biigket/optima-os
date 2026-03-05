@@ -508,7 +508,8 @@ export default function OpportunityDetailPage() {
             onAddComment={(parentId, comment) => {
               const note: OpportunityNote = {
                 id: `note-${Date.now()}`, opportunity_id: opp.id, account_id: opp.account_id,
-                content: `↳ ${comment}`, created_by: currentUser?.name || 'Unknown', created_at: new Date().toISOString(),
+                content: comment, created_by: currentUser?.name || 'Unknown', created_at: new Date().toISOString(),
+                parent_id: parentId,
               };
               addNoteGlobal(note);
               forceUpdate(n => n + 1);

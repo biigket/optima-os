@@ -34,6 +34,7 @@ export interface OpportunityNote {
   content: string;
   created_by: string;
   created_at: string;
+  parent_id?: string;
 }
 
 let globalNotes: OpportunityNote[] = [];
