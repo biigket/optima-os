@@ -60,7 +60,7 @@ const STATUS_OPTIONS = [
 const ENTITY_TYPES = ['บุคคลธรรมดา', 'นิติบุคคล', 'คลินิก', 'โรงพยาบาล'];
 const BRANCH_TYPES = ['สำนักงานใหญ่', 'สาขา'];
 
-const emptyForm: Partial<Account> = {
+const emptyForm = {
   clinic_name: '',
   company_name: '',
   address: '',
@@ -75,6 +75,11 @@ const emptyForm: Partial<Account> = {
   notes: '',
   grade: '',
   single_or_chain: '',
+  // Contact fields (required for new accounts)
+  contact_name: '',
+  contact_role: '',
+  contact_phone: '',
+  contact_email: '',
 };
 
 function daysSince(dateStr: string | null): string {
