@@ -60,7 +60,7 @@ const STATUS_OPTIONS = [
 const ENTITY_TYPES = ['บุคคลธรรมดา', 'นิติบุคคล', 'คลินิก', 'โรงพยาบาล'];
 const BRANCH_TYPES = ['สำนักงานใหญ่', 'สาขา'];
 
-const emptyForm: Partial<Account> = {
+const emptyForm = {
   clinic_name: '',
   company_name: '',
   address: '',
@@ -75,6 +75,11 @@ const emptyForm: Partial<Account> = {
   notes: '',
   grade: '',
   single_or_chain: '',
+  // Contact fields (required for new accounts)
+  contact_name: '',
+  contact_role: '',
+  contact_phone: '',
+  contact_email: '',
 };
 
 function daysSince(dateStr: string | null): string {
@@ -143,6 +148,10 @@ export default function LeadsPage() {
       notes: account.notes || '',
       grade: account.grade || '',
       single_or_chain: account.single_or_chain || '',
+      contact_name: '',
+      contact_role: '',
+      contact_phone: '',
+      contact_email: '',
     });
     setDialogOpen(true);
   };
@@ -150,6 +159,11 @@ export default function LeadsPage() {
   const handleSubmit = async () => {
     if (!form.clinic_name?.trim()) {
       toast.error('กรุณากรอกชื่อคลินิก');
+      return;
+    }
+    // Require contact for new accounts
+    if (!editingAccount && !form.contact_name?.trim()) {
+      toast.error('กรุณากรอกชื่อผู้ติดต่อ');
       return;
     }
 
@@ -175,9 +189,18 @@ export default function LeadsPage() {
       if (error) { toast.error('อัปเดตไม่สำเร็จ'); return; }
       toast.success('อัปเดตลูกค้าสำเร็จ');
     } else {
-      const { error } = await supabase.from('accounts').insert(payload);
-      if (error) { toast.error('เพิ่มลูกค้าไม่สำเร็จ'); return; }
-      toast.success('เพิ่มลูกค้าสำเร็จ');
+      const { data: newAcc, error } = await supabase.from('accounts').insert(payload).select('id').single();
+      if (error || !newAcc) { toast.error('เพิ่มลูกค้าไม่สำเร็จ'); return; }
+      // Insert contact
+      const { error: conErr } = await supabase.from('contacts').insert({
+        account_id: newAcc.id,
+        name: form.contact_name!.trim(),
+        role: form.contact_role || null,
+        phone: form.contact_phone || null,
+        email: form.contact_email || null,
+      });
+      if (conErr) { toast.error('เพิ่มลูกค้าสำเร็จ แต่เพิ่มผู้ติดต่อไม่สำเร็จ'); }
+      else { toast.success('เพิ่มลูกค้าและผู้ติดต่อสำเร็จ'); }
     }
     closeDialog();
     fetchData();
@@ -407,6 +430,31 @@ export default function LeadsPage() {
               <Label>เกรด</Label>
               <Input value={form.grade || ''} onChange={e => updateField('grade', e.target.value)} />
             </div>
+            {/* Contact fields - only for new accounts */}
+            {!editingAccount && (
+              <div className="sm:col-span-2 space-y-3 p-3 rounded-md border border-primary/30 bg-primary/5">
+                <p className="text-sm font-medium text-foreground">ผู้ติดต่อหลัก <span className="text-destructive">*</span></p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div className="space-y-1.5">
+                    <Label>ชื่อผู้ติดต่อ <span className="text-destructive">*</span></Label>
+                    <Input value={form.contact_name} onChange={e => updateField('contact_name', e.target.value)} placeholder="เช่น นพ. สมชาย" />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label>ตำแหน่ง / บทบาท</Label>
+                    <Input value={form.contact_role} onChange={e => updateField('contact_role', e.target.value)} placeholder="เช่น Owner, Doctor" />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label>เบอร์โทรผู้ติดต่อ</Label>
+                    <Input value={form.contact_phone} onChange={e => updateField('contact_phone', e.target.value)} placeholder="08x-xxx-xxxx" />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label>อีเมลผู้ติดต่อ</Label>
+                    <Input type="email" value={form.contact_email} onChange={e => updateField('contact_email', e.target.value)} placeholder="email@example.com" />
+                  </div>
+                </div>
+              </div>
+            )}
+
             <div className="space-y-1.5 sm:col-span-2">
               <Label>หมายเหตุ</Label>
               <Textarea value={form.notes || ''} onChange={e => updateField('notes', e.target.value)} rows={3} />
