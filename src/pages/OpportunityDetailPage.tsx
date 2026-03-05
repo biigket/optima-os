@@ -459,12 +459,14 @@ export default function OpportunityDetailPage() {
           <FocusPanel
             activities={activities}
             onMarkDone={handleMarkDone}
-            onEdit={(id) => { setActiveActivityId(id); setActiveTab('activity'); }}
             onDelete={async (id) => {
               const { error } = await supabase.from('activities').delete().eq('id', id);
               if (error) { toast.error('ลบกิจกรรมไม่สำเร็จ'); return; }
               setActivities(prev => prev.filter(a => a.id !== id));
               toast.success('ลบกิจกรรมแล้ว');
+            }}
+            onActivityUpdated={(updated) => {
+              setActivities(prev => prev.map(a => a.id === updated.id ? updated : a));
             }}
             clinicName={account?.clinic_name}
           />
