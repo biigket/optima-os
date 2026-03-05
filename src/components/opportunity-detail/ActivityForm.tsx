@@ -50,9 +50,9 @@ export default function ActivityForm({
 }: ActivityFormProps) {
   const [selectedType, setSelectedType] = useState<ActivityType>('CALL');
   const [title, setTitle] = useState('');
-  const [activityDate, setActivityDate] = useState(new Date().toISOString().split('T')[0]);
-  const [startTime, setStartTime] = useState('');
-  const [endTime, setEndTime] = useState('');
+  const [activityDate, setActivityDate] = useState(quickScheduleDefaults?.activity_date || new Date().toISOString().split('T')[0]);
+  const [startTime, setStartTime] = useState(quickScheduleDefaults?.start_time || '');
+  const [endTime, setEndTime] = useState(quickScheduleDefaults?.end_time || '');
   const [priority, setPriority] = useState<ActivityPriority>('NORMAL');
   const [location, setLocation] = useState('');
   const [description, setDescription] = useState('');
