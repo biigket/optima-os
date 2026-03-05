@@ -161,6 +161,11 @@ export default function LeadsPage() {
       toast.error('กรุณากรอกชื่อคลินิก');
       return;
     }
+    // Require contact for new accounts
+    if (!editingAccount && !form.contact_name?.trim()) {
+      toast.error('กรุณากรอกชื่อผู้ติดต่อ');
+      return;
+    }
 
     const payload = {
       clinic_name: form.clinic_name!.trim(),
@@ -184,9 +189,18 @@ export default function LeadsPage() {
       if (error) { toast.error('อัปเดตไม่สำเร็จ'); return; }
       toast.success('อัปเดตลูกค้าสำเร็จ');
     } else {
-      const { error } = await supabase.from('accounts').insert(payload);
-      if (error) { toast.error('เพิ่มลูกค้าไม่สำเร็จ'); return; }
-      toast.success('เพิ่มลูกค้าสำเร็จ');
+      const { data: newAcc, error } = await supabase.from('accounts').insert(payload).select('id').single();
+      if (error || !newAcc) { toast.error('เพิ่มลูกค้าไม่สำเร็จ'); return; }
+      // Insert contact
+      const { error: conErr } = await supabase.from('contacts').insert({
+        account_id: newAcc.id,
+        name: form.contact_name!.trim(),
+        role: form.contact_role || null,
+        phone: form.contact_phone || null,
+        email: form.contact_email || null,
+      });
+      if (conErr) { toast.error('เพิ่มลูกค้าสำเร็จ แต่เพิ่มผู้ติดต่อไม่สำเร็จ'); }
+      else { toast.success('เพิ่มลูกค้าและผู้ติดต่อสำเร็จ'); }
     }
     closeDialog();
     fetchData();
