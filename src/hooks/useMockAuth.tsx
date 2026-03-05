@@ -9,6 +9,7 @@ export interface MockSaleUser {
 }
 
 export const MOCK_SALES: MockSaleUser[] = [
+  { id: 's0', name: 'ADMIN', username: 'admin', password: 'admin1234', role: 'ADMIN' },
   { id: 's1', name: 'FORD', username: 'ford', password: 'ford1234', role: 'SALE' },
   { id: 's2', name: 'VARN', username: 'varn', password: 'varn1234', role: 'SALE' },
   { id: 's3', name: 'PETCH', username: 'petch', password: 'petch1234', role: 'SALE' },
