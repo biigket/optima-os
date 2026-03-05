@@ -5,25 +5,27 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import StatusBadge from '@/components/ui/StatusBadge';
 import {
   ArrowLeft, Building2, ExternalLink, Users, Calendar, Clock,
-  Phone, Eye, Presentation, FileCheck, AlertTriangle, Pencil, Trophy, XCircle, Check, MessageSquare, Send
+  Pencil, Trophy, XCircle, Check, Send, ChevronDown, ChevronUp, Plus, Trash2
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useMockAuth } from '@/hooks/useMockAuth';
 import { getNotesForOpportunity, addNoteGlobal, type OpportunityNote } from '@/pages/OpportunitiesPage';
 import { toast } from 'sonner';
 import { differenceInDays } from 'date-fns';
-import type { Opportunity, OpportunityStage, Account, Contact } from '@/types';
+import type { Opportunity, OpportunityStage, Account, Contact, Activity } from '@/types';
+import ActivityForm from '@/components/opportunity-detail/ActivityForm';
+import FocusPanel from '@/components/opportunity-detail/FocusPanel';
+import HistoryTimeline from '@/components/opportunity-detail/HistoryTimeline';
+import CalendarPanel from '@/components/opportunity-detail/CalendarPanel';
 
 const STAGES: OpportunityStage[] = ['NEW_LEAD', 'CONTACTED', 'DEMO_SCHEDULED', 'DEMO_DONE', 'NEGOTIATION', 'WON', 'LOST'];
 const STAGE_LABELS: Record<string, string> = {
   NEW_LEAD: 'Lead Qualified', CONTACTED: 'นัดพบ/Need', DEMO_SCHEDULED: 'Demo/Workshop',
   DEMO_DONE: 'Proposal Sent', NEGOTIATION: 'Negotiation', WON: 'Won', LOST: 'Lost/Nurture',
-};
-const ACTIVITY_ICONS: Record<string, React.ElementType> = {
-  CALL: Phone, VISIT: Eye, DEMO: Presentation, MEETING: Users, PROPOSAL: FileCheck,
 };
 const STUCK_REASONS = ['รอราคา', 'รอผู้ตัดสินใจ', 'รอ finance', 'รอ training', 'อื่นๆ'];
 const PAYMENT_LABELS: Record<string, string> = {
@@ -47,15 +49,16 @@ export default function OpportunityDetailPage() {
   const [stageHistory, setStageHistory] = useState<{ from: string; to: string; date: string }[]>([]);
   const [noteInput, setNoteInput] = useState('');
   const [, forceUpdate] = useState(0);
+  const [activities, setActivities] = useState<Activity[]>([]);
+  const [stakeholdersOpen, setStakeholdersOpen] = useState(true);
+  const [addContactOpen, setAddContactOpen] = useState(false);
+  const [newContact, setNewContact] = useState({ name: '', role: '', phone: '' });
 
   const [editForm, setEditForm] = useState({
-    expected_value: '',
-    close_date: '',
-    notes: '',
-    next_activity_type: '',
-    next_activity_date: '',
+    expected_value: '', close_date: '', notes: '',
   });
 
+  // Fetch opportunity
   useEffect(() => {
     if (!id) return;
     supabase.from('opportunities').select('*').eq('id', id).single().then(({ data, error }) => {
@@ -64,6 +67,7 @@ export default function OpportunityDetailPage() {
     });
   }, [id]);
 
+  // Fetch account & contacts
   useEffect(() => {
     if (!opp) return;
     supabase.from('accounts').select('*').eq('id', opp.account_id).single().then(({ data }) => {
@@ -82,6 +86,13 @@ export default function OpportunityDetailPage() {
     });
   }, [opp?.authority_contact_id]);
 
+  // Fetch activities
+  useEffect(() => {
+    if (!id) return;
+    supabase.from('activities').select('*').eq('opportunity_id', id).order('created_at', { ascending: false })
+      .then(({ data }) => { if (data) setActivities(data as unknown as Activity[]); });
+  }, [id]);
+
   if (!opp) {
     return (
       <div className="flex flex-col items-center justify-center h-[60vh] gap-4">
@@ -98,9 +109,7 @@ export default function OpportunityDetailPage() {
   const weighted = Math.round((opp.expected_value || 0) * prob / 100);
   const isOverdue = opp.close_date && new Date(opp.close_date) < new Date() && !['WON', 'LOST'].includes(opp.stage);
   const closeDateDays = opp.close_date ? differenceInDays(new Date(opp.close_date), new Date()) : null;
-  const ActivityIcon = opp.next_activity_type ? (ACTIVITY_ICONS[opp.next_activity_type] || Calendar) : Calendar;
   const notes = getNotesForOpportunity(opp.id);
-
   const competitorTags = opp.competitors ? opp.competitors.split(',').map(s => s.trim()).filter(Boolean) : [];
   const deviceTags = opp.current_devices ? opp.current_devices.split(',').map(s => s.trim()).filter(Boolean) : [];
 
@@ -119,8 +128,6 @@ export default function OpportunityDetailPage() {
       expected_value: String(opp.expected_value || ''),
       close_date: opp.close_date || '',
       notes: opp.notes || '',
-      next_activity_type: opp.next_activity_type || '',
-      next_activity_date: opp.next_activity_date || '',
     });
     setEditOpen(true);
   };
@@ -130,8 +137,6 @@ export default function OpportunityDetailPage() {
       expected_value: Number(editForm.expected_value) || opp.expected_value,
       close_date: editForm.close_date || opp.close_date,
       notes: editForm.notes,
-      next_activity_type: editForm.next_activity_type || opp.next_activity_type,
-      next_activity_date: editForm.next_activity_date || opp.next_activity_date,
     };
     const { error } = await supabase.from('opportunities').update(updates).eq('id', opp.id);
     if (error) { toast.error('อัปเดตไม่สำเร็จ'); return; }
@@ -143,12 +148,8 @@ export default function OpportunityDetailPage() {
   const handleAddNote = () => {
     if (!noteInput.trim()) return;
     const note: OpportunityNote = {
-      id: `note-${Date.now()}`,
-      opportunity_id: opp.id,
-      account_id: opp.account_id,
-      content: noteInput.trim(),
-      created_by: currentUser?.name || 'Unknown',
-      created_at: new Date().toISOString(),
+      id: `note-${Date.now()}`, opportunity_id: opp.id, account_id: opp.account_id,
+      content: noteInput.trim(), created_by: currentUser?.name || 'Unknown', created_at: new Date().toISOString(),
     };
     addNoteGlobal(note);
     setNoteInput('');
@@ -156,8 +157,30 @@ export default function OpportunityDetailPage() {
     toast.success('บันทึกโน้ตแล้ว');
   };
 
+  const handleActivityCreated = (activity: Activity) => {
+    setActivities(prev => [activity, ...prev]);
+  };
+
+  const handleMarkDone = (actId: string) => {
+    setActivities(prev => prev.map(a => a.id === actId ? { ...a, is_done: true } : a));
+  };
+
+  const handleAddContact = async () => {
+    if (!newContact.name.trim()) { toast.error('กรุณากรอกชื่อ'); return; }
+    const { data, error } = await supabase.from('contacts').insert({
+      account_id: opp.account_id, name: newContact.name.trim(),
+      role: newContact.role || null, phone: newContact.phone || null,
+    }).select().single();
+    if (error) { toast.error('เพิ่มไม่สำเร็จ'); return; }
+    setContacts(prev => [...prev, data as unknown as Contact]);
+    setNewContact({ name: '', role: '', phone: '' });
+    setAddContactOpen(false);
+    toast.success('เพิ่มผู้ติดต่อแล้ว');
+  };
+
   return (
-    <div className="animate-fade-in max-w-[960px] mx-auto space-y-4">
+    <div className="animate-fade-in max-w-[1200px] mx-auto space-y-4">
+      {/* Top bar */}
       <div className="flex items-center justify-between">
         <Button variant="ghost" size="sm" onClick={() => navigate('/opportunities')} className="gap-1 text-muted-foreground hover:text-foreground -ml-2">
           <ArrowLeft size={16} /> กลับ Pipeline
@@ -191,7 +214,7 @@ export default function OpportunityDetailPage() {
         </div>
       </div>
 
-      {/* Clickable Stage Path */}
+      {/* Stage Path */}
       <div className="rounded-xl border bg-card p-4 shadow-sm">
         <div className="flex gap-0 overflow-x-auto">
           {STAGES.map((s, i) => {
@@ -222,211 +245,149 @@ export default function OpportunityDetailPage() {
         </div>
       </div>
 
-      {/* 3-column grid */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        {/* Deal Info */}
-        <div className="rounded-xl border bg-card p-4 shadow-sm space-y-3">
-          <div className="flex items-center justify-between">
-            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Deal Info</p>
-            <button onClick={openEdit} className="p-1 rounded hover:bg-muted text-muted-foreground hover:text-foreground transition-colors">
-              <Pencil size={12} />
-            </button>
-          </div>
-          <InfoRow label="สินค้า" value={(opp.interested_products || []).join(', ') || '-'} />
-          <InfoRow label="มูลค่า" value={`฿${(opp.expected_value || 0).toLocaleString()}`} highlight />
-          <InfoRow label="Weighted" value={`฿${weighted.toLocaleString()}`} />
-
-          {/* Authority */}
-          <div className="flex items-start justify-between gap-2">
-            <span className="text-[11px] text-muted-foreground shrink-0">ผู้ตัดสินใจ</span>
-            <div className="text-right">
-              {authorityContact ? (
-                <>
-                  <span className="text-xs text-foreground font-medium">{authorityContact.name}</span>
-                  {authorityContact.phone && <p className="text-[10px] text-muted-foreground">📞 {authorityContact.phone}</p>}
-                </>
-              ) : (
-                <span className="text-xs text-muted-foreground">-</span>
-              )}
+      {/* 2-Column Layout: Left 30% / Right 70% */}
+      <div className="grid grid-cols-1 lg:grid-cols-10 gap-4">
+        {/* LEFT COLUMN: Deal Info + Stakeholders */}
+        <div className="lg:col-span-3 space-y-4">
+          {/* Deal Info */}
+          <div className="rounded-xl border bg-card p-4 shadow-sm space-y-3">
+            <div className="flex items-center justify-between">
+              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Deal Info</p>
+              <button onClick={openEdit} className="p-1 rounded hover:bg-muted text-muted-foreground hover:text-foreground transition-colors">
+                <Pencil size={12} />
+              </button>
             </div>
-          </div>
+            <InfoRow label="สินค้า" value={(opp.interested_products || []).join(', ') || '-'} />
+            <InfoRow label="มูลค่า" value={`฿${(opp.expected_value || 0).toLocaleString()}`} highlight />
+            <InfoRow label="Weighted" value={`฿${weighted.toLocaleString()}`} />
 
-
-          <InfoRow label="งบประมาณ" value={opp.budget_range || '-'} />
-          <InfoRow label="ช่องทางชำระ" value={opp.payment_method ? (PAYMENT_LABELS[opp.payment_method] || opp.payment_method) : '-'} />
-
-          {/* Competitors */}
-          <div>
-            <span className="text-[11px] text-muted-foreground">คู่แข่ง</span>
-            {competitorTags.length > 0 ? (
-              <div className="flex flex-wrap gap-1 mt-1">
-                {competitorTags.map(t => (
-                  <span key={t} className="px-2 py-0.5 rounded-full bg-destructive/10 text-destructive text-[10px] font-medium">{t}</span>
-                ))}
+            <div className="flex items-start justify-between gap-2">
+              <span className="text-[11px] text-muted-foreground shrink-0">ผู้ตัดสินใจ</span>
+              <div className="text-right">
+                {authorityContact ? (
+                  <>
+                    <span className="text-xs text-foreground font-medium">{authorityContact.name}</span>
+                    {authorityContact.phone && <p className="text-[10px] text-muted-foreground">📞 {authorityContact.phone}</p>}
+                  </>
+                ) : <span className="text-xs text-muted-foreground">-</span>}
               </div>
-            ) : (
-              <p className="text-xs text-muted-foreground mt-0.5">-</p>
-            )}
-          </div>
-
-          {/* Current devices */}
-          <div>
-            <span className="text-[11px] text-muted-foreground">เครื่องปัจจุบัน</span>
-            {deviceTags.length > 0 ? (
-              <div className="flex flex-wrap gap-1 mt-1">
-                {deviceTags.map(t => (
-                  <span key={t} className="px-2 py-0.5 rounded-full bg-muted text-foreground text-[10px] font-medium">{t}</span>
-                ))}
-              </div>
-            ) : (
-              <p className="text-xs text-muted-foreground mt-0.5">-</p>
-            )}
-          </div>
-
-          {/* Close date with duration */}
-          <div className="flex items-start justify-between gap-2">
-            <span className="text-[11px] text-muted-foreground shrink-0">วันปิด</span>
-            <div className="text-right">
-              <span className={`text-xs ${isOverdue ? 'text-destructive font-medium' : 'text-foreground'}`}>{opp.close_date || '-'}</span>
-              {closeDateDays !== null && (
-                <p className={`text-[10px] font-medium ${closeDateDays >= 0 ? 'text-primary' : 'text-destructive'}`}>
-                  {closeDateDays >= 0 ? `อีก ${closeDateDays} วัน` : `เลยกำหนด ${Math.abs(closeDateDays)} วัน`}
-                </p>
-              )}
             </div>
-          </div>
 
-          <InfoRow label="หมายเหตุ" value={opp.notes || '-'} />
+            <InfoRow label="งบประมาณ" value={opp.budget_range || '-'} />
+            <InfoRow label="ช่องทางชำระ" value={opp.payment_method ? (PAYMENT_LABELS[opp.payment_method] || opp.payment_method) : '-'} />
 
-          {isStuck && (
-            <div className="pt-2 border-t border-border">
-              <p className="text-[10px] text-destructive font-medium mb-1">เหตุผลที่ค้าง</p>
-              <Select
-                value={(opp as any).stuck_reason || ''}
-                onValueChange={(val) => setOpp(prev => prev ? { ...prev, stuck_reason: val } as any : prev)}
-              >
-                <SelectTrigger className="h-7 text-xs">
-                  <SelectValue placeholder="เลือกเหตุผล..." />
-                </SelectTrigger>
-                <SelectContent>
-                  {STUCK_REASONS.map(r => (
-                    <SelectItem key={r} value={r} className="text-xs">{r}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          )}
-        </div>
-
-        {/* Next Actions */}
-        <div className="rounded-xl border bg-card p-4 shadow-sm space-y-3">
-          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Next Actions</p>
-          {opp.next_activity_type ? (
-            <div className="p-3 rounded-lg bg-accent/5 border border-accent/20 space-y-2">
-              <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-full bg-accent/15 text-accent flex items-center justify-center">
-                  <ActivityIcon size={14} />
+            <div>
+              <span className="text-[11px] text-muted-foreground">คู่แข่ง</span>
+              {competitorTags.length > 0 ? (
+                <div className="flex flex-wrap gap-1 mt-1">
+                  {competitorTags.map(t => <span key={t} className="px-2 py-0.5 rounded-full bg-destructive/10 text-destructive text-[10px] font-medium">{t}</span>)}
                 </div>
-                <div>
-                  <p className="text-sm font-semibold text-foreground">{opp.next_activity_type}</p>
-                  <p className="text-xs text-muted-foreground flex items-center gap-1">
-                    <Calendar size={10} /> {opp.next_activity_date}
+              ) : <p className="text-xs text-muted-foreground mt-0.5">-</p>}
+            </div>
+
+            <div>
+              <span className="text-[11px] text-muted-foreground">เครื่องปัจจุบัน</span>
+              {deviceTags.length > 0 ? (
+                <div className="flex flex-wrap gap-1 mt-1">
+                  {deviceTags.map(t => <span key={t} className="px-2 py-0.5 rounded-full bg-muted text-foreground text-[10px] font-medium">{t}</span>)}
+                </div>
+              ) : <p className="text-xs text-muted-foreground mt-0.5">-</p>}
+            </div>
+
+            <div className="flex items-start justify-between gap-2">
+              <span className="text-[11px] text-muted-foreground shrink-0">วันปิด</span>
+              <div className="text-right">
+                <span className={`text-xs ${isOverdue ? 'text-destructive font-medium' : 'text-foreground'}`}>{opp.close_date || '-'}</span>
+                {closeDateDays !== null && (
+                  <p className={`text-[10px] font-medium ${closeDateDays >= 0 ? 'text-primary' : 'text-destructive'}`}>
+                    {closeDateDays >= 0 ? `อีก ${closeDateDays} วัน` : `เลยกำหนด ${Math.abs(closeDateDays)} วัน`}
                   </p>
-                </div>
+                )}
               </div>
             </div>
-          ) : (
-            <div className="p-3 rounded-lg bg-warning/10 border border-warning/30 text-xs text-warning flex items-center gap-2">
-              <AlertTriangle size={14} />
-              <span className="font-medium">ยังไม่มีกิจกรรมถัดไป — ควรเพิ่มทันที!</span>
+
+            <InfoRow label="หมายเหตุ" value={opp.notes || '-'} />
+
+            {isStuck && (
+              <div className="pt-2 border-t border-border">
+                <p className="text-[10px] text-destructive font-medium mb-1">เหตุผลที่ค้าง</p>
+                <Select
+                  value={opp.stuck_reason || ''}
+                  onValueChange={(val) => setOpp(prev => prev ? { ...prev, stuck_reason: val } : prev)}
+                >
+                  <SelectTrigger className="h-7 text-xs"><SelectValue placeholder="เลือกเหตุผล..." /></SelectTrigger>
+                  <SelectContent>
+                    {STUCK_REASONS.map(r => <SelectItem key={r} value={r} className="text-xs">{r}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+          </div>
+
+          {/* Stakeholders (Collapsible) */}
+          <Collapsible open={stakeholdersOpen} onOpenChange={setStakeholdersOpen}>
+            <div className="rounded-xl border bg-card p-4 shadow-sm">
+              <CollapsibleTrigger asChild>
+                <button className="flex items-center justify-between w-full">
+                  <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">ผู้มีอำนาจตัดสินใจ ({contacts.length})</p>
+                  {stakeholdersOpen ? <ChevronUp size={14} className="text-muted-foreground" /> : <ChevronDown size={14} className="text-muted-foreground" />}
+                </button>
+              </CollapsibleTrigger>
+              <CollapsibleContent className="mt-3 space-y-2">
+                {contacts.map(c => (
+                  <div key={c.id} className="flex items-center gap-2 p-2 rounded-lg bg-muted/30">
+                    <div className="w-7 h-7 rounded-full bg-primary/10 text-primary flex items-center justify-center text-xs font-bold">
+                      {c.name.charAt(0)}
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-xs font-medium text-foreground truncate">
+                        {c.name}
+                        {opp.authority_contact_id === c.id && <span className="ml-1 text-[9px] text-primary font-bold">⭐ ผู้ตัดสินใจ</span>}
+                      </p>
+                      <p className="text-[10px] text-muted-foreground">{c.role || '-'}</p>
+                    </div>
+                    {c.phone && <span className="text-[10px] text-muted-foreground">{c.phone}</span>}
+                  </div>
+                ))}
+                {contacts.length === 0 && <p className="text-xs text-muted-foreground py-2 text-center">ไม่มีผู้ติดต่อ</p>}
+                <Button variant="outline" size="sm" className="w-full text-xs gap-1 h-7 mt-1" onClick={() => setAddContactOpen(true)}>
+                  <Plus size={12} /> เพิ่มผู้ติดต่อ
+                </Button>
+              </CollapsibleContent>
             </div>
-          )}
-
-          <div className="grid grid-cols-2 gap-2 pt-2">
-            <Button variant="outline" size="sm" className="text-xs gap-1 h-8" onClick={() => toast.info(`โทรหา ${account?.clinic_name}`)}><Phone size={11} /> โทร</Button>
-            <Button variant="outline" size="sm" className="text-xs gap-1 h-8" onClick={() => toast.info('นัดเยี่ยม')}><Eye size={11} /> นัดเยี่ยม</Button>
-            <Button variant="outline" size="sm" className="text-xs gap-1 h-8" onClick={() => toast.info('นัด Demo')}><Presentation size={11} /> นัด Demo</Button>
-            <Button variant="outline" size="sm" className="text-xs gap-1 h-8" onClick={() => toast.info('ส่ง Proposal')}><FileCheck size={11} /> ส่ง Proposal</Button>
-          </div>
+          </Collapsible>
         </div>
 
-        {/* Stakeholders */}
-        <div className="rounded-xl border bg-card p-4 shadow-sm space-y-3">
-          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Stakeholders</p>
-          {contacts.map(c => (
-            <div key={c.id} className="flex items-center gap-2 p-2 rounded-lg bg-muted/30">
-              <div className="w-7 h-7 rounded-full bg-primary/10 text-primary flex items-center justify-center text-xs font-bold">
-                {c.name.charAt(0)}
-              </div>
-              <div className="min-w-0 flex-1">
-                <p className="text-xs font-medium text-foreground truncate">
-                  {c.name}
-                  {opp.authority_contact_id === c.id && <span className="ml-1 text-[9px] text-primary font-bold">⭐ ผู้ตัดสินใจ</span>}
-                </p>
-                <p className="text-[10px] text-muted-foreground">{c.role || '-'}</p>
-              </div>
-              {c.phone && <span className="text-[10px] text-muted-foreground">{c.phone}</span>}
+        {/* RIGHT COLUMN: Activity Form + Focus + Notes input + History + Calendar */}
+        <div className="lg:col-span-7 space-y-4">
+          {/* Activity Creation Form */}
+          <ActivityForm opportunityId={opp.id} accountId={opp.account_id} onActivityCreated={handleActivityCreated} />
+
+          {/* Focus Panel (pending activities) */}
+          <FocusPanel activities={activities} onMarkDone={handleMarkDone} />
+
+          {/* Quick Note Input */}
+          <div className="rounded-xl border bg-card p-4 shadow-sm">
+            <div className="flex gap-2">
+              <Input
+                value={noteInput}
+                onChange={e => setNoteInput(e.target.value)}
+                placeholder="เพิ่มบันทึก..."
+                className="h-8 text-sm flex-1"
+                onKeyDown={e => { if (e.key === 'Enter') handleAddNote(); }}
+              />
+              <Button size="sm" className="h-8 gap-1" onClick={handleAddNote} disabled={!noteInput.trim()}>
+                <Send size={12} /> บันทึก
+              </Button>
             </div>
-          ))}
-          {contacts.length === 0 && <p className="text-xs text-muted-foreground py-4 text-center">ไม่มีผู้ติดต่อ</p>}
+          </div>
+
+          {/* History Timeline */}
+          <HistoryTimeline activities={activities} stageHistory={stageHistory} notes={notes} />
+
+          {/* Calendar Panel */}
+          <CalendarPanel activities={activities} />
         </div>
-      </div>
-
-      {/* Internal Notes */}
-      <div className="rounded-xl border bg-card p-4 shadow-sm">
-        <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3 flex items-center gap-1.5">
-          <MessageSquare size={13} /> บันทึกภายใน
-        </p>
-        
-        <div className="flex gap-2 mb-4">
-          <Input
-            value={noteInput}
-            onChange={e => setNoteInput(e.target.value)}
-            placeholder="เพิ่มบันทึก..."
-            className="h-8 text-sm flex-1"
-            onKeyDown={e => { if (e.key === 'Enter') handleAddNote(); }}
-          />
-          <Button size="sm" className="h-8 gap-1" onClick={handleAddNote} disabled={!noteInput.trim()}>
-            <Send size={12} /> บันทึก
-          </Button>
-        </div>
-
-        {notes.length > 0 ? (
-          <div className="space-y-2">
-            {notes.map(n => (
-              <div key={n.id} className="p-2.5 rounded-lg bg-muted/30 border border-border">
-                <div className="flex items-center gap-2 text-[10px] text-muted-foreground mb-1">
-                  <span className="font-semibold text-foreground">{n.created_by}</span>
-                  <span>·</span>
-                  <span>{new Date(n.created_at).toLocaleDateString('th-TH', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}</span>
-                </div>
-                <p className="text-xs text-foreground">{n.content}</p>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <p className="text-xs text-muted-foreground text-center py-4">ยังไม่มีบันทึก</p>
-        )}
-      </div>
-
-      {/* Activity Timeline */}
-      <div className="rounded-xl border bg-card p-4 shadow-sm">
-        <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3">Activity Timeline</p>
-        {stageHistory.length > 0 ? (
-          <div className="space-y-2">
-            {stageHistory.map((h, i) => (
-              <div key={i} className="flex items-center gap-2 text-xs">
-                <div className="w-2 h-2 rounded-full bg-primary shrink-0" />
-                <span className="text-muted-foreground">{new Date(h.date).toLocaleDateString('th-TH', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}</span>
-                <span className="text-foreground">ย้ายจาก <strong>{STAGE_LABELS[h.from]}</strong> → <strong>{STAGE_LABELS[h.to]}</strong></span>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <div className="flex items-center justify-center py-8 text-xs text-muted-foreground/50">
-            กิจกรรมจะแสดงเมื่อมีการเปลี่ยน Stage
-          </div>
-        )}
       </div>
 
       {/* Stage Confirm Dialog */}
@@ -445,9 +406,7 @@ export default function OpportunityDetailPage() {
       {/* Edit Dialog */}
       <Dialog open={editOpen} onOpenChange={setEditOpen}>
         <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle className="text-sm">แก้ไขข้อมูลดีล</DialogTitle>
-          </DialogHeader>
+          <DialogHeader><DialogTitle className="text-sm">แก้ไขข้อมูลดีล</DialogTitle></DialogHeader>
           <div className="space-y-3">
             <div>
               <label className="text-xs text-muted-foreground">มูลค่า (฿)</label>
@@ -456,21 +415,6 @@ export default function OpportunityDetailPage() {
             <div>
               <label className="text-xs text-muted-foreground">วันปิด</label>
               <Input type="date" value={editForm.close_date} onChange={e => setEditForm(f => ({ ...f, close_date: e.target.value }))} className="h-8 text-sm" />
-            </div>
-            <div>
-              <label className="text-xs text-muted-foreground">กิจกรรมถัดไป</label>
-              <Select value={editForm.next_activity_type} onValueChange={v => setEditForm(f => ({ ...f, next_activity_type: v }))}>
-                <SelectTrigger className="h-8 text-sm"><SelectValue placeholder="เลือก..." /></SelectTrigger>
-                <SelectContent>
-                  {['CALL', 'VISIT', 'DEMO', 'MEETING', 'PROPOSAL'].map(t => (
-                    <SelectItem key={t} value={t} className="text-xs">{t}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div>
-              <label className="text-xs text-muted-foreground">วันกิจกรรม</label>
-              <Input type="date" value={editForm.next_activity_date} onChange={e => setEditForm(f => ({ ...f, next_activity_date: e.target.value }))} className="h-8 text-sm" />
             </div>
             <div>
               <label className="text-xs text-muted-foreground">หมายเหตุ</label>
@@ -483,15 +427,40 @@ export default function OpportunityDetailPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Add Contact Dialog */}
+      <Dialog open={addContactOpen} onOpenChange={setAddContactOpen}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader><DialogTitle className="text-sm">เพิ่มผู้ติดต่อ</DialogTitle></DialogHeader>
+          <div className="space-y-3">
+            <div>
+              <label className="text-xs text-muted-foreground">ชื่อ *</label>
+              <Input value={newContact.name} onChange={e => setNewContact(p => ({ ...p, name: e.target.value }))} className="h-8 text-sm" />
+            </div>
+            <div>
+              <label className="text-xs text-muted-foreground">ตำแหน่ง</label>
+              <Input value={newContact.role} onChange={e => setNewContact(p => ({ ...p, role: e.target.value }))} className="h-8 text-sm" />
+            </div>
+            <div>
+              <label className="text-xs text-muted-foreground">เบอร์โทร</label>
+              <Input value={newContact.phone} onChange={e => setNewContact(p => ({ ...p, phone: e.target.value }))} className="h-8 text-sm" />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" size="sm" onClick={() => setAddContactOpen(false)}>ยกเลิก</Button>
+            <Button size="sm" onClick={handleAddContact}>เพิ่ม</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
 
-function InfoRow({ label, value, highlight, warn }: { label: string; value: string; highlight?: boolean; warn?: boolean }) {
+function InfoRow({ label, value, highlight }: { label: string; value: string; highlight?: boolean }) {
   return (
     <div className="flex items-start justify-between gap-2">
       <span className="text-[11px] text-muted-foreground shrink-0">{label}</span>
-      <span className={`text-xs text-right ${highlight ? 'font-bold text-foreground' : warn ? 'text-destructive font-medium' : 'text-foreground'}`}>{value}</span>
+      <span className={`text-xs text-right ${highlight ? 'font-bold text-foreground' : 'text-foreground'}`}>{value}</span>
     </div>
   );
 }
