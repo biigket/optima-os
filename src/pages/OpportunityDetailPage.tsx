@@ -456,11 +456,12 @@ export default function OpportunityDetailPage() {
                 <ActivityForm
                   opportunityId={opp.id}
                   accountId={opp.account_id}
-                  onActivityCreated={handleActivityCreated}
+                  onActivityCreated={(a) => { handleActivityCreated(a); setQuickScheduleDefaults(null); }}
                   editingActivity={editingActivity}
                   onActivityUpdated={handleActivityUpdated}
-                  onCancelEdit={() => { setActiveActivityId(null); setFormPreview(null); }}
+                  onCancelEdit={() => { setActiveActivityId(null); setFormPreview(null); setQuickScheduleDefaults(null); }}
                   onFormChange={setFormPreview}
+                  quickScheduleDefaults={quickScheduleDefaults}
                 />
               </TabsContent>
 

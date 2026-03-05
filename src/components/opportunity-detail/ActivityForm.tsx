@@ -46,6 +46,7 @@ interface ActivityFormProps {
 export default function ActivityForm({
   opportunityId, accountId, onActivityCreated,
   editingActivity, onActivityUpdated, onCancelEdit, onFormChange,
+  quickScheduleDefaults,
 }: ActivityFormProps) {
   const [selectedType, setSelectedType] = useState<ActivityType>('CALL');
   const [title, setTitle] = useState('');
