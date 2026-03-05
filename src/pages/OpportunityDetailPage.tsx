@@ -502,6 +502,9 @@ export default function OpportunityDetailPage() {
               setActivities(prev => prev.filter(a => a.id !== id));
               toast.success('ลบกิจกรรมแล้ว');
             }}
+            onUpdateActivity={(updated) => {
+              setActivities(prev => prev.map(a => a.id === updated.id ? updated : a));
+            }}
             onAddComment={(parentId, comment) => {
               const note: OpportunityNote = {
                 id: `note-${Date.now()}`, opportunity_id: opp.id, account_id: opp.account_id,
