@@ -1,6 +1,6 @@
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search, Plus, LayoutGrid, List, ArrowUpDown, Calendar, Building2, Clock, Filter, Loader2 } from 'lucide-react';
+import { Search, Plus, LayoutGrid, List, ArrowUpDown, Calendar, Building2, Clock, Filter } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -8,7 +8,7 @@ import StatusBadge from '@/components/ui/StatusBadge';
 import OpportunityKanban from '@/components/opportunities/OpportunityKanban';
 import CustomerSelectModal from '@/components/opportunities/CustomerSelectModal';
 import CreateOpportunityForm from '@/components/opportunities/CreateOpportunityForm';
-import { supabase } from '@/integrations/supabase/client';
+import { mockAccounts, mockContacts, mockProducts } from '@/data/mockData';
 import { useMockAuth, MOCK_SALES } from '@/hooks/useMockAuth';
 import { toast } from 'sonner';
 import type { Account, Opportunity, OpportunityStage } from '@/types';
@@ -41,9 +41,16 @@ export function getNotesForOpportunity(oppId: string) { return globalNotes.filte
 export function getNotesForAccount(accountId: string) { return globalNotes.filter(n => n.account_id === accountId); }
 export function addNoteGlobal(note: OpportunityNote) { globalNotes = [note, ...globalNotes]; }
 
-// Cache for account names (fetched from DB)
+// Account cache built from mock data
 const accountCache: Record<string, { clinic_name: string; customer_status: string; assigned_sale?: string }> = {};
+mockAccounts.forEach(a => {
+  accountCache[a.id] = { clinic_name: a.clinic_name, customer_status: a.customer_status, assigned_sale: a.assigned_sale || undefined };
+});
 export function getCachedAccount(id: string) { return accountCache[id]; }
+
+// Local opportunities state (mock — no DB)
+let nextOppId = 1;
+function genOppId() { return `opp-${Date.now()}-${nextOppId++}`; }
 
 export default function OpportunitiesPage() {
   const navigate = useNavigate();
@@ -63,49 +70,7 @@ export default function OpportunitiesPage() {
   const [createFormOpen, setCreateFormOpen] = useState(false);
   const [noContactWarning, setNoContactWarning] = useState(false);
   const [opportunities, setOpportunities] = useState<Opportunity[]>([]);
-  const [loading, setLoading] = useState(true);
   const [, forceUpdate] = useState(0);
-
-  // Fetch opportunities from DB
-  useEffect(() => {
-    const fetchOpps = async () => {
-      setLoading(true);
-      const { data: opps, error } = await supabase
-        .from('opportunities')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (error) {
-        toast.error('โหลดข้อมูลผิดพลาด');
-        setLoading(false);
-        return;
-      }
-
-      // Fetch account info for all opportunity account_ids
-      const accountIds = [...new Set((opps || []).map(o => o.account_id))];
-      if (accountIds.length > 0) {
-        const { data: accounts } = await supabase
-          .from('accounts')
-          .select('id, clinic_name, customer_status, assigned_sale')
-          .in('id', accountIds);
-        if (accounts) {
-          accounts.forEach(a => {
-            accountCache[a.id] = { clinic_name: a.clinic_name, customer_status: a.customer_status, assigned_sale: a.assigned_sale || undefined };
-          });
-        }
-      }
-
-      setOpportunities((opps || []).map(o => ({
-        ...o,
-        stage: o.stage as OpportunityStage,
-        opportunity_type: (o as any).opportunity_type || undefined,
-        next_activity_type: (o as any).next_activity_type || undefined,
-        next_activity_date: (o as any).next_activity_date || undefined,
-      })) as Opportunity[]);
-      setLoading(false);
-    };
-    fetchOpps();
-  }, []);
 
   // Role-based filtering
   const roleFiltered = useMemo(() => {
@@ -154,7 +119,6 @@ export default function OpportunitiesPage() {
   const handleCustomerSelect = (account: Account, hasContacts: boolean) => {
     setSelectModalOpen(false);
     setSelectedCustomer(account);
-    // Cache account
     accountCache[account.id] = { clinic_name: account.clinic_name, customer_status: account.customer_status, assigned_sale: account.assigned_sale || undefined };
     if (!hasContacts) {
       setNoContactWarning(true);
@@ -164,26 +128,18 @@ export default function OpportunitiesPage() {
   };
 
   const handleSave = (data: Opportunity) => {
+    // Ensure it has an id
+    if (!data.id) data.id = genOppId();
+    if (!data.created_at) data.created_at = new Date().toISOString();
     setOpportunities(prev => [data, ...prev]);
   };
 
-  const handleStageChange = async (oppId: string, newStage: OpportunityStage) => {
+  const handleStageChange = (oppId: string, newStage: OpportunityStage) => {
     setOpportunities(prev => prev.map(o => o.id === oppId ? { ...o, stage: newStage } : o));
-    await supabase.from('opportunities').update({ stage: newStage }).eq('id', oppId);
   };
 
-  const handleUpdateOpportunity = async (oppId: string, updates: Partial<Opportunity>) => {
+  const handleUpdateOpportunity = (oppId: string, updates: Partial<Opportunity>) => {
     setOpportunities(prev => prev.map(o => o.id === oppId ? { ...o, ...updates } : o));
-    // Only persist known DB columns
-    const dbUpdates: Record<string, any> = {};
-    if ('stuck_reason' in updates) dbUpdates.stuck_reason = (updates as any).stuck_reason;
-    if ('expected_value' in updates) dbUpdates.expected_value = updates.expected_value;
-    if ('close_date' in updates) dbUpdates.close_date = updates.close_date;
-    if ('notes' in updates) dbUpdates.notes = updates.notes;
-    if ('stage' in updates) dbUpdates.stage = updates.stage;
-    if (Object.keys(dbUpdates).length > 0) {
-      await supabase.from('opportunities').update(dbUpdates as any).eq('id', oppId);
-    }
   };
 
   const handleAddNote = (oppId: string, content: string) => {
@@ -304,11 +260,7 @@ export default function OpportunitiesPage() {
         </div>
       )}
 
-      {loading ? (
-        <div className="flex items-center justify-center py-20">
-          <Loader2 className="animate-spin text-muted-foreground" size={24} />
-        </div>
-      ) : viewMode === 'kanban' ? (
+      {viewMode === 'kanban' ? (
         <OpportunityKanban
           opportunities={filtered}
           typeFilter={typeFilter}
