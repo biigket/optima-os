@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -10,11 +10,11 @@ import {
   ArrowLeft, Building2, ExternalLink, Users, Calendar, Clock,
   Phone, Eye, Presentation, FileCheck, AlertTriangle, Pencil, Trophy, XCircle, Check, MessageSquare, Send
 } from 'lucide-react';
-import { mockAccounts, mockContacts } from '@/data/mockData';
+import { supabase } from '@/integrations/supabase/client';
 import { useMockAuth } from '@/hooks/useMockAuth';
-import { getNotesForOpportunity, addNoteGlobal, type OpportunityNote } from '@/pages/OpportunitiesPage';
+import { getNotesForOpportunity, addNoteGlobal, getCachedAccount, type OpportunityNote } from '@/pages/OpportunitiesPage';
 import { toast } from 'sonner';
-import type { Opportunity, OpportunityStage } from '@/types';
+import type { Opportunity, OpportunityStage, Account, Contact } from '@/types';
 
 const STAGES: OpportunityStage[] = ['NEW_LEAD', 'CONTACTED', 'DEMO_SCHEDULED', 'DEMO_DONE', 'NEGOTIATION', 'WON', 'LOST'];
 const STAGE_LABELS: Record<string, string> = {
@@ -34,9 +34,9 @@ export default function OpportunityDetailPage() {
   const navigate = useNavigate();
   const { currentUser } = useMockAuth();
 
-  // This page currently only works for opportunities created in-session (mock state lives in OpportunitiesPage)
-  // For now show a placeholder if navigated directly
   const [opp, setOpp] = useState<Opportunity | undefined>(undefined);
+  const [account, setAccount] = useState<Account | null>(null);
+  const [contacts, setContacts] = useState<Contact[]>([]);
   const [editOpen, setEditOpen] = useState(false);
   const [stageConfirm, setStageConfirm] = useState<OpportunityStage | null>(null);
   const [stageHistory, setStageHistory] = useState<{ from: string; to: string; date: string }[]>([]);
@@ -51,9 +51,25 @@ export default function OpportunityDetailPage() {
     next_activity_date: '',
   });
 
-  // Find account & contacts from mock data
-  const account = opp ? mockAccounts.find(a => a.id === opp.account_id) : null;
-  const contacts = opp ? mockContacts.filter(c => c.account_id === opp.account_id) : [];
+  // Try to get account info from cache first, then fetch from DB for contacts
+  useEffect(() => {
+    if (!id) return;
+    // The opp is passed via in-memory state from the pipeline page
+    // If user navigates directly, we won't have it
+    // Try to find account from cache if opp exists
+  }, [id]);
+
+  // When opp is set (from pipeline navigation), fetch account & contacts from DB
+  useEffect(() => {
+    if (!opp) return;
+    const cached = getCachedAccount(opp.account_id);
+    if (cached) {
+      setAccount({ id: opp.account_id, clinic_name: cached.clinic_name, customer_status: cached.customer_status, assigned_sale: cached.assigned_sale, created_at: '' } as Account);
+    }
+    supabase.from('contacts').select('*').eq('account_id', opp.account_id).then(({ data }) => {
+      if (data) setContacts(data as unknown as Contact[]);
+    });
+  }, [opp]);
 
   if (!opp) {
     return (
