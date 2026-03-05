@@ -87,7 +87,7 @@ export default function ActivityForm({
       setEndTime(quickScheduleDefaults.end_time);
       setActivityDate(quickScheduleDefaults.activity_date);
     }
-  }, [quickScheduleDefaults]);
+  }, [quickScheduleDefaults?.start_time, quickScheduleDefaults?.end_time, quickScheduleDefaults?.activity_date]);
 
 
   useEffect(() => {
