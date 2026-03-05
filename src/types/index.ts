@@ -126,6 +126,28 @@ export interface FinanceDocument {
   fileUrl?: string;
 }
 
+export interface Quotation {
+  quotationId: string;
+  accountId: string;
+  items: { productName: string; qty: number; unitPrice: number }[];
+  totalAmount: number;
+  issueDate: string;
+  validUntil: string;
+  approvalStatus: ApprovalStatus;
+  createdByUserId: string;
+}
+
+export interface Invoice {
+  invoiceId: string;
+  accountId: string;
+  salesOrderId: string;
+  amount: number;
+  issueDate: string;
+  dueDate: string;
+  paymentStatus: PaymentStatus;
+  approvalStatus: ApprovalStatus;
+}
+
 export interface User {
   userId: string;
   name: string;

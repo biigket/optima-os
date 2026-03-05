@@ -61,12 +61,12 @@ const navGroups = [
   },
   {
     label: 'ERP',
-    phase: 2,
+    phase: 1,
     items: [
-      { to: '/quotations', icon: FileSpreadsheet, label: 'ใบเสนอราคา', locked: true },
-      { to: '/sales-orders', icon: ShoppingCart, label: 'ใบสั่งขาย', locked: true },
-      { to: '/inventory', icon: Warehouse, label: 'คลังสินค้า', locked: true },
-      { to: '/invoices', icon: Receipt, label: 'ใบแจ้งหนี้', locked: true },
+      { to: '/quotations', icon: FileSpreadsheet, label: 'ใบเสนอราคา' },
+      { to: '/sales-orders', icon: ShoppingCart, label: 'ใบสั่งขาย' },
+      { to: '/inventory', icon: Warehouse, label: 'คลังสินค้า' },
+      { to: '/invoices', icon: Receipt, label: 'ใบแจ้งหนี้' },
     ],
   },
   {

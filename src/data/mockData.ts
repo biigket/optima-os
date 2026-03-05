@@ -1,4 +1,4 @@
-import type { Account, Contact, Opportunity, WorkItem, ActivityLog, CalendarEvent, SalesOrder, InventoryItem, FinanceDocument, User } from '@/types';
+import type { Account, Contact, Opportunity, WorkItem, ActivityLog, CalendarEvent, SalesOrder, InventoryItem, FinanceDocument, User, Quotation, Invoice } from '@/types';
 
 export const mockUsers: User[] = [
   { userId: 'u1', name: 'Somchai Patel', email: 'somchai@optima.co', role: 'SUPER_ADMIN', department: 'SALES', avatarUrl: '' },
@@ -61,11 +61,37 @@ export const mockInventory: InventoryItem[] = [
   { inventoryId: 'inv3', productName: 'Laser Handpiece Tip (532nm)', category: 'PART', quantity: 15, warehouseLocation: 'BKK-B1', status: 'AVAILABLE' },
   { inventoryId: 'inv4', productName: 'HydraGlow Serum Cartridge', category: 'CONSUMABLE', quantity: 48, warehouseLocation: 'BKK-B2', status: 'AVAILABLE' },
   { inventoryId: 'inv5', productName: 'PicoStar Calibration Kit', category: 'PART', quantity: 0, warehouseLocation: 'BKK-C1', status: 'OUT' },
+  { inventoryId: 'inv6', productName: 'CoolSculpt Body Contouring', category: 'DEVICE', serialNumber: 'CS-2026-002', quantity: 1, warehouseLocation: 'BKK-A3', status: 'AVAILABLE' },
+  { inventoryId: 'inv7', productName: 'RF Needle Cartridge (25pin)', category: 'CONSUMABLE', quantity: 120, warehouseLocation: 'BKK-B3', status: 'AVAILABLE' },
+  { inventoryId: 'inv8', productName: 'IPL Filter Glass 560nm', category: 'PART', quantity: 3, warehouseLocation: 'BKK-C2', status: 'AVAILABLE' },
+  { inventoryId: 'inv9', productName: 'Cryo Gel Pads (Pack of 50)', category: 'CONSUMABLE', quantity: 0, warehouseLocation: 'BKK-B4', status: 'OUT' },
 ];
 
 export const mockFinanceDocs: FinanceDocument[] = [
   { financeDocId: 'fd1', salesOrderId: 'so1', docType: 'INVOICE', issueDate: '2026-02-28', dueDate: '2026-03-30', amount: 150000, paymentStatus: 'UNPAID', approvalStatus: 'APPROVED' },
   { financeDocId: 'fd2', salesOrderId: 'so1', docType: 'QUOTATION', issueDate: '2026-02-15', dueDate: '2026-03-15', amount: 350000, paymentStatus: 'UNPAID', approvalStatus: 'SUBMITTED' },
+];
+
+export const mockQuotations: Quotation[] = [
+  { quotationId: 'QT-2026-001', accountId: 'a1', items: [{ productName: 'PicoStar Pro Laser', qty: 1, unitPrice: 2500000 }], totalAmount: 2500000, issueDate: '2026-02-20', validUntil: '2026-03-20', approvalStatus: 'APPROVED', createdByUserId: 'u2' },
+  { quotationId: 'QT-2026-002', accountId: 'a2', items: [{ productName: 'HydraGlow Facial System', qty: 1, unitPrice: 1800000 }, { productName: 'HydraGlow Serum Cartridge', qty: 10, unitPrice: 3500 }], totalAmount: 1835000, issueDate: '2026-03-01', validUntil: '2026-03-31', approvalStatus: 'SUBMITTED', createdByUserId: 'u2' },
+  { quotationId: 'QT-2026-003', accountId: 'a3', items: [{ productName: 'RF Needle Cartridge (25pin)', qty: 50, unitPrice: 1200 }], totalAmount: 60000, issueDate: '2026-03-03', validUntil: '2026-04-03', approvalStatus: 'DRAFT', createdByUserId: 'u2' },
+  { quotationId: 'QT-2026-004', accountId: 'a4', items: [{ productName: 'CoolSculpt Body Contouring', qty: 1, unitPrice: 3200000 }], totalAmount: 3200000, issueDate: '2026-02-10', validUntil: '2026-03-10', approvalStatus: 'REJECTED', createdByUserId: 'u2' },
+  { quotationId: 'QT-2026-005', accountId: 'a1', items: [{ productName: 'HydraGlow Serum Cartridge', qty: 24, unitPrice: 3500 }], totalAmount: 84000, issueDate: '2026-03-04', validUntil: '2026-04-04', approvalStatus: 'DRAFT', createdByUserId: 'u5' },
+];
+
+export const mockSalesOrders: SalesOrder[] = [
+  { salesOrderId: 'SO-2026-001', accountId: 'a1', opportunityId: 'o3', orderType: 'CONSUMABLE', orderStatus: 'CONFIRMED', paymentStatus: 'PARTIAL' },
+  { salesOrderId: 'SO-2026-002', accountId: 'a4', opportunityId: 'o4', orderType: 'SERVICE', orderStatus: 'FULFILLED', paymentStatus: 'PAID' },
+  { salesOrderId: 'SO-2026-003', accountId: 'a2', opportunityId: 'o1', orderType: 'DEVICE', orderStatus: 'DRAFT', paymentStatus: 'UNPAID' },
+  { salesOrderId: 'SO-2026-004', accountId: 'a1', opportunityId: 'o5', orderType: 'DEVICE', orderStatus: 'CONFIRMED', paymentStatus: 'UNPAID' },
+];
+
+export const mockInvoices: Invoice[] = [
+  { invoiceId: 'INV-2026-001', accountId: 'a1', salesOrderId: 'SO-2026-001', amount: 175000, issueDate: '2026-02-28', dueDate: '2026-03-30', paymentStatus: 'UNPAID', approvalStatus: 'APPROVED' },
+  { invoiceId: 'INV-2026-002', accountId: 'a4', salesOrderId: 'SO-2026-002', amount: 150000, issueDate: '2026-02-28', dueDate: '2026-03-15', paymentStatus: 'PAID', approvalStatus: 'APPROVED' },
+  { invoiceId: 'INV-2026-003', accountId: 'a2', salesOrderId: 'SO-2026-003', amount: 1835000, issueDate: '2026-03-05', dueDate: '2026-04-05', paymentStatus: 'UNPAID', approvalStatus: 'DRAFT' },
+  { invoiceId: 'INV-2026-004', accountId: 'a1', salesOrderId: 'SO-2026-004', amount: 900000, issueDate: '2026-03-04', dueDate: '2026-04-04', paymentStatus: 'PARTIAL', approvalStatus: 'APPROVED' },
 ];
 
 // Helpers
