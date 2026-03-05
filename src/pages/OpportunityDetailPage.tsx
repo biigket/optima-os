@@ -110,7 +110,7 @@ export default function OpportunityDetailPage() {
     setEditOpen(true);
   };
 
-  const saveEdit = () => {
+  const saveEdit = async () => {
     const updates = {
       expected_value: Number(editForm.expected_value) || opp.expected_value,
       close_date: editForm.close_date || opp.close_date,
@@ -118,6 +118,8 @@ export default function OpportunityDetailPage() {
       next_activity_type: editForm.next_activity_type || opp.next_activity_type,
       next_activity_date: editForm.next_activity_date || opp.next_activity_date,
     };
+    const { error } = await supabase.from('opportunities').update(updates).eq('id', opp.id);
+    if (error) { toast.error('อัปเดตไม่สำเร็จ'); return; }
     setOpp(prev => prev ? { ...prev, ...updates } : prev);
     setEditOpen(false);
     toast.success('บันทึกแล้ว');
