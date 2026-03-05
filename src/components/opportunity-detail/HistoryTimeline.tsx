@@ -103,6 +103,8 @@ export default function HistoryTimeline({ activities, stageHistory, notes, onUpd
                   isPinned={pinnedIds?.has(item.data.id)}
                   onDelete={onDeleteActivity}
                   onPin={onPinNote}
+                  onUpdate={onUpdateActivity}
+                  onAddComment={onAddComment}
                 />
               )}
               {item.type === 'stage' && <StageItem data={item.data} />}
