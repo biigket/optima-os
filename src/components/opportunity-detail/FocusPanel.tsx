@@ -1,9 +1,16 @@
 import { useState } from 'react';
 import { Phone, Users, Building2, Target, AlertTriangle, MoreHorizontal, ChevronDown, Pencil, Trash2, X, Check } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+
+const TIME_OPTIONS = Array.from({ length: 96 }, (_, i) => {
+  const h = Math.floor(i / 4).toString().padStart(2, '0');
+  const m = ((i % 4) * 15).toString().padStart(2, '0');
+  return `${h}:${m}`;
+});
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import type { Activity } from '@/types';
