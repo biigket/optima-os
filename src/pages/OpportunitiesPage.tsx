@@ -121,7 +121,7 @@ export default function OpportunitiesPage() {
 
   const totalValue = filtered.reduce((sum, o) => sum + (o.expected_value || 0), 0);
   const totalWeighted = filtered.reduce((sum, o) => {
-    const prob = PROBABILITY[o.stage] || 0;
+    const prob = o.probability ?? PROBABILITY[o.stage] ?? 0;
     return sum + Math.round((o.expected_value || 0) * prob / 100);
   }, 0);
 
