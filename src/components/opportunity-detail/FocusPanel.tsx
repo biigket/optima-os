@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Phone, Users, Building2, Target, AlertTriangle, MoreHorizontal, ChevronDown } from 'lucide-react';
+import { Phone, Users, Building2, Target, AlertTriangle, MoreHorizontal, ChevronDown, Pencil, Trash2 } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -15,10 +15,12 @@ const TYPE_CONFIG: Record<string, { icon: React.ElementType; color: string; bord
 interface FocusPanelProps {
   activities: Activity[];
   onMarkDone: (id: string) => void;
+  onEdit?: (id: string) => void;
+  onDelete?: (id: string) => void;
   clinicName?: string;
 }
 
-export default function FocusPanel({ activities, onMarkDone, clinicName }: FocusPanelProps) {
+export default function FocusPanel({ activities, onMarkDone, onEdit, onDelete, clinicName }: FocusPanelProps) {
   const [expandAll, setExpandAll] = useState(true);
   const pending = activities.filter(a => !a.is_done).sort((a, b) => a.activity_date.localeCompare(b.activity_date));
 
@@ -98,8 +100,12 @@ export default function FocusPanel({ activities, onMarkDone, clinicName }: Focus
                 </button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="text-xs">
-                <DropdownMenuItem onClick={() => handleDone(act.id)}>✅ Mark as done</DropdownMenuItem>
-                <DropdownMenuItem className="text-destructive">🗑 ลบกิจกรรม</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => onEdit?.(act.id)}>
+                  <Pencil size={11} className="mr-1.5" /> Edit
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => onDelete?.(act.id)} className="text-destructive">
+                  <Trash2 size={11} className="mr-1.5" /> Delete
+                </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
