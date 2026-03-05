@@ -17,13 +17,16 @@ import ConsumablesPage from "@/pages/ConsumablesPage";
 import MaintenancePage from "@/pages/MaintenancePage";
 import ForecastPage from "@/pages/ForecastPage";
 import AnalyticsPage from "@/pages/AnalyticsPage";
+import QuotationsPage from "@/pages/QuotationsPage";
+import SalesOrdersPage from "@/pages/SalesOrdersPage";
+import InventoryPage from "@/pages/InventoryPage";
+import InvoicesPage from "@/pages/InvoicesPage";
 import Phase2Placeholder from "@/pages/Phase2Placeholder";
 import NotFound from "@/pages/NotFound";
 
 const queryClient = new QueryClient();
 
 const phase2Routes = [
-  '/quotations', '/sales-orders', '/inventory', '/invoices',
   '/campaigns', '/promotions', '/kol',
   '/training', '/lms',
   '/ai-pipeline', '/ai-reorder', '/ai-marketing',
@@ -50,6 +53,10 @@ const App = () => (
             <Route path="/maintenance" element={<MaintenancePage />} />
             <Route path="/forecast" element={<ForecastPage />} />
             <Route path="/analytics" element={<AnalyticsPage />} />
+            <Route path="/quotations" element={<QuotationsPage />} />
+            <Route path="/sales-orders" element={<SalesOrdersPage />} />
+            <Route path="/inventory" element={<InventoryPage />} />
+            <Route path="/invoices" element={<InvoicesPage />} />
             {phase2Routes.map(path => (
               <Route key={path} path={path} element={<Phase2Placeholder />} />
             ))}

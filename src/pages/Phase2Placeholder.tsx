@@ -2,10 +2,6 @@ import { Lock, Brain, Zap, Bot } from 'lucide-react';
 import { useLocation } from 'react-router-dom';
 
 const phase2Modules: Record<string, { title: string; description: string; features: string[]; phase?: number }> = {
-  '/quotations': { title: 'ใบเสนอราคา', description: 'สร้างและจัดการใบเสนอราคา', features: ['สร้างใบเสนอราคาอัตโนมัติ', 'แนบรายการสินค้า', 'ส่งอีเมลถึงลูกค้า', 'ติดตามสถานะ'] },
-  '/sales-orders': { title: 'ใบสั่งขาย', description: 'จัดการคำสั่งซื้อ', features: ['แปลงจากใบเสนอราคา', 'ติดตามสถานะจัดส่ง', 'เชื่อมต่อคลังสินค้า', 'บันทึกการชำระเงิน'] },
-  '/inventory': { title: 'คลังสินค้า', description: 'จัดการสต็อกและคลังสินค้า', features: ['ติดตามสต็อกแบบ Real-time', 'แจ้งเตือนสินค้าใกล้หมด', 'จัดการ Serial Number', 'รายงานการเคลื่อนไหว'] },
-  '/invoices': { title: 'ใบแจ้งหนี้', description: 'ออกใบแจ้งหนี้และติดตามการชำระ', features: ['ออกใบแจ้งหนี้อัตโนมัติ', 'ติดตามยอดค้างชำระ', 'ออกใบเสร็จรับเงิน', 'รายงานการเงิน'] },
   '/campaigns': { title: 'แคมเปญ', description: 'วางแผนและจัดการแคมเปญการตลาด', features: ['สร้างแคมเปญ', 'กำหนดกลุ่มเป้าหมาย', 'ติดตามผลลัพธ์', 'วัด ROI'] },
   '/promotions': { title: 'โปรโมชัน', description: 'จัดการโปรโมชันและส่วนลด', features: ['สร้างโปรโมชัน', 'กำหนดเงื่อนไข', 'ติดตามการใช้งาน', 'วิเคราะห์ผล'] },
   '/kol': { title: 'KOL Management', description: 'จัดการ Key Opinion Leaders', features: ['ฐานข้อมูล KOL', 'ติดตามความร่วมมือ', 'วัดผลการทำงาน', 'จัดการสัญญา'] },
