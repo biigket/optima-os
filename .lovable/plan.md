@@ -1,50 +1,48 @@
 
 
-# Opportunity Module — Add Functional Features
+## Plan: 2-Way Sync ระหว่าง Activity Form ↔ Calendar Panel
 
-## Overview
-Add drag-and-drop stage changes, quick stage editing, inline actions, and other interactive functionality to the Opportunity module.
+### สรุป
+ทำให้ Calendar Panel และ Activity Form sync กันแบบ 2-way: คลิก activity ใน calendar → ฟอร์มโหลดข้อมูลมาแก้, แก้ฟอร์ม → calendar อัปเดตทันที ไม่มีการเปลี่ยน schema หรือ redesign หน้าเดิม
 
-## Changes
+### ไฟล์ที่แก้ไข
 
-### 1. Drag & Drop on Kanban (`OpportunityKanban.tsx`)
-- Lift `opportunities` state up: pass `onStageChange(oppId, newStage)` callback from `OpportunitiesPage`
-- Implement native HTML5 drag-and-drop (no library needed):
-  - `draggable` on each `KanbanCard`
-  - `onDragStart` sets `oppId` in dataTransfer
-  - Each column acts as a drop zone with `onDragOver` + `onDrop`
-  - Visual feedback: highlight column border on drag-over, ghost opacity on dragged card
-- On drop: call `onStageChange` → update state + show toast "ย้าย [clinic] → [stage]"
-- Log stage change in a local `stageHistory` array (for future timeline)
+#### 1. `OpportunityDetailPage.tsx` — เพิ่ม shared state + wiring
+- เพิ่ม state: `selectedDate`, `activeActivityId`
+- ส่ง `selectedDate` + `onDateChange` ไป CalendarPanel (controlled)
+- ส่ง `activeActivityId` + `editingActivity` ไป ActivityForm
+- เมื่อ CalendarPanel คลิก activity → set `activeActivityId` + switch tab เป็น "activity"
+- เมื่อ ActivityForm save/update → อัปเดต `activities` state ทันที (ทั้ง create + update)
+- CalendarPanel ย้ายขึ้นมาอยู่ข้าง ActivityForm (หรือ sticky ด้านบนของ right column)
 
-### 2. Quick Actions on Kanban Cards (`OpportunityKanban.tsx`)
-- Add a hover-visible action row at bottom of each card:
-  - **Phone** icon → toast "โทรหา [clinic]"
-  - **Calendar** icon → toast "นัดกิจกรรม"  
-  - **MoreHorizontal** → dropdown with "แก้ไข", "เปลี่ยน Stage", "Mark Won/Lost"
-- Prevent card click navigation when clicking action buttons (`e.stopPropagation()`)
+#### 2. `ActivityForm.tsx` — รองรับ Edit mode + 2-way sync
+- เพิ่ม optional prop `editingActivity?: Activity` + `onActivityUpdated?: (activity: Activity) => void` + `onCancelEdit?: () => void`
+- เมื่อ `editingActivity` เปลี่ยน → populate form fields ทั้งหมด (type, title, date, time, priority, etc.)
+- Save logic: ถ้ามี `editingActivity` → `supabase.update()` แทน `insert()`
+- เพิ่ม `onChange` callback (optional) ที่ fire ทุกครั้งที่ user แก้ start_time/end_time/type → CalendarPanel อัปเดต preview ทันที (optimistic)
+- ปุ่มยกเลิก: ถ้า edit mode → เรียก `onCancelEdit` แล้ว reset
 
-### 3. Stage Change on Detail Page (`OpportunityDetailPage.tsx`)
-- Make stage path segments clickable
-- On click → confirm dialog "ย้ายไป [stage]?" → update local state + toast
-- Add "Mark Won" / "Mark Lost" buttons in the header area
+#### 3. `CalendarPanel.tsx` — Controlled date + active highlight + overdue
+- Props เปลี่ยนเป็น controlled: `selectedDate`, `onDateChange`, `activeActivityId`
+- Activity list + blocks: highlight active item (ring/border เข้ม)
+- Done items: แสดงจางลง (opacity-50) + ✅
+- Overdue items: แสดง badge OVERDUE (start_time < now && !is_done)
+- Auto-scroll time grid ไปยัง current time เมื่อเลือกวันนี้
+- Sticky positioning ใน right column
 
-### 4. Inline Edit on Detail Page (`OpportunityDetailPage.tsx`)
-- Add edit button next to Deal Info section
-- Opens a dialog/inline form to edit: expected_value, close_date, notes, next_activity_type, next_activity_date
-- Save updates local state + toast
+#### 4. Layout ใน `OpportunityDetailPage.tsx`
+- CalendarPanel ย้ายขึ้นมาอยู่ถัดจาก Tab UI (Activity/Notes) แทนที่จะอยู่ล่างสุด
+- ใช้ `sticky top-4` เพื่อให้ CalendarPanel ติดหน้าจอขณะ scroll
 
-### 5. Update State Management (`OpportunitiesPage.tsx`)
-- Pass `setOpportunities` updater to Kanban and Detail via props or shared state
-- `onStageChange` handler: finds opportunity by ID, updates stage, re-renders Kanban
-- Wire route params so Detail page can also update the shared opportunities array
+### Sync Rules (ตรงตามที่กำหนด)
+1. **แก้ time ในฟอร์ม** → block ใน calendar ย้าย/ยืด/หดทันที (ผ่าน optimistic preview state)
+2. **เปลี่ยน type** → icon/label บน block เปลี่ยนทันที
+3. **กด Save** → insert/update activity record → activities state อัปเดต → calendar + list อัปเดต
+4. **Mark as done** → is_done = true → item จางลง + ✅
+5. **Overdue** → start_time < now && !is_done → badge OVERDUE
 
-### 6. Add "Reason Stuck" dropdown
-- When a deal is stuck (>14 days), show a small dropdown on the card: "รอราคา / รอผู้ตัดสินใจ / รอ finance / รอ training / อื่นๆ"
-- Store as `stuck_reason` on the opportunity object
-
-## Technical Notes
-- Using native HTML5 drag-and-drop keeps bundle size small — no new dependencies
-- All state changes are local (mock data) — ready for database migration later
-- Drop zones use `e.preventDefault()` on `dragOver` to allow drops
+### ไม่เปลี่ยน
+- Schema เดิม (ใช้ activities table ตามเดิม)
+- Timeline logic เดิม
+- ไม่ redesign layout เดิม
 
