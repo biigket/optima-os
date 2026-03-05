@@ -10,8 +10,8 @@ export default function CalendarPage() {
   return (
     <div className="space-y-6 animate-fade-in">
       <div>
-        <h1 className="text-2xl font-bold text-foreground">Calendar</h1>
-        <p className="text-sm text-muted-foreground">Upcoming events and scheduled tasks</p>
+        <h1 className="text-2xl font-bold text-foreground">ปฏิทิน</h1>
+        <p className="text-sm text-muted-foreground">กิจกรรมและนัดหมายที่กำลังจะมาถึง</p>
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -36,7 +36,7 @@ export default function CalendarPage() {
                 <div className="flex items-center gap-1.5">
                   <Clock size={12} />
                   <span>
-                    {start.toLocaleDateString()} {start.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} — {end.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                    {start.toLocaleDateString('th-TH')} {start.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' })} — {end.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' })}
                   </span>
                 </div>
                 {event.location && (
@@ -45,7 +45,7 @@ export default function CalendarPage() {
                     <span>{event.location}</span>
                   </div>
                 )}
-                <p>Owner: {owner?.name}</p>
+                <p>เจ้าของ: {owner?.name}</p>
               </div>
             </div>
           );
