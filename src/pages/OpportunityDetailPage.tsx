@@ -181,7 +181,23 @@ export default function OpportunityDetailPage() {
     toast.success('เพิ่มผู้ติดต่อแล้ว');
   };
 
-  return (
+  const handleEditContact = async (contactId: string) => {
+    if (!editContactForm.name.trim()) { toast.error('กรุณากรอกชื่อ'); return; }
+    const { error } = await supabase.from('contacts').update({
+      name: editContactForm.name.trim(), role: editContactForm.role || null,
+    }).eq('id', contactId);
+    if (error) { toast.error('แก้ไขไม่สำเร็จ'); return; }
+    setContacts(prev => prev.map(c => c.id === contactId ? { ...c, name: editContactForm.name.trim(), role: editContactForm.role || null } : c));
+    setEditingContactId(null);
+    toast.success('แก้ไขแล้ว');
+  };
+
+  const handleDeleteContact = async (contactId: string) => {
+    const { error } = await supabase.from('contacts').delete().eq('id', contactId);
+    if (error) { toast.error('ลบไม่สำเร็จ'); return; }
+    setContacts(prev => prev.filter(c => c.id !== contactId));
+    toast.success('ลบผู้ติดต่อแล้ว');
+  };
     <div className="animate-fade-in max-w-[1200px] mx-auto space-y-4">
       {/* Top bar */}
       <div className="flex items-center justify-between">
