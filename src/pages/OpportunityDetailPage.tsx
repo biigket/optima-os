@@ -196,8 +196,10 @@ export default function OpportunityDetailPage() {
     const { error } = await supabase.from('contacts').delete().eq('id', contactId);
     if (error) { toast.error('ลบไม่สำเร็จ'); return; }
     setContacts(prev => prev.filter(c => c.id !== contactId));
-    return (
+    toast.success('ลบผู้ติดต่อแล้ว');
   };
+
+  return (
     <div className="animate-fade-in max-w-[1200px] mx-auto space-y-4">
       {/* Top bar */}
       <div className="flex items-center justify-between">
