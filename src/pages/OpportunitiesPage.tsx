@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { Search, Plus, LayoutGrid, List } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { Search, Plus, LayoutGrid, List, ArrowUpDown, Calendar, Building2, Clock } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import StatusBadge from '@/components/ui/StatusBadge';
@@ -13,15 +14,23 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 
 const stages: (OpportunityStage | 'ALL')[] = ['ALL', 'NEW_LEAD', 'CONTACTED', 'DEMO_SCHEDULED', 'DEMO_DONE', 'NEGOTIATION', 'WON', 'LOST'];
 const stageLabels: Record<string, string> = {
-  ALL: 'ทั้งหมด', NEW_LEAD: 'ใหม่', CONTACTED: 'ติดต่อแล้ว', DEMO_SCHEDULED: 'นัดสาธิต',
-  DEMO_DONE: 'สาธิตแล้ว', NEGOTIATION: 'เจรจา', WON: 'ปิดได้', LOST: 'ปิดไม่ได้'
+  ALL: 'ทั้งหมด', NEW_LEAD: 'Lead Qualified', CONTACTED: 'นัดพบ/Need', DEMO_SCHEDULED: 'Demo',
+  DEMO_DONE: 'Proposal', NEGOTIATION: 'Negotiation', WON: 'Won', LOST: 'Lost'
 };
 
+const PROBABILITY: Record<string, number> = {
+  NEW_LEAD: 10, CONTACTED: 20, DEMO_SCHEDULED: 40, DEMO_DONE: 60, NEGOTIATION: 80, WON: 100, LOST: 0,
+};
+
+type SortKey = 'next_activity' | 'value' | 'close_date' | 'days_in_stage';
+
 export default function OpportunitiesPage() {
+  const navigate = useNavigate();
   const [search, setSearch] = useState('');
   const [stageFilter, setStageFilter] = useState<OpportunityStage | 'ALL'>('ALL');
   const [typeFilter, setTypeFilter] = useState<string>('ALL');
   const [viewMode, setViewMode] = useState<'kanban' | 'table'>('kanban');
+  const [sortKey, setSortKey] = useState<SortKey>('next_activity');
 
   // Creation flow state
   const [selectModalOpen, setSelectModalOpen] = useState(false);
@@ -38,7 +47,33 @@ export default function OpportunitiesPage() {
     return matchSearch && matchStage && matchType;
   });
 
+  // Sort for table view
+  const sorted = [...filtered].sort((a, b) => {
+    switch (sortKey) {
+      case 'next_activity':
+        if (!a.next_activity_date && !b.next_activity_date) return 0;
+        if (!a.next_activity_date) return 1;
+        if (!b.next_activity_date) return -1;
+        return new Date(a.next_activity_date).getTime() - new Date(b.next_activity_date).getTime();
+      case 'value':
+        return (b.expected_value || 0) - (a.expected_value || 0);
+      case 'close_date':
+        if (!a.close_date && !b.close_date) return 0;
+        if (!a.close_date) return 1;
+        if (!b.close_date) return -1;
+        return new Date(a.close_date).getTime() - new Date(b.close_date).getTime();
+      case 'days_in_stage':
+        return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
+      default:
+        return 0;
+    }
+  });
+
   const totalValue = filtered.reduce((sum, o) => sum + (o.expected_value || 0), 0);
+  const totalWeighted = filtered.reduce((sum, o) => {
+    const prob = PROBABILITY[o.stage] || 0;
+    return sum + Math.round((o.expected_value || 0) * prob / 100);
+  }, 0);
 
   const handleCustomerSelect = (account: Account, hasContacts: boolean) => {
     setSelectModalOpen(false);
@@ -59,11 +94,17 @@ export default function OpportunitiesPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-foreground">โอกาสขาย</h1>
-          <p className="text-sm text-muted-foreground">{filtered.length} รายการ · มูลค่ารวม ฿{totalValue.toLocaleString()}</p>
+          <h1 className="text-2xl font-bold text-foreground">Pipeline</h1>
+          <div className="flex items-center gap-3 text-sm text-muted-foreground">
+            <span>{filtered.length} ดีล</span>
+            <span className="text-muted-foreground/40">·</span>
+            <span>รวม ฿{totalValue.toLocaleString()}</span>
+            <span className="text-muted-foreground/40">·</span>
+            <span>Weighted ฿{totalWeighted.toLocaleString()}</span>
+          </div>
         </div>
         <Button size="sm" className="gap-1.5" onClick={() => setSelectModalOpen(true)}>
-          <Plus size={14} /> เพิ่มโอกาสขาย
+          <Plus size={14} /> เพิ่มดีล
         </Button>
       </div>
 
@@ -71,7 +112,7 @@ export default function OpportunitiesPage() {
       <div className="flex items-center gap-3 flex-wrap">
         <div className="relative max-w-sm">
           <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
-          <Input placeholder="ค้นหาโอกาสขาย..." value={search} onChange={e => setSearch(e.target.value)} className="pl-9" />
+          <Input placeholder="ค้นหาคลินิก..." value={search} onChange={e => setSearch(e.target.value)} className="pl-9 h-9" />
         </div>
 
         {/* Type filter */}
@@ -86,6 +127,27 @@ export default function OpportunitiesPage() {
             </button>
           ))}
         </div>
+
+        {/* Sort (table view) */}
+        {viewMode === 'table' && (
+          <div className="flex gap-1 items-center">
+            <ArrowUpDown size={12} className="text-muted-foreground" />
+            {([
+              ['next_activity', 'กิจกรรมถัดไป'],
+              ['value', 'มูลค่า'],
+              ['close_date', 'วันปิด'],
+              ['days_in_stage', 'วันในสถานะ'],
+            ] as [SortKey, string][]).map(([key, label]) => (
+              <button
+                key={key}
+                onClick={() => setSortKey(key)}
+                className={`px-2 py-1 rounded text-[11px] font-medium transition-colors ${sortKey === key ? 'bg-accent text-accent-foreground' : 'text-muted-foreground hover:bg-muted'}`}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+        )}
 
         {/* View toggle */}
         <div className="flex gap-0.5 bg-muted rounded-md p-0.5 ml-auto">
@@ -122,24 +184,60 @@ export default function OpportunitiesPage() {
             <thead>
               <tr className="border-b bg-muted/50">
                 <th className="px-4 py-3 text-left font-medium text-muted-foreground">ลูกค้า</th>
-                <th className="px-4 py-3 text-left font-medium text-muted-foreground">ประเภท</th>
-                <th className="px-4 py-3 text-left font-medium text-muted-foreground">สถานะ</th>
+                <th className="px-4 py-3 text-left font-medium text-muted-foreground">สินค้า</th>
+                <th className="px-4 py-3 text-left font-medium text-muted-foreground">Stage</th>
+                <th className="px-4 py-3 text-left font-medium text-muted-foreground">กิจกรรมถัดไป</th>
                 <th className="px-4 py-3 text-left font-medium text-muted-foreground">เจ้าของ</th>
-                <th className="px-4 py-3 text-right font-medium text-muted-foreground">มูลค่า (฿)</th>
+                <th className="px-4 py-3 text-right font-medium text-muted-foreground">มูลค่า</th>
+                <th className="px-4 py-3 text-right font-medium text-muted-foreground">Weighted</th>
                 <th className="px-4 py-3 text-left font-medium text-muted-foreground">วันปิด</th>
+                <th className="px-4 py-3 text-center font-medium text-muted-foreground">วัน</th>
               </tr>
             </thead>
             <tbody>
-              {filtered.map(opp => {
+              {sorted.map(opp => {
                 const account = getAccountById(opp.account_id);
+                const daysInStage = Math.floor((Date.now() - new Date(opp.created_at || Date.now()).getTime()) / 86400000);
+                const isStuck = daysInStage > 14 && !['WON', 'LOST'].includes(opp.stage);
+                const isOverdue = opp.close_date && new Date(opp.close_date) < new Date() && !['WON', 'LOST'].includes(opp.stage);
+                const prob = PROBABILITY[opp.stage] || 0;
+                const weighted = Math.round((opp.expected_value || 0) * prob / 100);
+
                 return (
-                  <tr key={opp.id} className="border-b last:border-0 hover:bg-muted/30 transition-colors cursor-pointer" onClick={() => window.location.href = `/opportunities/${opp.id}`}>
-                    <td className="px-4 py-3 font-medium text-foreground">{account?.clinic_name}</td>
-                    <td className="px-4 py-3 text-xs text-muted-foreground">{opp.opportunity_type === 'DEVICE' ? 'เครื่อง' : opp.opportunity_type === 'CONSUMABLE' ? 'สิ้นเปลือง' : '-'}</td>
+                  <tr key={opp.id} className="border-b last:border-0 hover:bg-muted/30 transition-colors cursor-pointer" onClick={() => navigate(`/opportunities/${opp.id}`)}>
+                    <td className="px-4 py-3">
+                      <div className="flex items-center gap-1.5">
+                        <Building2 size={12} className="text-muted-foreground shrink-0" />
+                        <span className="font-semibold text-foreground">{account?.clinic_name}</span>
+                      </div>
+                    </td>
+                    <td className="px-4 py-3 text-xs text-muted-foreground max-w-[140px] truncate">
+                      {(opp.interested_products || []).join(', ') || '-'}
+                    </td>
                     <td className="px-4 py-3"><StatusBadge status={opp.stage} /></td>
-                    <td className="px-4 py-3 text-muted-foreground">{opp.assigned_sale}</td>
-                    <td className="px-4 py-3 text-right font-medium text-foreground">฿{(opp.expected_value || 0).toLocaleString()}</td>
-                    <td className="px-4 py-3 text-muted-foreground text-xs">{opp.close_date ? new Date(opp.close_date).toLocaleDateString('th-TH') : '—'}</td>
+                    <td className="px-4 py-3">
+                      {opp.next_activity_type ? (
+                        <div className="flex items-center gap-1 text-xs">
+                          <Calendar size={10} className="text-muted-foreground" />
+                          <span className="font-medium text-foreground">{opp.next_activity_type}</span>
+                          <span className="text-muted-foreground">{opp.next_activity_date ? new Date(opp.next_activity_date).toLocaleDateString('th-TH', { day: 'numeric', month: 'short' }) : ''}</span>
+                        </div>
+                      ) : (
+                        <span className="text-xs text-warning font-medium">⚠ ไม่มี</span>
+                      )}
+                    </td>
+                    <td className="px-4 py-3 text-xs text-muted-foreground">{opp.assigned_sale}</td>
+                    <td className="px-4 py-3 text-right font-semibold text-foreground">฿{(opp.expected_value || 0).toLocaleString()}</td>
+                    <td className="px-4 py-3 text-right text-xs text-muted-foreground">฿{weighted.toLocaleString()}</td>
+                    <td className={`px-4 py-3 text-xs ${isOverdue ? 'text-destructive font-semibold' : 'text-muted-foreground'}`}>
+                      {opp.close_date ? new Date(opp.close_date).toLocaleDateString('th-TH', { day: 'numeric', month: 'short' }) : '—'}
+                    </td>
+                    <td className="px-4 py-3 text-center">
+                      <span className={`text-xs font-semibold ${isStuck ? 'text-destructive' : 'text-muted-foreground'}`}>
+                        {isStuck && <Clock size={10} className="inline mr-0.5" />}
+                        {daysInStage}d
+                      </span>
+                    </td>
                   </tr>
                 );
               })}
@@ -178,7 +276,7 @@ export default function OpportunitiesPage() {
             <Button variant="outline" size="sm" onClick={() => setNoContactWarning(false)}>ปิด</Button>
             <Button size="sm" onClick={() => {
               setNoContactWarning(false);
-              if (selectedCustomer) window.location.href = `/leads/${selectedCustomer.id}`;
+              if (selectedCustomer) navigate(`/leads/${selectedCustomer.id}`);
             }}>ไปหน้าลูกค้า</Button>
           </div>
         </DialogContent>
