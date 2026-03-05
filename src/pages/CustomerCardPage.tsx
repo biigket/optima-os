@@ -12,8 +12,8 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import { cn } from '@/lib/utils';
 import {
   ArrowLeft, Phone, MessageCircle, StickyNote, CalendarPlus, ListPlus,
-  DollarSign, Monitor, Handshake, MapPin, Building2, Users, Mail, Globe,
-  ChevronDown, LayoutDashboard, Clock, FileText, CheckSquare,
+  DollarSign, Monitor, Handshake, MapPin, Building2, Users, Mail,
+  ChevronDown, LayoutDashboard, Clock, FileText,
   ShoppingCart, Wrench, Receipt, FolderOpen, Megaphone,
   Eye, Presentation, FileCheck, GraduationCap,
   Phone as PhoneIcon
@@ -24,7 +24,7 @@ import {
   getConsumablesForAccount, getServiceForAccount,
   getPurchasesForAccount, getDocumentsForAccount, getMarketingForAccount
 } from '@/data/customerCardMockData';
-import { mockOpportunities, mockWorkItems, type WorkItem } from '@/data/mockData';
+import { mockOpportunities } from '@/data/mockData';
 
 const localAccounts = [
   { id: '1', clinic_name: 'Clarity Clinic', company_name: 'Clarity Co., Ltd.', address: 'สุขุมวิท 39, กรุงเทพฯ', phone: '02-123-4567', email: 'info@clarity.co.th', customer_status: 'DEMO_SCHEDULED', assigned_sale: 'FORD', grade: 'A' },
@@ -110,7 +110,6 @@ export default function CustomerCardPage() {
   const purchases = getPurchasesForAccount(account.id);
   const documents = getDocumentsForAccount(account.id);
   const marketing = getMarketingForAccount(account.id);
-  const tasks = mockWorkItems.filter((w: WorkItem) => w.linkedAccountId === account.id);
   const activeDeals = opportunities.filter(o => !['WON', 'LOST', 'CLOSED'].includes(o.stage)).length;
   const lastVisit = visits.length > 0 ? visits[0].date : '-';
 
@@ -191,13 +190,10 @@ export default function CustomerCardPage() {
               <TabsList className="bg-transparent h-auto p-0 w-max">
                 {[
                   { value: 'overview', icon: LayoutDashboard, label: 'ภาพรวม' },
-                  { value: 'timeline', icon: Clock, label: 'ไทม์ไลน์' },
-                  { value: 'deals', icon: Handshake, label: 'ดีล' },
-                  { value: 'visits', icon: MapPin, label: 'การเยี่ยม' },
-                  { value: 'reports', icon: FileText, label: 'รายงาน' },
-                  { value: 'tasks', icon: CheckSquare, label: 'งาน' },
-                  { value: 'devices', icon: Monitor, label: 'เครื่อง' },
-                  { value: 'consumables', icon: ShoppingCart, label: 'สิ้นเปลือง' },
+                  { value: 'deals', icon: Handshake, label: 'โอกาสขาย' },
+                  { value: 'visits', icon: MapPin, label: 'การเยี่ยม / รายงาน' },
+                  { value: 'devices', icon: Monitor, label: 'เครื่องที่ติดตั้งแล้ว' },
+                  { value: 'consumables', icon: ShoppingCart, label: 'Consumable' },
                   { value: 'service', icon: Wrench, label: 'เซอร์วิส' },
                   { value: 'purchases', icon: Receipt, label: 'ซื้อ' },
                   { value: 'documents', icon: FolderOpen, label: 'เอกสาร' },
@@ -213,7 +209,7 @@ export default function CustomerCardPage() {
           </div>
 
           <div className="p-4 md:p-5">
-            {/* ===== OVERVIEW ===== */}
+            {/* ===== OVERVIEW (with Timeline + Notes) ===== */}
             <TabsContent value="overview" className="mt-0 space-y-5">
               {/* KPIs */}
               <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
@@ -224,6 +220,7 @@ export default function CustomerCardPage() {
                 <KpiMini label="สั่ง Cartridge ล่าสุด" value={visits.length > 0 ? visits[0].date : '-'} />
                 <KpiMini label="แอคชั่นถัดไป" value={visits.length > 0 ? visits[0].nextStep : '-'} />
               </div>
+
               {/* Internal Notes */}
               <div>
                 <p className="text-xs font-medium text-muted-foreground flex items-center gap-1 mb-2"><StickyNote size={12} /> บันทึกภายใน</p>
@@ -234,33 +231,34 @@ export default function CustomerCardPage() {
                   placeholder="เพิ่มบันทึก..."
                 />
               </div>
-            </TabsContent>
 
-            {/* ===== TIMELINE ===== */}
-            <TabsContent value="timeline" className="mt-0">
-              <div className="space-y-4">
-                {timeline.map(ev => {
-                  const Icon = TIMELINE_ICONS[ev.type] || Clock;
-                  const colorClass = TIMELINE_COLORS[ev.type] || 'bg-muted text-muted-foreground';
-                  return (
-                    <div key={ev.id} className="flex gap-3 items-start">
-                      <div className={`flex items-center justify-center w-7 h-7 rounded-full shrink-0 ${colorClass}`}>
-                        <Icon size={13} />
-                      </div>
-                      <div className="min-w-0 flex-1 pb-3 border-b border-border last:border-0">
-                        <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                          <span>{ev.date}</span><span>•</span><span>{ev.user}</span>
+              {/* Timeline */}
+              <div>
+                <p className="text-xs font-medium text-muted-foreground flex items-center gap-1 mb-3"><Clock size={12} /> ไทม์ไลน์</p>
+                <div className="space-y-3">
+                  {timeline.map(ev => {
+                    const Icon = TIMELINE_ICONS[ev.type] || Clock;
+                    const colorClass = TIMELINE_COLORS[ev.type] || 'bg-muted text-muted-foreground';
+                    return (
+                      <div key={ev.id} className="flex gap-3 items-start">
+                        <div className={`flex items-center justify-center w-7 h-7 rounded-full shrink-0 ${colorClass}`}>
+                          <Icon size={13} />
                         </div>
-                        <p className="text-sm text-foreground mt-0.5">{ev.description}</p>
+                        <div className="min-w-0 flex-1 pb-3 border-b border-border last:border-0">
+                          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                            <span>{ev.date}</span><span>•</span><span>{ev.user}</span>
+                          </div>
+                          <p className="text-sm text-foreground mt-0.5">{ev.description}</p>
+                        </div>
                       </div>
-                    </div>
-                  );
-                })}
-                {timeline.length === 0 && <Empty text="ยังไม่มีกิจกรรม" />}
+                    );
+                  })}
+                  {timeline.length === 0 && <Empty text="ยังไม่มีกิจกรรม" />}
+                </div>
               </div>
             </TabsContent>
 
-            {/* ===== DEALS ===== */}
+            {/* ===== DEALS (โอกาสขาย) ===== */}
             <TabsContent value="deals" className="mt-0">
               <div className="rounded-md border overflow-x-auto">
                 <Table>
@@ -283,76 +281,51 @@ export default function CustomerCardPage() {
                         <TableCell className="text-xs hidden md:table-cell">{o.assigned_sale || '-'}</TableCell>
                       </TableRow>
                     ))}
-                    {opportunities.length === 0 && <TableRow><TableCell colSpan={5} className="text-center py-6 text-muted-foreground text-xs">ไม่มีดีล</TableCell></TableRow>}
+                    {opportunities.length === 0 && <TableRow><TableCell colSpan={5} className="text-center py-6 text-muted-foreground text-xs">ไม่มีโอกาสขาย</TableCell></TableRow>}
                   </TableBody>
                 </Table>
               </div>
             </TabsContent>
 
-            {/* ===== VISITS ===== */}
-            <TabsContent value="visits" className="mt-0">
-              <div className="space-y-3">
-                {visits.map(v => (
-                  <div key={v.id} className="p-3 rounded-md bg-muted/30 border space-y-1.5">
-                    <div className="flex justify-between items-center">
-                      <span className="text-xs text-muted-foreground">{v.date}</span>
-                      <Badge variant="outline" className="text-[10px] h-5">{v.salesPerson}</Badge>
+            {/* ===== VISITS + REPORTS (การเยี่ยม / รายงาน) ===== */}
+            <TabsContent value="visits" className="mt-0 space-y-5">
+              {/* Visits */}
+              <div>
+                <p className="text-xs font-medium text-muted-foreground flex items-center gap-1 mb-3"><MapPin size={12} /> บันทึกการเยี่ยม</p>
+                <div className="space-y-3">
+                  {visits.map(v => (
+                    <div key={v.id} className="p-3 rounded-md bg-muted/30 border space-y-1.5">
+                      <div className="flex justify-between items-center">
+                        <span className="text-xs text-muted-foreground">{v.date}</span>
+                        <Badge variant="outline" className="text-[10px] h-5">{v.salesPerson}</Badge>
+                      </div>
+                      <p className="text-sm font-medium text-foreground">{v.purpose}</p>
+                      <p className="text-xs text-muted-foreground">{v.summary}</p>
+                      <p className="text-xs text-primary">ถัดไป: {v.nextStep}</p>
                     </div>
-                    <p className="text-sm font-medium text-foreground">{v.purpose}</p>
-                    <p className="text-xs text-muted-foreground">{v.summary}</p>
-                    <p className="text-xs text-primary">ถัดไป: {v.nextStep}</p>
-                  </div>
-                ))}
-                {visits.length === 0 && <Empty text="ยังไม่มีบันทึกการเยี่ยม" />}
+                  ))}
+                  {visits.length === 0 && <Empty text="ยังไม่มีบันทึกการเยี่ยม" />}
+                </div>
               </div>
-            </TabsContent>
-
-            {/* ===== REPORTS ===== */}
-            <TabsContent value="reports" className="mt-0">
-              <div className="space-y-3">
-                {reports.map(r => (
-                  <div key={r.id} className="p-3 rounded-md bg-muted/30 border space-y-2">
-                    <div className="flex justify-between items-center">
-                      <span className="text-xs text-muted-foreground">{r.date}</span>
-                      <Badge variant={r.interestLevel === 'HIGH' ? 'default' : 'secondary'} className="text-[10px] h-5">สนใจ: {r.interestLevel}</Badge>
+              {/* Reports */}
+              <div>
+                <p className="text-xs font-medium text-muted-foreground flex items-center gap-1 mb-3"><FileText size={12} /> รายงาน / Market Intelligence</p>
+                <div className="space-y-3">
+                  {reports.map(r => (
+                    <div key={r.id} className="p-3 rounded-md bg-muted/30 border space-y-2">
+                      <div className="flex justify-between items-center">
+                        <span className="text-xs text-muted-foreground">{r.date}</span>
+                        <Badge variant={r.interestLevel === 'HIGH' ? 'default' : 'secondary'} className="text-[10px] h-5">สนใจ: {r.interestLevel}</Badge>
+                      </div>
+                      <div className="space-y-1 text-xs">
+                        <p><span className="text-muted-foreground">Feedback:</span> <span className="text-foreground">{r.doctorFeedback}</span></p>
+                        <p><span className="text-muted-foreground">คู่แข่ง:</span> <span className="text-foreground">{r.competitorMentioned}</span></p>
+                        <p><span className="text-muted-foreground">ข้อโต้แย้ง:</span> <span className="text-foreground">{r.objections}</span></p>
+                      </div>
                     </div>
-                    <div className="space-y-1 text-xs">
-                      <p><span className="text-muted-foreground">Feedback:</span> <span className="text-foreground">{r.doctorFeedback}</span></p>
-                      <p><span className="text-muted-foreground">คู่แข่ง:</span> <span className="text-foreground">{r.competitorMentioned}</span></p>
-                      <p><span className="text-muted-foreground">ข้อโต้แย้ง:</span> <span className="text-foreground">{r.objections}</span></p>
-                    </div>
-                  </div>
-                ))}
-                {reports.length === 0 && <Empty text="ยังไม่มีรายงาน" />}
-              </div>
-            </TabsContent>
-
-            {/* ===== TASKS ===== */}
-            <TabsContent value="tasks" className="mt-0">
-              <div className="rounded-md border overflow-x-auto">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead className="text-xs">งาน</TableHead>
-                      <TableHead className="text-xs">สถานะ</TableHead>
-                      <TableHead className="text-xs hidden sm:table-cell">ความสำคัญ</TableHead>
-                      <TableHead className="text-xs hidden sm:table-cell">กำหนด</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {tasks.map(t => (
-                      <TableRow key={t.workItemId}>
-                        <TableCell className="text-xs">{t.title}</TableCell>
-                        <TableCell><StatusBadge status={t.status} /></TableCell>
-                        <TableCell className="hidden sm:table-cell">
-                          <Badge variant={t.priority === 'URGENT' ? 'destructive' : t.priority === 'HIGH' ? 'default' : 'secondary'} className="text-[10px]">{t.priority}</Badge>
-                        </TableCell>
-                        <TableCell className="text-xs text-muted-foreground hidden sm:table-cell">{t.dueDateTime?.split('T')[0] || '-'}</TableCell>
-                      </TableRow>
-                    ))}
-                    {tasks.length === 0 && <TableRow><TableCell colSpan={4} className="text-center py-6 text-muted-foreground text-xs">ไม่มีงาน</TableCell></TableRow>}
-                  </TableBody>
-                </Table>
+                  ))}
+                  {reports.length === 0 && <Empty text="ยังไม่มีรายงาน" />}
+                </div>
               </div>
             </TabsContent>
 
