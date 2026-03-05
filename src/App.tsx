@@ -15,6 +15,8 @@ import CalendarPage from "@/pages/CalendarPage";
 import DevicesPage from "@/pages/DevicesPage";
 import ConsumablesPage from "@/pages/ConsumablesPage";
 import MaintenancePage from "@/pages/MaintenancePage";
+import ForecastPage from "@/pages/ForecastPage";
+import AnalyticsPage from "@/pages/AnalyticsPage";
 import Phase2Placeholder from "@/pages/Phase2Placeholder";
 import NotFound from "@/pages/NotFound";
 
@@ -24,7 +26,6 @@ const phase2Routes = [
   '/quotations', '/sales-orders', '/inventory', '/invoices',
   '/campaigns', '/promotions', '/kol',
   '/training', '/lms',
-  '/forecast', '/analytics',
 ];
 
 const App = () => (
@@ -46,6 +47,8 @@ const App = () => (
             <Route path="/devices" element={<DevicesPage />} />
             <Route path="/consumables" element={<ConsumablesPage />} />
             <Route path="/maintenance" element={<MaintenancePage />} />
+            <Route path="/forecast" element={<ForecastPage />} />
+            <Route path="/analytics" element={<AnalyticsPage />} />
             {phase2Routes.map(path => (
               <Route key={path} path={path} element={<Phase2Placeholder />} />
             ))}
