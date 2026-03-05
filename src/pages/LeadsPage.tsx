@@ -116,8 +116,9 @@ export default function LeadsPage() {
   const [editingAccount, setEditingAccount] = useState<Account | null>(null);
   const [form, setForm] = useState(emptyForm);
 
-  // Filter to only show accounts assigned to current user
-  const myAccounts = accounts.filter(a => a.assigned_sale === currentUser?.name);
+  // Admin sees all, sales see only their own
+  const isAdmin = currentUser?.role === 'ADMIN';
+  const myAccounts = isAdmin ? accounts : accounts.filter(a => a.assigned_sale === currentUser?.name);
 
   const closeDialog = () => {
     setDialogOpen(false);
