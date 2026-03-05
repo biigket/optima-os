@@ -88,10 +88,10 @@ const navGroups = [
   },
   {
     label: 'INTELLIGENCE',
-    phase: 2,
+    phase: 1,
     items: [
-      { to: '/forecast', icon: TrendingUp, label: 'พยากรณ์', locked: true },
-      { to: '/analytics', icon: BarChart3, label: 'วิเคราะห์', locked: true },
+      { to: '/forecast', icon: TrendingUp, label: 'พยากรณ์' },
+      { to: '/analytics', icon: BarChart3, label: 'วิเคราะห์' },
     ],
   },
 ];
