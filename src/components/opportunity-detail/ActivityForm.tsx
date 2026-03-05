@@ -80,7 +80,16 @@ export default function ActivityForm({
     }
   }, [editingActivity?.id]);
 
-  // Fire optimistic preview on field changes
+  // Apply quick schedule defaults
+  useEffect(() => {
+    if (quickScheduleDefaults && !editingActivity) {
+      setStartTime(quickScheduleDefaults.start_time);
+      setEndTime(quickScheduleDefaults.end_time);
+      setActivityDate(quickScheduleDefaults.activity_date);
+    }
+  }, [quickScheduleDefaults]);
+
+
   useEffect(() => {
     if (!onFormChange) return;
     onFormChange({
