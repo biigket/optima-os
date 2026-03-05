@@ -4,14 +4,19 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import StatusBadge from '@/components/ui/StatusBadge';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { cn } from '@/lib/utils';
+import { toast } from 'sonner';
+import { MOCK_SALES } from '@/hooks/useMockAuth';
 import {
-  ArrowLeft, Phone, MessageCircle, StickyNote, CalendarPlus, ListPlus,
+  ArrowLeft, Phone, MessageCircle, StickyNote, CalendarPlus, ListPlus, Pencil,
   DollarSign, Monitor, Handshake, MapPin, Building2, Users, Mail,
   ChevronDown, LayoutDashboard, Clock, FileText,
   ShoppingCart, Wrench, Receipt, FolderOpen, Megaphone,
@@ -84,6 +89,8 @@ export default function CustomerCardPage() {
   const [notes, setNotes] = useState(
     'ลูกค้า VIP สนใจเครื่องใหม่ทุกครั้งที่ออก\nStrategy: เสนอ bundle cartridge + PM package\nPreference: ชอบนัดวัน พุธ-ศุกร์'
   );
+  const [editOpen, setEditOpen] = useState(false);
+  const [editForm, setEditForm] = useState<Record<string, string>>({});
 
   const account = localAccounts.find(a => a.id === id);
   if (!account) {
@@ -174,6 +181,21 @@ export default function CustomerCardPage() {
 
         {/* Action Buttons */}
         <div className="flex gap-2 pt-3 border-t border-border overflow-x-auto pb-1">
+          <Button variant="outline" size="sm" className="gap-1.5 text-xs shrink-0 h-8" onClick={() => {
+            setEditForm({
+              clinic_name: account.clinic_name,
+              company_name: account.company_name || '',
+              address: account.address || '',
+              phone: account.phone || '',
+              email: account.email || '',
+              customer_status: account.customer_status,
+              assigned_sale: account.assigned_sale || '',
+              grade: account.grade || '',
+            });
+            setEditOpen(true);
+          }}>
+            <Pencil size={13} /> แก้ไข
+          </Button>
           <ActionBtn icon={Phone} label="โทร" />
           <ActionBtn icon={MessageCircle} label="LINE" />
           <ActionBtn icon={StickyNote} label="เพิ่มโน้ต" />
@@ -455,6 +477,80 @@ export default function CustomerCardPage() {
           </div>
         </Tabs>
       </div>
+
+      {/* Edit Dialog */}
+      <Dialog open={editOpen} onOpenChange={setEditOpen}>
+        <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>แก้ไขข้อมูลลูกค้า</DialogTitle>
+            <DialogDescription>แก้ไขข้อมูลและกดบันทึก</DialogDescription>
+          </DialogHeader>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="space-y-1.5">
+              <Label>ชื่อคลินิก *</Label>
+              <Input value={editForm.clinic_name || ''} onChange={e => setEditForm(f => ({ ...f, clinic_name: e.target.value }))} />
+            </div>
+            <div className="space-y-1.5">
+              <Label>ชื่อบริษัท</Label>
+              <Input value={editForm.company_name || ''} onChange={e => setEditForm(f => ({ ...f, company_name: e.target.value }))} />
+            </div>
+            <div className="space-y-1.5 sm:col-span-2">
+              <Label>ที่อยู่</Label>
+              <Input value={editForm.address || ''} onChange={e => setEditForm(f => ({ ...f, address: e.target.value }))} />
+            </div>
+            <div className="space-y-1.5">
+              <Label>โทรศัพท์</Label>
+              <Input value={editForm.phone || ''} onChange={e => setEditForm(f => ({ ...f, phone: e.target.value }))} />
+            </div>
+            <div className="space-y-1.5">
+              <Label>อีเมล</Label>
+              <Input value={editForm.email || ''} onChange={e => setEditForm(f => ({ ...f, email: e.target.value }))} />
+            </div>
+            <div className="space-y-1.5">
+              <Label>สถานะ</Label>
+              <Select value={editForm.customer_status || 'NEW_LEAD'} onValueChange={v => setEditForm(f => ({ ...f, customer_status: v }))}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="NEW_LEAD">ลูกค้าใหม่</SelectItem>
+                  <SelectItem value="CONTACTED">ติดต่อแล้ว</SelectItem>
+                  <SelectItem value="DEMO_SCHEDULED">นัด Demo</SelectItem>
+                  <SelectItem value="DEMO_DONE">Demo แล้ว</SelectItem>
+                  <SelectItem value="NEGOTIATION">เจรจา</SelectItem>
+                  <SelectItem value="PURCHASED">ซื้อแล้ว</SelectItem>
+                  <SelectItem value="DORMANT">ไม่เคลื่อนไหว</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-1.5">
+              <Label>เซลล์ผู้ดูแล</Label>
+              <Select value={editForm.assigned_sale || ''} onValueChange={v => setEditForm(f => ({ ...f, assigned_sale: v }))}>
+                <SelectTrigger><SelectValue placeholder="เลือกเซลล์" /></SelectTrigger>
+                <SelectContent>
+                  {MOCK_SALES.map(s => <SelectItem key={s.id} value={s.name}>{s.name}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-1.5">
+              <Label>เกรด</Label>
+              <Select value={editForm.grade || ''} onValueChange={v => setEditForm(f => ({ ...f, grade: v }))}>
+                <SelectTrigger><SelectValue placeholder="เลือก" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="A">A</SelectItem>
+                  <SelectItem value="B">B</SelectItem>
+                  <SelectItem value="C">C</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditOpen(false)}>ยกเลิก</Button>
+            <Button onClick={() => {
+              toast.success('บันทึกข้อมูลสำเร็จ');
+              setEditOpen(false);
+            }}>บันทึก</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
