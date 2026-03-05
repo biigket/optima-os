@@ -286,7 +286,7 @@ function NoteItem({ data, isPinned, onUpdate, onDelete, onPin, onAddComment }: {
               className="flex-1 text-[10px] h-6 px-2 rounded border border-border bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring"
               autoFocus
             />
-            <Button size="sm" className="h-6 text-[10px] px-2" onClick={() => { setComment(''); setShowComment(false); }}>
+            <Button size="sm" className="h-6 text-[10px] px-2" disabled={!comment.trim()} onClick={() => { if (comment.trim()) { onAddComment?.(data.id, comment.trim()); setComment(''); setShowComment(false); } }}>
               Post
             </Button>
           </div>
