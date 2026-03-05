@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -8,13 +8,13 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import StatusBadge from '@/components/ui/StatusBadge';
 import {
   ArrowLeft, Building2, ExternalLink, Users, Calendar, Clock,
-  Phone, Eye, Presentation, FileCheck, AlertTriangle, Pencil, Trophy, XCircle, Check, MessageSquare, Send
+  Phone, Eye, Presentation, FileCheck, AlertTriangle, Pencil, Trophy, XCircle, Check, MessageSquare, Send, Loader2
 } from 'lucide-react';
-import { mockOpportunities, getAccountById, mockContacts } from '@/data/mockData';
+import { supabase } from '@/integrations/supabase/client';
 import { useMockAuth } from '@/hooks/useMockAuth';
 import { getNotesForOpportunity, addNoteGlobal, type OpportunityNote } from '@/pages/OpportunitiesPage';
 import { toast } from 'sonner';
-import type { Opportunity, OpportunityStage } from '@/types';
+import type { Opportunity, OpportunityStage, Account, Contact } from '@/types';
 
 const STAGES: OpportunityStage[] = ['NEW_LEAD', 'CONTACTED', 'DEMO_SCHEDULED', 'DEMO_DONE', 'NEGOTIATION', 'WON', 'LOST'];
 const STAGE_LABELS: Record<string, string> = {
@@ -34,8 +34,10 @@ export default function OpportunityDetailPage() {
   const navigate = useNavigate();
   const { currentUser } = useMockAuth();
 
-  const initialOpp = mockOpportunities.find(o => o.id === id);
-  const [opp, setOpp] = useState<Opportunity | undefined>(initialOpp ? { ...initialOpp } : undefined);
+  const [opp, setOpp] = useState<Opportunity | undefined>(undefined);
+  const [account, setAccount] = useState<Account | null>(null);
+  const [contacts, setContacts] = useState<Contact[]>([]);
+  const [loading, setLoading] = useState(true);
   const [editOpen, setEditOpen] = useState(false);
   const [stageConfirm, setStageConfirm] = useState<OpportunityStage | null>(null);
   const [stageHistory, setStageHistory] = useState<{ from: string; to: string; date: string }[]>([]);
@@ -50,6 +52,34 @@ export default function OpportunityDetailPage() {
     next_activity_date: '',
   });
 
+  useEffect(() => {
+    if (!id) return;
+    const fetch = async () => {
+      setLoading(true);
+      const { data: oppData } = await supabase.from('opportunities').select('*').eq('id', id).single();
+      if (oppData) {
+        const o = { ...oppData, stage: oppData.stage as OpportunityStage, opportunity_type: (oppData as any).opportunity_type, next_activity_type: (oppData as any).next_activity_type, next_activity_date: (oppData as any).next_activity_date } as Opportunity;
+        setOpp(o);
+        const [accRes, conRes] = await Promise.all([
+          supabase.from('accounts').select('*').eq('id', oppData.account_id).single(),
+          supabase.from('contacts').select('*').eq('account_id', oppData.account_id),
+        ]);
+        if (accRes.data) setAccount(accRes.data as unknown as Account);
+        if (conRes.data) setContacts(conRes.data as unknown as Contact[]);
+      }
+      setLoading(false);
+    };
+    fetch();
+  }, [id]);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-[60vh]">
+        <Loader2 className="animate-spin text-muted-foreground" size={24} />
+      </div>
+    );
+  }
+
   if (!opp) {
     return (
       <div className="flex flex-col items-center justify-center h-[60vh] gap-4">
@@ -58,9 +88,6 @@ export default function OpportunityDetailPage() {
       </div>
     );
   }
-
-  const account = getAccountById(opp.account_id);
-  const contacts = mockContacts.filter(c => c.account_id === opp.account_id);
   const stageIdx = STAGES.indexOf(opp.stage);
   const daysInStage = Math.floor((Date.now() - new Date(opp.created_at || Date.now()).getTime()) / 86400000);
   const isStuck = daysInStage > 14 && !['WON', 'LOST'].includes(opp.stage);
@@ -70,12 +97,13 @@ export default function OpportunityDetailPage() {
   const ActivityIcon = opp.next_activity_type ? (ACTIVITY_ICONS[opp.next_activity_type] || Calendar) : Calendar;
   const notes = getNotesForOpportunity(opp.id);
 
-  const changeStage = (newStage: OpportunityStage) => {
+  const changeStage = async (newStage: OpportunityStage) => {
     const oldStage = opp.stage;
     setStageHistory(prev => [...prev, { from: oldStage, to: newStage, date: new Date().toISOString() }]);
     setOpp(prev => prev ? { ...prev, stage: newStage } : prev);
     toast.success(`ย้ายไป ${STAGE_LABELS[newStage]}`);
     setStageConfirm(null);
+    await supabase.from('opportunities').update({ stage: newStage }).eq('id', opp.id);
   };
 
   const openEdit = () => {
@@ -89,17 +117,24 @@ export default function OpportunityDetailPage() {
     setEditOpen(true);
   };
 
-  const saveEdit = () => {
-    setOpp(prev => prev ? {
-      ...prev,
-      expected_value: Number(editForm.expected_value) || prev.expected_value,
-      close_date: editForm.close_date || prev.close_date,
+  const saveEdit = async () => {
+    const updates = {
+      expected_value: Number(editForm.expected_value) || opp.expected_value,
+      close_date: editForm.close_date || opp.close_date,
       notes: editForm.notes,
-      next_activity_type: editForm.next_activity_type || prev.next_activity_type,
-      next_activity_date: editForm.next_activity_date || prev.next_activity_date,
-    } : prev);
+      next_activity_type: editForm.next_activity_type || opp.next_activity_type,
+      next_activity_date: editForm.next_activity_date || opp.next_activity_date,
+    };
+    setOpp(prev => prev ? { ...prev, ...updates } : prev);
     setEditOpen(false);
     toast.success('บันทึกแล้ว');
+    await supabase.from('opportunities').update({
+      expected_value: updates.expected_value,
+      close_date: updates.close_date || null,
+      notes: updates.notes || null,
+      next_activity_type: updates.next_activity_type || null,
+      next_activity_date: updates.next_activity_date || null,
+    } as any).eq('id', opp.id);
   };
 
   const handleAddNote = () => {

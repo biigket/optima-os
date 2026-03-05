@@ -5,7 +5,7 @@ import { Clock, AlertTriangle, Building2, Calendar, Phone, Eye, Users, Presentat
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
-import { getAccountById } from '@/data/mockData';
+import { getCachedAccount } from '@/pages/OpportunitiesPage';
 import { toast } from 'sonner';
 import type { Opportunity, OpportunityStage } from '@/types';
 
@@ -72,7 +72,7 @@ export default function OpportunityKanban({ opportunities, typeFilter, onStageCh
     if (!oppId) return;
     const opp = opportunities.find(o => o.id === oppId);
     if (!opp || opp.stage === newStage) return;
-    const account = getAccountById(opp.account_id);
+    const account = getCachedAccount(opp.account_id);
     onStageChange(oppId, newStage);
     toast.success(`ย้าย ${account?.clinic_name || '-'} → ${STAGE_LABELS[newStage]}`);
   };
@@ -160,7 +160,7 @@ function KanbanCard({ opp, stage, navigate, onStageChange, onUpdateOpportunity, 
   const [quickNote, setQuickNote] = useState('');
   const [showNoteInput, setShowNoteInput] = useState(false);
 
-  const account = getAccountById(opp.account_id);
+  const account = getCachedAccount(opp.account_id);
   const daysInStage = getDaysInStage(opp);
   const isTerminal = ['WON', 'LOST'].includes(stage);
   const noActivity = !opp.next_activity_type;

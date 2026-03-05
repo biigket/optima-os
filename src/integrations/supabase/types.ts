@@ -328,8 +328,12 @@ export type Database = {
           expected_value: number | null
           id: string
           interested_products: string[] | null
+          next_activity_date: string | null
+          next_activity_type: string | null
           notes: string | null
+          opportunity_type: string | null
           stage: string
+          stuck_reason: string | null
         }
         Insert: {
           account_id: string
@@ -340,8 +344,12 @@ export type Database = {
           expected_value?: number | null
           id?: string
           interested_products?: string[] | null
+          next_activity_date?: string | null
+          next_activity_type?: string | null
           notes?: string | null
+          opportunity_type?: string | null
           stage?: string
+          stuck_reason?: string | null
         }
         Update: {
           account_id?: string
@@ -352,8 +360,12 @@ export type Database = {
           expected_value?: number | null
           id?: string
           interested_products?: string[] | null
+          next_activity_date?: string | null
+          next_activity_type?: string | null
           notes?: string | null
+          opportunity_type?: string | null
           stage?: string
+          stuck_reason?: string | null
         }
         Relationships: [
           {

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import StatusBadge from '@/components/ui/StatusBadge';
 import { toast } from 'sonner';
 import { ExternalLink, Users, AlertTriangle } from 'lucide-react';
-import { mockProducts, mockContacts } from '@/data/mockData';
+import { supabase } from '@/integrations/supabase/client';
 import type { Account, OpportunityType, OpportunityStage } from '@/types';
 
 const STAGE_PROBABILITY: Record<string, number> = {
@@ -26,6 +26,19 @@ const ACTIVITY_TYPES = [
   { value: 'EMAIL', label: 'อีเมล' },
 ];
 
+interface Product {
+  id: string;
+  product_name: string;
+  category: string;
+  base_price: number | null;
+}
+
+interface Contact {
+  id: string;
+  account_id: string;
+  name: string;
+}
+
 interface CreateOpportunityFormProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -35,7 +48,8 @@ interface CreateOpportunityFormProps {
 
 export default function CreateOpportunityForm({ open, onOpenChange, customer, onSave }: CreateOpportunityFormProps) {
   const navigate = useNavigate();
-  const contacts = mockContacts.filter(c => c.account_id === customer.id);
+  const [products, setProducts] = useState<Product[]>([]);
+  const [contacts, setContacts] = useState<Contact[]>([]);
 
   const [form, setForm] = useState({
     opportunity_type: '' as OpportunityType | '',
@@ -50,9 +64,20 @@ export default function CreateOpportunityForm({ open, onOpenChange, customer, on
     next_activity_date: '',
   });
 
+  useEffect(() => {
+    if (!open) return;
+    Promise.all([
+      supabase.from('products').select('id, product_name, category, base_price'),
+      supabase.from('contacts').select('id, account_id, name').eq('account_id', customer.id),
+    ]).then(([prodRes, conRes]) => {
+      if (prodRes.data) setProducts(prodRes.data as Product[]);
+      if (conRes.data) setContacts(conRes.data as Contact[]);
+    });
+  }, [open, customer.id]);
+
   const set = (key: string, value: string) => setForm(f => ({ ...f, [key]: value }));
 
-  const filteredProducts = mockProducts.filter(p =>
+  const filteredProducts = products.filter(p =>
     !form.opportunity_type || p.category === form.opportunity_type
   );
 
@@ -63,22 +88,37 @@ export default function CreateOpportunityForm({ open, onOpenChange, customer, on
   const canSave = form.opportunity_type && form.product_id && form.next_activity_type && form.next_activity_date &&
     (form.opportunity_type === 'DEVICE' ? !!form.deal_value : !!form.quantity);
 
-  const handleSave = () => {
-    const selectedProduct = mockProducts.find(p => p.id === form.product_id);
-    onSave({
-      id: `o${Date.now()}`,
+  const handleSave = async () => {
+    const selectedProduct = products.find(p => p.id === form.product_id);
+    const expectedValue = form.opportunity_type === 'DEVICE'
+      ? Number(form.deal_value)
+      : Number(form.quantity) * (selectedProduct?.base_price || 0);
+
+    const { data, error } = await supabase.from('opportunities').insert({
       account_id: customer.id,
       stage: currentStage,
-      opportunity_type: form.opportunity_type,
-      interested_products: selectedProduct ? [selectedProduct.name] : [],
-      expected_value: form.opportunity_type === 'DEVICE' ? Number(form.deal_value) : Number(form.quantity) * (selectedProduct?.price || 0),
-      quantity: form.quantity ? Number(form.quantity) : undefined,
+      opportunity_type: form.opportunity_type || null,
+      interested_products: selectedProduct ? [selectedProduct.product_name] : [],
+      expected_value: expectedValue,
       assigned_sale: customer.assigned_sale,
-      close_date: form.close_date || undefined,
+      close_date: form.close_date || null,
+      next_activity_type: form.next_activity_type || null,
+      next_activity_date: form.next_activity_date || null,
+      notes: form.notes || null,
+    } as any).select().single();
+
+    if (error) {
+      toast.error('เกิดข้อผิดพลาด: ' + error.message);
+      return;
+    }
+
+    // Pass back with local fields for UI
+    onSave({
+      ...data,
+      opportunity_type: form.opportunity_type,
       next_activity_type: form.next_activity_type,
       next_activity_date: form.next_activity_date,
-      notes: form.notes || undefined,
-      created_at: new Date().toISOString().split('T')[0],
+      quantity: form.quantity ? Number(form.quantity) : undefined,
     });
     toast.success('สร้างโอกาสขายสำเร็จ');
     onOpenChange(false);
@@ -90,7 +130,6 @@ export default function CreateOpportunityForm({ open, onOpenChange, customer, on
       <DialogContent className="max-w-lg max-h-[90vh] flex flex-col p-0">
         <DialogHeader className="p-0">
           <DialogDescription className="sr-only">สร้างโอกาสขายใหม่</DialogDescription>
-          {/* Sticky Customer Header */}
           <div className="sticky top-0 z-10 bg-muted/60 border-b px-5 py-3 space-y-1.5">
             <div className="flex items-center gap-2">
               <DialogTitle className="text-sm font-bold text-foreground">{customer.clinic_name}</DialogTitle>
@@ -109,7 +148,6 @@ export default function CreateOpportunityForm({ open, onOpenChange, customer, on
           </div>
         </DialogHeader>
 
-        {/* No contacts warning */}
         {contacts.length === 0 && (
           <div className="mx-5 mt-3 p-3 rounded-md bg-destructive/10 border border-destructive/20 flex items-start gap-2">
             <AlertTriangle size={14} className="text-destructive shrink-0 mt-0.5" />
@@ -121,7 +159,6 @@ export default function CreateOpportunityForm({ open, onOpenChange, customer, on
         )}
 
         <div className="flex-1 overflow-y-auto px-5 py-4 space-y-4">
-          {/* Type */}
           <div className="space-y-1.5">
             <Label className="text-xs">ประเภท <span className="text-destructive">*</span></Label>
             <div className="flex gap-2">
@@ -137,20 +174,20 @@ export default function CreateOpportunityForm({ open, onOpenChange, customer, on
             </div>
           </div>
 
-          {/* Product */}
           <div className="space-y-1.5">
             <Label className="text-xs">สินค้า <span className="text-destructive">*</span></Label>
             <Select value={form.product_id} onValueChange={v => set('product_id', v)}>
               <SelectTrigger className="h-9 text-xs"><SelectValue placeholder="เลือกสินค้า" /></SelectTrigger>
               <SelectContent>
                 {filteredProducts.map(p => (
-                  <SelectItem key={p.id} value={p.id} className="text-xs">{p.name} — ฿{p.price.toLocaleString()}</SelectItem>
+                  <SelectItem key={p.id} value={p.id} className="text-xs">
+                    {p.product_name}{p.base_price ? ` — ฿${p.base_price.toLocaleString()}` : ''}
+                  </SelectItem>
                 ))}
               </SelectContent>
             </Select>
           </div>
 
-          {/* Value / Quantity */}
           {form.opportunity_type === 'DEVICE' && (
             <div className="space-y-1.5">
               <Label className="text-xs">มูลค่าดีล (฿) <span className="text-destructive">*</span></Label>
@@ -164,7 +201,6 @@ export default function CreateOpportunityForm({ open, onOpenChange, customer, on
             </div>
           )}
 
-          {/* Stage + Probability */}
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
               <Label className="text-xs">ขั้นตอน</Label>
@@ -183,13 +219,11 @@ export default function CreateOpportunityForm({ open, onOpenChange, customer, on
             </div>
           </div>
 
-          {/* Close date */}
           <div className="space-y-1.5">
             <Label className="text-xs">วันปิดคาดการณ์</Label>
             <Input type="date" value={form.close_date} onChange={e => set('close_date', e.target.value)} className="h-9 text-xs" />
           </div>
 
-          {/* Next Activity (required) */}
           <div className="p-3 rounded-md border border-primary/30 bg-primary/5 space-y-3">
             <p className="text-xs font-medium text-foreground">กิจกรรมถัดไป <span className="text-destructive">*</span></p>
             <div className="grid grid-cols-2 gap-3">
@@ -209,7 +243,6 @@ export default function CreateOpportunityForm({ open, onOpenChange, customer, on
             </div>
           </div>
 
-          {/* Notes */}
           <div className="space-y-1.5">
             <Label className="text-xs">หมายเหตุ</Label>
             <Textarea value={form.notes} onChange={e => set('notes', e.target.value)} className="text-xs min-h-[60px] resize-none" placeholder="รายละเอียดเพิ่มเติม..." />
