@@ -1,6 +1,5 @@
 import { useState } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Search, Plus, SlidersHorizontal, Building2, Loader2 } from 'lucide-react';
+import { Search, Plus, SlidersHorizontal, Building2 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -10,12 +9,58 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogD
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import StatusBadge from '@/components/ui/StatusBadge';
-import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import type { Tables, TablesInsert } from '@/integrations/supabase/types';
 
-type Account = Tables<'accounts'>;
-type Contact = Tables<'contacts'>;
+interface Account {
+  id: string;
+  clinic_name: string;
+  company_name: string | null;
+  address: string | null;
+  tax_id: string | null;
+  entity_type: string | null;
+  branch_type: string | null;
+  phone: string | null;
+  email: string | null;
+  customer_status: string;
+  assigned_sale: string | null;
+  lead_source: string | null;
+  notes: string | null;
+  grade: string | null;
+  single_or_chain: string | null;
+  created_at: string;
+}
+
+interface Contact {
+  id: string;
+  account_id: string;
+  name: string;
+  role: string | null;
+  phone: string | null;
+  email: string | null;
+}
+
+// ── Mock Data ──
+const mockAccounts: Account[] = [
+  { id: '1', clinic_name: 'Clarity Clinic', company_name: 'Clarity Co., Ltd.', address: 'สุขุมวิท 39, กรุงเทพฯ', tax_id: null, entity_type: 'คลินิก', branch_type: 'สำนักงานใหญ่', phone: '02-123-4567', email: 'info@clarity.co.th', customer_status: 'DEMO_SCHEDULED', assigned_sale: 'Palm', lead_source: 'งานแสดงสินค้า', notes: null, grade: 'A', single_or_chain: 'สาขาเดียว', created_at: '2026-03-02T10:00:00' },
+  { id: '2', clinic_name: 'Aura Med Spa', company_name: 'Aura Group', address: 'นิมมานเหมินทร์, เชียงใหม่', tax_id: null, entity_type: 'คลินิก', branch_type: 'สำนักงานใหญ่', phone: '053-222-333', email: 'hello@aura.co.th', customer_status: 'PURCHASED', assigned_sale: 'Nicole', lead_source: 'แนะนำ', notes: null, grade: 'A', single_or_chain: 'เชน', created_at: '2026-02-28T09:00:00' },
+  { id: '3', clinic_name: 'Derma Plus', company_name: null, address: 'พัทยาใต้, ชลบุรี', tax_id: null, entity_type: 'คลินิก', branch_type: null, phone: '038-111-222', email: null, customer_status: 'NEW_LEAD', assigned_sale: 'Palm', lead_source: 'เว็บไซต์', notes: null, grade: 'B', single_or_chain: 'สาขาเดียว', created_at: '2026-03-04T14:00:00' },
+  { id: '4', clinic_name: 'Skin Lab Bangkok', company_name: 'Skin Lab Co., Ltd.', address: 'ทองหล่อ ซอย 10, กรุงเทพฯ', tax_id: null, entity_type: 'นิติบุคคล', branch_type: 'สำนักงานใหญ่', phone: '02-999-8888', email: 'contact@skinlab.co.th', customer_status: 'NEGOTIATION', assigned_sale: 'Nicole', lead_source: 'งานแสดงสินค้า', notes: 'สนใจ Doublo Gold', grade: 'A', single_or_chain: 'เชน', created_at: '2026-02-25T11:00:00' },
+  { id: '5', clinic_name: 'Glow Aesthetic', company_name: null, address: 'หาดใหญ่, สงขลา', tax_id: null, entity_type: 'คลินิก', branch_type: null, phone: '074-333-444', email: 'glow@email.com', customer_status: 'CONTACTED', assigned_sale: 'Palm', lead_source: 'Facebook', notes: null, grade: 'B', single_or_chain: 'สาขาเดียว', created_at: '2026-03-03T16:30:00' },
+  { id: '6', clinic_name: 'Radiance Center', company_name: 'Radiance Medical', address: 'ราชดำริ, กรุงเทพฯ', tax_id: null, entity_type: 'โรงพยาบาล', branch_type: 'สำนักงานใหญ่', phone: '02-555-6666', email: 'info@radiance.co.th', customer_status: 'DORMANT', assigned_sale: 'Nicole', lead_source: 'แนะนำ', notes: 'เคยซื้อ Ultraformer แต่หยุดใช้', grade: 'C', single_or_chain: 'สาขาเดียว', created_at: '2026-01-15T08:00:00' },
+  { id: '7', clinic_name: 'Beauty First', company_name: 'BF Clinic Co., Ltd.', address: 'เซ็นทรัลเวิลด์, กรุงเทพฯ', tax_id: null, entity_type: 'นิติบุคคล', branch_type: 'สาขา', phone: '02-777-8888', email: 'bf@beautyfirst.co.th', customer_status: 'PURCHASED', assigned_sale: 'Palm', lead_source: 'งานแสดงสินค้า', notes: null, grade: 'A', single_or_chain: 'เชน', created_at: '2026-02-20T13:00:00' },
+  { id: '8', clinic_name: 'Nova Skin Clinic', company_name: null, address: 'ขอนแก่น', tax_id: null, entity_type: 'คลินิก', branch_type: null, phone: '043-222-111', email: null, customer_status: 'DEMO_DONE', assigned_sale: 'Nicole', lead_source: 'เว็บไซต์', notes: 'รอผลตัดสินใจ', grade: 'B', single_or_chain: 'สาขาเดียว', created_at: '2026-03-01T10:30:00' },
+];
+
+const mockContacts: Contact[] = [
+  { id: 'c1', account_id: '1', name: 'นพ. Big', role: 'Medical Director', phone: '081-111-2222', email: 'big@clarity.co.th' },
+  { id: 'c2', account_id: '2', name: 'พญ. สมศรี', role: 'Owner', phone: '089-333-4444', email: 'somsri@aura.co.th' },
+  { id: 'c3', account_id: '3', name: 'คุณมานี', role: 'Clinic Manager', phone: '086-555-6666', email: null },
+  { id: 'c4', account_id: '4', name: 'นพ. วิชัย', role: 'Owner', phone: '082-777-8888', email: 'wichai@skinlab.co.th' },
+  { id: 'c5', account_id: '5', name: 'พญ. แก้ว', role: 'Doctor', phone: '087-999-0000', email: null },
+  { id: 'c6', account_id: '6', name: 'คุณสมชาย', role: 'Manager', phone: '081-444-5555', email: 'somchai@radiance.co.th' },
+  { id: 'c7', account_id: '7', name: 'คุณลิลลี่', role: 'Owner', phone: '085-222-3333', email: 'lily@beautyfirst.co.th' },
+  { id: 'c8', account_id: '8', name: 'พญ. นภา', role: 'Doctor', phone: '088-666-7777', email: null },
+];
 
 const STATUS_OPTIONS = [
   { value: 'ALL', label: 'ทั้งหมด' },
@@ -32,7 +77,7 @@ const STATUS_OPTIONS = [
 const ENTITY_TYPES = ['บุคคลธรรมดา', 'นิติบุคคล', 'คลินิก', 'โรงพยาบาล'];
 const BRANCH_TYPES = ['สำนักงานใหญ่', 'สาขา'];
 
-const emptyForm: Partial<TablesInsert<'accounts'>> = {
+const emptyForm: Partial<Account> = {
   clinic_name: '',
   company_name: '',
   address: '',
@@ -49,10 +94,6 @@ const emptyForm: Partial<TablesInsert<'accounts'>> = {
   single_or_chain: '',
 };
 
-function getStatusLabel(status: string) {
-  return STATUS_OPTIONS.find(s => s.value === status)?.label || status.replace(/_/g, ' ');
-}
-
 function daysSince(dateStr: string | null): string {
   if (!dateStr) return '-';
   const diff = Math.floor((Date.now() - new Date(dateStr).getTime()) / 86400000);
@@ -61,59 +102,12 @@ function daysSince(dateStr: string | null): string {
 }
 
 export default function LeadsPage() {
-  const queryClient = useQueryClient();
+  const [accounts, setAccounts] = useState<Account[]>(mockAccounts);
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('ALL');
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingAccount, setEditingAccount] = useState<Account | null>(null);
   const [form, setForm] = useState(emptyForm);
-
-  const { data: accounts = [], isLoading } = useQuery({
-    queryKey: ['accounts'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('accounts')
-        .select('*')
-        .order('created_at', { ascending: false });
-      if (error) throw error;
-      return data as Account[];
-    },
-  });
-
-  const { data: contacts = [] } = useQuery({
-    queryKey: ['contacts'],
-    queryFn: async () => {
-      const { data, error } = await supabase.from('contacts').select('*');
-      if (error) throw error;
-      return data as Contact[];
-    },
-  });
-
-  const insertMutation = useMutation({
-    mutationFn: async (newAccount: TablesInsert<'accounts'>) => {
-      const { error } = await supabase.from('accounts').insert(newAccount);
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['accounts'] });
-      toast.success('เพิ่มลูกค้าสำเร็จ');
-      closeDialog();
-    },
-    onError: (err: Error) => toast.error('เกิดข้อผิดพลาด: ' + err.message),
-  });
-
-  const updateMutation = useMutation({
-    mutationFn: async ({ id, ...updates }: Partial<Account> & { id: string }) => {
-      const { error } = await supabase.from('accounts').update(updates).eq('id', id);
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['accounts'] });
-      toast.success('อัปเดตลูกค้าสำเร็จ');
-      closeDialog();
-    },
-    onError: (err: Error) => toast.error('เกิดข้อผิดพลาด: ' + err.message),
-  });
 
   const closeDialog = () => {
     setDialogOpen(false);
@@ -154,10 +148,19 @@ export default function LeadsPage() {
       return;
     }
     if (editingAccount) {
-      updateMutation.mutate({ id: editingAccount.id, ...form });
+      setAccounts(prev => prev.map(a => a.id === editingAccount.id ? { ...a, ...form } as Account : a));
+      toast.success('อัปเดตลูกค้าสำเร็จ');
     } else {
-      insertMutation.mutate(form as TablesInsert<'accounts'>);
+      const newAccount: Account = {
+        ...emptyForm,
+        ...form,
+        id: crypto.randomUUID(),
+        created_at: new Date().toISOString(),
+      } as Account;
+      setAccounts(prev => [newAccount, ...prev]);
+      toast.success('เพิ่มลูกค้าสำเร็จ');
     }
+    closeDialog();
   };
 
   const updateField = (key: string, value: string) => {
@@ -174,8 +177,6 @@ export default function LeadsPage() {
       (a.assigned_sale || '').toLowerCase().includes(q);
     return matchStatus && matchSearch;
   });
-
-  const isSaving = insertMutation.isPending || updateMutation.isPending;
 
   return (
     <div className="space-y-4 animate-fade-in">
@@ -216,87 +217,81 @@ export default function LeadsPage() {
       </Tabs>
 
       {/* Table */}
-      {isLoading ? (
-        <div className="flex items-center justify-center py-16">
-          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-        </div>
-      ) : (
-        <div className="rounded-lg border bg-card">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="w-[220px]">คลินิก</TableHead>
-                <TableHead>ผู้ติดต่อ</TableHead>
-                <TableHead>สถานะ</TableHead>
-                <TableHead>เซลล์</TableHead>
-                <TableHead>เกรด</TableHead>
-                <TableHead>แหล่งที่มา</TableHead>
-                <TableHead className="text-right">สร้างเมื่อ</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filtered.map(account => {
-                const primaryContact = contacts.find(c => c.account_id === account.id);
-                return (
-                  <TableRow
-                    key={account.id}
-                    className="cursor-pointer hover:bg-muted/50 transition-colors"
-                    onClick={() => openEdit(account)}
-                  >
-                    <TableCell>
-                      <div className="flex items-center gap-3">
-                        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-primary/10 text-primary">
-                          <Building2 size={16} />
-                        </div>
-                        <div className="min-w-0">
-                          <p className="text-sm font-medium text-foreground truncate">{account.clinic_name}</p>
-                          {account.address && (
-                            <p className="text-xs text-muted-foreground truncate max-w-[180px]">{account.address}</p>
-                          )}
-                        </div>
+      <div className="rounded-lg border bg-card">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead className="w-[220px]">คลินิก</TableHead>
+              <TableHead>ผู้ติดต่อ</TableHead>
+              <TableHead>สถานะ</TableHead>
+              <TableHead>เซลล์</TableHead>
+              <TableHead>เกรด</TableHead>
+              <TableHead>แหล่งที่มา</TableHead>
+              <TableHead className="text-right">สร้างเมื่อ</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {filtered.map(account => {
+              const primaryContact = mockContacts.find(c => c.account_id === account.id);
+              return (
+                <TableRow
+                  key={account.id}
+                  className="cursor-pointer hover:bg-muted/50 transition-colors"
+                  onClick={() => openEdit(account)}
+                >
+                  <TableCell>
+                    <div className="flex items-center gap-3">
+                      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-primary/10 text-primary">
+                        <Building2 size={16} />
                       </div>
-                    </TableCell>
-                    <TableCell>
-                      {primaryContact ? (
-                        <div>
-                          <p className="text-sm text-foreground">{primaryContact.name}</p>
-                          {primaryContact.phone && (
-                            <p className="text-xs text-muted-foreground">{primaryContact.phone}</p>
-                          )}
-                        </div>
-                      ) : (
-                        <span className="text-xs text-muted-foreground">-</span>
-                      )}
-                    </TableCell>
-                    <TableCell>
-                      <StatusBadge status={account.customer_status} />
-                    </TableCell>
-                    <TableCell>
-                      <span className="text-sm text-foreground">{account.assigned_sale || '-'}</span>
-                    </TableCell>
-                    <TableCell>
-                      <span className="text-sm text-foreground">{account.grade || '-'}</span>
-                    </TableCell>
-                    <TableCell>
-                      <span className="text-sm text-muted-foreground">{account.lead_source || '-'}</span>
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <span className="text-xs text-muted-foreground">{daysSince(account.created_at)}</span>
-                    </TableCell>
-                  </TableRow>
-                );
-              })}
-              {filtered.length === 0 && (
-                <TableRow>
-                  <TableCell colSpan={7} className="text-center py-12 text-muted-foreground">
-                    ไม่พบลูกค้า
+                      <div className="min-w-0">
+                        <p className="text-sm font-medium text-foreground truncate">{account.clinic_name}</p>
+                        {account.address && (
+                          <p className="text-xs text-muted-foreground truncate max-w-[180px]">{account.address}</p>
+                        )}
+                      </div>
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    {primaryContact ? (
+                      <div>
+                        <p className="text-sm text-foreground">{primaryContact.name}</p>
+                        {primaryContact.phone && (
+                          <p className="text-xs text-muted-foreground">{primaryContact.phone}</p>
+                        )}
+                      </div>
+                    ) : (
+                      <span className="text-xs text-muted-foreground">-</span>
+                    )}
+                  </TableCell>
+                  <TableCell>
+                    <StatusBadge status={account.customer_status} />
+                  </TableCell>
+                  <TableCell>
+                    <span className="text-sm text-foreground">{account.assigned_sale || '-'}</span>
+                  </TableCell>
+                  <TableCell>
+                    <span className="text-sm text-foreground">{account.grade || '-'}</span>
+                  </TableCell>
+                  <TableCell>
+                    <span className="text-sm text-muted-foreground">{account.lead_source || '-'}</span>
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <span className="text-xs text-muted-foreground">{daysSince(account.created_at)}</span>
                   </TableCell>
                 </TableRow>
-              )}
-            </TableBody>
-          </Table>
-        </div>
-      )}
+              );
+            })}
+            {filtered.length === 0 && (
+              <TableRow>
+                <TableCell colSpan={7} className="text-center py-12 text-muted-foreground">
+                  ไม่พบลูกค้า
+                </TableCell>
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
+      </div>
 
       {/* Add/Edit Dialog */}
       <Dialog open={dialogOpen} onOpenChange={v => !v && closeDialog()}>
@@ -382,8 +377,7 @@ export default function LeadsPage() {
 
           <DialogFooter>
             <Button variant="outline" onClick={closeDialog}>ยกเลิก</Button>
-            <Button onClick={handleSubmit} disabled={isSaving}>
-              {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            <Button onClick={handleSubmit}>
               {editingAccount ? 'บันทึก' : 'เพิ่มลูกค้า'}
             </Button>
           </DialogFooter>
