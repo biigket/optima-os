@@ -4,7 +4,8 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import StatusBadge from '@/components/ui/StatusBadge';
 import { mockWorkItems, getAccountById, getUserById } from '@/data/mockData';
-import type { WorkItemStatus } from '@/types';
+
+type WorkItemStatus = 'OPEN' | 'IN_PROGRESS' | 'WAITING' | 'DONE' | 'CANCELLED';
 
 const statuses: (WorkItemStatus | 'ALL')[] = ['ALL', 'OPEN', 'IN_PROGRESS', 'WAITING', 'DONE', 'CANCELLED'];
 const statusLabels: Record<string, string> = {
@@ -14,9 +15,6 @@ const typeLabels: Record<string, string> = {
   CONTACT: 'ติดต่อ', FOLLOW_UP: 'ติดตาม', DEMO_PREP: 'เตรียมสาธิต', DEMO_EVENT: 'สาธิต',
   SERVICE_PREP: 'เตรียมบริการ', SHIPMENT: 'จัดส่ง', INSTALLATION: 'ติดตั้ง', SERVICE_TICKET: 'ซ่อมบำรุง',
   FINANCE_DOC: 'เอกสารการเงิน', CONSUMABLE_ORDER: 'สั่งวัสดุ', MARKETING_TASK: 'การตลาด'
-};
-const priorityLabels: Record<string, string> = {
-  LOW: 'ต่ำ', MEDIUM: 'ปานกลาง', HIGH: 'สูง', URGENT: 'เร่งด่วน'
 };
 
 export default function TasksPage() {
@@ -77,7 +75,7 @@ export default function TasksPage() {
                 <tr key={item.workItemId} className="border-b last:border-0 hover:bg-muted/30 transition-colors">
                   <td className="px-4 py-3 font-medium text-foreground">{item.title}</td>
                   <td className="px-4 py-3 text-muted-foreground text-xs">{typeLabels[item.type] || item.type}</td>
-                  <td className="px-4 py-3 text-muted-foreground">{account?.clinicName}</td>
+                  <td className="px-4 py-3 text-muted-foreground">{account?.clinic_name}</td>
                   <td className="px-4 py-3 text-muted-foreground">{assignee?.name}</td>
                   <td className="px-4 py-3"><StatusBadge status={item.priority} /></td>
                   <td className="px-4 py-3"><StatusBadge status={item.status} /></td>

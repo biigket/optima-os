@@ -26,7 +26,7 @@ export default function VisitReportsPage() {
 
       <div className="space-y-3">
         {mockReports.map(report => {
-          const account = mockAccounts.find(a => a.accountId === report.accountId);
+          const account = mockAccounts.find(a => a.id === report.accountId);
           const user = getUserById(report.userId);
           return (
             <div key={report.id} className="rounded-lg border bg-card p-4 space-y-2 hover:shadow-sm transition-shadow">
@@ -34,7 +34,7 @@ export default function VisitReportsPage() {
                 <div>
                   <p className="text-sm font-semibold text-foreground">{report.subject}</p>
                   <div className="flex items-center gap-3 text-xs text-muted-foreground mt-1">
-                    <span className="flex items-center gap-1"><Building2 size={12} /> {account?.clinicName}</span>
+                    <span className="flex items-center gap-1"><Building2 size={12} /> {account?.clinic_name}</span>
                     <span className="flex items-center gap-1"><User size={12} /> {user?.name}</span>
                     <span>{new Date(report.date).toLocaleDateString('th-TH')}</span>
                   </div>

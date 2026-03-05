@@ -12,7 +12,7 @@ export default function InvoicesPage() {
   const filtered = mockInvoices.filter(inv => {
     const account = getAccountById(inv.accountId);
     return inv.invoiceId.toLowerCase().includes(search.toLowerCase()) ||
-      account?.clinicName.toLowerCase().includes(search.toLowerCase());
+      (account?.clinic_name || '').toLowerCase().includes(search.toLowerCase());
   });
 
   return (
@@ -49,7 +49,7 @@ export default function InvoicesPage() {
               return (
                 <TableRow key={inv.invoiceId}>
                   <TableCell className="font-medium">{inv.invoiceId}</TableCell>
-                  <TableCell>{account?.clinicName}</TableCell>
+                  <TableCell>{account?.clinic_name}</TableCell>
                   <TableCell className="text-right font-medium">฿{inv.amount.toLocaleString()}</TableCell>
                   <TableCell className="text-muted-foreground">{inv.issueDate}</TableCell>
                   <TableCell className="text-muted-foreground">{inv.dueDate}</TableCell>

@@ -1,29 +1,30 @@
 import {
-  TrendingUp, Target, DollarSign, Calendar, ArrowUpRight, ArrowDownRight
+  TrendingUp, Target, DollarSign, Calendar
 } from 'lucide-react';
 import KpiCard from '@/components/dashboard/KpiCard';
 import { mockOpportunities, getAccountById } from '@/data/mockData';
 
 export default function ForecastPage() {
   const activeOpps = mockOpportunities.filter(o => !['WON', 'LOST'].includes(o.stage));
-  const totalPipeline = activeOpps.reduce((s, o) => s + o.expectedValue, 0);
+  const totalPipeline = activeOpps.reduce((s, o) => s + (o.expected_value || 0), 0);
   const weightedPipeline = activeOpps.reduce((s, o) => {
-    const weights: Record<string, number> = { NEW: 0.1, CONTACTED: 0.2, DEMO_SCHEDULED: 0.4, DEMO_DONE: 0.6, NEGOTIATION: 0.8 };
-    return s + o.expectedValue * (weights[o.stage] || 0.1);
+    const weights: Record<string, number> = { NEW_LEAD: 0.1, CONTACTED: 0.2, DEMO_SCHEDULED: 0.4, DEMO_DONE: 0.6, NEGOTIATION: 0.8 };
+    return s + (o.expected_value || 0) * (weights[o.stage] || 0.1);
   }, 0);
 
   const byMonth: Record<string, number> = {};
   activeOpps.forEach(o => {
-    const m = new Date(o.closeDate).toLocaleDateString('th-TH', { month: 'short', year: '2-digit' });
-    byMonth[m] = (byMonth[m] || 0) + o.expectedValue;
+    if (!o.close_date) return;
+    const m = new Date(o.close_date).toLocaleDateString('th-TH', { month: 'short', year: '2-digit' });
+    byMonth[m] = (byMonth[m] || 0) + (o.expected_value || 0);
   });
 
   const stageData = [
-    { stage: 'ใหม่', count: activeOpps.filter(o => o.stage === 'NEW').length, value: activeOpps.filter(o => o.stage === 'NEW').reduce((s, o) => s + o.expectedValue, 0) },
-    { stage: 'ติดต่อแล้ว', count: activeOpps.filter(o => o.stage === 'CONTACTED').length, value: activeOpps.filter(o => o.stage === 'CONTACTED').reduce((s, o) => s + o.expectedValue, 0) },
-    { stage: 'นัดสาธิต', count: activeOpps.filter(o => o.stage === 'DEMO_SCHEDULED').length, value: activeOpps.filter(o => o.stage === 'DEMO_SCHEDULED').reduce((s, o) => s + o.expectedValue, 0) },
-    { stage: 'สาธิตแล้ว', count: activeOpps.filter(o => o.stage === 'DEMO_DONE').length, value: activeOpps.filter(o => o.stage === 'DEMO_DONE').reduce((s, o) => s + o.expectedValue, 0) },
-    { stage: 'เจรจา', count: activeOpps.filter(o => o.stage === 'NEGOTIATION').length, value: activeOpps.filter(o => o.stage === 'NEGOTIATION').reduce((s, o) => s + o.expectedValue, 0) },
+    { stage: 'ใหม่', count: activeOpps.filter(o => o.stage === 'NEW_LEAD').length, value: activeOpps.filter(o => o.stage === 'NEW_LEAD').reduce((s, o) => s + (o.expected_value || 0), 0) },
+    { stage: 'ติดต่อแล้ว', count: activeOpps.filter(o => o.stage === 'CONTACTED').length, value: activeOpps.filter(o => o.stage === 'CONTACTED').reduce((s, o) => s + (o.expected_value || 0), 0) },
+    { stage: 'นัดสาธิต', count: activeOpps.filter(o => o.stage === 'DEMO_SCHEDULED').length, value: activeOpps.filter(o => o.stage === 'DEMO_SCHEDULED').reduce((s, o) => s + (o.expected_value || 0), 0) },
+    { stage: 'สาธิตแล้ว', count: activeOpps.filter(o => o.stage === 'DEMO_DONE').length, value: activeOpps.filter(o => o.stage === 'DEMO_DONE').reduce((s, o) => s + (o.expected_value || 0), 0) },
+    { stage: 'เจรจา', count: activeOpps.filter(o => o.stage === 'NEGOTIATION').length, value: activeOpps.filter(o => o.stage === 'NEGOTIATION').reduce((s, o) => s + (o.expected_value || 0), 0) },
   ];
 
   return (
@@ -39,21 +40,17 @@ export default function ForecastPage() {
         <KpiCard label="โอกาสที่เปิดอยู่" value={activeOpps.length} icon={Target} variant="warning" />
       </div>
 
-      {/* Funnel */}
       <div className="rounded-lg border bg-card p-5">
         <h3 className="text-sm font-semibold text-foreground mb-4">Sales Funnel</h3>
         <div className="space-y-3">
-          {stageData.map((s, i) => {
+          {stageData.map((s) => {
             const maxVal = Math.max(...stageData.map(d => d.value), 1);
             const pct = (s.value / maxVal) * 100;
             return (
               <div key={s.stage} className="flex items-center gap-4">
                 <span className="w-20 text-xs font-medium text-muted-foreground text-right">{s.stage}</span>
                 <div className="flex-1 h-8 bg-muted rounded-md overflow-hidden">
-                  <div
-                    className="h-full bg-accent/80 rounded-md flex items-center px-3 transition-all"
-                    style={{ width: `${Math.max(pct, 5)}%` }}
-                  >
+                  <div className="h-full bg-accent/80 rounded-md flex items-center px-3 transition-all" style={{ width: `${Math.max(pct, 5)}%` }}>
                     <span className="text-xs font-semibold text-accent-foreground whitespace-nowrap">
                       {s.count} · ฿{(s.value / 1e6).toFixed(1)}M
                     </span>
@@ -65,7 +62,6 @@ export default function ForecastPage() {
         </div>
       </div>
 
-      {/* By month */}
       <div className="rounded-lg border bg-card p-5">
         <h3 className="text-sm font-semibold text-foreground mb-4">คาดการณ์ตามเดือนปิด</h3>
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
@@ -81,22 +77,21 @@ export default function ForecastPage() {
         </div>
       </div>
 
-      {/* Top deals */}
       <div className="rounded-lg border bg-card p-5">
         <h3 className="text-sm font-semibold text-foreground mb-4">ดีลมูลค่าสูงสุด</h3>
         <div className="space-y-2">
-          {[...activeOpps].sort((a, b) => b.expectedValue - a.expectedValue).slice(0, 5).map((opp, i) => {
-            const account = getAccountById(opp.accountId);
+          {[...activeOpps].sort((a, b) => (b.expected_value || 0) - (a.expected_value || 0)).slice(0, 5).map((opp, i) => {
+            const account = getAccountById(opp.account_id);
             return (
-              <div key={opp.opportunityId} className="flex items-center justify-between rounded-md border px-4 py-2.5">
+              <div key={opp.id} className="flex items-center justify-between rounded-md border px-4 py-2.5">
                 <div className="flex items-center gap-3">
                   <span className="flex h-6 w-6 items-center justify-center rounded-full bg-muted text-xs font-bold text-muted-foreground">{i + 1}</span>
                   <div>
-                    <p className="text-sm font-medium text-foreground">{account?.clinicName}</p>
+                    <p className="text-sm font-medium text-foreground">{account?.clinic_name}</p>
                     <p className="text-xs text-muted-foreground">{opp.stage}</p>
                   </div>
                 </div>
-                <span className="text-sm font-semibold text-foreground">฿{opp.expectedValue.toLocaleString()}</span>
+                <span className="text-sm font-semibold text-foreground">฿{(opp.expected_value || 0).toLocaleString()}</span>
               </div>
             );
           })}

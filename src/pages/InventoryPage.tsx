@@ -1,11 +1,12 @@
 import { useState } from 'react';
-import { Search, Warehouse } from 'lucide-react';
+import { Search } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import StatusBadge from '@/components/ui/StatusBadge';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import { mockInventory } from '@/data/mockData';
-import type { InventoryCategory } from '@/types';
+
+type InventoryCategory = 'DEVICE' | 'CONSUMABLE' | 'PART';
 
 const categories: { label: string; value: InventoryCategory | 'ALL' }[] = [
   { label: 'ทั้งหมด', value: 'ALL' },

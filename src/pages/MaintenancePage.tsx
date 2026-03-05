@@ -36,7 +36,7 @@ export default function MaintenancePage() {
                   </div>
                 </div>
                 <div className="flex items-center gap-4 text-xs text-muted-foreground">
-                  <span className="flex items-center gap-1"><Building2 size={12} /> {account?.clinicName}</span>
+                  <span className="flex items-center gap-1"><Building2 size={12} /> {account?.clinic_name}</span>
                   <span className="flex items-center gap-1"><User size={12} /> {assignee?.name}</span>
                   <span className="flex items-center gap-1"><Calendar size={12} /> {new Date(ticket.dueDateTime).toLocaleDateString('th-TH')}</span>
                 </div>

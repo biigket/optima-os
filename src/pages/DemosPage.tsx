@@ -39,7 +39,7 @@ export default function DemosPage() {
               <div className="space-y-1 text-xs text-muted-foreground">
                 <div className="flex items-center gap-1.5">
                   <Building2 size={12} />
-                  <span>{account?.clinicName}</span>
+                  <span>{account?.clinic_name}</span>
                 </div>
                 <div className="flex items-center gap-1.5">
                   <Calendar size={12} />

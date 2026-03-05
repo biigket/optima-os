@@ -10,9 +10,9 @@ export default function QuotationsPage() {
   const [search, setSearch] = useState('');
 
   const filtered = mockQuotations.filter(q => {
-    const account = getAccountById(q.accountId);
-    return q.quotationId.toLowerCase().includes(search.toLowerCase()) ||
-      account?.clinicName.toLowerCase().includes(search.toLowerCase());
+    const account = getAccountById(q.account_id || '');
+    return (q.qt_number || '').toLowerCase().includes(search.toLowerCase()) ||
+      (account?.clinic_name || '').toLowerCase().includes(search.toLowerCase());
   });
 
   return (
@@ -36,25 +36,23 @@ export default function QuotationsPage() {
             <TableRow>
               <TableHead>เลขที่</TableHead>
               <TableHead>ลูกค้า</TableHead>
-              <TableHead>รายการ</TableHead>
+              <TableHead>สินค้า</TableHead>
               <TableHead className="text-right">ยอดรวม</TableHead>
               <TableHead>วันที่ออก</TableHead>
-              <TableHead>ใช้ได้ถึง</TableHead>
               <TableHead>สถานะ</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {filtered.map(q => {
-              const account = getAccountById(q.accountId);
+              const account = getAccountById(q.account_id || '');
               return (
-                <TableRow key={q.quotationId}>
-                  <TableCell className="font-medium">{q.quotationId}</TableCell>
-                  <TableCell>{account?.clinicName}</TableCell>
-                  <TableCell className="text-muted-foreground">{q.items.map(i => i.productName).join(', ')}</TableCell>
-                  <TableCell className="text-right font-medium">฿{q.totalAmount.toLocaleString()}</TableCell>
-                  <TableCell className="text-muted-foreground">{q.issueDate}</TableCell>
-                  <TableCell className="text-muted-foreground">{q.validUntil}</TableCell>
-                  <TableCell><StatusBadge status={q.approvalStatus} /></TableCell>
+                <TableRow key={q.id}>
+                  <TableCell className="font-medium">{q.qt_number}</TableCell>
+                  <TableCell>{account?.clinic_name}</TableCell>
+                  <TableCell className="text-muted-foreground">{q.product}</TableCell>
+                  <TableCell className="text-right font-medium">฿{(q.price || 0).toLocaleString()}</TableCell>
+                  <TableCell className="text-muted-foreground">{q.qt_date}</TableCell>
+                  <TableCell><StatusBadge status={q.approval_status} /></TableCell>
                 </TableRow>
               );
             })}

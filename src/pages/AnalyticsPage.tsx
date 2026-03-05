@@ -7,10 +7,10 @@ import { mockAccounts, mockOpportunities, mockWorkItems, mockInventory, mockActi
 
 export default function AnalyticsPage() {
   const totalAccounts = mockAccounts.length;
-  const customers = mockAccounts.filter(a => a.customerStatus === 'CUSTOMER').length;
-  const prospects = mockAccounts.filter(a => a.customerStatus === 'PROSPECT').length;
+  const customers = mockAccounts.filter(a => a.customer_status === 'PURCHASED').length;
+  const prospects = mockAccounts.filter(a => a.customer_status === 'NEW_LEAD').length;
   const wonDeals = mockOpportunities.filter(o => o.stage === 'WON');
-  const wonValue = wonDeals.reduce((s, o) => s + o.expectedValue, 0);
+  const wonValue = wonDeals.reduce((s, o) => s + (o.expected_value || 0), 0);
   const conversionRate = mockOpportunities.length > 0 ? ((wonDeals.length / mockOpportunities.length) * 100).toFixed(0) : '0';
 
   const deptWorkload = ['SALES', 'PRODUCT', 'SERVICE', 'STOCK', 'FINANCE'].map(dept => ({
@@ -19,15 +19,6 @@ export default function AnalyticsPage() {
     open: mockWorkItems.filter(w => w.departmentOwner === dept && w.status !== 'DONE' && w.status !== 'CANCELLED').length,
   }));
 
-  const byType = ['NEW_DEVICE', 'CONSUMABLE_REPEAT', 'UPSELL', 'SERVICE_CONTRACT'].map(t => ({
-    type: t,
-    count: mockOpportunities.filter(o => o.opportunityType === t).length,
-    value: mockOpportunities.filter(o => o.opportunityType === t).reduce((s, o) => s + o.expectedValue, 0),
-  }));
-
-  const typeLabels: Record<string, string> = {
-    NEW_DEVICE: 'เครื่องใหม่', CONSUMABLE_REPEAT: 'สั่งวัสดุซ้ำ', UPSELL: 'อัพเซลล์', SERVICE_CONTRACT: 'สัญญาบริการ'
-  };
   const deptLabels: Record<string, string> = {
     SALES: 'ฝ่ายขาย', PRODUCT: 'ผลิตภัณฑ์', SERVICE: 'บริการ', STOCK: 'คลัง', FINANCE: 'การเงิน'
   };
@@ -47,29 +38,6 @@ export default function AnalyticsPage() {
       </div>
 
       <div className="grid gap-6 lg:grid-cols-2">
-        {/* Opportunity by Type */}
-        <div className="rounded-lg border bg-card p-5">
-          <h3 className="text-sm font-semibold text-foreground mb-4">โอกาสขายตามประเภท</h3>
-          <div className="space-y-3">
-            {byType.map(t => {
-              const maxVal = Math.max(...byType.map(d => d.value), 1);
-              const pct = (t.value / maxVal) * 100;
-              return (
-                <div key={t.type} className="space-y-1">
-                  <div className="flex justify-between text-xs">
-                    <span className="font-medium text-foreground">{typeLabels[t.type]}</span>
-                    <span className="text-muted-foreground">{t.count} รายการ · ฿{(t.value / 1e6).toFixed(2)}M</span>
-                  </div>
-                  <div className="h-2 bg-muted rounded-full overflow-hidden">
-                    <div className="h-full bg-accent rounded-full" style={{ width: `${Math.max(pct, 3)}%` }} />
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* Workload by Dept */}
         <div className="rounded-lg border bg-card p-5">
           <h3 className="text-sm font-semibold text-foreground mb-4">ภาระงานตามแผนก</h3>
           <div className="space-y-3">
@@ -87,25 +55,24 @@ export default function AnalyticsPage() {
             ))}
           </div>
         </div>
-      </div>
 
-      {/* Account Status */}
-      <div className="rounded-lg border bg-card p-5">
-        <h3 className="text-sm font-semibold text-foreground mb-4">สถานะลูกค้า</h3>
-        <div className="grid gap-4 sm:grid-cols-3">
-          {[
-            { label: 'ลูกค้าปัจจุบัน', value: customers, color: 'bg-green-500' },
-            { label: 'ผู้มุ่งหวัง', value: prospects, color: 'bg-accent' },
-            { label: 'ไม่เคลื่อนไหว', value: mockAccounts.filter(a => a.customerStatus === 'DORMANT').length, color: 'bg-muted-foreground' },
-          ].map(s => (
-            <div key={s.label} className="rounded-md border p-4 flex items-center gap-4">
-              <div className={`h-3 w-3 rounded-full ${s.color}`} />
-              <div>
-                <p className="text-2xl font-bold text-foreground">{s.value}</p>
-                <p className="text-xs text-muted-foreground">{s.label}</p>
+        <div className="rounded-lg border bg-card p-5">
+          <h3 className="text-sm font-semibold text-foreground mb-4">สถานะลูกค้า</h3>
+          <div className="space-y-4">
+            {[
+              { label: 'ลูกค้าปัจจุบัน', value: customers, color: 'bg-green-500' },
+              { label: 'ผู้มุ่งหวัง', value: prospects, color: 'bg-accent' },
+              { label: 'ไม่เคลื่อนไหว', value: mockAccounts.filter(a => a.customer_status === 'DORMANT').length, color: 'bg-muted-foreground' },
+            ].map(s => (
+              <div key={s.label} className="rounded-md border p-4 flex items-center gap-4">
+                <div className={`h-3 w-3 rounded-full ${s.color}`} />
+                <div>
+                  <p className="text-2xl font-bold text-foreground">{s.value}</p>
+                  <p className="text-xs text-muted-foreground">{s.label}</p>
+                </div>
               </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
       </div>
     </div>

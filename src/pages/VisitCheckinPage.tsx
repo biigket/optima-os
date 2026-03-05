@@ -21,7 +21,7 @@ export default function VisitCheckinPage() {
 
       <div className="space-y-3">
         {mockCheckins.map(ci => {
-          const account = mockAccounts.find(a => a.accountId === ci.accountId);
+          const account = mockAccounts.find(a => a.id === ci.accountId);
           return (
             <div key={ci.id} className="rounded-lg border bg-card p-4 flex items-start gap-4 hover:shadow-sm transition-shadow">
               <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-accent/10 text-accent shrink-0">
@@ -30,7 +30,7 @@ export default function VisitCheckinPage() {
               <div className="flex-1 min-w-0 space-y-1">
                 <div className="flex items-center gap-2">
                   <Building2 size={14} className="text-muted-foreground" />
-                  <p className="text-sm font-semibold text-foreground">{account?.clinicName}</p>
+                  <p className="text-sm font-semibold text-foreground">{account?.clinic_name}</p>
                 </div>
                 <p className="text-sm text-muted-foreground">{ci.note}</p>
                 <div className="flex items-center gap-1.5 text-xs text-muted-foreground">

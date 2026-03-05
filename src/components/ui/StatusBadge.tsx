@@ -1,7 +1,7 @@
 import { cn } from '@/lib/utils';
-import type { WorkItemStatus, Priority, CustomerStatus, OpportunityStage, ShippingStatus, PaymentStatus, ApprovalStatus } from '@/types';
+import type { CustomerStatus, OpportunityStage, PaymentStatus, ApprovalStatus } from '@/types';
 
-type BadgeType = WorkItemStatus | Priority | CustomerStatus | OpportunityStage | ShippingStatus | PaymentStatus | ApprovalStatus | string;
+type BadgeType = CustomerStatus | OpportunityStage | PaymentStatus | ApprovalStatus | string;
 
 const colorMap: Record<string, string> = {
   // Status
@@ -16,15 +16,18 @@ const colorMap: Record<string, string> = {
   HIGH: 'bg-warning/15 text-warning',
   URGENT: 'bg-destructive/15 text-destructive',
   // Customer
-  PROSPECT: 'bg-accent/15 text-accent',
-  CUSTOMER: 'bg-success/15 text-success',
+  NEW_LEAD: 'bg-accent/15 text-accent',
+  PURCHASED: 'bg-success/15 text-success',
   DORMANT: 'bg-muted text-muted-foreground',
+  CLOSED: 'bg-muted text-muted-foreground',
   // Opp stages
-  NEW: 'bg-accent/15 text-accent',
   CONTACTED: 'bg-accent/15 text-accent',
   DEMO_SCHEDULED: 'bg-warning/15 text-warning',
   DEMO_DONE: 'bg-warning/15 text-warning',
   NEGOTIATION: 'bg-warning/15 text-warning',
+  FOLLOW_UP: 'bg-warning/15 text-warning',
+  WAITING_APPROVAL: 'bg-warning/15 text-warning',
+  COMPARING: 'bg-warning/15 text-warning',
   WON: 'bg-success/15 text-success',
   LOST: 'bg-destructive/15 text-destructive',
   // Shipping
@@ -43,6 +46,11 @@ const colorMap: Record<string, string> = {
   // Inventory
   AVAILABLE: 'bg-success/15 text-success',
   OUT: 'bg-destructive/15 text-destructive',
+  // Visit
+  NEW: 'bg-accent/15 text-accent',
+  VISIT_FORM: 'bg-accent/15 text-accent',
+  REPORT: 'bg-success/15 text-success',
+  WEEKLY_PLAN: 'bg-warning/15 text-warning',
 };
 
 export default function StatusBadge({ status, className }: { status: BadgeType; className?: string }) {
