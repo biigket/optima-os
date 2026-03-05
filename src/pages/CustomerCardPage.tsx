@@ -200,6 +200,9 @@ export default function CustomerCardPage() {
           <ActionBtn icon={MessageCircle} label="LINE" />
           <ActionBtn icon={StickyNote} label="เพิ่มโน้ต" />
           <ActionBtn icon={CalendarPlus} label="นัดเยี่ยม" />
+          <Button variant="outline" size="sm" className="gap-1.5 text-xs shrink-0 h-8" onClick={() => navigate(`/opportunities?create=${account.id}`)}>
+            <Handshake size={13} /> สร้างโอกาสขาย
+          </Button>
           <ActionBtn icon={ListPlus} label="สร้างงาน" />
         </div>
       </div>
