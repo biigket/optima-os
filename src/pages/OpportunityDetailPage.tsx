@@ -370,38 +370,54 @@ export default function OpportunityDetailPage() {
                   {stakeholdersOpen ? <ChevronUp size={14} className="text-muted-foreground" /> : <ChevronDown size={14} className="text-muted-foreground" />}
                 </button>
               </CollapsibleTrigger>
-              <CollapsibleContent className="mt-3 space-y-2">
-                {contacts.map(c => (
-                  <div key={c.id} className="flex items-center gap-2 p-2 rounded-lg bg-muted/30">
-                    <div className="w-7 h-7 rounded-full bg-primary/10 text-primary flex items-center justify-center text-xs font-bold">
-                      {c.name.charAt(0)}
+              <CollapsibleContent className="mt-3 space-y-2.5">
+                {contacts.map(c => {
+                  const isAuthority = opp.authority_contact_id === c.id;
+                  return (
+                    <div key={c.id} className={`rounded-lg border p-3 transition-colors ${isAuthority ? 'border-primary/40 bg-primary/5' : 'border-border/50 bg-muted/20'}`}>
+                      {editingContactId === c.id ? (
+                        <div className="space-y-2">
+                          <div className="flex items-center gap-2">
+                            <div className="w-8 h-8 rounded-full bg-primary/10 text-primary flex items-center justify-center text-xs font-bold shrink-0">
+                              {c.name.charAt(0)}
+                            </div>
+                            <div className="flex-1 space-y-1.5">
+                              <Input value={editContactForm.name} onChange={e => setEditContactForm(f => ({ ...f, name: e.target.value }))} className="h-7 text-xs" placeholder="ชื่อ" />
+                              <Input value={editContactForm.role} onChange={e => setEditContactForm(f => ({ ...f, role: e.target.value }))} className="h-7 text-xs" placeholder="ตำแหน่ง" />
+                            </div>
+                          </div>
+                          <div className="flex gap-1.5 justify-end">
+                            <Button variant="ghost" size="sm" className="h-6 text-[10px] px-2" onClick={() => setEditingContactId(null)}>ยกเลิก</Button>
+                            <Button size="sm" className="h-6 text-[10px] px-2 gap-1" onClick={() => handleEditContact(c.id)}><Check size={10} /> บันทึก</Button>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="flex items-start gap-2.5">
+                          <div className="w-8 h-8 rounded-full bg-primary/10 text-primary flex items-center justify-center text-xs font-bold shrink-0 mt-0.5">
+                            {c.name.charAt(0)}
+                          </div>
+                          <div className="min-w-0 flex-1">
+                            <div className="flex items-center gap-1.5">
+                              <p className="text-xs font-semibold text-foreground truncate">{c.name}</p>
+                              {isAuthority && (
+                                <span className="shrink-0 inline-flex items-center gap-0.5 text-[9px] font-bold text-primary bg-primary/10 rounded-full px-1.5 py-0.5">
+                                  ⭐ ผู้ตัดสินใจ
+                                </span>
+                              )}
+                            </div>
+                            <p className="text-[11px] text-muted-foreground mt-0.5">{c.role || '-'}</p>
+                            {c.phone && <p className="text-[11px] text-muted-foreground mt-0.5">📞 {c.phone}</p>}
+                          </div>
+                          <div className="flex items-center gap-0.5 shrink-0">
+                            <button onClick={() => { setEditingContactId(c.id); setEditContactForm({ name: c.name, role: c.role || '' }); }} className="p-1 rounded hover:bg-muted text-muted-foreground"><Pencil size={12} /></button>
+                            <button onClick={() => handleDeleteContact(c.id)} className="p-1 rounded hover:bg-destructive/10 text-muted-foreground hover:text-destructive"><Trash2 size={12} /></button>
+                          </div>
+                        </div>
+                      )}
                     </div>
-                    {editingContactId === c.id ? (
-                      <div className="flex-1 space-y-1">
-                        <Input value={editContactForm.name} onChange={e => setEditContactForm(f => ({ ...f, name: e.target.value }))} className="h-6 text-xs" placeholder="ชื่อ" />
-                        <Input value={editContactForm.role} onChange={e => setEditContactForm(f => ({ ...f, role: e.target.value }))} className="h-6 text-xs" placeholder="ตำแหน่ง" />
-                        <div className="flex gap-1">
-                          <Button size="sm" className="h-5 text-[10px] px-2" onClick={() => handleEditContact(c.id)}><Check size={10} /> บันทึก</Button>
-                          <Button variant="ghost" size="sm" className="h-5 text-[10px] px-2" onClick={() => setEditingContactId(null)}>ยกเลิก</Button>
-                        </div>
-                      </div>
-                    ) : (
-                      <>
-                        <div className="min-w-0 flex-1">
-                          <p className="text-xs font-medium text-foreground truncate">
-                            {c.name}
-                            {opp.authority_contact_id === c.id && <span className="ml-1 text-[9px] text-primary font-bold">⭐ ผู้ตัดสินใจ</span>}
-                          </p>
-                          <p className="text-[10px] text-muted-foreground">{c.role || '-'}</p>
-                        </div>
-                        {c.phone && <span className="text-[10px] text-muted-foreground">{c.phone}</span>}
-                        <button onClick={() => { setEditingContactId(c.id); setEditContactForm({ name: c.name, role: c.role || '' }); }} className="p-1 rounded hover:bg-muted text-muted-foreground"><Pencil size={11} /></button>
-                        <button onClick={() => handleDeleteContact(c.id)} className="p-1 rounded hover:bg-destructive/10 text-muted-foreground hover:text-destructive"><Trash2 size={11} /></button>
-                      </>
-                    )}
-                  </div>
-                ))}
-                {contacts.length === 0 && <p className="text-xs text-muted-foreground py-2 text-center">ไม่มีผู้ติดต่อ</p>}
+                  );
+                })}
+                {contacts.length === 0 && <p className="text-xs text-muted-foreground py-3 text-center">ไม่มีผู้ติดต่อ</p>}
                 <Button variant="outline" size="sm" className="w-full text-xs gap-1 h-7 mt-1" onClick={() => setAddContactOpen(true)}>
                   <Plus size={12} /> เพิ่มผู้ติดต่อ
                 </Button>
