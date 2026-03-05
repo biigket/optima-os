@@ -140,11 +140,12 @@ export default function HistoryTimeline({ activities, stageHistory, notes, onUpd
   );
 }
 
-function ActivityItem({ data, clinicName, isPinned, onDelete, onPin, onUpdate, onAddComment }: {
+function ActivityItem({ data, clinicName, isPinned, onDelete, onPin, onUpdate, onAddComment, comments = [] }: {
   data: Activity; clinicName?: string; isPinned?: boolean;
   onDelete?: (id: string) => void; onPin?: (id: string) => void;
   onUpdate?: (activity: Activity) => void;
   onAddComment?: (parentId: string, comment: string) => void;
+  comments?: OpportunityNote[];
 }) {
   const Icon = TYPE_ICONS[data.activity_type] || Building2;
   const colors = TYPE_COLORS[data.activity_type] || TYPE_COLORS.TASK;
@@ -254,6 +255,21 @@ function ActivityItem({ data, clinicName, isPinned, onDelete, onPin, onUpdate, o
             </Button>
           </div>
         )}
+
+        {/* Nested comments */}
+        {comments.length > 0 && (
+          <div className="mt-1.5 space-y-1">
+            {comments.map(c => (
+              <div key={c.id} className="ml-3 flex gap-1 text-[10px] text-muted-foreground">
+                <span className="shrink-0">↳</span>
+                <div>
+                  <p className="text-foreground/90">{c.content}</p>
+                  <p className="opacity-70">{c.created_by} · {new Date(c.created_at).toLocaleDateString('th-TH', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );
@@ -276,13 +292,14 @@ function StageItem({ data }: { data: { from: string; to: string; date: string } 
   );
 }
 
-function NoteItem({ data, isPinned, onUpdate, onDelete, onPin, onAddComment }: {
+function NoteItem({ data, isPinned, onUpdate, onDelete, onPin, onAddComment, comments = [] }: {
   data: OpportunityNote;
   isPinned?: boolean;
   onUpdate?: (id: string, content: string) => void;
   onDelete?: (id: string) => void;
   onPin?: (id: string) => void;
   onAddComment?: (parentId: string, comment: string) => void;
+  comments?: OpportunityNote[];
 }) {
   const [editing, setEditing] = useState(false);
   const [editContent, setEditContent] = useState(data.content);
