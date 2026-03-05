@@ -1,21 +1,22 @@
+import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { ScrollArea } from '@/components/ui/scroll-area';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import StatusBadge from '@/components/ui/StatusBadge';
 import CustomerLeftSidebar from '@/components/customer-card/CustomerLeftSidebar';
 import CustomerCenterPanel from '@/components/customer-card/CustomerCenterPanel';
 import CustomerRightPanel from '@/components/customer-card/CustomerRightPanel';
+import { useIsMobile } from '@/hooks/use-mobile';
 import {
   ArrowLeft, Phone, MessageCircle, StickyNote, CalendarPlus, ListPlus,
-  DollarSign, Monitor, Handshake, MapPin
+  DollarSign, Monitor, Handshake, MapPin, Building2, BarChart3, Activity
 } from 'lucide-react';
 import {
   getLifetimeRevenue, getDevicesForAccount, getVisitsForAccount
 } from '@/data/customerCardMockData';
-import { mockOpportunities, mockContacts, mockAccounts } from '@/data/mockData';
+import { mockOpportunities } from '@/data/mockData';
 
-// Use the LeadsPage mock data format — re-import local accounts
 const localAccounts = [
   { id: '1', clinic_name: 'Clarity Clinic', company_name: 'Clarity Co., Ltd.', address: 'สุขุมวิท 39, กรุงเทพฯ', phone: '02-123-4567', email: 'info@clarity.co.th', customer_status: 'DEMO_SCHEDULED', assigned_sale: 'FORD', grade: 'A' },
   { id: '2', clinic_name: 'Aura Med Spa', company_name: 'Aura Group', address: 'นิมมานเหมินทร์, เชียงใหม่', phone: '053-222-333', email: 'hello@aura.co.th', customer_status: 'PURCHASED', assigned_sale: 'VARN', grade: 'A' },
@@ -50,6 +51,8 @@ function formatCurrency(val?: number) {
 export default function CustomerCardPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const isMobile = useIsMobile();
+  const [activeSection, setActiveSection] = useState('activity');
 
   const account = localAccounts.find(a => a.id === id);
   if (!account) {
@@ -66,7 +69,6 @@ export default function CustomerCardPage() {
   const contacts = localContacts.filter(c => c.account_id === account.id);
   const primaryContact = contacts[0];
   const opportunities = mockOpportunities.filter(o => o.account_id === account.id);
-
   const revenue = getLifetimeRevenue(account.id);
   const devices = getDevicesForAccount(account.id);
   const visits = getVisitsForAccount(account.id);
@@ -74,22 +76,22 @@ export default function CustomerCardPage() {
   const lastVisit = visits.length > 0 ? visits[0].date : '-';
 
   return (
-    <div className="space-y-4 animate-fade-in">
+    <div className="animate-fade-in max-w-[1400px] mx-auto">
       {/* Back button */}
-      <Button variant="ghost" size="sm" onClick={() => navigate('/leads')} className="gap-1 text-muted-foreground hover:text-foreground -ml-2">
+      <Button variant="ghost" size="sm" onClick={() => navigate('/leads')} className="gap-1 text-muted-foreground hover:text-foreground mb-3 -ml-2">
         <ArrowLeft size={16} /> กลับ
       </Button>
 
-      {/* Top Header */}
-      <div className="rounded-xl border bg-card p-5 shadow-sm">
-        <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
-          {/* Left: Identity */}
-          <div className="space-y-2">
-            <div className="flex items-center gap-3">
-              <h1 className="text-xl font-bold text-foreground">{account.clinic_name}</h1>
+      {/* ===== TOP HEADER ===== */}
+      <div className="rounded-xl border bg-card p-4 md:p-6 shadow-sm mb-4">
+        {/* Row 1: Name + Stats */}
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+          <div className="space-y-2 min-w-0">
+            <div className="flex items-center gap-2 flex-wrap">
+              <h1 className="text-lg md:text-xl font-bold text-foreground">{account.clinic_name}</h1>
               <StatusBadge status={account.customer_status} />
             </div>
-            <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted-foreground">
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs md:text-sm text-muted-foreground">
               {primaryContact && <span>👨‍⚕️ {primaryContact.name} ({primaryContact.role})</span>}
               <span>📍 {account.address}</span>
               <span>🧑‍💼 {account.assigned_sale}</span>
@@ -100,8 +102,8 @@ export default function CustomerCardPage() {
             </div>
           </div>
 
-          {/* Right: Quick Stats */}
-          <div className="flex flex-wrap gap-4">
+          {/* Quick Stats - horizontal scroll on mobile */}
+          <div className="flex gap-3 overflow-x-auto pb-1 -mx-1 px-1 shrink-0">
             <QuickStat icon={DollarSign} label="รายได้รวม" value={formatCurrency(revenue)} />
             <QuickStat icon={Monitor} label="เครื่อง" value={`${devices.length}`} />
             <QuickStat icon={Handshake} label="ดีลเปิด" value={`${activeDeals}`} />
@@ -109,45 +111,73 @@ export default function CustomerCardPage() {
           </div>
         </div>
 
-        {/* Action Buttons */}
-        <div className="flex flex-wrap gap-2 mt-4 pt-4 border-t border-border">
-          <Button variant="outline" size="sm" className="gap-1.5 text-xs"><Phone size={13} /> โทร</Button>
-          <Button variant="outline" size="sm" className="gap-1.5 text-xs"><MessageCircle size={13} /> LINE</Button>
-          <Button variant="outline" size="sm" className="gap-1.5 text-xs"><StickyNote size={13} /> เพิ่มโน้ต</Button>
-          <Button variant="outline" size="sm" className="gap-1.5 text-xs"><CalendarPlus size={13} /> นัดเยี่ยม</Button>
-          <Button variant="outline" size="sm" className="gap-1.5 text-xs"><ListPlus size={13} /> สร้างงาน</Button>
+        {/* Action Buttons - scrollable on mobile */}
+        <div className="flex gap-2 mt-4 pt-3 border-t border-border overflow-x-auto pb-1">
+          <ActionBtn icon={Phone} label="โทร" />
+          <ActionBtn icon={MessageCircle} label="LINE" />
+          <ActionBtn icon={StickyNote} label="เพิ่มโน้ต" />
+          <ActionBtn icon={CalendarPlus} label="นัดเยี่ยม" />
+          <ActionBtn icon={ListPlus} label="สร้างงาน" />
         </div>
       </div>
 
-      {/* 3-Column Layout */}
-      <div className="grid grid-cols-1 lg:grid-cols-[280px_1fr_320px] gap-4">
-        {/* Left */}
-        <div className="order-2 lg:order-1">
-          <CustomerLeftSidebar account={account} contacts={contacts} />
-        </div>
+      {/* ===== MOBILE: Section Switcher ===== */}
+      {isMobile ? (
+        <div className="space-y-4">
+          <Tabs value={activeSection} onValueChange={setActiveSection}>
+            <TabsList className="w-full grid grid-cols-3 h-10">
+              <TabsTrigger value="info" className="text-xs gap-1"><Building2 size={13} /> ข้อมูล</TabsTrigger>
+              <TabsTrigger value="activity" className="text-xs gap-1"><Activity size={13} /> กิจกรรม</TabsTrigger>
+              <TabsTrigger value="assets" className="text-xs gap-1"><BarChart3 size={13} /> สินทรัพย์</TabsTrigger>
+            </TabsList>
 
-        {/* Center */}
-        <div className="order-1 lg:order-2 min-w-0">
-          <CustomerCenterPanel accountId={account.id} opportunities={opportunities} />
+            <TabsContent value="info" className="mt-3">
+              <CustomerLeftSidebar account={account} contacts={contacts} />
+            </TabsContent>
+            <TabsContent value="activity" className="mt-3">
+              <CustomerCenterPanel accountId={account.id} opportunities={opportunities} />
+            </TabsContent>
+            <TabsContent value="assets" className="mt-3">
+              <CustomerRightPanel accountId={account.id} />
+            </TabsContent>
+          </Tabs>
         </div>
-
-        {/* Right */}
-        <div className="order-3">
-          <CustomerRightPanel accountId={account.id} />
+      ) : (
+        /* ===== DESKTOP: 3-Column Grid ===== */
+        <div className="grid grid-cols-[260px_1fr_300px] gap-4 xl:grid-cols-[280px_1fr_320px] xl:gap-5">
+          <div>
+            <CustomerLeftSidebar account={account} contacts={contacts} />
+          </div>
+          <div className="min-w-0">
+            <CustomerCenterPanel accountId={account.id} opportunities={opportunities} />
+          </div>
+          <div>
+            <CustomerRightPanel accountId={account.id} />
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }
 
 function QuickStat({ icon: Icon, label, value }: { icon: React.ElementType; label: string; value: string }) {
   return (
-    <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-muted/50">
-      <Icon size={16} className="text-muted-foreground" />
+    <div className="flex items-center gap-2.5 px-3 py-2 rounded-lg bg-muted/60 whitespace-nowrap shrink-0">
+      <div className="w-8 h-8 rounded-md bg-primary/10 flex items-center justify-center shrink-0">
+        <Icon size={15} className="text-primary" />
+      </div>
       <div>
-        <p className="text-xs text-muted-foreground">{label}</p>
-        <p className="text-sm font-semibold text-foreground">{value}</p>
+        <p className="text-[11px] text-muted-foreground leading-tight">{label}</p>
+        <p className="text-sm font-semibold text-foreground leading-tight">{value}</p>
       </div>
     </div>
+  );
+}
+
+function ActionBtn({ icon: Icon, label }: { icon: React.ElementType; label: string }) {
+  return (
+    <Button variant="outline" size="sm" className="gap-1.5 text-xs shrink-0 h-8">
+      <Icon size={13} /> {label}
+    </Button>
   );
 }
