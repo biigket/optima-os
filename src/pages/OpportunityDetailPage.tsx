@@ -506,7 +506,14 @@ export default function OpportunityDetailPage() {
           />
 
           {/* Calendar Panel */}
-          <CalendarPanel activities={activities} />
+          <CalendarPanel
+            activities={activities}
+            selectedDate={selectedDate}
+            onDateChange={setSelectedDate}
+            activeActivityId={activeActivityId}
+            onActivityClick={handleCalendarActivityClick}
+            previewOverrides={formPreview}
+          />
         </div>
       </div>
 
