@@ -1,11 +1,19 @@
 import { useState } from 'react';
-import { Phone, Users, Building2, Target, FileText, ArrowRight, CheckCircle2 } from 'lucide-react';
+import { Phone, Users, Building2, Target, FileText, ArrowRight, CheckCircle2, Pin, MoreHorizontal, MessageSquare, Pencil, Trash2, X, Check } from 'lucide-react';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Textarea } from '@/components/ui/textarea';
+import { Button } from '@/components/ui/button';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import type { Activity } from '@/types';
 import type { OpportunityNote } from '@/pages/OpportunitiesPage';
 
 const TYPE_ICONS: Record<string, React.ElementType> = {
   CALL: Phone, MEETING: Users, TASK: Building2, DEADLINE: Target,
+};
+
+const TYPE_COLORS: Record<string, string> = {
+  CALL: 'text-blue-600 bg-blue-50', MEETING: 'text-violet-600 bg-violet-50',
+  TASK: 'text-emerald-600 bg-emerald-50', DEADLINE: 'text-red-600 bg-red-50',
 };
 
 interface StageChange {
@@ -23,6 +31,10 @@ interface HistoryTimelineProps {
   activities: Activity[];
   stageHistory: StageChange[];
   notes: OpportunityNote[];
+  onUpdateNote?: (id: string, content: string) => void;
+  onDeleteNote?: (id: string) => void;
+  onPinNote?: (id: string) => void;
+  clinicName?: string;
 }
 
 type TimelineItem = {
@@ -31,12 +43,11 @@ type TimelineItem = {
   data: any;
 };
 
-export default function HistoryTimeline({ activities, stageHistory, notes }: HistoryTimelineProps) {
+export default function HistoryTimeline({ activities, stageHistory, notes, onUpdateNote, onDeleteNote, onPinNote, clinicName }: HistoryTimelineProps) {
   const [filter, setFilter] = useState('all');
 
   const doneActivities = activities.filter(a => a.is_done);
 
-  // Build unified timeline
   const items: TimelineItem[] = [];
 
   if (filter === 'all' || filter === 'activities') {
@@ -69,15 +80,20 @@ export default function HistoryTimeline({ activities, stageHistory, notes }: His
         <p className="text-xs text-muted-foreground text-center py-6">ยังไม่มีประวัติ</p>
       ) : (
         <div className="relative pl-6 space-y-3">
-          {/* Dashed line */}
           <div className="absolute left-[9px] top-2 bottom-2 w-px border-l border-dashed border-border" />
 
           {items.map((item, idx) => (
             <div key={idx} className="relative">
-              {/* Timeline dot */}
-              {item.type === 'activity' && <ActivityItem data={item.data} />}
+              {item.type === 'activity' && <ActivityItem data={item.data} clinicName={clinicName} />}
               {item.type === 'stage' && <StageItem data={item.data} />}
-              {item.type === 'note' && <NoteItem data={item.data} />}
+              {item.type === 'note' && (
+                <NoteItem
+                  data={item.data}
+                  onUpdate={onUpdateNote}
+                  onDelete={onDeleteNote}
+                  onPin={onPinNote}
+                />
+              )}
             </div>
           ))}
         </div>
@@ -86,22 +102,31 @@ export default function HistoryTimeline({ activities, stageHistory, notes }: His
   );
 }
 
-function ActivityItem({ data }: { data: Activity }) {
+function ActivityItem({ data, clinicName }: { data: Activity; clinicName?: string }) {
   const Icon = TYPE_ICONS[data.activity_type] || Building2;
+  const colors = TYPE_COLORS[data.activity_type] || TYPE_COLORS.TASK;
   return (
     <div className="flex items-start gap-2">
-      <div className="absolute -left-6 w-[18px] h-[18px] rounded-full bg-primary/10 text-primary flex items-center justify-center mt-0.5">
+      <div className={`absolute -left-6 w-[18px] h-[18px] rounded-full ${colors} flex items-center justify-center mt-0.5`}>
         <Icon size={10} />
       </div>
       <div className="flex-1 min-w-0">
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
           <span className="text-xs font-medium text-foreground">{data.title}</span>
           <CheckCircle2 size={11} className="text-emerald-500 shrink-0" />
+          {data.priority === 'HIGH' && (
+            <span className="px-1.5 py-0.5 rounded text-[9px] font-semibold bg-red-100 text-red-700 dark:bg-red-900/50 dark:text-red-400">HIGH</span>
+          )}
         </div>
         <p className="text-[10px] text-muted-foreground">
           {data.activity_date}{data.start_time ? ` ${data.start_time}` : ''} · {data.activity_type}
         </p>
-        {data.notes && <p className="text-[10px] text-muted-foreground mt-1 bg-amber-50 dark:bg-amber-950/30 rounded px-2 py-1">{data.notes}</p>}
+        {clinicName && (
+          <p className="text-[10px] text-muted-foreground">{clinicName}</p>
+        )}
+        {data.notes && (
+          <p className="text-[10px] text-muted-foreground mt-1 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded px-2 py-1">{data.notes}</p>
+        )}
       </div>
     </div>
   );
@@ -125,16 +150,104 @@ function StageItem({ data }: { data: { from: string; to: string; date: string } 
   );
 }
 
-function NoteItem({ data }: { data: OpportunityNote }) {
+function NoteItem({ data, onUpdate, onDelete, onPin }: {
+  data: OpportunityNote;
+  onUpdate?: (id: string, content: string) => void;
+  onDelete?: (id: string) => void;
+  onPin?: (id: string) => void;
+}) {
+  const [editing, setEditing] = useState(false);
+  const [editContent, setEditContent] = useState(data.content);
+  const [showComment, setShowComment] = useState(false);
+  const [comment, setComment] = useState('');
+
+  const handleSaveEdit = () => {
+    if (!editContent.trim()) return;
+    onUpdate?.(data.id, editContent.trim());
+    setEditing(false);
+  };
+
   return (
     <div className="flex items-start gap-2">
       <div className="absolute -left-6 w-[18px] h-[18px] rounded-full bg-amber-100 text-amber-700 dark:bg-amber-900/50 flex items-center justify-center mt-0.5">
         <FileText size={10} />
       </div>
       <div className="flex-1">
-        <div className="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-lg p-2.5">
-          <p className="text-xs text-foreground">{data.content}</p>
+        <div className="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-lg p-2.5 group relative">
+          {/* Action buttons - top right */}
+          <div className="absolute top-1.5 right-1.5 flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+            <button
+              onClick={() => onPin?.(data.id)}
+              className="p-1 rounded hover:bg-amber-200/50 text-amber-700 dark:text-amber-400"
+              title="Pin this note"
+            >
+              <Pin size={11} />
+            </button>
+            <button
+              onClick={() => setShowComment(!showComment)}
+              className="p-1 rounded hover:bg-amber-200/50 text-amber-700 dark:text-amber-400"
+              title="Add a comment"
+            >
+              <MessageSquare size={11} />
+            </button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button className="p-1 rounded hover:bg-amber-200/50 text-amber-700 dark:text-amber-400">
+                  <MoreHorizontal size={11} />
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="text-xs min-w-[120px]">
+                <DropdownMenuItem onClick={() => { setEditing(true); setEditContent(data.content); }}>
+                  <Pencil size={11} className="mr-1.5" /> Edit
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => onPin?.(data.id)}>
+                  <Pin size={11} className="mr-1.5" /> Pin this note
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => onDelete?.(data.id)} className="text-destructive">
+                  <Trash2 size={11} className="mr-1.5" /> Delete
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+
+          {editing ? (
+            <div className="space-y-2">
+              <Textarea
+                value={editContent}
+                onChange={e => setEditContent(e.target.value)}
+                className="text-xs min-h-[40px] bg-transparent border-amber-300 dark:border-amber-700"
+                autoFocus
+              />
+              <div className="flex justify-end gap-1">
+                <Button variant="ghost" size="sm" className="h-6 text-[10px] px-2" onClick={() => setEditing(false)}>
+                  <X size={10} className="mr-0.5" /> Cancel
+                </Button>
+                <Button size="sm" className="h-6 text-[10px] px-2" onClick={handleSaveEdit}>
+                  <Check size={10} className="mr-0.5" /> Save
+                </Button>
+              </div>
+            </div>
+          ) : (
+            <p className="text-xs text-foreground pr-16">{data.content}</p>
+          )}
         </div>
+
+        {/* Comment input */}
+        {showComment && (
+          <div className="mt-1.5 ml-4 flex gap-1.5">
+            <input
+              value={comment}
+              onChange={e => setComment(e.target.value)}
+              placeholder="Add a comment..."
+              className="flex-1 text-[10px] h-6 px-2 rounded border border-border bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring"
+              autoFocus
+            />
+            <Button size="sm" className="h-6 text-[10px] px-2" onClick={() => { setComment(''); setShowComment(false); }}>
+              Post
+            </Button>
+          </div>
+        )}
+
         <p className="text-[10px] text-muted-foreground mt-1">
           {data.created_by} · {new Date(data.created_at).toLocaleDateString('th-TH', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
         </p>

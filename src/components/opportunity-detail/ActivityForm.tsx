@@ -4,7 +4,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Phone, Users, Building2, Target, Plus, ChevronDown, ChevronUp } from 'lucide-react';
+import { Phone, Users, Building2, Target, ChevronDown, ChevronUp } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import type { Activity, ActivityType, ActivityPriority } from '@/types';
@@ -23,7 +23,6 @@ interface ActivityFormProps {
 }
 
 export default function ActivityForm({ opportunityId, accountId, onActivityCreated }: ActivityFormProps) {
-  const [open, setOpen] = useState(false);
   const [selectedType, setSelectedType] = useState<ActivityType>('CALL');
   const [title, setTitle] = useState('');
   const [activityDate, setActivityDate] = useState(new Date().toISOString().split('T')[0]);
@@ -72,22 +71,11 @@ export default function ActivityForm({ opportunityId, accountId, onActivityCreat
     if (error) { toast.error('บันทึกไม่สำเร็จ'); console.error(error); return; }
     onActivityCreated(data as unknown as Activity);
     reset();
-    setOpen(false);
     toast.success('สร้างกิจกรรมแล้ว');
   };
 
-  if (!open) {
-    return (
-      <Button variant="outline" size="sm" className="gap-1.5 w-full" onClick={() => setOpen(true)}>
-        <Plus size={14} /> เพิ่มกิจกรรม
-      </Button>
-    );
-  }
-
   return (
-    <div className="rounded-xl border bg-card p-4 shadow-sm space-y-3">
-      <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">สร้างกิจกรรมใหม่</p>
-
+    <div className="space-y-3">
       {/* Type selector */}
       <div className="flex gap-1">
         {ACTIVITY_TYPES.map(at => {
@@ -174,7 +162,7 @@ export default function ActivityForm({ opportunityId, accountId, onActivityCreat
           Mark as done
         </label>
         <div className="flex gap-2">
-          <Button variant="ghost" size="sm" className="text-xs h-8" onClick={() => { reset(); setOpen(false); }}>ยกเลิก</Button>
+          <Button variant="ghost" size="sm" className="text-xs h-8" onClick={reset}>ยกเลิก</Button>
           <Button size="sm" className="text-xs h-8" onClick={handleSave} disabled={saving}>
             {saving ? 'กำลังบันทึก...' : 'บันทึก'}
           </Button>
