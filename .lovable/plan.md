@@ -1,43 +1,65 @@
+# Customer Card Interface Plan
 
+## Overview
 
-## แผน: Set up module ลูกค้า (Leads → ลูกค้า) เชื่อมฐานข้อมูลจริง
+Build a full-page **Customer Card** view as a new route `/leads/:id` that serves as the central dashboard for each customer. When a user clicks a row in the Leads table, they navigate to this card instead of opening the edit dialog.
 
-### สิ่งที่ต้องทำ
+## Files to Create/Modify
 
-#### 1. เปลี่ยนชื่อ "ลีด" → "ลูกค้า" ทั่วทั้งระบบ
-- Sidebar: เปลี่ยน label จาก "ลีด" เป็น "ลูกค้า" ใน `AppLayout.tsx`
-- หน้า LeadsPage: เปลี่ยนหัวข้อ, placeholder, ปุ่มทั้งหมดเป็น "ลูกค้า"
+### 1. Create `src/pages/CustomerCardPage.tsx` (main page)
 
-#### 2. เชื่อมข้อมูลจากฐานข้อมูลจริง (114 accounts)
-- เลิกใช้ `mockAccounts` / `mockContacts` → ใช้ Supabase query แทน
-- ใช้ `@tanstack/react-query` + `supabase` client ดึง accounts + contacts
-- แสดง loading state และ error state
+- Read account ID from URL params, find account from mock data
+- **Top Header**: clinic name, doctor name, location, sales owner, status badge, grade, potential score + right-side quick stats (Total Revenue, Machines Installed, Active Deals, Last Visit) + quick action buttons (Call, LINE, Add Note, Schedule Visit, Create Task)
+- **3-column layout** using CSS grid (`grid-cols-[280px_1fr_320px]`)
 
-#### 3. เพิ่มฟิลเตอร์สถานะ
-- เพิ่ม filter tabs/buttons สำหรับ `customer_status`: ทั้งหมด, NEW_LEAD, PURCHASED, DEMO_DONE, NEGOTIATION, DORMANT, CLOSED
-- ค้นหาได้ตาม clinic_name, company_name, address, assigned_sale
+### 2. Create `src/components/customer-card/CustomerLeftSidebar.tsx`
 
-#### 4. ทำปุ่ม "เพิ่มลูกค้าใหม่" ใช้งานได้
-- สร้าง Dialog/Sheet form สำหรับเพิ่มลูกค้าใหม่
-- ฟิลด์: clinic_name (จำเป็น), company_name, address, tax_id, entity_type, branch_type, phone, email, customer_status, assigned_sale, notes
-- Insert เข้า Supabase ผ่าน mutation → refresh list
+- Sections with collapsible cards:
+  - **Clinic Information**: name, address, province, phone, email, social links
+  - **Contact Persons**: list from mockContacts with role, phone, LINE
+  - **Internal Notes**: sales notes, strategy, preferences (editable textarea)
 
-#### 5. ทำ Card ลูกค้าคลิกดู/แก้ไขได้
-- คลิก Card → เปิด Dialog แสดงรายละเอียดลูกค้าครบทุกฟิลด์
-- สามารถแก้ไขข้อมูลได้ (inline edit) → Update ผ่าน Supabase
+### 3. Create `src/components/customer-card/CustomerCenterPanel.tsx`
 
-#### 6. แก้ RLS ให้ anon users เข้าถึงได้ (เนื่องจากเอา Auth ออก)
-- ปัจจุบัน RLS policies ใช้ `authenticated` role → ต้องเพิ่ม policy สำหรับ `anon` หรือเปลี่ยนเป็น `public` เพื่อให้ใช้งานได้โดยไม่ต้อง login
+- Tabs: Overview | Timeline | Deals | Visits | Reports | Tasks
+- **Overview**: summary KPI cards (Last Visit, Next Action, Active Deals, Total Revenue, Machines, Last Order)
+- **Timeline**: chronological activity feed from mockActivityLogs (icon + date + user + description)
+- **Deals**: table of opportunities linked to this account from mockOpportunities
+- **Visits**: mock visit records with date, salesperson, purpose, summary
+- **Reports**: mock doctor feedback, competitor mentions, objections
+- **Tasks**: mock tasks linked to this customer from mockWorkItems
 
-### ไฟล์ที่แก้ไข
-| ไฟล์ | การเปลี่ยนแปลง |
-|------|---------------|
-| `src/pages/LeadsPage.tsx` | Rewrite ทั้งหน้า: ดึง DB, ฟิลเตอร์, เพิ่ม/แก้ไขลูกค้า |
-| `src/components/layout/AppLayout.tsx` | เปลี่ยน "ลีด" → "ลูกค้า" |
-| `supabase/migrations/` | เพิ่ม RLS policy สำหรับ anon access |
+### 4. Create `src/components/customer-card/CustomerRightPanel.tsx`
 
-### หมายเหตุทางเทคนิค
-- ข้อมูลในฐานข้อมูลมี 114 accounts จริง มีสถานะ NEW_LEAD และ PURCHASED
-- ใช้ `useQuery` สำหรับ fetch, `useMutation` สำหรับ insert/update พร้อม `invalidateQueries`
-- Form validation ใช้ required fields ตรง `clinic_name` เป็นหลัก
+- Tabs: Devices | Consumables | Service | Purchases | Documents | Marketing
+- **Devices**: mock installed machines (name, serial, install date, warranty)
+- **Consumables**: cartridge usage mock data
+- **Service**: PM visits, repairs mock data
+- **Purchases**: purchase history with total lifetime revenue
+- **Documents**: file list (contract, quotation, invoice) — display only
+- **Marketing**: campaign participation mock data
 
+### 5. Create `src/data/customerCardMockData.ts`
+
+- Additional mock data for the Customer Card: installed devices, consumable usage, service history, visit records, purchase history, documents, marketing campaigns — all linked by account_id
+
+### 6. Modify `src/App.tsx`
+
+- Add route: `<Route path="/leads/:id" element={<CustomerCardPage />} />`
+
+### 7. Modify `src/pages/LeadsPage.tsx`
+
+- Change table row click from `openEdit(account)` to `navigate(/leads/${account.id})`
+- Keep the edit dialog available via an "Edit" button on the Customer Card
+
+## Design Approach
+
+- White background, rounded cards with subtle shadows (`shadow-sm`)
+- Use existing shadcn components: Card, Tabs, Badge, Table, Button, ScrollArea
+- Icons from lucide-react for each section and tab
+- Responsive: on smaller screens, stack columns vertically
+- Back button to return to `/leads`
+
+## Mock Data Strategy
+
+All data is local mock — no database queries. Each panel references mock arrays filtered by `account_id`.
