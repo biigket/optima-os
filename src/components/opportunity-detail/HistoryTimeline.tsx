@@ -35,6 +35,7 @@ interface HistoryTimelineProps {
   onDeleteNote?: (id: string) => void;
   onPinNote?: (id: string) => void;
   onDeleteActivity?: (id: string) => void;
+  onUpdateActivity?: (activity: Activity) => void;
   onAddComment?: (parentId: string, comment: string) => void;
   pinnedIds?: Set<string>;
   clinicName?: string;
