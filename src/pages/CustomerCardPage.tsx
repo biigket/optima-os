@@ -30,7 +30,7 @@ import {
   getConsumablesForAccount, getServiceForAccount,
   getPurchasesForAccount, getDocumentsForAccount, getMarketingForAccount
 } from '@/data/customerCardMockData';
-import { mockOpportunities } from '@/data/mockData';
+import type { Opportunity } from '@/types';
 
 interface LocalAccount {
   id: string;
@@ -89,6 +89,7 @@ export default function CustomerCardPage() {
   const [editForm, setEditForm] = useState<Record<string, string>>({});
   const [account, setAccount] = useState<LocalAccount | null>(null);
   const [contacts, setContacts] = useState<LocalContact[]>([]);
+  const [opportunities, setOpportunities] = useState<Opportunity[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -97,9 +98,11 @@ export default function CustomerCardPage() {
     Promise.all([
       supabase.from('accounts').select('*').eq('id', id).single(),
       supabase.from('contacts').select('id, account_id, name, role, phone, email').eq('account_id', id),
-    ]).then(([accRes, conRes]) => {
+      supabase.from('opportunities').select('*').eq('account_id', id).order('created_at', { ascending: false }),
+    ]).then(([accRes, conRes, oppRes]) => {
       if (accRes.data) setAccount(accRes.data as unknown as LocalAccount);
       if (conRes.data) setContacts(conRes.data as unknown as LocalContact[]);
+      if (oppRes.data) setOpportunities(oppRes.data as unknown as Opportunity[]);
       setLoading(false);
     });
   }, [id]);
@@ -124,7 +127,6 @@ export default function CustomerCardPage() {
   }
 
   const primaryContact = contacts[0];
-  const opportunities = mockOpportunities.filter(o => o.account_id === account.id);
   const revenue = getLifetimeRevenue(account.id);
   const devices = getDevicesForAccount(account.id);
   const visits = getVisitsForAccount(account.id);
