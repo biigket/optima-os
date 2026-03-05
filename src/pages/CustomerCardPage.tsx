@@ -98,9 +98,11 @@ export default function CustomerCardPage() {
     Promise.all([
       supabase.from('accounts').select('*').eq('id', id).single(),
       supabase.from('contacts').select('id, account_id, name, role, phone, email').eq('account_id', id),
-    ]).then(([accRes, conRes]) => {
+      supabase.from('opportunities').select('*').eq('account_id', id).order('created_at', { ascending: false }),
+    ]).then(([accRes, conRes, oppRes]) => {
       if (accRes.data) setAccount(accRes.data as unknown as LocalAccount);
       if (conRes.data) setContacts(conRes.data as unknown as LocalContact[]);
+      if (oppRes.data) setOpportunities(oppRes.data as unknown as Opportunity[]);
       setLoading(false);
     });
   }, [id]);
