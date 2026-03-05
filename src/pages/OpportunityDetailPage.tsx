@@ -51,12 +51,13 @@ export default function OpportunityDetailPage() {
     next_activity_date: '',
   });
 
-  // Try to get account info from cache first, then fetch from DB for contacts
+  // Fetch opportunity from DB
   useEffect(() => {
     if (!id) return;
-    // The opp is passed via in-memory state from the pipeline page
-    // If user navigates directly, we won't have it
-    // Try to find account from cache if opp exists
+    supabase.from('opportunities').select('*').eq('id', id).single().then(({ data, error }) => {
+      if (data) setOpp(data as unknown as Opportunity);
+      if (error) console.error('Failed to fetch opportunity:', error);
+    });
   }, [id]);
 
   // When opp is set (from pipeline navigation), fetch account & contacts from DB
