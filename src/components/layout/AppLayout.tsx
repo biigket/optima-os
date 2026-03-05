@@ -16,7 +16,7 @@ const navGroups = [
     label: 'CRM',
     phase: 1,
     items: [
-      { to: '/leads', icon: Users, label: 'ลีด' },
+      { to: '/leads', icon: Users, label: 'ลูกค้า' },
       { to: '/opportunities', icon: Target, label: 'โอกาสขาย' },
     ],
   },
