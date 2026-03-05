@@ -33,12 +33,9 @@ const STORAGE_KEY = 'optima_mock_user';
 
 export function MockAuthProvider({ children }: { children: ReactNode }) {
   const [currentUser, setCurrentUser] = useState<MockSaleUser | null>(() => {
-    const saved = localStorage.getItem(STORAGE_KEY);
-    if (saved) {
-      const found = MOCK_SALES.find(u => u.id === saved);
-      return found || null;
-    }
-    return null;
+    // Auto-login as ADMIN (login disabled)
+    const adminUser = MOCK_SALES.find(u => u.role === 'ADMIN');
+    return adminUser || null;
   });
 
   const login = (username: string, password: string): boolean => {

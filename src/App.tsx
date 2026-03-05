@@ -35,11 +35,7 @@ const phase2Routes = [
 ];
 
 function AppRoutes() {
-  const { currentUser } = useMockAuth();
-
-  if (!currentUser) {
-    return <MockLoginPage />;
-  }
+  // Login disabled — auto-login as ADMIN
 
   return (
     <AppLayout>
