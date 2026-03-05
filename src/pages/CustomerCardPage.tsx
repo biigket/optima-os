@@ -30,7 +30,7 @@ import {
   getConsumablesForAccount, getServiceForAccount,
   getPurchasesForAccount, getDocumentsForAccount, getMarketingForAccount
 } from '@/data/customerCardMockData';
-import { mockOpportunities } from '@/data/mockData';
+import type { Opportunity } from '@/types';
 
 interface LocalAccount {
   id: string;
