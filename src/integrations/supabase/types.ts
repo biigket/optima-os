@@ -322,6 +322,7 @@ export type Database = {
         Row: {
           account_id: string
           assigned_sale: string | null
+          authority_contact_id: string | null
           budget_range: string | null
           close_date: string | null
           competitors: string | null
@@ -331,6 +332,7 @@ export type Database = {
           expected_value: number | null
           id: string
           interested_products: string[] | null
+          needs: string[] | null
           next_activity_date: string | null
           next_activity_type: string | null
           notes: string | null
@@ -344,6 +346,7 @@ export type Database = {
         Insert: {
           account_id: string
           assigned_sale?: string | null
+          authority_contact_id?: string | null
           budget_range?: string | null
           close_date?: string | null
           competitors?: string | null
@@ -353,6 +356,7 @@ export type Database = {
           expected_value?: number | null
           id?: string
           interested_products?: string[] | null
+          needs?: string[] | null
           next_activity_date?: string | null
           next_activity_type?: string | null
           notes?: string | null
@@ -366,6 +370,7 @@ export type Database = {
         Update: {
           account_id?: string
           assigned_sale?: string | null
+          authority_contact_id?: string | null
           budget_range?: string | null
           close_date?: string | null
           competitors?: string | null
@@ -375,6 +380,7 @@ export type Database = {
           expected_value?: number | null
           id?: string
           interested_products?: string[] | null
+          needs?: string[] | null
           next_activity_date?: string | null
           next_activity_type?: string | null
           notes?: string | null
@@ -391,6 +397,13 @@ export type Database = {
             columns: ["account_id"]
             isOneToOne: false
             referencedRelation: "accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "opportunities_authority_contact_id_fkey"
+            columns: ["authority_contact_id"]
+            isOneToOne: false
+            referencedRelation: "contacts"
             referencedColumns: ["id"]
           },
         ]
