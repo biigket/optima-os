@@ -1,5 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -31,29 +32,26 @@ import {
 } from '@/data/customerCardMockData';
 import { mockOpportunities } from '@/data/mockData';
 
-const localAccounts = [
-  { id: '1', clinic_name: 'Clarity Clinic', company_name: 'Clarity Co., Ltd.', address: 'สุขุมวิท 39, กรุงเทพฯ', phone: '02-123-4567', email: 'info@clarity.co.th', customer_status: 'DEMO_SCHEDULED', assigned_sale: 'FORD', grade: 'A' },
-  { id: '2', clinic_name: 'Aura Med Spa', company_name: 'Aura Group', address: 'นิมมานเหมินทร์, เชียงใหม่', phone: '053-222-333', email: 'hello@aura.co.th', customer_status: 'PURCHASED', assigned_sale: 'VARN', grade: 'A' },
-  { id: '3', clinic_name: 'Derma Plus', company_name: null, address: 'พัทยาใต้, ชลบุรี', phone: '038-111-222', email: null, customer_status: 'NEW_LEAD', assigned_sale: 'PETCH', grade: 'B' },
-  { id: '4', clinic_name: 'Skin Lab Bangkok', company_name: 'Skin Lab Co., Ltd.', address: 'ทองหล่อ ซอย 10, กรุงเทพฯ', phone: '02-999-8888', email: 'contact@skinlab.co.th', customer_status: 'NEGOTIATION', assigned_sale: 'FAH', grade: 'A' },
-  { id: '5', clinic_name: 'Glow Aesthetic', company_name: null, address: 'หาดใหญ่, สงขลา', phone: '074-333-444', email: 'glow@email.com', customer_status: 'CONTACTED', assigned_sale: 'VI', grade: 'B' },
-  { id: '6', clinic_name: 'Radiance Center', company_name: 'Radiance Medical', address: 'ราชดำริ, กรุงเทพฯ', phone: '02-555-6666', email: 'info@radiance.co.th', customer_status: 'DORMANT', assigned_sale: 'FORD', grade: 'C' },
-  { id: '7', clinic_name: 'Beauty First', company_name: 'BF Clinic Co., Ltd.', address: 'เซ็นทรัลเวิลด์, กรุงเทพฯ', phone: '02-777-8888', email: 'bf@beautyfirst.co.th', customer_status: 'PURCHASED', assigned_sale: 'PETCH', grade: 'A' },
-  { id: '8', clinic_name: 'Nova Skin Clinic', company_name: null, address: 'ขอนแก่น', phone: '043-222-111', email: null, customer_status: 'DEMO_DONE', assigned_sale: 'VARN', grade: 'B' },
-  { id: '9', clinic_name: 'Zen Clinic', company_name: null, address: 'เอกมัย, กรุงเทพฯ', phone: '02-444-5555', email: 'zen@email.com', customer_status: 'NEW_LEAD', assigned_sale: 'FAH', grade: 'B' },
-  { id: '10', clinic_name: 'Luxe Dermatology', company_name: 'Luxe Med Co., Ltd.', address: 'สีลม, กรุงเทพฯ', phone: '02-666-7777', email: 'info@luxe.co.th', customer_status: 'CONTACTED', assigned_sale: 'VI', grade: 'A' },
-];
+interface LocalAccount {
+  id: string;
+  clinic_name: string;
+  company_name: string | null;
+  address: string | null;
+  phone: string | null;
+  email: string | null;
+  customer_status: string;
+  assigned_sale: string | null;
+  grade: string | null;
+}
 
-const localContacts = [
-  { id: 'c1', account_id: '1', name: 'นพ. Big', role: 'Medical Director', phone: '081-111-2222', email: 'big@clarity.co.th' },
-  { id: 'c2', account_id: '2', name: 'พญ. สมศรี', role: 'Owner', phone: '089-333-4444', email: 'somsri@aura.co.th' },
-  { id: 'c3', account_id: '3', name: 'คุณมานี', role: 'Clinic Manager', phone: '086-555-6666', email: null },
-  { id: 'c4', account_id: '4', name: 'นพ. วิชัย', role: 'Owner', phone: '082-777-8888', email: 'wichai@skinlab.co.th' },
-  { id: 'c5', account_id: '5', name: 'พญ. แก้ว', role: 'Doctor', phone: '087-999-0000', email: null },
-  { id: 'c6', account_id: '6', name: 'คุณสมชาย', role: 'Manager', phone: '081-444-5555', email: 'somchai@radiance.co.th' },
-  { id: 'c7', account_id: '7', name: 'คุณลิลลี่', role: 'Owner', phone: '085-222-3333', email: 'lily@beautyfirst.co.th' },
-  { id: 'c8', account_id: '8', name: 'พญ. นภา', role: 'Doctor', phone: '088-666-7777', email: null },
-];
+interface LocalContact {
+  id: string;
+  account_id: string;
+  name: string;
+  role: string | null;
+  phone: string | null;
+  email: string | null;
+}
 
 const POTENTIAL_MAP: Record<string, string> = { A: 'High', B: 'Medium', C: 'Low' };
 
@@ -86,13 +84,34 @@ export default function CustomerCardPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const isMobile = useIsMobile();
-  const [notes, setNotes] = useState(
-    'ลูกค้า VIP สนใจเครื่องใหม่ทุกครั้งที่ออก\nStrategy: เสนอ bundle cartridge + PM package\nPreference: ชอบนัดวัน พุธ-ศุกร์'
-  );
+  const [notes, setNotes] = useState('');
   const [editOpen, setEditOpen] = useState(false);
   const [editForm, setEditForm] = useState<Record<string, string>>({});
+  const [account, setAccount] = useState<LocalAccount | null>(null);
+  const [contacts, setContacts] = useState<LocalContact[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const account = localAccounts.find(a => a.id === id);
+  useEffect(() => {
+    if (!id) return;
+    setLoading(true);
+    Promise.all([
+      supabase.from('accounts').select('*').eq('id', id).single(),
+      supabase.from('contacts').select('id, account_id, name, role, phone, email').eq('account_id', id),
+    ]).then(([accRes, conRes]) => {
+      if (accRes.data) setAccount(accRes.data as unknown as LocalAccount);
+      if (conRes.data) setContacts(conRes.data as unknown as LocalContact[]);
+      setLoading(false);
+    });
+  }, [id]);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-[60vh]">
+        <p className="text-muted-foreground">กำลังโหลด...</p>
+      </div>
+    );
+  }
+
   if (!account) {
     return (
       <div className="flex flex-col items-center justify-center h-[60vh] gap-4">
@@ -104,7 +123,6 @@ export default function CustomerCardPage() {
     );
   }
 
-  const contacts = localContacts.filter(c => c.account_id === account.id);
   const primaryContact = contacts[0];
   const opportunities = mockOpportunities.filter(o => o.account_id === account.id);
   const revenue = getLifetimeRevenue(account.id);
@@ -547,9 +565,23 @@ export default function CustomerCardPage() {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setEditOpen(false)}>ยกเลิก</Button>
-            <Button onClick={() => {
+            <Button onClick={async () => {
+              const { error } = await supabase.from('accounts').update({
+                clinic_name: editForm.clinic_name,
+                company_name: editForm.company_name || null,
+                address: editForm.address || null,
+                phone: editForm.phone || null,
+                email: editForm.email || null,
+                customer_status: editForm.customer_status || 'NEW_LEAD',
+                assigned_sale: editForm.assigned_sale || null,
+                grade: editForm.grade || null,
+              }).eq('id', account.id);
+              if (error) { toast.error('บันทึกไม่สำเร็จ'); return; }
               toast.success('บันทึกข้อมูลสำเร็จ');
               setEditOpen(false);
+              // Refresh
+              const { data } = await supabase.from('accounts').select('*').eq('id', account.id).single();
+              if (data) setAccount(data as unknown as LocalAccount);
             }}>บันทึก</Button>
           </DialogFooter>
         </DialogContent>
