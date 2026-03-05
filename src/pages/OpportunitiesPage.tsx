@@ -47,7 +47,6 @@ export default function OpportunitiesPage() {
     return matchSearch && matchStage && matchType;
   });
 
-  // Sort for table view
   const sorted = [...filtered].sort((a, b) => {
     switch (sortKey) {
       case 'next_activity':
@@ -89,6 +88,14 @@ export default function OpportunitiesPage() {
     setOpportunities(prev => [...prev, data]);
   };
 
+  const handleStageChange = (oppId: string, newStage: OpportunityStage) => {
+    setOpportunities(prev => prev.map(o => o.id === oppId ? { ...o, stage: newStage } : o));
+  };
+
+  const handleUpdateOpportunity = (oppId: string, updates: Partial<Opportunity>) => {
+    setOpportunities(prev => prev.map(o => o.id === oppId ? { ...o, ...updates } : o));
+  };
+
   return (
     <div className="space-y-4 animate-fade-in">
       {/* Header */}
@@ -115,7 +122,6 @@ export default function OpportunitiesPage() {
           <Input placeholder="ค้นหาคลินิก..." value={search} onChange={e => setSearch(e.target.value)} className="pl-9 h-9" />
         </div>
 
-        {/* Type filter */}
         <div className="flex gap-1">
           {['ALL', 'DEVICE', 'CONSUMABLE'].map(t => (
             <button
@@ -128,7 +134,6 @@ export default function OpportunitiesPage() {
           ))}
         </div>
 
-        {/* Sort (table view) */}
         {viewMode === 'table' && (
           <div className="flex gap-1 items-center">
             <ArrowUpDown size={12} className="text-muted-foreground" />
@@ -149,7 +154,6 @@ export default function OpportunitiesPage() {
           </div>
         )}
 
-        {/* View toggle */}
         <div className="flex gap-0.5 bg-muted rounded-md p-0.5 ml-auto">
           <button onClick={() => setViewMode('kanban')} className={`p-1.5 rounded ${viewMode === 'kanban' ? 'bg-background shadow-sm' : 'text-muted-foreground'}`}>
             <LayoutGrid size={14} />
@@ -160,7 +164,6 @@ export default function OpportunitiesPage() {
         </div>
       </div>
 
-      {/* Stage pills (table view only) */}
       {viewMode === 'table' && (
         <div className="flex gap-1 flex-wrap">
           {stages.map(s => (
@@ -177,7 +180,12 @@ export default function OpportunitiesPage() {
 
       {/* Content */}
       {viewMode === 'kanban' ? (
-        <OpportunityKanban opportunities={filtered} typeFilter={typeFilter} />
+        <OpportunityKanban
+          opportunities={filtered}
+          typeFilter={typeFilter}
+          onStageChange={handleStageChange}
+          onUpdateOpportunity={handleUpdateOpportunity}
+        />
       ) : (
         <div className="rounded-lg border bg-card overflow-hidden">
           <table className="w-full text-sm">
@@ -246,24 +254,12 @@ export default function OpportunitiesPage() {
         </div>
       )}
 
-      {/* Customer Select Modal */}
-      <CustomerSelectModal
-        open={selectModalOpen}
-        onOpenChange={setSelectModalOpen}
-        onSelect={handleCustomerSelect}
-      />
+      <CustomerSelectModal open={selectModalOpen} onOpenChange={setSelectModalOpen} onSelect={handleCustomerSelect} />
 
-      {/* Create Opportunity Form */}
       {selectedCustomer && (
-        <CreateOpportunityForm
-          open={createFormOpen}
-          onOpenChange={setCreateFormOpen}
-          customer={selectedCustomer}
-          onSave={handleSave}
-        />
+        <CreateOpportunityForm open={createFormOpen} onOpenChange={setCreateFormOpen} customer={selectedCustomer} onSave={handleSave} />
       )}
 
-      {/* No Contact Warning */}
       <Dialog open={noContactWarning} onOpenChange={setNoContactWarning}>
         <DialogContent className="max-w-sm">
           <DialogHeader>
