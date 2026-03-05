@@ -196,3 +196,26 @@ export interface Profile {
   avatar_url?: string;
   created_at: string;
 }
+
+export type ActivityType = 'CALL' | 'MEETING' | 'TASK' | 'DEADLINE';
+export type ActivityPriority = 'LOW' | 'NORMAL' | 'HIGH';
+
+export interface Activity {
+  id: string;
+  opportunity_id: string;
+  account_id: string;
+  activity_type: ActivityType;
+  title: string;
+  activity_date: string;
+  start_time?: string;
+  end_time?: string;
+  priority?: ActivityPriority;
+  location?: string;
+  description?: string;
+  notes?: string;
+  assigned_to?: string;
+  contact_id?: string;
+  is_done: boolean;
+  created_at: string;
+  created_by?: string;
+}
