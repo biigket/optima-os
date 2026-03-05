@@ -46,7 +46,7 @@ type TimelineItem = {
   data: any;
 };
 
-export default function HistoryTimeline({ activities, stageHistory, notes, onUpdateNote, onDeleteNote, onPinNote, clinicName }: HistoryTimelineProps) {
+export default function HistoryTimeline({ activities, stageHistory, notes, onUpdateNote, onDeleteNote, onPinNote, onDeleteActivity, onAddComment, pinnedIds, clinicName }: HistoryTimelineProps) {
   const [filter, setFilter] = useState('all');
 
   const doneActivities = activities.filter(a => a.is_done);
@@ -63,7 +63,15 @@ export default function HistoryTimeline({ activities, stageHistory, notes, onUpd
     notes.forEach(n => items.push({ type: 'note', date: n.created_at, data: n }));
   }
 
-  items.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+  // Sort: pinned first, then by date desc
+  items.sort((a, b) => {
+    const aId = a.data?.id || '';
+    const bId = b.data?.id || '';
+    const aPinned = pinnedIds?.has(aId) ? 1 : 0;
+    const bPinned = pinnedIds?.has(bId) ? 1 : 0;
+    if (aPinned !== bPinned) return bPinned - aPinned;
+    return new Date(b.date).getTime() - new Date(a.date).getTime();
+  });
 
   return (
     <div className="rounded-xl border bg-card p-4 shadow-sm space-y-3">
@@ -87,14 +95,24 @@ export default function HistoryTimeline({ activities, stageHistory, notes, onUpd
 
           {items.map((item, idx) => (
             <div key={idx} className="relative">
-              {item.type === 'activity' && <ActivityItem data={item.data} clinicName={clinicName} onDelete={onDeleteNote} onPin={onPinNote} />}
+              {item.type === 'activity' && (
+                <ActivityItem
+                  data={item.data}
+                  clinicName={clinicName}
+                  isPinned={pinnedIds?.has(item.data.id)}
+                  onDelete={onDeleteActivity}
+                  onPin={onPinNote}
+                />
+              )}
               {item.type === 'stage' && <StageItem data={item.data} />}
               {item.type === 'note' && (
                 <NoteItem
                   data={item.data}
+                  isPinned={pinnedIds?.has(item.data.id)}
                   onUpdate={onUpdateNote}
                   onDelete={onDeleteNote}
                   onPin={onPinNote}
+                  onAddComment={onAddComment}
                 />
               )}
             </div>
