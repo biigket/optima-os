@@ -533,6 +533,8 @@ export default function OpportunityDetailPage() {
             activeActivityId={activeActivityId}
             onActivityClick={handleCalendarActivityClick}
             previewOverrides={formPreview}
+            onActivityReschedule={handleActivityReschedule}
+            onQuickScheduleClick={handleQuickScheduleClick}
           />
         </div>
       </div>
