@@ -137,17 +137,34 @@ export default function OpportunitiesPage() {
     }
   };
 
-  const handleSave = (data: Opportunity) => {
-    if (!data.id) data.id = `opp-${Date.now()}`;
-    if (!data.created_at) data.created_at = new Date().toISOString();
-    setOpportunities(prev => [data, ...prev]);
+  const handleSave = async (data: Opportunity) => {
+    const { id, quantity, ...rest } = data;
+    const insertPayload = {
+      account_id: rest.account_id,
+      stage: rest.stage,
+      opportunity_type: rest.opportunity_type || null,
+      interested_products: rest.interested_products || null,
+      expected_value: rest.expected_value || null,
+      assigned_sale: rest.assigned_sale || null,
+      notes: rest.notes || null,
+      close_date: rest.close_date || null,
+      next_activity_type: rest.next_activity_type || null,
+      next_activity_date: rest.next_activity_date || null,
+    };
+    const { error } = await supabase.from('opportunities').insert(insertPayload);
+    if (error) { toast.error('สร้างโอกาสขายไม่สำเร็จ'); return; }
+    fetchOpportunities();
   };
 
-  const handleStageChange = (oppId: string, newStage: OpportunityStage) => {
+  const handleStageChange = async (oppId: string, newStage: OpportunityStage) => {
+    const { error } = await supabase.from('opportunities').update({ stage: newStage }).eq('id', oppId);
+    if (error) { toast.error('อัปเดตไม่สำเร็จ'); return; }
     setOpportunities(prev => prev.map(o => o.id === oppId ? { ...o, stage: newStage } : o));
   };
 
-  const handleUpdateOpportunity = (oppId: string, updates: Partial<Opportunity>) => {
+  const handleUpdateOpportunity = async (oppId: string, updates: Partial<Opportunity>) => {
+    const { error } = await supabase.from('opportunities').update(updates).eq('id', oppId);
+    if (error) { toast.error('อัปเดตไม่สำเร็จ'); return; }
     setOpportunities(prev => prev.map(o => o.id === oppId ? { ...o, ...updates } : o));
   };
 
