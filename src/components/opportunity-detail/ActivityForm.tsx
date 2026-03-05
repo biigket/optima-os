@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -20,9 +20,16 @@ interface ActivityFormProps {
   opportunityId: string;
   accountId: string;
   onActivityCreated: (activity: Activity) => void;
+  editingActivity?: Activity | null;
+  onActivityUpdated?: (activity: Activity) => void;
+  onCancelEdit?: () => void;
+  onFormChange?: (preview: Partial<Activity>) => void;
 }
 
-export default function ActivityForm({ opportunityId, accountId, onActivityCreated }: ActivityFormProps) {
+export default function ActivityForm({
+  opportunityId, accountId, onActivityCreated,
+  editingActivity, onActivityUpdated, onCancelEdit, onFormChange,
+}: ActivityFormProps) {
   const [selectedType, setSelectedType] = useState<ActivityType>('CALL');
   const [title, setTitle] = useState('');
   const [activityDate, setActivityDate] = useState(new Date().toISOString().split('T')[0]);
@@ -35,6 +42,39 @@ export default function ActivityForm({ opportunityId, accountId, onActivityCreat
   const [markAsDone, setMarkAsDone] = useState(false);
   const [showExtra, setShowExtra] = useState(false);
   const [saving, setSaving] = useState(false);
+
+  const isEditing = !!editingActivity;
+
+  // Populate form when editingActivity changes
+  useEffect(() => {
+    if (editingActivity) {
+      setSelectedType(editingActivity.activity_type);
+      setTitle(editingActivity.title);
+      setActivityDate(editingActivity.activity_date);
+      setStartTime(editingActivity.start_time || '');
+      setEndTime(editingActivity.end_time || '');
+      setPriority((editingActivity.priority as ActivityPriority) || 'NORMAL');
+      setLocation(editingActivity.location || '');
+      setDescription(editingActivity.description || '');
+      setNotes(editingActivity.notes || '');
+      setMarkAsDone(editingActivity.is_done || false);
+      if (editingActivity.location || editingActivity.description) setShowExtra(true);
+    }
+  }, [editingActivity?.id]);
+
+  // Fire optimistic preview on field changes
+  useEffect(() => {
+    if (!onFormChange) return;
+    onFormChange({
+      activity_type: selectedType,
+      title,
+      activity_date: activityDate,
+      start_time: startTime || undefined,
+      end_time: endTime || undefined,
+      priority,
+      is_done: markAsDone,
+    });
+  }, [selectedType, title, activityDate, startTime, endTime, priority, markAsDone]);
 
   const reset = () => {
     setTitle('');
@@ -66,16 +106,45 @@ export default function ActivityForm({ opportunityId, accountId, onActivityCreat
       notes: notes || null,
       is_done: markAsDone,
     };
-    const { data, error } = await supabase.from('activities').insert(payload).select().single();
-    setSaving(false);
-    if (error) { toast.error('บันทึกไม่สำเร็จ'); console.error(error); return; }
-    onActivityCreated(data as unknown as Activity);
+
+    if (isEditing && editingActivity) {
+      // Update existing
+      const { data, error } = await supabase
+        .from('activities')
+        .update(payload)
+        .eq('id', editingActivity.id)
+        .select()
+        .single();
+      setSaving(false);
+      if (error) { toast.error('อัปเดตไม่สำเร็จ'); console.error(error); return; }
+      onActivityUpdated?.(data as unknown as Activity);
+      reset();
+      toast.success('อัปเดตกิจกรรมแล้ว');
+    } else {
+      // Create new
+      const { data, error } = await supabase.from('activities').insert(payload).select().single();
+      setSaving(false);
+      if (error) { toast.error('บันทึกไม่สำเร็จ'); console.error(error); return; }
+      onActivityCreated(data as unknown as Activity);
+      reset();
+      toast.success('สร้างกิจกรรมแล้ว');
+    }
+  };
+
+  const handleCancel = () => {
     reset();
-    toast.success('สร้างกิจกรรมแล้ว');
+    onCancelEdit?.();
   };
 
   return (
     <div className="space-y-3">
+      {isEditing && (
+        <div className="flex items-center gap-2 px-2 py-1.5 rounded-lg bg-primary/5 border border-primary/20">
+          <span className="text-[11px] text-primary font-medium">✏️ กำลังแก้ไข: {editingActivity?.title}</span>
+          <button onClick={handleCancel} className="ml-auto text-[10px] text-muted-foreground hover:text-foreground">ยกเลิก</button>
+        </div>
+      )}
+
       {/* Type selector */}
       <div className="flex gap-1">
         {ACTIVITY_TYPES.map(at => {
@@ -162,9 +231,9 @@ export default function ActivityForm({ opportunityId, accountId, onActivityCreat
           Mark as done
         </label>
         <div className="flex gap-2">
-          <Button variant="ghost" size="sm" className="text-xs h-8" onClick={reset}>ยกเลิก</Button>
+          <Button variant="ghost" size="sm" className="text-xs h-8" onClick={handleCancel}>ยกเลิก</Button>
           <Button size="sm" className="text-xs h-8" onClick={handleSave} disabled={saving}>
-            {saving ? 'กำลังบันทึก...' : 'บันทึก'}
+            {saving ? 'กำลังบันทึก...' : isEditing ? 'อัปเดต' : 'บันทึก'}
           </Button>
         </div>
       </div>
