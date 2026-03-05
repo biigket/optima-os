@@ -127,7 +127,6 @@ export default function CustomerCardPage() {
   }
 
   const primaryContact = contacts[0];
-  const opportunities = mockOpportunities.filter(o => o.account_id === account.id);
   const revenue = getLifetimeRevenue(account.id);
   const devices = getDevicesForAccount(account.id);
   const visits = getVisitsForAccount(account.id);
