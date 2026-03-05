@@ -454,6 +454,7 @@ export default function OpportunityDetailPage() {
 
               <TabsContent value="activity">
                 <ActivityForm
+                  key={quickScheduleDefaults ? `qs-${quickScheduleDefaults.start_time}-${quickScheduleDefaults.end_time}` : 'default'}
                   opportunityId={opp.id}
                   accountId={opp.account_id}
                   onActivityCreated={(a) => { handleActivityCreated(a); setQuickScheduleDefaults(null); }}
