@@ -1,9 +1,10 @@
 import { useState, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import StatusBadge from '@/components/ui/StatusBadge';
-import { Search, MapPin, Users, ChevronRight } from 'lucide-react';
+import { Search, Plus, MapPin, Users, ChevronRight } from 'lucide-react';
 import { mockAccounts, mockContacts } from '@/data/mockData';
 import type { Account } from '@/types';
 
@@ -23,6 +24,7 @@ const filterLabels: Record<StatusFilter, string> = {
 };
 
 export default function CustomerSelectModal({ open, onOpenChange, onSelect }: CustomerSelectModalProps) {
+  const navigate = useNavigate();
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('ALL');
 
@@ -50,12 +52,17 @@ export default function CustomerSelectModal({ open, onOpenChange, onSelect }: Cu
     setStatusFilter('ALL');
   };
 
+  const handleCreateNew = () => {
+    onOpenChange(false);
+    navigate('/leads?action=create');
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl max-h-[85vh] flex flex-col p-0">
         <DialogHeader className="p-5 pb-0">
           <DialogTitle className="text-base">เลือกลูกค้า</DialogTitle>
-          <DialogDescription className="text-xs">ค้นหาและเลือกลูกค้าเพื่อสร้างโอกาสขาย</DialogDescription>
+          <DialogDescription className="text-xs">ค้นหาและเลือกลูกค้าจากโมดูลลูกค้า เพื่อสร้างโอกาสขาย</DialogDescription>
         </DialogHeader>
 
         <div className="px-5 space-y-3">
@@ -109,8 +116,10 @@ export default function CustomerSelectModal({ open, onOpenChange, onSelect }: Cu
           </div>
         </div>
 
-        <div className="border-t p-4 text-center text-xs text-muted-foreground">
-          ต้องการเพิ่มลูกค้าใหม่? ไปที่ <a href="/leads" className="text-primary hover:underline font-medium">โมดูลลูกค้า</a>
+        <div className="border-t p-4">
+          <Button variant="outline" size="sm" className="gap-1.5 text-xs w-full" onClick={handleCreateNew}>
+            <Plus size={13} /> สร้างลูกค้าใหม่ (ไปโมดูลลูกค้า)
+          </Button>
         </div>
       </DialogContent>
     </Dialog>
