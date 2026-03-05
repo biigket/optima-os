@@ -144,6 +144,62 @@ export default function HistoryTimeline({ activities, stageHistory, notes, onUpd
   );
 }
 
+function CommentList({ comments, onUpdate, onDelete }: {
+  comments: OpportunityNote[];
+  onUpdate?: (id: string, content: string) => void;
+  onDelete?: (id: string) => void;
+}) {
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editContent, setEditContent] = useState('');
+
+  return (
+    <div className="mt-1.5 space-y-1">
+      {comments.map(c => (
+        <div key={c.id} className="ml-3 flex gap-1 text-[10px] text-muted-foreground group/comment">
+          <span className="shrink-0 mt-0.5">↳</span>
+          <div className="flex-1 min-w-0">
+            {editingId === c.id ? (
+              <div className="flex gap-1 items-center">
+                <input
+                  value={editContent}
+                  onChange={e => setEditContent(e.target.value)}
+                  className="flex-1 text-[10px] h-5 px-1.5 rounded border border-border bg-background text-foreground focus:outline-none focus:ring-1 focus:ring-ring"
+                  autoFocus
+                />
+                <button onClick={() => { if (editContent.trim()) { onUpdate?.(c.id, editContent.trim()); setEditingId(null); } }} className="p-0.5 rounded hover:bg-muted text-primary">
+                  <Check size={10} />
+                </button>
+                <button onClick={() => setEditingId(null)} className="p-0.5 rounded hover:bg-muted">
+                  <X size={10} />
+                </button>
+              </div>
+            ) : (
+              <div className="flex items-start gap-1">
+                <div className="flex-1 min-w-0">
+                  <p className="text-foreground/90">{c.content}</p>
+                  <p className="opacity-70">{c.created_by} · {new Date(c.created_at).toLocaleDateString('th-TH', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}</p>
+                </div>
+                <div className="hidden group-hover/comment:flex items-center gap-0.5 shrink-0">
+                  {onUpdate && (
+                    <button onClick={() => { setEditingId(c.id); setEditContent(c.content); }} className="p-0.5 rounded hover:bg-muted" title="Edit">
+                      <Pencil size={9} />
+                    </button>
+                  )}
+                  {onDelete && (
+                    <button onClick={() => onDelete(c.id)} className="p-0.5 rounded hover:bg-muted text-destructive" title="Delete">
+                      <Trash2 size={9} />
+                    </button>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 function ActivityItem({ data, clinicName, isPinned, onDelete, onPin, onUpdate, onAddComment, onUpdateComment, onDeleteComment, comments = [] }: {
   data: Activity; clinicName?: string; isPinned?: boolean;
   onDelete?: (id: string) => void; onPin?: (id: string) => void;
