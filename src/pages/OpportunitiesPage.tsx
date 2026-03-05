@@ -138,7 +138,7 @@ export default function OpportunitiesPage() {
   };
 
   const handleSave = async (data: Opportunity) => {
-    const { id, quantity, ...rest } = data;
+    const { id, quantity, stuck_reason, ...rest } = data;
     const insertPayload = {
       account_id: rest.account_id,
       stage: rest.stage,
@@ -150,6 +150,12 @@ export default function OpportunitiesPage() {
       close_date: rest.close_date || null,
       next_activity_type: rest.next_activity_type || null,
       next_activity_date: rest.next_activity_date || null,
+      probability: rest.probability ?? 10,
+      budget_range: rest.budget_range || null,
+      payment_method: rest.payment_method || null,
+      competitors: rest.competitors || null,
+      current_devices: rest.current_devices || null,
+      order_frequency: rest.order_frequency || null,
     };
     const { error } = await supabase.from('opportunities').insert(insertPayload);
     if (error) { toast.error('สร้างโอกาสขายไม่สำเร็จ'); return; }
