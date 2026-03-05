@@ -52,6 +52,10 @@ export default function OpportunityDetailPage() {
   const [, forceUpdate] = useState(0);
   const [activities, setActivities] = useState<Activity[]>([]);
   const [pinnedIds, setPinnedIds] = useState<Set<string>>(new Set());
+  const [selectedDate, setSelectedDate] = useState(new Date());
+  const [activeActivityId, setActiveActivityId] = useState<string | null>(null);
+  const [formPreview, setFormPreview] = useState<Partial<Activity> | null>(null);
+  const [activeTab, setActiveTab] = useState('activity');
   const [stakeholdersOpen, setStakeholdersOpen] = useState(true);
   const [addContactOpen, setAddContactOpen] = useState(false);
   const [newContact, setNewContact] = useState({ name: '', role: '', phone: '' });
@@ -163,9 +167,25 @@ export default function OpportunityDetailPage() {
 
   const handleActivityCreated = (activity: Activity) => {
     setActivities(prev => [activity, ...prev]);
+    setActiveActivityId(null);
+    setFormPreview(null);
   };
 
-  const handleMarkDone = (actId: string) => {
+  const handleActivityUpdated = (activity: Activity) => {
+    setActivities(prev => prev.map(a => a.id === activity.id ? activity : a));
+    setActiveActivityId(null);
+    setFormPreview(null);
+  };
+
+  const handleCalendarActivityClick = (activity: Activity) => {
+    setActiveActivityId(activity.id);
+    setActiveTab('activity');
+  };
+
+  const editingActivity = activeActivityId ? activities.find(a => a.id === activeActivityId) || null : null;
+
+  const handleMarkDone = async (actId: string) => {
+    await supabase.from('activities').update({ is_done: true }).eq('id', actId);
     setActivities(prev => prev.map(a => a.id === actId ? { ...a, is_done: true } : a));
   };
 
@@ -399,7 +419,7 @@ export default function OpportunityDetailPage() {
         <div className="lg:col-span-7 space-y-4">
           {/* Tab-based Activity / Notes input */}
           <div className="rounded-xl border bg-card p-4 shadow-sm">
-            <Tabs defaultValue="activity">
+            <Tabs value={activeTab} onValueChange={setActiveTab}>
               <TabsList className="h-8 mb-3">
                 <TabsTrigger value="activity" className="text-xs h-6 px-3 gap-1">
                   <Calendar size={12} /> เพิ่มกิจกรรม
@@ -410,7 +430,15 @@ export default function OpportunityDetailPage() {
               </TabsList>
 
               <TabsContent value="activity">
-                <ActivityForm opportunityId={opp.id} accountId={opp.account_id} onActivityCreated={handleActivityCreated} />
+                <ActivityForm
+                  opportunityId={opp.id}
+                  accountId={opp.account_id}
+                  onActivityCreated={handleActivityCreated}
+                  editingActivity={editingActivity}
+                  onActivityUpdated={handleActivityUpdated}
+                  onCancelEdit={() => { setActiveActivityId(null); setFormPreview(null); }}
+                  onFormChange={setFormPreview}
+                />
               </TabsContent>
 
               <TabsContent value="notes">
@@ -478,7 +506,14 @@ export default function OpportunityDetailPage() {
           />
 
           {/* Calendar Panel */}
-          <CalendarPanel activities={activities} />
+          <CalendarPanel
+            activities={activities}
+            selectedDate={selectedDate}
+            onDateChange={setSelectedDate}
+            activeActivityId={activeActivityId}
+            onActivityClick={handleCalendarActivityClick}
+            previewOverrides={formPreview}
+          />
         </div>
       </div>
 
