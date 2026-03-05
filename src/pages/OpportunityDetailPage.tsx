@@ -52,6 +52,10 @@ export default function OpportunityDetailPage() {
   const [, forceUpdate] = useState(0);
   const [activities, setActivities] = useState<Activity[]>([]);
   const [pinnedIds, setPinnedIds] = useState<Set<string>>(new Set());
+  const [selectedDate, setSelectedDate] = useState(new Date());
+  const [activeActivityId, setActiveActivityId] = useState<string | null>(null);
+  const [formPreview, setFormPreview] = useState<Partial<Activity> | null>(null);
+  const [activeTab, setActiveTab] = useState('activity');
   const [stakeholdersOpen, setStakeholdersOpen] = useState(true);
   const [addContactOpen, setAddContactOpen] = useState(false);
   const [newContact, setNewContact] = useState({ name: '', role: '', phone: '' });
