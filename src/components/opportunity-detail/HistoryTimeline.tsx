@@ -192,11 +192,13 @@ function StageItem({ data }: { data: { from: string; to: string; date: string } 
   );
 }
 
-function NoteItem({ data, onUpdate, onDelete, onPin }: {
+function NoteItem({ data, isPinned, onUpdate, onDelete, onPin, onAddComment }: {
   data: OpportunityNote;
+  isPinned?: boolean;
   onUpdate?: (id: string, content: string) => void;
   onDelete?: (id: string) => void;
   onPin?: (id: string) => void;
+  onAddComment?: (parentId: string, comment: string) => void;
 }) {
   const [editing, setEditing] = useState(false);
   const [editContent, setEditContent] = useState(data.content);
@@ -210,7 +212,7 @@ function NoteItem({ data, onUpdate, onDelete, onPin }: {
   };
 
   return (
-    <div className="flex items-start gap-2">
+    <div className={`flex items-start gap-2 ${isPinned ? 'bg-primary/5 -mx-2 px-2 py-1 rounded-lg' : ''}`}>
       <div className="absolute -left-6 w-[18px] h-[18px] rounded-full bg-amber-100 text-amber-700 dark:bg-amber-900/50 flex items-center justify-center mt-0.5">
         <FileText size={10} />
       </div>
@@ -220,10 +222,10 @@ function NoteItem({ data, onUpdate, onDelete, onPin }: {
           <div className="absolute top-1.5 right-1.5 flex items-center gap-0.5">
             <button
               onClick={() => onPin?.(data.id)}
-              className="p-1 rounded hover:bg-amber-200/50 text-amber-700 dark:text-amber-400"
-              title="Pin this note"
+              className={`p-1 rounded hover:bg-amber-200/50 ${isPinned ? 'text-primary' : 'text-amber-700 dark:text-amber-400'}`}
+              title={isPinned ? 'Unpin' : 'Pin this note'}
             >
-              <Pin size={11} />
+              <Pin size={11} className={isPinned ? 'fill-primary' : ''} />
             </button>
             <button
               onClick={() => setShowComment(!showComment)}
