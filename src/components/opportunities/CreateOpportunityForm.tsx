@@ -300,13 +300,6 @@ export default function CreateOpportunityForm({ open, onOpenChange, customer, on
             )}
           </div>
 
-          {/* Need (ความต้องการ) — tag chips free input */}
-          <TagChipInput
-            label="ความต้องการ (Need)"
-            tags={form.needs}
-            onChange={t => set('needs', t)}
-            placeholder="เช่น ลดริ้วรอย, หน้าเรียว..."
-          />
 
           {/* สินค้า Multi-select (DEVICE only) */}
           <div className="space-y-1.5">
