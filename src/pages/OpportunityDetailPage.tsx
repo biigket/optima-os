@@ -16,7 +16,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useMockAuth } from '@/hooks/useMockAuth';
 import { getNotesForOpportunity, addNoteGlobal, deleteNoteGlobal, updateNoteGlobal, type OpportunityNote } from '@/pages/OpportunitiesPage';
 import { toast } from 'sonner';
-import { differenceInDays } from 'date-fns';
+import { differenceInDays, format } from 'date-fns';
 import type { Opportunity, OpportunityStage, Account, Contact, Activity } from '@/types';
 import ActivityForm from '@/components/opportunity-detail/ActivityForm';
 import FocusPanel from '@/components/opportunity-detail/FocusPanel';
