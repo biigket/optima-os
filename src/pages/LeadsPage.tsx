@@ -62,9 +62,17 @@ const mockContacts: Contact[] = [
   { id: 'c8', account_id: '8', name: 'พญ. นภา', role: 'Doctor', phone: '088-666-7777', email: null },
 ];
 
+const FOLLOW_UP_DAYS = 7;
+
+function isFollowUp(account: Account): boolean {
+  const diff = Math.floor((Date.now() - new Date(account.created_at).getTime()) / 86400000);
+  return diff >= FOLLOW_UP_DAYS && account.customer_status !== 'PURCHASED' && account.customer_status !== 'DORMANT';
+}
+
 const STATUS_OPTIONS = [
   { value: 'ALL', label: 'ทั้งหมด' },
   { value: 'PROSPECT', label: 'ยังไม่ซื้อ' },
+  { value: 'FOLLOW_UP', label: 'ต้องติดตาม' },
   { value: 'PURCHASED', label: 'ซื้อแล้ว' },
   { value: 'DORMANT', label: 'ไม่เคลื่อนไหว' },
 ];
@@ -165,7 +173,9 @@ export default function LeadsPage() {
   const filtered = accounts.filter(a => {
     let matchStatus = true;
     if (statusFilter === 'PROSPECT') {
-      matchStatus = a.customer_status !== 'PURCHASED' && a.customer_status !== 'DORMANT';
+      matchStatus = !isFollowUp(a) && a.customer_status !== 'PURCHASED' && a.customer_status !== 'DORMANT';
+    } else if (statusFilter === 'FOLLOW_UP') {
+      matchStatus = isFollowUp(a);
     } else if (statusFilter !== 'ALL') {
       matchStatus = a.customer_status === statusFilter;
     }
