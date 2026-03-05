@@ -65,6 +65,22 @@ export default function OpportunitiesPage() {
   const [opportunities, setOpportunities] = useState<Opportunity[]>([]);
   const [, forceUpdate] = useState(0);
 
+  // Load opportunities + account cache from DB
+  const fetchOpportunities = async () => {
+    const [oppRes, accRes] = await Promise.all([
+      supabase.from('opportunities').select('*').order('created_at', { ascending: false }),
+      supabase.from('accounts').select('id, clinic_name, customer_status, assigned_sale'),
+    ]);
+    if (oppRes.data) setOpportunities(oppRes.data as unknown as Opportunity[]);
+    if (accRes.data) {
+      accRes.data.forEach((a: any) => {
+        accountCache[a.id] = { clinic_name: a.clinic_name, customer_status: a.customer_status, assigned_sale: a.assigned_sale || undefined };
+      });
+    }
+  };
+
+  useEffect(() => { fetchOpportunities(); }, []);
+
   // Role-based filtering
   const roleFiltered = useMemo(() => {
     if (isAdmin) {
