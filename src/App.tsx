@@ -23,6 +23,8 @@ import InventoryPage from "@/pages/InventoryPage";
 import InvoicesPage from "@/pages/InvoicesPage";
 import Phase2Placeholder from "@/pages/Phase2Placeholder";
 import NotFound from "@/pages/NotFound";
+import MockLoginPage from "@/pages/MockLoginPage";
+import { MockAuthProvider, useMockAuth } from "@/hooks/useMockAuth";
 
 const queryClient = new QueryClient();
 
@@ -32,37 +34,51 @@ const phase2Routes = [
   '/ai-pipeline', '/ai-reorder', '/ai-marketing',
 ];
 
+function AppRoutes() {
+  const { currentUser } = useMockAuth();
+
+  if (!currentUser) {
+    return <MockLoginPage />;
+  }
+
+  return (
+    <AppLayout>
+      <Routes>
+        <Route path="/" element={<Dashboard />} />
+        <Route path="/leads" element={<LeadsPage />} />
+        <Route path="/opportunities" element={<OpportunitiesPage />} />
+        <Route path="/visit-checkin" element={<VisitCheckinPage />} />
+        <Route path="/visit-reports" element={<VisitReportsPage />} />
+        <Route path="/demos" element={<DemosPage />} />
+        <Route path="/tasks" element={<TasksPage />} />
+        <Route path="/calendar" element={<CalendarPage />} />
+        <Route path="/devices" element={<DevicesPage />} />
+        <Route path="/consumables" element={<ConsumablesPage />} />
+        <Route path="/maintenance" element={<MaintenancePage />} />
+        <Route path="/forecast" element={<ForecastPage />} />
+        <Route path="/analytics" element={<AnalyticsPage />} />
+        <Route path="/quotations" element={<QuotationsPage />} />
+        <Route path="/sales-orders" element={<SalesOrdersPage />} />
+        <Route path="/inventory" element={<InventoryPage />} />
+        <Route path="/invoices" element={<InvoicesPage />} />
+        {phase2Routes.map(path => (
+          <Route key={path} path={path} element={<Phase2Placeholder />} />
+        ))}
+        <Route path="*" element={<NotFound />} />
+      </Routes>
+    </AppLayout>
+  );
+}
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
       <Toaster />
       <Sonner />
       <BrowserRouter>
-        <AppLayout>
-          <Routes>
-            <Route path="/" element={<Dashboard />} />
-            <Route path="/leads" element={<LeadsPage />} />
-            <Route path="/opportunities" element={<OpportunitiesPage />} />
-            <Route path="/visit-checkin" element={<VisitCheckinPage />} />
-            <Route path="/visit-reports" element={<VisitReportsPage />} />
-            <Route path="/demos" element={<DemosPage />} />
-            <Route path="/tasks" element={<TasksPage />} />
-            <Route path="/calendar" element={<CalendarPage />} />
-            <Route path="/devices" element={<DevicesPage />} />
-            <Route path="/consumables" element={<ConsumablesPage />} />
-            <Route path="/maintenance" element={<MaintenancePage />} />
-            <Route path="/forecast" element={<ForecastPage />} />
-            <Route path="/analytics" element={<AnalyticsPage />} />
-            <Route path="/quotations" element={<QuotationsPage />} />
-            <Route path="/sales-orders" element={<SalesOrdersPage />} />
-            <Route path="/inventory" element={<InventoryPage />} />
-            <Route path="/invoices" element={<InvoicesPage />} />
-            {phase2Routes.map(path => (
-              <Route key={path} path={path} element={<Phase2Placeholder />} />
-            ))}
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </AppLayout>
+        <MockAuthProvider>
+          <AppRoutes />
+        </MockAuthProvider>
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>
