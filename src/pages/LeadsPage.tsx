@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Search, Plus, SlidersHorizontal, Building2 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
@@ -12,6 +12,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import StatusBadge from '@/components/ui/StatusBadge';
 import { toast } from 'sonner';
 import { useMockAuth, MOCK_SALES } from '@/hooks/useMockAuth';
+import { supabase } from '@/integrations/supabase/client';
 
 interface Account {
   id: string;
@@ -40,31 +41,6 @@ interface Contact {
   phone: string | null;
   email: string | null;
 }
-
-// ── Mock Data ──
-const mockAccounts: Account[] = [
-  { id: '1', clinic_name: 'Clarity Clinic', company_name: 'Clarity Co., Ltd.', address: 'สุขุมวิท 39, กรุงเทพฯ', tax_id: null, entity_type: 'คลินิก', branch_type: 'สำนักงานใหญ่', phone: '02-123-4567', email: 'info@clarity.co.th', customer_status: 'DEMO_SCHEDULED', assigned_sale: 'FORD', lead_source: 'งานแสดงสินค้า', notes: null, grade: 'A', single_or_chain: 'สาขาเดียว', created_at: '2026-03-02T10:00:00' },
-  { id: '2', clinic_name: 'Aura Med Spa', company_name: 'Aura Group', address: 'นิมมานเหมินทร์, เชียงใหม่', tax_id: null, entity_type: 'คลินิก', branch_type: 'สำนักงานใหญ่', phone: '053-222-333', email: 'hello@aura.co.th', customer_status: 'PURCHASED', assigned_sale: 'VARN', lead_source: 'แนะนำ', notes: null, grade: 'A', single_or_chain: 'เชน', created_at: '2026-02-28T09:00:00' },
-  { id: '3', clinic_name: 'Derma Plus', company_name: null, address: 'พัทยาใต้, ชลบุรี', tax_id: null, entity_type: 'คลินิก', branch_type: null, phone: '038-111-222', email: null, customer_status: 'NEW_LEAD', assigned_sale: 'PETCH', lead_source: 'เว็บไซต์', notes: null, grade: 'B', single_or_chain: 'สาขาเดียว', created_at: '2026-03-04T14:00:00' },
-  { id: '4', clinic_name: 'Skin Lab Bangkok', company_name: 'Skin Lab Co., Ltd.', address: 'ทองหล่อ ซอย 10, กรุงเทพฯ', tax_id: null, entity_type: 'นิติบุคคล', branch_type: 'สำนักงานใหญ่', phone: '02-999-8888', email: 'contact@skinlab.co.th', customer_status: 'NEGOTIATION', assigned_sale: 'FAH', lead_source: 'งานแสดงสินค้า', notes: 'สนใจ Doublo Gold', grade: 'A', single_or_chain: 'เชน', created_at: '2026-02-25T11:00:00' },
-  { id: '5', clinic_name: 'Glow Aesthetic', company_name: null, address: 'หาดใหญ่, สงขลา', tax_id: null, entity_type: 'คลินิก', branch_type: null, phone: '074-333-444', email: 'glow@email.com', customer_status: 'CONTACTED', assigned_sale: 'VI', lead_source: 'Facebook', notes: null, grade: 'B', single_or_chain: 'สาขาเดียว', created_at: '2026-03-03T16:30:00' },
-  { id: '6', clinic_name: 'Radiance Center', company_name: 'Radiance Medical', address: 'ราชดำริ, กรุงเทพฯ', tax_id: null, entity_type: 'โรงพยาบาล', branch_type: 'สำนักงานใหญ่', phone: '02-555-6666', email: 'info@radiance.co.th', customer_status: 'DORMANT', assigned_sale: 'FORD', lead_source: 'แนะนำ', notes: 'เคยซื้อ Ultraformer แต่หยุดใช้', grade: 'C', single_or_chain: 'สาขาเดียว', created_at: '2026-01-15T08:00:00' },
-  { id: '7', clinic_name: 'Beauty First', company_name: 'BF Clinic Co., Ltd.', address: 'เซ็นทรัลเวิลด์, กรุงเทพฯ', tax_id: null, entity_type: 'นิติบุคคล', branch_type: 'สาขา', phone: '02-777-8888', email: 'bf@beautyfirst.co.th', customer_status: 'PURCHASED', assigned_sale: 'PETCH', lead_source: 'งานแสดงสินค้า', notes: null, grade: 'A', single_or_chain: 'เชน', created_at: '2026-02-20T13:00:00' },
-  { id: '8', clinic_name: 'Nova Skin Clinic', company_name: null, address: 'ขอนแก่น', tax_id: null, entity_type: 'คลินิก', branch_type: null, phone: '043-222-111', email: null, customer_status: 'DEMO_DONE', assigned_sale: 'VARN', lead_source: 'เว็บไซต์', notes: 'รอผลตัดสินใจ', grade: 'B', single_or_chain: 'สาขาเดียว', created_at: '2026-03-01T10:30:00' },
-  { id: '9', clinic_name: 'Zen Clinic', company_name: null, address: 'เอกมัย, กรุงเทพฯ', tax_id: null, entity_type: 'คลินิก', branch_type: null, phone: '02-444-5555', email: 'zen@email.com', customer_status: 'NEW_LEAD', assigned_sale: 'FAH', lead_source: 'Instagram', notes: null, grade: 'B', single_or_chain: 'สาขาเดียว', created_at: '2026-03-04T09:00:00' },
-  { id: '10', clinic_name: 'Luxe Dermatology', company_name: 'Luxe Med Co., Ltd.', address: 'สีลม, กรุงเทพฯ', tax_id: null, entity_type: 'นิติบุคคล', branch_type: 'สำนักงานใหญ่', phone: '02-666-7777', email: 'info@luxe.co.th', customer_status: 'CONTACTED', assigned_sale: 'VI', lead_source: 'งานแสดงสินค้า', notes: null, grade: 'A', single_or_chain: 'เชน', created_at: '2026-02-18T14:00:00' },
-];
-
-const mockContacts: Contact[] = [
-  { id: 'c1', account_id: '1', name: 'นพ. Big', role: 'Medical Director', phone: '081-111-2222', email: 'big@clarity.co.th' },
-  { id: 'c2', account_id: '2', name: 'พญ. สมศรี', role: 'Owner', phone: '089-333-4444', email: 'somsri@aura.co.th' },
-  { id: 'c3', account_id: '3', name: 'คุณมานี', role: 'Clinic Manager', phone: '086-555-6666', email: null },
-  { id: 'c4', account_id: '4', name: 'นพ. วิชัย', role: 'Owner', phone: '082-777-8888', email: 'wichai@skinlab.co.th' },
-  { id: 'c5', account_id: '5', name: 'พญ. แก้ว', role: 'Doctor', phone: '087-999-0000', email: null },
-  { id: 'c6', account_id: '6', name: 'คุณสมชาย', role: 'Manager', phone: '081-444-5555', email: 'somchai@radiance.co.th' },
-  { id: 'c7', account_id: '7', name: 'คุณลิลลี่', role: 'Owner', phone: '085-222-3333', email: 'lily@beautyfirst.co.th' },
-  { id: 'c8', account_id: '8', name: 'พญ. นภา', role: 'Doctor', phone: '088-666-7777', email: null },
-];
 
 const FOLLOW_UP_DAYS = 7;
 
@@ -111,12 +87,28 @@ function daysSince(dateStr: string | null): string {
 export default function LeadsPage() {
   const navigate = useNavigate();
   const { currentUser } = useMockAuth();
-  const [accounts, setAccounts] = useState<Account[]>(mockAccounts);
+  const [accounts, setAccounts] = useState<Account[]>([]);
+  const [contacts, setContacts] = useState<Contact[]>([]);
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('ALL');
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingAccount, setEditingAccount] = useState<Account | null>(null);
   const [form, setForm] = useState(emptyForm);
+  const [loading, setLoading] = useState(true);
+
+  // Fetch accounts and contacts from database
+  const fetchData = async () => {
+    setLoading(true);
+    const [accRes, conRes] = await Promise.all([
+      supabase.from('accounts').select('*').order('created_at', { ascending: false }),
+      supabase.from('contacts').select('id, account_id, name, role, phone, email'),
+    ]);
+    if (accRes.data) setAccounts(accRes.data as unknown as Account[]);
+    if (conRes.data) setContacts(conRes.data as unknown as Contact[]);
+    setLoading(false);
+  };
+
+  useEffect(() => { fetchData(); }, []);
 
   // Admin sees all, sales see only their own
   const isAdmin = currentUser?.role === 'ADMIN';
@@ -155,26 +147,40 @@ export default function LeadsPage() {
     setDialogOpen(true);
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!form.clinic_name?.trim()) {
       toast.error('กรุณากรอกชื่อคลินิก');
       return;
     }
+
+    const payload = {
+      clinic_name: form.clinic_name!.trim(),
+      company_name: form.company_name || null,
+      address: form.address || null,
+      tax_id: form.tax_id || null,
+      entity_type: form.entity_type || null,
+      branch_type: form.branch_type || null,
+      phone: form.phone || null,
+      email: form.email || null,
+      customer_status: form.customer_status || 'NEW_LEAD',
+      assigned_sale: form.assigned_sale || currentUser?.name || null,
+      lead_source: form.lead_source || null,
+      notes: form.notes || null,
+      grade: form.grade || null,
+      single_or_chain: form.single_or_chain || null,
+    };
+
     if (editingAccount) {
-      setAccounts(prev => prev.map(a => a.id === editingAccount.id ? { ...a, ...form } as Account : a));
+      const { error } = await supabase.from('accounts').update(payload).eq('id', editingAccount.id);
+      if (error) { toast.error('อัปเดตไม่สำเร็จ'); return; }
       toast.success('อัปเดตลูกค้าสำเร็จ');
     } else {
-      const newAccount: Account = {
-        ...emptyForm,
-        ...form,
-        assigned_sale: currentUser?.name || form.assigned_sale,
-        id: crypto.randomUUID(),
-        created_at: new Date().toISOString(),
-      } as Account;
-      setAccounts(prev => [newAccount, ...prev]);
+      const { error } = await supabase.from('accounts').insert(payload);
+      if (error) { toast.error('เพิ่มลูกค้าไม่สำเร็จ'); return; }
       toast.success('เพิ่มลูกค้าสำเร็จ');
     }
     closeDialog();
+    fetchData();
   };
 
   const updateField = (key: string, value: string) => {
@@ -252,8 +258,14 @@ export default function LeadsPage() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {filtered.map(account => {
-              const primaryContact = mockContacts.find(c => c.account_id === account.id);
+            {loading ? (
+              <TableRow>
+                <TableCell colSpan={7} className="text-center py-12 text-muted-foreground">
+                  กำลังโหลด...
+                </TableCell>
+              </TableRow>
+            ) : filtered.map(account => {
+              const primaryContact = contacts.find(c => c.account_id === account.id);
               return (
                 <TableRow
                   key={account.id}
@@ -303,7 +315,7 @@ export default function LeadsPage() {
                 </TableRow>
               );
             })}
-            {filtered.length === 0 && (
+            {!loading && filtered.length === 0 && (
               <TableRow>
                 <TableCell colSpan={7} className="text-center py-12 text-muted-foreground">
                   ไม่พบลูกค้า
@@ -372,7 +384,7 @@ export default function LeadsPage() {
               <Select value={form.customer_status || 'NEW_LEAD'} onValueChange={v => updateField('customer_status', v)}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  {STATUS_OPTIONS.filter(s => s.value !== 'ALL').map(s => (
+                  {STATUS_OPTIONS.filter(s => s.value !== 'ALL' && s.value !== 'FOLLOW_UP').map(s => (
                     <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>
                   ))}
                 </SelectContent>
