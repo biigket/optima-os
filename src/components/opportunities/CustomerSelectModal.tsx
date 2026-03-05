@@ -3,7 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import StatusBadge from '@/components/ui/StatusBadge';
-import { Search, Plus, MapPin, Users, ChevronRight } from 'lucide-react';
+import { Search, MapPin, Users, ChevronRight } from 'lucide-react';
 import { mockAccounts, mockContacts } from '@/data/mockData';
 import type { Account } from '@/types';
 
@@ -109,10 +109,8 @@ export default function CustomerSelectModal({ open, onOpenChange, onSelect }: Cu
           </div>
         </div>
 
-        <div className="border-t p-4">
-          <Button variant="outline" size="sm" className="gap-1.5 text-xs w-full">
-            <Plus size={13} /> สร้างลูกค้าใหม่
-          </Button>
+        <div className="border-t p-4 text-center text-xs text-muted-foreground">
+          ต้องการเพิ่มลูกค้าใหม่? ไปที่ <a href="/leads" className="text-primary hover:underline font-medium">โมดูลลูกค้า</a>
         </div>
       </DialogContent>
     </Dialog>
