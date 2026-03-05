@@ -12,7 +12,7 @@ export default function SalesOrdersPage() {
   const filtered = mockSalesOrders.filter(so => {
     const account = getAccountById(so.accountId);
     return so.salesOrderId.toLowerCase().includes(search.toLowerCase()) ||
-      account?.clinicName.toLowerCase().includes(search.toLowerCase());
+      (account?.clinic_name || '').toLowerCase().includes(search.toLowerCase());
   });
 
   return (
@@ -47,7 +47,7 @@ export default function SalesOrdersPage() {
               return (
                 <TableRow key={so.salesOrderId}>
                   <TableCell className="font-medium">{so.salesOrderId}</TableCell>
-                  <TableCell>{account?.clinicName}</TableCell>
+                  <TableCell>{account?.clinic_name}</TableCell>
                   <TableCell><StatusBadge status={so.orderType} /></TableCell>
                   <TableCell><StatusBadge status={so.orderStatus} /></TableCell>
                   <TableCell><StatusBadge status={so.paymentStatus} /></TableCell>

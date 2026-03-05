@@ -7,9 +7,10 @@ import {
   Megaphone, Gift, Star,
   GraduationCap, BookOpen,
   TrendingUp, BarChart3,
-  Lock, Bot, Brain, Zap
+  Lock, Bot, Brain, Zap, LogOut
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useAuth } from '@/hooks/useAuth';
 
 const navGroups = [
   {
@@ -108,6 +109,9 @@ const navGroups = [
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const [collapsed, setCollapsed] = useState(false);
   const location = useLocation();
+  const { user, signOut } = useAuth();
+  const displayName = user?.user_metadata?.name || user?.email || 'User';
+  const initials = displayName.slice(0, 2).toUpperCase();
 
   return (
     <div className="flex h-screen overflow-hidden">
@@ -191,15 +195,20 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         </nav>
 
         <div className="border-t border-sidebar-border p-2">
-          <div className={cn('flex items-center gap-3 rounded-md px-2.5 py-2', collapsed && 'justify-center')}>
+        <div className={cn('flex items-center gap-3 rounded-md px-2.5 py-2', collapsed && 'justify-center')}>
             <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-sidebar-primary text-sidebar-primary-foreground text-xs font-bold">
-              SP
+              {initials}
             </div>
             {!collapsed && (
               <div className="flex-1 min-w-0">
-                <p className="text-xs font-medium text-sidebar-accent-foreground truncate">สมชาย พาเทล</p>
-                <p className="text-[10px] text-sidebar-muted">ผู้ดูแลระบบ</p>
+                <p className="text-xs font-medium text-sidebar-accent-foreground truncate">{displayName}</p>
+                <p className="text-[10px] text-sidebar-muted">{user?.email}</p>
               </div>
+            )}
+            {!collapsed && (
+              <button onClick={signOut} className="p-1 rounded hover:bg-sidebar-accent text-sidebar-muted" title="ออกจากระบบ">
+                <LogOut size={14} />
+              </button>
             )}
           </div>
         </div>

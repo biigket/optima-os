@@ -3,14 +3,14 @@ import { Search, Plus, Building2, MapPin, Phone } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import StatusBadge from '@/components/ui/StatusBadge';
-import { mockAccounts, mockContacts, getUserById } from '@/data/mockData';
+import { mockAccounts, mockContacts } from '@/data/mockData';
 
 export default function LeadsPage() {
   const [search, setSearch] = useState('');
 
   const leads = mockAccounts.filter(a => {
-    const matchSearch = a.clinicName.toLowerCase().includes(search.toLowerCase()) ||
-      a.province.toLowerCase().includes(search.toLowerCase());
+    const matchSearch = a.clinic_name.toLowerCase().includes(search.toLowerCase()) ||
+      (a.address || '').toLowerCase().includes(search.toLowerCase());
     return matchSearch;
   });
 
@@ -31,25 +31,24 @@ export default function LeadsPage() {
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         {leads.map(account => {
-          const contacts = mockContacts.filter(c => c.accountId === account.accountId);
-          const owner = getUserById(account.assignedSalesOwnerUserId);
+          const contacts = mockContacts.filter(c => c.account_id === account.id);
           return (
-            <div key={account.accountId} className="rounded-lg border bg-card p-4 space-y-3 hover:shadow-md transition-shadow">
+            <div key={account.id} className="rounded-lg border bg-card p-4 space-y-3 hover:shadow-md transition-shadow">
               <div className="flex items-start justify-between">
                 <div className="flex items-center gap-3">
                   <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 text-primary">
                     <Building2 size={20} />
                   </div>
                   <div>
-                    <p className="text-sm font-semibold text-foreground">{account.clinicName}</p>
-                    <StatusBadge status={account.customerStatus} />
+                    <p className="text-sm font-semibold text-foreground">{account.clinic_name}</p>
+                    <StatusBadge status={account.customer_status} />
                   </div>
                 </div>
               </div>
               <div className="space-y-1 text-xs text-muted-foreground">
                 <div className="flex items-center gap-1.5">
                   <MapPin size={12} />
-                  <span>{account.address}, {account.province}</span>
+                  <span>{account.address}</span>
                 </div>
                 {contacts[0] && (
                   <div className="flex items-center gap-1.5">
@@ -57,7 +56,7 @@ export default function LeadsPage() {
                     <span>{contacts[0].name} — {contacts[0].phone}</span>
                   </div>
                 )}
-                <p>เจ้าของ: {owner?.name}</p>
+                <p>เจ้าของ: {account.assigned_sale}</p>
               </div>
             </div>
           );

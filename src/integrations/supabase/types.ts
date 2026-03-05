@@ -14,7 +14,594 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      accounts: {
+        Row: {
+          address: string | null
+          assigned_sale: string | null
+          branch_type: string | null
+          clinic_name: string
+          company_name: string | null
+          created_at: string
+          customer_status: string
+          email: string | null
+          entity_type: string | null
+          google_map_link: string | null
+          grade: string | null
+          has_budget: boolean | null
+          id: string
+          is_kol: boolean | null
+          is_vip: boolean | null
+          lead_source: string | null
+          notes: string | null
+          phone: string | null
+          registered_at: string | null
+          single_or_chain: string | null
+          tax_id: string | null
+        }
+        Insert: {
+          address?: string | null
+          assigned_sale?: string | null
+          branch_type?: string | null
+          clinic_name: string
+          company_name?: string | null
+          created_at?: string
+          customer_status?: string
+          email?: string | null
+          entity_type?: string | null
+          google_map_link?: string | null
+          grade?: string | null
+          has_budget?: boolean | null
+          id?: string
+          is_kol?: boolean | null
+          is_vip?: boolean | null
+          lead_source?: string | null
+          notes?: string | null
+          phone?: string | null
+          registered_at?: string | null
+          single_or_chain?: string | null
+          tax_id?: string | null
+        }
+        Update: {
+          address?: string | null
+          assigned_sale?: string | null
+          branch_type?: string | null
+          clinic_name?: string
+          company_name?: string | null
+          created_at?: string
+          customer_status?: string
+          email?: string | null
+          entity_type?: string | null
+          google_map_link?: string | null
+          grade?: string | null
+          has_budget?: boolean | null
+          id?: string
+          is_kol?: boolean | null
+          is_vip?: boolean | null
+          lead_source?: string | null
+          notes?: string | null
+          phone?: string | null
+          registered_at?: string | null
+          single_or_chain?: string | null
+          tax_id?: string | null
+        }
+        Relationships: []
+      }
+      contacts: {
+        Row: {
+          account_id: string
+          created_at: string
+          email: string | null
+          id: string
+          is_decision_maker: boolean | null
+          line_id: string | null
+          name: string
+          phone: string | null
+          role: string | null
+        }
+        Insert: {
+          account_id: string
+          created_at?: string
+          email?: string | null
+          id?: string
+          is_decision_maker?: boolean | null
+          line_id?: string | null
+          name: string
+          phone?: string | null
+          role?: string | null
+        }
+        Update: {
+          account_id?: string
+          created_at?: string
+          email?: string | null
+          id?: string
+          is_decision_maker?: boolean | null
+          line_id?: string | null
+          name?: string
+          phone?: string | null
+          role?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contacts_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "accounts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      demos: {
+        Row: {
+          account_id: string
+          created_at: string
+          demo_date: string | null
+          demo_note: string | null
+          fl20_shots: number | null
+          fl30_shots: number | null
+          fl45_shots: number | null
+          id: string
+          location: string | null
+          opportunity_id: string | null
+          products_demo: string[] | null
+          reminded: boolean | null
+          rm_i49_tips: number | null
+          rm_n49_tips: number | null
+          sd15_shots: number | null
+          sd30_shots: number | null
+          sd45_shots: number | null
+          visited_by: string[] | null
+        }
+        Insert: {
+          account_id: string
+          created_at?: string
+          demo_date?: string | null
+          demo_note?: string | null
+          fl20_shots?: number | null
+          fl30_shots?: number | null
+          fl45_shots?: number | null
+          id?: string
+          location?: string | null
+          opportunity_id?: string | null
+          products_demo?: string[] | null
+          reminded?: boolean | null
+          rm_i49_tips?: number | null
+          rm_n49_tips?: number | null
+          sd15_shots?: number | null
+          sd30_shots?: number | null
+          sd45_shots?: number | null
+          visited_by?: string[] | null
+        }
+        Update: {
+          account_id?: string
+          created_at?: string
+          demo_date?: string | null
+          demo_note?: string | null
+          fl20_shots?: number | null
+          fl30_shots?: number | null
+          fl45_shots?: number | null
+          id?: string
+          location?: string | null
+          opportunity_id?: string | null
+          products_demo?: string[] | null
+          reminded?: boolean | null
+          rm_i49_tips?: number | null
+          rm_n49_tips?: number | null
+          sd15_shots?: number | null
+          sd30_shots?: number | null
+          sd45_shots?: number | null
+          visited_by?: string[] | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "demos_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "demos_opportunity_id_fkey"
+            columns: ["opportunity_id"]
+            isOneToOne: false
+            referencedRelation: "opportunities"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      installations: {
+        Row: {
+          account_id: string | null
+          cartridges_installed: string | null
+          created_at: string
+          district: string | null
+          has_rm_handpiece: boolean | null
+          id: string
+          install_date: string | null
+          product_id: string | null
+          province: string | null
+          region: string | null
+          serial_number: string | null
+          status: string | null
+          warranty_days: number | null
+          warranty_expiry: string | null
+        }
+        Insert: {
+          account_id?: string | null
+          cartridges_installed?: string | null
+          created_at?: string
+          district?: string | null
+          has_rm_handpiece?: boolean | null
+          id?: string
+          install_date?: string | null
+          product_id?: string | null
+          province?: string | null
+          region?: string | null
+          serial_number?: string | null
+          status?: string | null
+          warranty_days?: number | null
+          warranty_expiry?: string | null
+        }
+        Update: {
+          account_id?: string | null
+          cartridges_installed?: string | null
+          created_at?: string
+          district?: string | null
+          has_rm_handpiece?: boolean | null
+          id?: string
+          install_date?: string | null
+          product_id?: string | null
+          province?: string | null
+          region?: string | null
+          serial_number?: string | null
+          status?: string | null
+          warranty_days?: number | null
+          warranty_expiry?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "installations_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "installations_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      maintenance_records: {
+        Row: {
+          actual_date: string | null
+          created_at: string
+          id: string
+          installation_id: string
+          maintenance_number: number
+          photos: string[] | null
+          report_file: string | null
+          scheduled_date: string | null
+          status: string | null
+        }
+        Insert: {
+          actual_date?: string | null
+          created_at?: string
+          id?: string
+          installation_id: string
+          maintenance_number: number
+          photos?: string[] | null
+          report_file?: string | null
+          scheduled_date?: string | null
+          status?: string | null
+        }
+        Update: {
+          actual_date?: string | null
+          created_at?: string
+          id?: string
+          installation_id?: string
+          maintenance_number?: number
+          photos?: string[] | null
+          report_file?: string | null
+          scheduled_date?: string | null
+          status?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "maintenance_records_installation_id_fkey"
+            columns: ["installation_id"]
+            isOneToOne: false
+            referencedRelation: "installations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      opportunities: {
+        Row: {
+          account_id: string
+          assigned_sale: string | null
+          close_date: string | null
+          created_at: string
+          customer_grade: string | null
+          expected_value: number | null
+          id: string
+          interested_products: string[] | null
+          notes: string | null
+          stage: string
+        }
+        Insert: {
+          account_id: string
+          assigned_sale?: string | null
+          close_date?: string | null
+          created_at?: string
+          customer_grade?: string | null
+          expected_value?: number | null
+          id?: string
+          interested_products?: string[] | null
+          notes?: string | null
+          stage?: string
+        }
+        Update: {
+          account_id?: string
+          assigned_sale?: string | null
+          close_date?: string | null
+          created_at?: string
+          customer_grade?: string | null
+          expected_value?: number | null
+          id?: string
+          interested_products?: string[] | null
+          notes?: string | null
+          stage?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "opportunities_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "accounts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      payment_installments: {
+        Row: {
+          amount: number | null
+          created_at: string
+          due_date: string | null
+          id: string
+          installment_number: number
+          paid_date: string | null
+          payment_channel: string | null
+          quotation_id: string
+          receipt_sent: boolean | null
+          slip_file: string | null
+        }
+        Insert: {
+          amount?: number | null
+          created_at?: string
+          due_date?: string | null
+          id?: string
+          installment_number: number
+          paid_date?: string | null
+          payment_channel?: string | null
+          quotation_id: string
+          receipt_sent?: boolean | null
+          slip_file?: string | null
+        }
+        Update: {
+          amount?: number | null
+          created_at?: string
+          due_date?: string | null
+          id?: string
+          installment_number?: number
+          paid_date?: string | null
+          payment_channel?: string | null
+          quotation_id?: string
+          receipt_sent?: boolean | null
+          slip_file?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payment_installments_quotation_id_fkey"
+            columns: ["quotation_id"]
+            isOneToOne: false
+            referencedRelation: "quotations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      products: {
+        Row: {
+          base_price: number | null
+          category: string
+          created_at: string
+          description: string | null
+          id: string
+          product_code: string | null
+          product_name: string
+        }
+        Insert: {
+          base_price?: number | null
+          category?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          product_code?: string | null
+          product_name: string
+        }
+        Update: {
+          base_price?: number | null
+          category?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          product_code?: string | null
+          product_name?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string
+          department: string | null
+          email: string | null
+          id: string
+          name: string
+          role: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string
+          department?: string | null
+          email?: string | null
+          id: string
+          name?: string
+          role?: string
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string
+          department?: string | null
+          email?: string | null
+          id?: string
+          name?: string
+          role?: string
+        }
+        Relationships: []
+      }
+      quotations: {
+        Row: {
+          account_id: string | null
+          approval_status: string | null
+          created_at: string
+          id: string
+          invoice_sent: boolean | null
+          leasing_doc: string | null
+          payment_condition: string | null
+          payment_status: string | null
+          price: number | null
+          product: string | null
+          qt_attachment: string | null
+          qt_date: string | null
+          qt_number: string | null
+          sale_assigned: string | null
+        }
+        Insert: {
+          account_id?: string | null
+          approval_status?: string | null
+          created_at?: string
+          id?: string
+          invoice_sent?: boolean | null
+          leasing_doc?: string | null
+          payment_condition?: string | null
+          payment_status?: string | null
+          price?: number | null
+          product?: string | null
+          qt_attachment?: string | null
+          qt_date?: string | null
+          qt_number?: string | null
+          sale_assigned?: string | null
+        }
+        Update: {
+          account_id?: string | null
+          approval_status?: string | null
+          created_at?: string
+          id?: string
+          invoice_sent?: boolean | null
+          leasing_doc?: string | null
+          payment_condition?: string | null
+          payment_status?: string | null
+          price?: number | null
+          product?: string | null
+          qt_attachment?: string | null
+          qt_date?: string | null
+          qt_number?: string | null
+          sale_assigned?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quotations_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "accounts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      visit_reports: {
+        Row: {
+          account_id: string | null
+          action: string | null
+          check_in_at: string | null
+          check_out_at: string | null
+          clinic_name: string | null
+          created_at: string
+          created_by: string | null
+          customer_type: string | null
+          devices_in_use: string | null
+          id: string
+          issues: string | null
+          location: string | null
+          met_who: string | null
+          new_contact_name: string | null
+          new_contact_phone: string | null
+          next_plan: string | null
+          photo: string | null
+          status: string | null
+        }
+        Insert: {
+          account_id?: string | null
+          action?: string | null
+          check_in_at?: string | null
+          check_out_at?: string | null
+          clinic_name?: string | null
+          created_at?: string
+          created_by?: string | null
+          customer_type?: string | null
+          devices_in_use?: string | null
+          id?: string
+          issues?: string | null
+          location?: string | null
+          met_who?: string | null
+          new_contact_name?: string | null
+          new_contact_phone?: string | null
+          next_plan?: string | null
+          photo?: string | null
+          status?: string | null
+        }
+        Update: {
+          account_id?: string | null
+          action?: string | null
+          check_in_at?: string | null
+          check_out_at?: string | null
+          clinic_name?: string | null
+          created_at?: string
+          created_by?: string | null
+          customer_type?: string | null
+          devices_in_use?: string | null
+          id?: string
+          issues?: string | null
+          location?: string | null
+          met_who?: string | null
+          new_contact_name?: string | null
+          new_contact_phone?: string | null
+          next_plan?: string | null
+          photo?: string | null
+          status?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "visit_reports_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "accounts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never

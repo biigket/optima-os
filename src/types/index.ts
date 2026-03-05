@@ -1,158 +1,183 @@
 // === ENUMS ===
 
-export type CustomerStatus = 'PROSPECT' | 'CUSTOMER' | 'DORMANT';
-export type OpportunityType = 'NEW_DEVICE' | 'CONSUMABLE_REPEAT' | 'UPSELL' | 'SERVICE_CONTRACT';
-export type OpportunityStage = 'NEW' | 'CONTACTED' | 'DEMO_SCHEDULED' | 'DEMO_DONE' | 'NEGOTIATION' | 'WON' | 'LOST';
-
-export type WorkItemType = 'CONTACT' | 'FOLLOW_UP' | 'DEMO_PREP' | 'DEMO_EVENT' | 'SERVICE_PREP' | 'SHIPMENT' | 'INSTALLATION' | 'SERVICE_TICKET' | 'FINANCE_DOC' | 'CONSUMABLE_ORDER' | 'MARKETING_TASK';
-export type Department = 'SALES' | 'PRODUCT' | 'SERVICE' | 'STOCK' | 'FINANCE' | 'MARKETING';
-export type WorkItemStatus = 'OPEN' | 'IN_PROGRESS' | 'WAITING' | 'DONE' | 'CANCELLED';
-export type Priority = 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT';
-
-export type OrderType = 'DEVICE' | 'CONSUMABLE' | 'SERVICE';
-export type OrderStatus = 'DRAFT' | 'CONFIRMED' | 'FULFILLED';
+export type CustomerStatus = 'NEW_LEAD' | 'DEMO_DONE' | 'NEGOTIATION' | 'PURCHASED' | 'DORMANT' | 'CLOSED';
+export type OpportunityStage = 'NEW_LEAD' | 'CONTACTED' | 'DEMO_SCHEDULED' | 'DEMO_DONE' | 'NEGOTIATION' | 'WON' | 'LOST' | 'FOLLOW_UP' | 'WAITING_APPROVAL' | 'COMPARING' | 'PURCHASED' | 'CLOSED';
+export type ProductCategory = 'DEVICE' | 'CONSUMABLE' | 'PART';
 export type PaymentStatus = 'UNPAID' | 'PARTIAL' | 'PAID';
-export type ShippingStatus = 'DRAFT' | 'RESERVED' | 'SHIPPED' | 'DELIVERED';
-export type InventoryCategory = 'DEVICE' | 'CONSUMABLE' | 'PART';
-export type InventoryStatus = 'AVAILABLE' | 'RESERVED' | 'OUT';
-export type DocType = 'QUOTATION' | 'INVOICE' | 'RECEIPT' | 'PO' | 'OTHER';
+export type PaymentCondition = 'CASH' | 'INSTALLMENT' | 'LEASING';
 export type ApprovalStatus = 'DRAFT' | 'SUBMITTED' | 'APPROVED' | 'REJECTED';
+export type VisitReportStatus = 'VISIT_FORM' | 'REPORT' | 'WEEKLY_PLAN' | 'CLOSED';
 export type UserRole = 'SUPER_ADMIN' | 'HEAD_OF_DEPARTMENT' | 'STAFF';
+export type Department = 'SALES' | 'PRODUCT' | 'SERVICE' | 'STOCK' | 'FINANCE' | 'MARKETING';
 
 // === ENTITIES ===
 
 export interface Account {
-  accountId: string;
-  clinicName: string;
-  province: string;
-  address: string;
-  customerStatus: CustomerStatus;
-  assignedSalesOwnerUserId: string;
+  id: string;
+  company_name?: string;
+  clinic_name: string;
+  address?: string;
+  tax_id?: string;
+  entity_type?: string;
+  branch_type?: string;
+  phone?: string;
+  email?: string;
+  google_map_link?: string;
+  lead_source?: string;
+  customer_status: CustomerStatus;
+  grade?: string;
+  has_budget?: boolean;
+  is_kol?: boolean;
+  is_vip?: boolean;
+  single_or_chain?: string;
+  assigned_sale?: string;
+  registered_at?: string;
+  notes?: string;
+  created_at: string;
 }
 
 export interface Contact {
-  contactId: string;
-  accountId: string;
+  id: string;
+  account_id: string;
   name: string;
-  role: string;
-  phone: string;
-  email: string;
-  lineId?: string;
+  role?: string;
+  phone?: string;
+  email?: string;
+  line_id?: string;
+  is_decision_maker?: boolean;
+  created_at: string;
+}
+
+export interface Product {
+  id: string;
+  product_name: string;
+  product_code?: string;
+  category: ProductCategory;
+  description?: string;
+  base_price?: number;
+  created_at: string;
 }
 
 export interface Opportunity {
-  opportunityId: string;
-  accountId: string;
-  opportunityType: OpportunityType;
+  id: string;
+  account_id: string;
   stage: OpportunityStage;
-  ownerUserId: string;
-  expectedValue: number;
-  closeDate: string;
+  interested_products?: string[];
+  expected_value?: number;
+  assigned_sale?: string;
+  customer_grade?: string;
+  notes?: string;
+  close_date?: string;
+  created_at: string;
 }
 
-export interface WorkItem {
-  workItemId: string;
-  type: WorkItemType;
-  departmentOwner: Department;
-  linkedAccountId: string;
-  linkedOpportunityId?: string;
-  assigneeUserId: string;
-  status: WorkItemStatus;
-  priority: Priority;
-  dueDateTime: string;
+export interface Demo {
+  id: string;
+  account_id: string;
+  opportunity_id?: string;
+  demo_date?: string;
   location?: string;
-  metadata?: Record<string, unknown>;
-  title: string;
+  products_demo?: string[];
+  fl45_shots?: number;
+  fl30_shots?: number;
+  fl20_shots?: number;
+  sd45_shots?: number;
+  sd30_shots?: number;
+  sd15_shots?: number;
+  rm_i49_tips?: number;
+  rm_n49_tips?: number;
+  demo_note?: string;
+  visited_by?: string[];
+  reminded?: boolean;
+  created_at: string;
 }
 
-export interface ActivityLog {
-  activityId: string;
-  linkedAccountId: string;
-  linkedOpportunityId?: string;
-  linkedWorkItemId?: string;
-  actionType: string;
-  message: string;
-  performedByUserId: string;
-  performedAt: string;
+export interface Installation {
+  id: string;
+  account_id?: string;
+  product_id?: string;
+  serial_number?: string;
+  province?: string;
+  region?: string;
+  district?: string;
+  status?: string;
+  has_rm_handpiece?: boolean;
+  cartridges_installed?: string;
+  install_date?: string;
+  warranty_days?: number;
+  warranty_expiry?: string;
+  created_at: string;
 }
 
-export interface CalendarEvent {
-  calendarEventId: string;
-  linkedWorkItemId: string;
-  title: string;
-  startDateTime: string;
-  endDateTime: string;
-  location?: string;
-  ownerUserId: string;
-  departmentOwner: Department;
-}
-
-export interface SalesOrder {
-  salesOrderId: string;
-  accountId: string;
-  opportunityId: string;
-  orderType: OrderType;
-  orderStatus: OrderStatus;
-  paymentStatus: PaymentStatus;
-}
-
-export interface Shipment {
-  shipmentId: string;
-  salesOrderId: string;
-  shippingStatus: ShippingStatus;
-  trackingNumber?: string;
-  shipToAddress: string;
-}
-
-export interface InventoryItem {
-  inventoryId: string;
-  productName: string;
-  category: InventoryCategory;
-  serialNumber?: string;
-  quantity: number;
-  warehouseLocation: string;
-  status: InventoryStatus;
-}
-
-export interface FinanceDocument {
-  financeDocId: string;
-  salesOrderId: string;
-  docType: DocType;
-  issueDate: string;
-  dueDate: string;
-  amount: number;
-  paymentStatus: PaymentStatus;
-  approvalStatus: ApprovalStatus;
-  fileUrl?: string;
+export interface MaintenanceRecord {
+  id: string;
+  installation_id: string;
+  maintenance_number: number;
+  scheduled_date?: string;
+  actual_date?: string;
+  report_file?: string;
+  photos?: string[];
+  status?: string;
+  created_at: string;
 }
 
 export interface Quotation {
-  quotationId: string;
-  accountId: string;
-  items: { productName: string; qty: number; unitPrice: number }[];
-  totalAmount: number;
-  issueDate: string;
-  validUntil: string;
-  approvalStatus: ApprovalStatus;
-  createdByUserId: string;
+  id: string;
+  qt_number?: string;
+  account_id?: string;
+  sale_assigned?: string;
+  product?: string;
+  price?: number;
+  qt_date?: string;
+  qt_attachment?: string;
+  invoice_sent?: boolean;
+  payment_status: PaymentStatus;
+  payment_condition?: PaymentCondition;
+  leasing_doc?: string;
+  approval_status: ApprovalStatus;
+  created_at: string;
 }
 
-export interface Invoice {
-  invoiceId: string;
-  accountId: string;
-  salesOrderId: string;
-  amount: number;
-  issueDate: string;
-  dueDate: string;
-  paymentStatus: PaymentStatus;
-  approvalStatus: ApprovalStatus;
+export interface PaymentInstallment {
+  id: string;
+  quotation_id: string;
+  installment_number: number;
+  due_date?: string;
+  amount?: number;
+  paid_date?: string;
+  slip_file?: string;
+  payment_channel?: string;
+  receipt_sent?: boolean;
+  created_at: string;
 }
 
-export interface User {
-  userId: string;
+export interface VisitReport {
+  id: string;
+  account_id?: string;
+  clinic_name?: string;
+  location?: string;
+  photo?: string;
+  customer_type?: string;
+  status: VisitReportStatus;
+  check_in_at?: string;
+  check_out_at?: string;
+  action?: string;
+  devices_in_use?: string;
+  issues?: string;
+  next_plan?: string;
+  met_who?: string;
+  new_contact_name?: string;
+  new_contact_phone?: string;
+  created_by?: string;
+  created_at: string;
+}
+
+export interface Profile {
+  id: string;
   name: string;
-  email: string;
+  email?: string;
   role: UserRole;
-  department: Department;
-  avatarUrl?: string;
+  department?: Department;
+  avatar_url?: string;
+  created_at: string;
 }

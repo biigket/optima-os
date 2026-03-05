@@ -3,16 +3,13 @@ import { Search, Plus } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import StatusBadge from '@/components/ui/StatusBadge';
-import { mockOpportunities, getAccountById, getUserById } from '@/data/mockData';
+import { mockOpportunities, getAccountById } from '@/data/mockData';
 import type { OpportunityStage } from '@/types';
 
-const stages: (OpportunityStage | 'ALL')[] = ['ALL', 'NEW', 'CONTACTED', 'DEMO_SCHEDULED', 'DEMO_DONE', 'NEGOTIATION', 'WON', 'LOST'];
+const stages: (OpportunityStage | 'ALL')[] = ['ALL', 'NEW_LEAD', 'CONTACTED', 'DEMO_SCHEDULED', 'DEMO_DONE', 'NEGOTIATION', 'WON', 'LOST'];
 const stageLabels: Record<string, string> = {
-  ALL: 'ทั้งหมด', NEW: 'ใหม่', CONTACTED: 'ติดต่อแล้ว', DEMO_SCHEDULED: 'นัดสาธิต',
+  ALL: 'ทั้งหมด', NEW_LEAD: 'ใหม่', CONTACTED: 'ติดต่อแล้ว', DEMO_SCHEDULED: 'นัดสาธิต',
   DEMO_DONE: 'สาธิตแล้ว', NEGOTIATION: 'เจรจา', WON: 'ปิดได้', LOST: 'ปิดไม่ได้'
-};
-const typeLabels: Record<string, string> = {
-  NEW_DEVICE: 'เครื่องใหม่', CONSUMABLE_REPEAT: 'สั่งวัสดุซ้ำ', UPSELL: 'อัพเซลล์', SERVICE_CONTRACT: 'สัญญาบริการ'
 };
 
 export default function OpportunitiesPage() {
@@ -20,13 +17,13 @@ export default function OpportunitiesPage() {
   const [stageFilter, setStageFilter] = useState<OpportunityStage | 'ALL'>('ALL');
 
   const filtered = mockOpportunities.filter(o => {
-    const account = getAccountById(o.accountId);
-    const matchSearch = account?.clinicName.toLowerCase().includes(search.toLowerCase());
+    const account = getAccountById(o.account_id);
+    const matchSearch = account?.clinic_name.toLowerCase().includes(search.toLowerCase());
     const matchStage = stageFilter === 'ALL' || o.stage === stageFilter;
     return matchSearch && matchStage;
   });
 
-  const totalValue = filtered.reduce((sum, o) => sum + o.expectedValue, 0);
+  const totalValue = filtered.reduce((sum, o) => sum + (o.expected_value || 0), 0);
 
   return (
     <div className="space-y-6 animate-fade-in">
@@ -61,7 +58,6 @@ export default function OpportunitiesPage() {
           <thead>
             <tr className="border-b bg-muted/50">
               <th className="px-4 py-3 text-left font-medium text-muted-foreground">ลูกค้า</th>
-              <th className="px-4 py-3 text-left font-medium text-muted-foreground">ประเภท</th>
               <th className="px-4 py-3 text-left font-medium text-muted-foreground">สถานะ</th>
               <th className="px-4 py-3 text-left font-medium text-muted-foreground">เจ้าของ</th>
               <th className="px-4 py-3 text-right font-medium text-muted-foreground">มูลค่า (฿)</th>
@@ -70,16 +66,14 @@ export default function OpportunitiesPage() {
           </thead>
           <tbody>
             {filtered.map(opp => {
-              const account = getAccountById(opp.accountId);
-              const owner = getUserById(opp.ownerUserId);
+              const account = getAccountById(opp.account_id);
               return (
-                <tr key={opp.opportunityId} className="border-b last:border-0 hover:bg-muted/30 transition-colors">
-                  <td className="px-4 py-3 font-medium text-foreground">{account?.clinicName}</td>
-                  <td className="px-4 py-3 text-muted-foreground text-xs">{typeLabels[opp.opportunityType]}</td>
+                <tr key={opp.id} className="border-b last:border-0 hover:bg-muted/30 transition-colors">
+                  <td className="px-4 py-3 font-medium text-foreground">{account?.clinic_name}</td>
                   <td className="px-4 py-3"><StatusBadge status={opp.stage} /></td>
-                  <td className="px-4 py-3 text-muted-foreground">{owner?.name}</td>
-                  <td className="px-4 py-3 text-right font-medium text-foreground">฿{opp.expectedValue.toLocaleString()}</td>
-                  <td className="px-4 py-3 text-muted-foreground text-xs">{new Date(opp.closeDate).toLocaleDateString('th-TH')}</td>
+                  <td className="px-4 py-3 text-muted-foreground">{opp.assigned_sale}</td>
+                  <td className="px-4 py-3 text-right font-medium text-foreground">฿{(opp.expected_value || 0).toLocaleString()}</td>
+                  <td className="px-4 py-3 text-muted-foreground text-xs">{opp.close_date ? new Date(opp.close_date).toLocaleDateString('th-TH') : '—'}</td>
                 </tr>
               );
             })}

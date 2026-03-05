@@ -6,12 +6,12 @@ import StatusBadge from '@/components/ui/StatusBadge';
 import { mockOpportunities, mockWorkItems, mockInventory, mockActivityLogs, getAccountById, getUserById } from '@/data/mockData';
 
 export default function Dashboard() {
-  const newLeads = mockOpportunities.filter(o => o.stage === 'NEW').length;
+  const newLeads = mockOpportunities.filter(o => o.stage === 'NEW_LEAD').length;
   const activeOpps = mockOpportunities.filter(o => !['WON', 'LOST'].includes(o.stage)).length;
   const upcomingDemos = mockWorkItems.filter(w => w.type === 'DEMO_EVENT' && w.status !== 'DONE').length;
   const openTickets = mockWorkItems.filter(w => w.type === 'SERVICE_TICKET' && w.status !== 'DONE').length;
   const lowStock = mockInventory.filter(i => i.status === 'OUT' || i.quantity <= 2).length;
-  const totalPipeline = mockOpportunities.filter(o => !['WON', 'LOST'].includes(o.stage)).reduce((s, o) => s + o.expectedValue, 0);
+  const totalPipeline = mockOpportunities.filter(o => !['WON', 'LOST'].includes(o.stage)).reduce((s, o) => s + (o.expected_value || 0), 0);
 
   const recentActivities = [...mockActivityLogs].sort((a, b) => new Date(b.performedAt).getTime() - new Date(a.performedAt).getTime()).slice(0, 8);
 
@@ -34,7 +34,6 @@ export default function Dashboard() {
         <KpiCard label="วัสดุสิ้นเปลือง" value={mockInventory.filter(i => i.category === 'CONSUMABLE').length} icon={Package} />
       </div>
 
-      {/* Recent Activity & Open Work Items */}
       <div className="grid gap-6 lg:grid-cols-2">
         <div className="rounded-lg border bg-card p-4">
           <h3 className="text-sm font-semibold text-foreground mb-3">กิจกรรมล่าสุด</h3>
@@ -48,7 +47,7 @@ export default function Dashboard() {
                   <div className="flex-1 min-w-0">
                     <p className="text-foreground">{activity.message}</p>
                     <p className="text-xs text-muted-foreground mt-0.5">
-                      {user?.name} · {account?.clinicName} · {new Date(activity.performedAt).toLocaleDateString('th-TH')}
+                      {user?.name} · {account?.clinic_name} · {new Date(activity.performedAt).toLocaleDateString('th-TH')}
                     </p>
                   </div>
                 </div>
@@ -66,7 +65,7 @@ export default function Dashboard() {
                 <div key={item.workItemId} className="flex items-center justify-between gap-2 rounded-md border px-3 py-2">
                   <div className="min-w-0 flex-1">
                     <p className="text-sm font-medium text-foreground truncate">{item.title}</p>
-                    <p className="text-xs text-muted-foreground">{account?.clinicName}</p>
+                    <p className="text-xs text-muted-foreground">{account?.clinic_name}</p>
                   </div>
                   <div className="flex items-center gap-2 shrink-0">
                     <StatusBadge status={item.priority} />

@@ -1,6 +1,45 @@
-import type { Account, Contact, Opportunity, WorkItem, ActivityLog, CalendarEvent, SalesOrder, InventoryItem, FinanceDocument, User, Quotation, Invoice } from '@/types';
+import type { Account, Contact, Opportunity, Quotation, Profile } from '@/types';
 
-export const mockUsers: User[] = [
+// Legacy types for mock data that haven't migrated to DB yet
+export interface WorkItem {
+  workItemId: string; type: string; departmentOwner: string; linkedAccountId: string;
+  linkedOpportunityId?: string; assigneeUserId: string; status: string; priority: string;
+  dueDateTime: string; location?: string; title: string;
+}
+export interface ActivityLog {
+  activityId: string; linkedAccountId: string; linkedOpportunityId?: string;
+  linkedWorkItemId?: string; actionType: string; message: string;
+  performedByUserId: string; performedAt: string;
+}
+export interface CalendarEvent {
+  calendarEventId: string; linkedWorkItemId: string; title: string;
+  startDateTime: string; endDateTime: string; location?: string;
+  ownerUserId: string; departmentOwner: string;
+}
+export interface SalesOrder {
+  salesOrderId: string; accountId: string; opportunityId: string;
+  orderType: string; orderStatus: string; paymentStatus: string;
+}
+export interface InventoryItem {
+  inventoryId: string; productName: string; category: string;
+  serialNumber?: string; quantity: number; warehouseLocation: string; status: string;
+}
+export interface FinanceDocument {
+  financeDocId: string; salesOrderId: string; docType: string;
+  issueDate: string; dueDate: string; amount: number;
+  paymentStatus: string; approvalStatus: string;
+}
+export interface MockUser {
+  userId: string; name: string; email: string; role: string;
+  department: string; avatarUrl?: string;
+}
+export interface MockInvoice {
+  invoiceId: string; accountId: string; salesOrderId: string;
+  amount: number; issueDate: string; dueDate: string;
+  paymentStatus: string; approvalStatus: string;
+}
+
+export const mockUsers: MockUser[] = [
   { userId: 'u1', name: 'Somchai Patel', email: 'somchai@optima.co', role: 'SUPER_ADMIN', department: 'SALES', avatarUrl: '' },
   { userId: 'u2', name: 'Narin Lee', email: 'narin@optima.co', role: 'HEAD_OF_DEPARTMENT', department: 'SALES' },
   { userId: 'u3', name: 'Priya Sharma', email: 'priya@optima.co', role: 'STAFF', department: 'PRODUCT' },
@@ -10,25 +49,25 @@ export const mockUsers: User[] = [
 ];
 
 export const mockAccounts: Account[] = [
-  { accountId: 'a1', clinicName: 'Glow Aesthetic Clinic', province: 'Bangkok', address: '123 Sukhumvit Rd', customerStatus: 'CUSTOMER', assignedSalesOwnerUserId: 'u2' },
-  { accountId: 'a2', clinicName: 'Radiance Derma Center', province: 'Chiang Mai', address: '45 Nimmanhaemin Rd', customerStatus: 'PROSPECT', assignedSalesOwnerUserId: 'u2' },
-  { accountId: 'a3', clinicName: 'Skin Perfect Lab', province: 'Phuket', address: '78 Beach Rd', customerStatus: 'PROSPECT', assignedSalesOwnerUserId: 'u2' },
-  { accountId: 'a4', clinicName: 'Beauty Plus Clinic', province: 'Bangkok', address: '200 Thonglor Soi 10', customerStatus: 'CUSTOMER', assignedSalesOwnerUserId: 'u2' },
-  { accountId: 'a5', clinicName: 'Aura Med Spa', province: 'Pattaya', address: '55 Walking Street', customerStatus: 'DORMANT', assignedSalesOwnerUserId: 'u2' },
+  { id: 'a1', clinic_name: 'Glow Aesthetic Clinic', address: '123 Sukhumvit Rd, Bangkok', customer_status: 'PURCHASED', assigned_sale: 'Narin Lee', created_at: '' },
+  { id: 'a2', clinic_name: 'Radiance Derma Center', address: '45 Nimmanhaemin Rd, Chiang Mai', customer_status: 'NEW_LEAD', assigned_sale: 'Narin Lee', created_at: '' },
+  { id: 'a3', clinic_name: 'Skin Perfect Lab', address: '78 Beach Rd, Phuket', customer_status: 'NEW_LEAD', assigned_sale: 'Narin Lee', created_at: '' },
+  { id: 'a4', clinic_name: 'Beauty Plus Clinic', address: '200 Thonglor Soi 10, Bangkok', customer_status: 'PURCHASED', assigned_sale: 'Narin Lee', created_at: '' },
+  { id: 'a5', clinic_name: 'Aura Med Spa', address: '55 Walking Street, Pattaya', customer_status: 'DORMANT', assigned_sale: 'Narin Lee', created_at: '' },
 ];
 
 export const mockContacts: Contact[] = [
-  { contactId: 'c1', accountId: 'a1', name: 'Dr. Apinya Suwannapong', role: 'Medical Director', phone: '+66812345678', email: 'apinya@glow.co', lineId: '@apinya' },
-  { contactId: 'c2', accountId: 'a2', name: 'Dr. Kamol Thongprasert', role: 'Owner', phone: '+66823456789', email: 'kamol@radiance.co' },
-  { contactId: 'c3', accountId: 'a3', name: 'Nurse Ploy Rattanakorn', role: 'Clinic Manager', phone: '+66834567890', email: 'ploy@skinperfect.co' },
+  { id: 'c1', account_id: 'a1', name: 'Dr. Apinya Suwannapong', role: 'Medical Director', phone: '+66812345678', email: 'apinya@glow.co', line_id: '@apinya', created_at: '' },
+  { id: 'c2', account_id: 'a2', name: 'Dr. Kamol Thongprasert', role: 'Owner', phone: '+66823456789', email: 'kamol@radiance.co', created_at: '' },
+  { id: 'c3', account_id: 'a3', name: 'Nurse Ploy Rattanakorn', role: 'Clinic Manager', phone: '+66834567890', email: 'ploy@skinperfect.co', created_at: '' },
 ];
 
 export const mockOpportunities: Opportunity[] = [
-  { opportunityId: 'o1', accountId: 'a2', opportunityType: 'NEW_DEVICE', stage: 'DEMO_SCHEDULED', ownerUserId: 'u2', expectedValue: 2500000, closeDate: '2026-04-15' },
-  { opportunityId: 'o2', accountId: 'a3', opportunityType: 'NEW_DEVICE', stage: 'CONTACTED', ownerUserId: 'u2', expectedValue: 1800000, closeDate: '2026-04-30' },
-  { opportunityId: 'o3', accountId: 'a1', opportunityType: 'CONSUMABLE_REPEAT', stage: 'NEGOTIATION', ownerUserId: 'u2', expectedValue: 350000, closeDate: '2026-03-20' },
-  { opportunityId: 'o4', accountId: 'a4', opportunityType: 'SERVICE_CONTRACT', stage: 'WON', ownerUserId: 'u2', expectedValue: 150000, closeDate: '2026-02-28' },
-  { opportunityId: 'o5', accountId: 'a1', opportunityType: 'UPSELL', stage: 'NEW', ownerUserId: 'u2', expectedValue: 900000, closeDate: '2026-05-15' },
+  { id: 'o1', account_id: 'a2', stage: 'DEMO_SCHEDULED', expected_value: 2500000, close_date: '2026-04-15', assigned_sale: 'Narin Lee', interested_products: ['HydraGlow Facial System'], created_at: '' },
+  { id: 'o2', account_id: 'a3', stage: 'CONTACTED', expected_value: 1800000, close_date: '2026-04-30', assigned_sale: 'Narin Lee', interested_products: ['PicoStar Pro Laser'], created_at: '' },
+  { id: 'o3', account_id: 'a1', stage: 'NEGOTIATION', expected_value: 350000, close_date: '2026-03-20', assigned_sale: 'Narin Lee', interested_products: ['Consumables'], created_at: '' },
+  { id: 'o4', account_id: 'a4', stage: 'WON', expected_value: 150000, close_date: '2026-02-28', assigned_sale: 'Narin Lee', interested_products: ['Service Contract'], created_at: '' },
+  { id: 'o5', account_id: 'a1', stage: 'NEW_LEAD', expected_value: 900000, close_date: '2026-05-15', assigned_sale: 'Narin Lee', interested_products: ['CoolSculpt'], created_at: '' },
 ];
 
 export const mockWorkItems: WorkItem[] = [
@@ -73,11 +112,11 @@ export const mockFinanceDocs: FinanceDocument[] = [
 ];
 
 export const mockQuotations: Quotation[] = [
-  { quotationId: 'QT-2026-001', accountId: 'a1', items: [{ productName: 'PicoStar Pro Laser', qty: 1, unitPrice: 2500000 }], totalAmount: 2500000, issueDate: '2026-02-20', validUntil: '2026-03-20', approvalStatus: 'APPROVED', createdByUserId: 'u2' },
-  { quotationId: 'QT-2026-002', accountId: 'a2', items: [{ productName: 'HydraGlow Facial System', qty: 1, unitPrice: 1800000 }, { productName: 'HydraGlow Serum Cartridge', qty: 10, unitPrice: 3500 }], totalAmount: 1835000, issueDate: '2026-03-01', validUntil: '2026-03-31', approvalStatus: 'SUBMITTED', createdByUserId: 'u2' },
-  { quotationId: 'QT-2026-003', accountId: 'a3', items: [{ productName: 'RF Needle Cartridge (25pin)', qty: 50, unitPrice: 1200 }], totalAmount: 60000, issueDate: '2026-03-03', validUntil: '2026-04-03', approvalStatus: 'DRAFT', createdByUserId: 'u2' },
-  { quotationId: 'QT-2026-004', accountId: 'a4', items: [{ productName: 'CoolSculpt Body Contouring', qty: 1, unitPrice: 3200000 }], totalAmount: 3200000, issueDate: '2026-02-10', validUntil: '2026-03-10', approvalStatus: 'REJECTED', createdByUserId: 'u2' },
-  { quotationId: 'QT-2026-005', accountId: 'a1', items: [{ productName: 'HydraGlow Serum Cartridge', qty: 24, unitPrice: 3500 }], totalAmount: 84000, issueDate: '2026-03-04', validUntil: '2026-04-04', approvalStatus: 'DRAFT', createdByUserId: 'u5' },
+  { id: 'QT-2026-001', qt_number: 'QT-2026-001', account_id: 'a1', product: 'PicoStar Pro Laser', price: 2500000, qt_date: '2026-02-20', payment_status: 'UNPAID', approval_status: 'APPROVED', sale_assigned: 'Narin Lee', created_at: '' },
+  { id: 'QT-2026-002', qt_number: 'QT-2026-002', account_id: 'a2', product: 'HydraGlow Facial System', price: 1835000, qt_date: '2026-03-01', payment_status: 'UNPAID', approval_status: 'SUBMITTED', sale_assigned: 'Narin Lee', created_at: '' },
+  { id: 'QT-2026-003', qt_number: 'QT-2026-003', account_id: 'a3', product: 'RF Needle Cartridge (25pin)', price: 60000, qt_date: '2026-03-03', payment_status: 'UNPAID', approval_status: 'DRAFT', sale_assigned: 'Narin Lee', created_at: '' },
+  { id: 'QT-2026-004', qt_number: 'QT-2026-004', account_id: 'a4', product: 'CoolSculpt Body Contouring', price: 3200000, qt_date: '2026-02-10', payment_status: 'UNPAID', approval_status: 'REJECTED', sale_assigned: 'Narin Lee', created_at: '' },
+  { id: 'QT-2026-005', qt_number: 'QT-2026-005', account_id: 'a1', product: 'HydraGlow Serum Cartridge', price: 84000, qt_date: '2026-03-04', payment_status: 'UNPAID', approval_status: 'DRAFT', sale_assigned: 'Lisa Chen', created_at: '' },
 ];
 
 export const mockSalesOrders: SalesOrder[] = [
@@ -87,7 +126,7 @@ export const mockSalesOrders: SalesOrder[] = [
   { salesOrderId: 'SO-2026-004', accountId: 'a1', opportunityId: 'o5', orderType: 'DEVICE', orderStatus: 'CONFIRMED', paymentStatus: 'UNPAID' },
 ];
 
-export const mockInvoices: Invoice[] = [
+export const mockInvoices: MockInvoice[] = [
   { invoiceId: 'INV-2026-001', accountId: 'a1', salesOrderId: 'SO-2026-001', amount: 175000, issueDate: '2026-02-28', dueDate: '2026-03-30', paymentStatus: 'UNPAID', approvalStatus: 'APPROVED' },
   { invoiceId: 'INV-2026-002', accountId: 'a4', salesOrderId: 'SO-2026-002', amount: 150000, issueDate: '2026-02-28', dueDate: '2026-03-15', paymentStatus: 'PAID', approvalStatus: 'APPROVED' },
   { invoiceId: 'INV-2026-003', accountId: 'a2', salesOrderId: 'SO-2026-003', amount: 1835000, issueDate: '2026-03-05', dueDate: '2026-04-05', paymentStatus: 'UNPAID', approvalStatus: 'DRAFT' },
@@ -95,9 +134,9 @@ export const mockInvoices: Invoice[] = [
 ];
 
 // Helpers
-export function getAccountById(id: string) { return mockAccounts.find(a => a.accountId === id); }
+export function getAccountById(id: string) { return mockAccounts.find(a => a.id === id); }
 export function getUserById(id: string) { return mockUsers.find(u => u.userId === id); }
 export function getWorkItemsForAccount(accountId: string) { return mockWorkItems.filter(w => w.linkedAccountId === accountId); }
-export function getOpportunitiesForAccount(accountId: string) { return mockOpportunities.filter(o => o.accountId === accountId); }
-export function getContactsForAccount(accountId: string) { return mockContacts.filter(c => c.accountId === accountId); }
+export function getOpportunitiesForAccount(accountId: string) { return mockOpportunities.filter(o => o.account_id === accountId); }
+export function getContactsForAccount(accountId: string) { return mockContacts.filter(c => c.account_id === accountId); }
 export function getActivitiesForAccount(accountId: string) { return mockActivityLogs.filter(a => a.linkedAccountId === accountId); }
