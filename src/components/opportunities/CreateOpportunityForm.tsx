@@ -113,7 +113,6 @@ export default function CreateOpportunityForm({ open, onOpenChange, customer, on
     competitors: [] as string[],
     current_devices: [] as string[],
     authority_contact_id: '',
-    needs: [] as string[],
   });
 
   useEffect(() => {
@@ -194,7 +193,7 @@ export default function CreateOpportunityForm({ open, onOpenChange, customer, on
       competitors: form.competitors.join(', ') || undefined,
       current_devices: form.current_devices.join(', ') || undefined,
       authority_contact_id: form.authority_contact_id || undefined,
-      needs: form.needs.length > 0 ? form.needs : undefined,
+      needs: undefined,
       created_at: new Date().toISOString(),
     };
 
@@ -209,7 +208,7 @@ export default function CreateOpportunityForm({ open, onOpenChange, customer, on
     stage: '', probability: 10, close_date: '', notes: '',
     budget_range: '', payment_method: '', credit_card_option: '',
     competitors: [], current_devices: [],
-    authority_contact_id: '', needs: [],
+    authority_contact_id: '',
   });
 
   return (
