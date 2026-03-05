@@ -426,15 +426,13 @@ export default function OpportunityDetailPage() {
 
               <TabsContent value="activity">
                 <ActivityForm
-                  key={quickScheduleDefaults ? `qs-${quickScheduleDefaults.start_time}-${quickScheduleDefaults.end_time}` : 'default'}
                   opportunityId={opp.id}
                   accountId={opp.account_id}
-                  onActivityCreated={(a) => { handleActivityCreated(a); setQuickScheduleDefaults(null); }}
+                  onActivityCreated={handleActivityCreated}
                   editingActivity={editingActivity}
                   onActivityUpdated={handleActivityUpdated}
-                  onCancelEdit={() => { setActiveActivityId(null); setFormPreview(null); setQuickScheduleDefaults(null); }}
+                  onCancelEdit={() => { setActiveActivityId(null); setFormPreview(null); }}
                   onFormChange={setFormPreview}
-                  quickScheduleDefaults={quickScheduleDefaults}
                 />
               </TabsContent>
 
