@@ -1,0 +1,1 @@
+ALTER TABLE public.demos ALTER COLUMN account_id DROP NOT NULL;
