@@ -390,6 +390,21 @@ function NoteItem({ data, isPinned, onUpdate, onDelete, onPin, onAddComment, com
           </div>
         )}
 
+        {/* Nested comments */}
+        {comments.length > 0 && (
+          <div className="mt-1.5 space-y-1">
+            {comments.map(c => (
+              <div key={c.id} className="ml-3 flex gap-1 text-[10px] text-muted-foreground">
+                <span className="shrink-0">↳</span>
+                <div>
+                  <p className="text-foreground/90">{c.content}</p>
+                  <p className="opacity-70">{c.created_by} · {new Date(c.created_at).toLocaleDateString('th-TH', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
         <p className="text-[10px] text-muted-foreground mt-1">
           {data.created_by} · {new Date(data.created_at).toLocaleDateString('th-TH', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
         </p>
