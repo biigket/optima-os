@@ -84,7 +84,7 @@ export default function HistoryTimeline({ activities, stageHistory, notes, onUpd
 
           {items.map((item, idx) => (
             <div key={idx} className="relative">
-              {item.type === 'activity' && <ActivityItem data={item.data} clinicName={clinicName} />}
+              {item.type === 'activity' && <ActivityItem data={item.data} clinicName={clinicName} onDelete={onDeleteNote} onPin={onPinNote} />}
               {item.type === 'stage' && <StageItem data={item.data} />}
               {item.type === 'note' && (
                 <NoteItem
@@ -102,7 +102,7 @@ export default function HistoryTimeline({ activities, stageHistory, notes, onUpd
   );
 }
 
-function ActivityItem({ data, clinicName }: { data: Activity; clinicName?: string }) {
+function ActivityItem({ data, clinicName, onDelete, onPin }: { data: Activity; clinicName?: string; onDelete?: (id: string) => void; onPin?: (id: string) => void }) {
   const Icon = TYPE_ICONS[data.activity_type] || Building2;
   const colors = TYPE_COLORS[data.activity_type] || TYPE_COLORS.TASK;
   return (
@@ -112,11 +112,31 @@ function ActivityItem({ data, clinicName }: { data: Activity; clinicName?: strin
       </div>
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2 flex-wrap">
-          <span className="text-xs font-medium text-foreground">{data.title}</span>
+          <span className="text-xs font-medium text-foreground flex-1">{data.title}</span>
           <CheckCircle2 size={11} className="text-emerald-500 shrink-0" />
           {data.priority === 'HIGH' && (
             <span className="px-1.5 py-0.5 rounded text-[9px] font-semibold bg-red-100 text-red-700 dark:bg-red-900/50 dark:text-red-400">HIGH</span>
           )}
+          <div className="flex items-center gap-0.5">
+            <button onClick={() => onPin?.(data.id)} className="p-1 rounded hover:bg-muted text-muted-foreground" title="Pin">
+              <Pin size={11} />
+            </button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button className="p-1 rounded hover:bg-muted text-muted-foreground">
+                  <MoreHorizontal size={11} />
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="text-xs min-w-[120px]">
+                <DropdownMenuItem onClick={() => onPin?.(data.id)}>
+                  <Pin size={11} className="mr-1.5" /> Pin
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => onDelete?.(data.id)} className="text-destructive">
+                  <Trash2 size={11} className="mr-1.5" /> Delete
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
         </div>
         <p className="text-[10px] text-muted-foreground">
           {data.activity_date}{data.start_time ? ` ${data.start_time}` : ''} · {data.activity_type}
@@ -175,7 +195,7 @@ function NoteItem({ data, onUpdate, onDelete, onPin }: {
       <div className="flex-1">
         <div className="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-lg p-2.5 group relative">
           {/* Action buttons - top right */}
-          <div className="absolute top-1.5 right-1.5 flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+          <div className="absolute top-1.5 right-1.5 flex items-center gap-0.5">
             <button
               onClick={() => onPin?.(data.id)}
               className="p-1 rounded hover:bg-amber-200/50 text-amber-700 dark:text-amber-400"
