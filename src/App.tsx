@@ -26,6 +26,7 @@ const phase2Routes = [
   '/quotations', '/sales-orders', '/inventory', '/invoices',
   '/campaigns', '/promotions', '/kol',
   '/training', '/lms',
+  '/ai-pipeline', '/ai-reorder', '/ai-marketing',
 ];
 
 const App = () => (

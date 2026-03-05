@@ -1,7 +1,7 @@
-import { Lock } from 'lucide-react';
+import { Lock, Brain, Zap, Bot } from 'lucide-react';
 import { useLocation } from 'react-router-dom';
 
-const phase2Modules: Record<string, { title: string; description: string; features: string[] }> = {
+const phase2Modules: Record<string, { title: string; description: string; features: string[]; phase?: number }> = {
   '/quotations': { title: 'ใบเสนอราคา', description: 'สร้างและจัดการใบเสนอราคา', features: ['สร้างใบเสนอราคาอัตโนมัติ', 'แนบรายการสินค้า', 'ส่งอีเมลถึงลูกค้า', 'ติดตามสถานะ'] },
   '/sales-orders': { title: 'ใบสั่งขาย', description: 'จัดการคำสั่งซื้อ', features: ['แปลงจากใบเสนอราคา', 'ติดตามสถานะจัดส่ง', 'เชื่อมต่อคลังสินค้า', 'บันทึกการชำระเงิน'] },
   '/inventory': { title: 'คลังสินค้า', description: 'จัดการสต็อกและคลังสินค้า', features: ['ติดตามสต็อกแบบ Real-time', 'แจ้งเตือนสินค้าใกล้หมด', 'จัดการ Serial Number', 'รายงานการเคลื่อนไหว'] },
@@ -11,8 +11,9 @@ const phase2Modules: Record<string, { title: string; description: string; featur
   '/kol': { title: 'KOL Management', description: 'จัดการ Key Opinion Leaders', features: ['ฐานข้อมูล KOL', 'ติดตามความร่วมมือ', 'วัดผลการทำงาน', 'จัดการสัญญา'] },
   '/training': { title: 'อบรม', description: 'จัดการการอบรมพนักงานและลูกค้า', features: ['ตารางการอบรม', 'ลงทะเบียนผู้เข้าร่วม', 'ใบรับรอง', 'ประเมินผล'] },
   '/lms': { title: 'LMS', description: 'ระบบจัดการการเรียนรู้', features: ['คอร์สออนไลน์', 'วิดีโอบทเรียน', 'แบบทดสอบ', 'ติดตามความคืบหน้า'] },
-  '/forecast': { title: 'พยากรณ์', description: 'พยากรณ์ยอดขายและแนวโน้มตลาด', features: ['พยากรณ์ยอดขาย', 'วิเคราะห์แนวโน้ม', 'วางแผนเป้าหมาย', 'โมเดล AI'] },
-  '/analytics': { title: 'วิเคราะห์', description: 'รายงานและการวิเคราะห์เชิงลึก', features: ['แดชบอร์ดแบบกำหนดเอง', 'รายงานยอดขาย', 'วิเคราะห์ลูกค้า', 'ส่งออกรายงาน'] },
+  '/ai-pipeline': { title: 'AI วิเคราะห์ Pipeline', description: 'AI วิเคราะห์โอกาสขายและคาดการณ์ผลลัพธ์', phase: 3, features: ['วิเคราะห์ความน่าจะเป็นในการปิดดีล', 'จัดลำดับความสำคัญโอกาสขาย', 'แนะนำ next best action', 'ตรวจจับดีลที่เสี่ยงหลุด'] },
+  '/ai-reorder': { title: 'AI ทำนาย Reorder', description: 'AI ทำนายเวลาสั่งวัสดุสิ้นเปลืองที่เหมาะสม', phase: 3, features: ['ทำนายวันที่ cartridge จะหมด', 'แนะนำจำนวนสั่งซื้อที่เหมาะสม', 'แจ้งเตือนล่วงหน้าอัตโนมัติ', 'วิเคราะห์ consumption pattern'] },
+  '/ai-marketing': { title: 'AI แนะนำ Marketing', description: 'AI แนะนำกลยุทธ์การตลาดเฉพาะคลินิก', phase: 3, features: ['วิเคราะห์ profiling ลูกค้าแต่ละราย', 'แนะนำแคมเปญที่เหมาะสม', 'คาดการณ์ ROI ของแคมเปญ', 'สร้างคอนเทนต์ด้วย AI'] },
 };
 
 export default function Phase2Placeholder() {
@@ -33,7 +34,7 @@ export default function Phase2Placeholder() {
         <div className="flex items-center gap-2">
           <h1 className="text-2xl font-bold text-foreground">{module.title}</h1>
           <span className="inline-flex items-center gap-1 rounded-full bg-muted px-2.5 py-0.5 text-[10px] font-semibold text-muted-foreground uppercase tracking-wide">
-            <Lock size={10} /> Phase 2
+            <Lock size={10} /> {module.phase === 3 ? 'Phase 3 · AI' : 'Phase 2'}
           </span>
         </div>
         <p className="text-sm text-muted-foreground mt-1">{module.description}</p>
