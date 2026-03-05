@@ -81,6 +81,8 @@ export interface Opportunity {
   current_devices?: string;
   order_frequency?: string;
   stuck_reason?: string;
+  authority_contact_id?: string;
+  needs?: string[];
   created_at: string;
 }
 

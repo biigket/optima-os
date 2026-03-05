@@ -12,8 +12,9 @@ import {
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useMockAuth } from '@/hooks/useMockAuth';
-import { getNotesForOpportunity, addNoteGlobal, getCachedAccount, type OpportunityNote } from '@/pages/OpportunitiesPage';
+import { getNotesForOpportunity, addNoteGlobal, type OpportunityNote } from '@/pages/OpportunitiesPage';
 import { toast } from 'sonner';
+import { differenceInDays } from 'date-fns';
 import type { Opportunity, OpportunityStage, Account, Contact } from '@/types';
 
 const STAGES: OpportunityStage[] = ['NEW_LEAD', 'CONTACTED', 'DEMO_SCHEDULED', 'DEMO_DONE', 'NEGOTIATION', 'WON', 'LOST'];
@@ -21,13 +22,16 @@ const STAGE_LABELS: Record<string, string> = {
   NEW_LEAD: 'Lead Qualified', CONTACTED: 'นัดพบ/Need', DEMO_SCHEDULED: 'Demo/Workshop',
   DEMO_DONE: 'Proposal Sent', NEGOTIATION: 'Negotiation', WON: 'Won', LOST: 'Lost/Nurture',
 };
-const PROBABILITY: Record<string, number> = {
-  NEW_LEAD: 10, CONTACTED: 20, DEMO_SCHEDULED: 40, DEMO_DONE: 60, NEGOTIATION: 80, WON: 100, LOST: 0,
-};
 const ACTIVITY_ICONS: Record<string, React.ElementType> = {
   CALL: Phone, VISIT: Eye, DEMO: Presentation, MEETING: Users, PROPOSAL: FileCheck,
 };
 const STUCK_REASONS = ['รอราคา', 'รอผู้ตัดสินใจ', 'รอ finance', 'รอ training', 'อื่นๆ'];
+const PAYMENT_LABELS: Record<string, string> = {
+  CASH: 'เงินสด', LEASING: 'ลีสซิ่ง',
+  'CREDIT_CARD:FULL': 'บัตรเครดิต (รูดเต็ม)', 'CREDIT_CARD:INST_3': 'บัตรเครดิต (ผ่อน 3 ด.)',
+  'CREDIT_CARD:INST_6': 'บัตรเครดิต (ผ่อน 6 ด.)', 'CREDIT_CARD:INST_10': 'บัตรเครดิต (ผ่อน 10 ด.)',
+  CREDIT_CARD: 'บัตรเครดิต',
+};
 
 export default function OpportunityDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -37,6 +41,7 @@ export default function OpportunityDetailPage() {
   const [opp, setOpp] = useState<Opportunity | undefined>(undefined);
   const [account, setAccount] = useState<Account | null>(null);
   const [contacts, setContacts] = useState<Contact[]>([]);
+  const [authorityContact, setAuthorityContact] = useState<Contact | null>(null);
   const [editOpen, setEditOpen] = useState(false);
   const [stageConfirm, setStageConfirm] = useState<OpportunityStage | null>(null);
   const [stageHistory, setStageHistory] = useState<{ from: string; to: string; date: string }[]>([]);
@@ -51,7 +56,6 @@ export default function OpportunityDetailPage() {
     next_activity_date: '',
   });
 
-  // Fetch opportunity from DB
   useEffect(() => {
     if (!id) return;
     supabase.from('opportunities').select('*').eq('id', id).single().then(({ data, error }) => {
@@ -60,7 +64,6 @@ export default function OpportunityDetailPage() {
     });
   }, [id]);
 
-  // Fetch account & contacts from DB when opp is loaded
   useEffect(() => {
     if (!opp) return;
     supabase.from('accounts').select('*').eq('id', opp.account_id).single().then(({ data }) => {
@@ -70,6 +73,14 @@ export default function OpportunityDetailPage() {
       if (data) setContacts(data as unknown as Contact[]);
     });
   }, [opp?.account_id]);
+
+  // Fetch authority contact
+  useEffect(() => {
+    if (!opp?.authority_contact_id) { setAuthorityContact(null); return; }
+    supabase.from('contacts').select('*').eq('id', opp.authority_contact_id).single().then(({ data }) => {
+      if (data) setAuthorityContact(data as unknown as Contact);
+    });
+  }, [opp?.authority_contact_id]);
 
   if (!opp) {
     return (
@@ -83,11 +94,15 @@ export default function OpportunityDetailPage() {
   const stageIdx = STAGES.indexOf(opp.stage);
   const daysInStage = Math.floor((Date.now() - new Date(opp.created_at || Date.now()).getTime()) / 86400000);
   const isStuck = daysInStage > 14 && !['WON', 'LOST'].includes(opp.stage);
-  const prob = PROBABILITY[opp.stage] || 0;
+  const prob = opp.probability ?? 0;
   const weighted = Math.round((opp.expected_value || 0) * prob / 100);
   const isOverdue = opp.close_date && new Date(opp.close_date) < new Date() && !['WON', 'LOST'].includes(opp.stage);
+  const closeDateDays = opp.close_date ? differenceInDays(new Date(opp.close_date), new Date()) : null;
   const ActivityIcon = opp.next_activity_type ? (ACTIVITY_ICONS[opp.next_activity_type] || Calendar) : Calendar;
   const notes = getNotesForOpportunity(opp.id);
+
+  const competitorTags = opp.competitors ? opp.competitors.split(',').map(s => s.trim()).filter(Boolean) : [];
+  const deviceTags = opp.current_devices ? opp.current_devices.split(',').map(s => s.trim()).filter(Boolean) : [];
 
   const changeStage = async (newStage: OpportunityStage) => {
     const oldStage = opp.stage;
@@ -217,12 +232,78 @@ export default function OpportunityDetailPage() {
               <Pencil size={12} />
             </button>
           </div>
-          <InfoRow label="ประเภท" value={opp.opportunity_type === 'DEVICE' ? 'เครื่องมือ' : opp.opportunity_type === 'CONSUMABLE' ? 'สิ้นเปลือง' : '-'} />
           <InfoRow label="สินค้า" value={(opp.interested_products || []).join(', ') || '-'} />
           <InfoRow label="มูลค่า" value={`฿${(opp.expected_value || 0).toLocaleString()}`} highlight />
           <InfoRow label="Weighted" value={`฿${weighted.toLocaleString()}`} />
-          {opp.quantity && <InfoRow label="จำนวน" value={`${opp.quantity}`} />}
-          <InfoRow label="วันปิด" value={opp.close_date || '-'} warn={!!isOverdue} />
+
+          {/* Authority */}
+          {authorityContact && (
+            <div className="flex items-start justify-between gap-2">
+              <span className="text-[11px] text-muted-foreground shrink-0">ผู้ตัดสินใจ</span>
+              <div className="text-right">
+                <span className="text-xs text-foreground font-medium">{authorityContact.name}</span>
+                {authorityContact.phone && <p className="text-[10px] text-muted-foreground">📞 {authorityContact.phone}</p>}
+              </div>
+            </div>
+          )}
+
+          {/* Needs */}
+          {opp.needs && opp.needs.length > 0 && (
+            <div>
+              <span className="text-[11px] text-muted-foreground">ความต้องการ</span>
+              <div className="flex flex-wrap gap-1 mt-1">
+                {opp.needs.map(n => (
+                  <span key={n} className="px-2 py-0.5 rounded-full bg-primary/10 text-primary text-[10px] font-medium">{n}</span>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Budget */}
+          {opp.budget_range && <InfoRow label="งบประมาณ" value={opp.budget_range} />}
+
+          {/* Payment */}
+          {opp.payment_method && (
+            <InfoRow label="ช่องทางชำระ" value={PAYMENT_LABELS[opp.payment_method] || opp.payment_method} />
+          )}
+
+          {/* Competitors */}
+          {competitorTags.length > 0 && (
+            <div>
+              <span className="text-[11px] text-muted-foreground">คู่แข่ง</span>
+              <div className="flex flex-wrap gap-1 mt-1">
+                {competitorTags.map(t => (
+                  <span key={t} className="px-2 py-0.5 rounded-full bg-destructive/10 text-destructive text-[10px] font-medium">{t}</span>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Current devices */}
+          {deviceTags.length > 0 && (
+            <div>
+              <span className="text-[11px] text-muted-foreground">เครื่องปัจจุบัน</span>
+              <div className="flex flex-wrap gap-1 mt-1">
+                {deviceTags.map(t => (
+                  <span key={t} className="px-2 py-0.5 rounded-full bg-muted text-foreground text-[10px] font-medium">{t}</span>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Close date with duration */}
+          <div className="flex items-start justify-between gap-2">
+            <span className="text-[11px] text-muted-foreground shrink-0">วันปิด</span>
+            <div className="text-right">
+              <span className={`text-xs ${isOverdue ? 'text-destructive font-medium' : 'text-foreground'}`}>{opp.close_date || '-'}</span>
+              {closeDateDays !== null && (
+                <p className={`text-[10px] font-medium ${closeDateDays >= 0 ? 'text-primary' : 'text-destructive'}`}>
+                  {closeDateDays >= 0 ? `อีก ${closeDateDays} วัน` : `เลยกำหนด ${Math.abs(closeDateDays)} วัน`}
+                </p>
+              )}
+            </div>
+          </div>
+
           <InfoRow label="หมายเหตุ" value={opp.notes || '-'} />
 
           {isStuck && (
@@ -286,7 +367,10 @@ export default function OpportunityDetailPage() {
                 {c.name.charAt(0)}
               </div>
               <div className="min-w-0 flex-1">
-                <p className="text-xs font-medium text-foreground truncate">{c.name}</p>
+                <p className="text-xs font-medium text-foreground truncate">
+                  {c.name}
+                  {opp.authority_contact_id === c.id && <span className="ml-1 text-[9px] text-primary font-bold">⭐ ผู้ตัดสินใจ</span>}
+                </p>
                 <p className="text-[10px] text-muted-foreground">{c.role || '-'}</p>
               </div>
               {c.phone && <span className="text-[10px] text-muted-foreground">{c.phone}</span>}

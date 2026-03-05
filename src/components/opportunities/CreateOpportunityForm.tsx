@@ -10,29 +10,22 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Slider } from '@/components/ui/slider';
 import StatusBadge from '@/components/ui/StatusBadge';
 import { toast } from 'sonner';
-import { ExternalLink, Users, AlertTriangle, X } from 'lucide-react';
+import { ExternalLink, Users, AlertTriangle, X, Plus } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
-import type { Account, OpportunityType, OpportunityStage, Opportunity } from '@/types';
+import type { Account, OpportunityStage, Opportunity } from '@/types';
+import { differenceInDays } from 'date-fns';
 
 const STAGE_PROBABILITY: Record<string, number> = {
   NEW_LEAD: 10, CONTACTED: 20, DEMO_SCHEDULED: 40, DEMO_DONE: 60,
   NEGOTIATION: 75, WON: 100, LOST: 0,
 };
 
-const ACTIVITY_TYPES = [
-  { value: 'CALL', label: 'โทร' },
-  { value: 'VISIT', label: 'เยี่ยม' },
-  { value: 'DEMO', label: 'สาธิต' },
-  { value: 'MEETING', label: 'ประชุม' },
-  { value: 'LINE', label: 'LINE' },
-  { value: 'EMAIL', label: 'อีเมล' },
-];
-
 const BUDGET_RANGES = [
-  { value: '<1M', label: 'ต่ำกว่า 1M' },
-  { value: '1-3M', label: '1-3M' },
-  { value: '3-5M', label: '3-5M' },
-  { value: '5M+', label: '5M+' },
+  { value: '<500K', label: 'ต่ำกว่า 500K' },
+  { value: '500K-1M', label: '500K-1M' },
+  { value: '1-2M', label: '1-2M' },
+  { value: '>2-3M', label: '>2-3M' },
+  { value: '>3M', label: '>3M' },
 ];
 
 const PAYMENT_METHODS = [
@@ -48,11 +41,7 @@ const CREDIT_CARD_OPTIONS = [
   { value: 'INST_10', label: 'ผ่อน 10 เดือน' },
 ];
 
-const ORDER_FREQUENCIES = [
-  { value: 'WEEKLY', label: 'รายสัปดาห์' },
-  { value: 'MONTHLY', label: 'รายเดือน' },
-  { value: 'QUARTERLY', label: 'รายไตรมาส' },
-];
+const PRESET_NEEDS = ['ลดริ้วรอย', 'หน้าเรียว', 'ผิวกระจ่างใส', 'รักษาสิว', 'ลดรอยดำ', 'กระชับผิว'];
 
 interface Product {
   id: string;
@@ -61,10 +50,12 @@ interface Product {
   base_price: number | null;
 }
 
-interface Contact {
+interface ContactItem {
   id: string;
   account_id: string;
   name: string;
+  phone?: string | null;
+  is_decision_maker?: boolean | null;
 }
 
 interface CreateOpportunityFormProps {
@@ -74,46 +65,73 @@ interface CreateOpportunityFormProps {
   onSave: (data: Opportunity) => void;
 }
 
+function TagChipInput({ label, tags, onChange, placeholder }: { label: string; tags: string[]; onChange: (t: string[]) => void; placeholder?: string }) {
+  const [input, setInput] = useState('');
+  const addTag = (tag: string) => {
+    const t = tag.trim();
+    if (t && !tags.includes(t)) onChange([...tags, t]);
+    setInput('');
+  };
+  return (
+    <div className="space-y-1.5">
+      <Label className="text-xs">{label}</Label>
+      <div className="flex flex-wrap gap-1.5 mb-1.5">
+        {tags.map(t => (
+          <span key={t} className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-primary/10 text-primary text-xs font-medium">
+            {t}
+            <button onClick={() => onChange(tags.filter(x => x !== t))} className="hover:text-destructive"><X size={10} /></button>
+          </span>
+        ))}
+      </div>
+      <div className="flex gap-1.5">
+        <Input
+          value={input}
+          onChange={e => setInput(e.target.value)}
+          onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); addTag(input); } }}
+          className="h-8 text-xs flex-1"
+          placeholder={placeholder || 'พิมพ์แล้วกด Enter'}
+        />
+        <Button type="button" variant="outline" size="sm" className="h-8 px-2" onClick={() => addTag(input)} disabled={!input.trim()}>
+          <Plus size={12} />
+        </Button>
+      </div>
+    </div>
+  );
+}
+
 export default function CreateOpportunityForm({ open, onOpenChange, customer, onSave }: CreateOpportunityFormProps) {
   const navigate = useNavigate();
   const [products, setProducts] = useState<Product[]>([]);
-  const [contacts, setContacts] = useState<Contact[]>([]);
+  const [contacts, setContacts] = useState<ContactItem[]>([]);
 
   const [form, setForm] = useState({
-    opportunity_type: '' as OpportunityType | '',
     selectedProductIds: [] as string[],
     deal_value: '',
-    quantity: '',
     stage: '' as OpportunityStage | '',
     probability: 10,
     close_date: '',
     notes: '',
-    next_activity_type: '',
-    next_activity_date: '',
     budget_range: '',
     payment_method: '',
     credit_card_option: '',
-    competitors: '',
-    current_devices: '',
-    order_frequency: '',
+    competitors: [] as string[],
+    current_devices: [] as string[],
+    authority_contact_id: '',
+    needs: [] as string[],
   });
 
   useEffect(() => {
     if (!open) return;
     Promise.all([
       supabase.from('products').select('id, product_name, category, base_price'),
-      supabase.from('contacts').select('id, account_id, name').eq('account_id', customer.id),
+      supabase.from('contacts').select('id, account_id, name, phone, is_decision_maker').eq('account_id', customer.id),
     ]).then(([prodRes, conRes]) => {
       if (prodRes.data) setProducts(prodRes.data as Product[]);
-      if (conRes.data) setContacts(conRes.data as Contact[]);
+      if (conRes.data) setContacts(conRes.data as ContactItem[]);
     });
   }, [open, customer.id]);
 
   const set = (key: string, value: any) => setForm(f => ({ ...f, [key]: value }));
-
-  const filteredProducts = products.filter(p =>
-    !form.opportunity_type || p.category === form.opportunity_type
-  );
 
   const toggleProduct = (id: string) => {
     setForm(f => ({
@@ -124,23 +142,21 @@ export default function CreateOpportunityForm({ open, onOpenChange, customer, on
     }));
   };
 
-  const autoStage = form.opportunity_type === 'CONSUMABLE' ? 'CONTACTED' : 'NEW_LEAD';
-  const currentStage = form.stage || autoStage;
+  const currentStage = form.stage || 'NEW_LEAD';
 
-  // Auto-update probability when stage changes
   useEffect(() => {
     const stageProbability = STAGE_PROBABILITY[currentStage] ?? 10;
     set('probability', stageProbability);
   }, [currentStage]);
 
-  const canSave = form.opportunity_type && form.selectedProductIds.length > 0 && form.next_activity_type && form.next_activity_date &&
-    (form.opportunity_type === 'DEVICE' ? !!form.deal_value : !!form.quantity);
+  const closeDateDays = form.close_date
+    ? differenceInDays(new Date(form.close_date), new Date())
+    : null;
+
+  const canSave = form.selectedProductIds.length > 0 && !!form.deal_value;
 
   const handleSave = () => {
     const selectedProducts = products.filter(p => form.selectedProductIds.includes(p.id));
-    const expectedValue = form.opportunity_type === 'DEVICE'
-      ? Number(form.deal_value)
-      : Number(form.quantity) * (selectedProducts.reduce((sum, p) => sum + (p.base_price || 0), 0) / selectedProducts.length || 0);
 
     const paymentMethodFull = form.payment_method === 'CREDIT_CARD' && form.credit_card_option
       ? `CREDIT_CARD:${form.credit_card_option}`
@@ -150,22 +166,20 @@ export default function CreateOpportunityForm({ open, onOpenChange, customer, on
       id: `opp-${Date.now()}`,
       account_id: customer.id,
       stage: currentStage as OpportunityStage,
-      opportunity_type: form.opportunity_type || undefined,
+      opportunity_type: 'DEVICE',
       interested_products: selectedProducts.map(p => p.product_name),
-      expected_value: expectedValue,
+      expected_value: Number(form.deal_value),
       assigned_sale: customer.assigned_sale || undefined,
       close_date: form.close_date || undefined,
-      next_activity_type: form.next_activity_type || undefined,
-      next_activity_date: form.next_activity_date || undefined,
       notes: form.notes || undefined,
       probability: form.probability,
       budget_range: form.budget_range || undefined,
       payment_method: paymentMethodFull || undefined,
-      competitors: form.competitors || undefined,
-      current_devices: form.current_devices || undefined,
-      order_frequency: form.order_frequency || undefined,
+      competitors: form.competitors.join(', ') || undefined,
+      current_devices: form.current_devices.join(', ') || undefined,
+      authority_contact_id: form.authority_contact_id || undefined,
+      needs: form.needs.length > 0 ? form.needs : undefined,
       created_at: new Date().toISOString(),
-      quantity: form.quantity ? Number(form.quantity) : undefined,
     };
 
     onSave(newOpp);
@@ -175,12 +189,19 @@ export default function CreateOpportunityForm({ open, onOpenChange, customer, on
   };
 
   const resetForm = () => setForm({
-    opportunity_type: '', selectedProductIds: [], deal_value: '', quantity: '',
+    selectedProductIds: [], deal_value: '',
     stage: '', probability: 10, close_date: '', notes: '',
-    next_activity_type: '', next_activity_date: '',
     budget_range: '', payment_method: '', credit_card_option: '',
-    competitors: '', current_devices: '', order_frequency: '',
+    competitors: [], current_devices: [],
+    authority_contact_id: '', needs: [],
   });
+
+  const toggleNeed = (need: string) => {
+    setForm(f => ({
+      ...f,
+      needs: f.needs.includes(need) ? f.needs.filter(n => n !== need) : [...f.needs, need],
+    }));
+  };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -216,19 +237,72 @@ export default function CreateOpportunityForm({ open, onOpenChange, customer, on
         )}
 
         <div className="flex-1 overflow-y-auto px-5 py-4 space-y-4">
-          {/* ประเภท */}
+          {/* Authority (คนมีอำนาจตัดสินใจ) */}
           <div className="space-y-1.5">
-            <Label className="text-xs">ประเภท <span className="text-destructive">*</span></Label>
-            <div className="flex gap-2">
-              {(['DEVICE', 'CONSUMABLE'] as const).map(t => (
+            <Label className="text-xs">ผู้มีอำนาจตัดสินใจ (Authority)</Label>
+            <Select value={form.authority_contact_id} onValueChange={v => set('authority_contact_id', v)}>
+              <SelectTrigger className="h-9 text-xs"><SelectValue placeholder="เลือกผู้มีอำนาจตัดสินใจ" /></SelectTrigger>
+              <SelectContent>
+                {contacts.map(c => (
+                  <SelectItem key={c.id} value={c.id} className="text-xs">
+                    {c.name} {c.phone ? `(${c.phone})` : ''} {c.is_decision_maker ? '⭐' : ''}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {form.authority_contact_id && (() => {
+              const sel = contacts.find(c => c.id === form.authority_contact_id);
+              return sel?.phone ? (
+                <p className="text-[10px] text-muted-foreground">📞 {sel.phone}</p>
+              ) : null;
+            })()}
+          </div>
+
+          {/* Need (ความต้องการ) — tag chips */}
+          <div className="space-y-1.5">
+            <Label className="text-xs">ความต้องการ (Need)</Label>
+            <div className="flex flex-wrap gap-1.5">
+              {PRESET_NEEDS.map(n => (
                 <button
-                  key={t}
-                  onClick={() => { set('opportunity_type', t); set('selectedProductIds', []); set('stage', ''); }}
-                  className={`flex-1 py-2 rounded-md text-xs font-medium border transition-colors ${form.opportunity_type === t ? 'bg-primary text-primary-foreground border-primary' : 'bg-background text-muted-foreground border-input hover:bg-muted/50'}`}
+                  key={n}
+                  type="button"
+                  onClick={() => toggleNeed(n)}
+                  className={`px-2.5 py-1 rounded-full text-xs font-medium border transition-colors ${form.needs.includes(n) ? 'bg-primary text-primary-foreground border-primary' : 'bg-background text-muted-foreground border-input hover:bg-muted/50'}`}
                 >
-                  {t === 'DEVICE' ? '🔧 เครื่องมือ' : '📦 สิ้นเปลือง'}
+                  {n}
                 </button>
               ))}
+            </div>
+            {/* Custom need input */}
+            {(() => {
+              const customNeeds = form.needs.filter(n => !PRESET_NEEDS.includes(n));
+              return customNeeds.length > 0 ? (
+                <div className="flex flex-wrap gap-1.5">
+                  {customNeeds.map(n => (
+                    <span key={n} className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-primary/10 text-primary text-xs font-medium">
+                      {n}
+                      <button onClick={() => toggleNeed(n)} className="hover:text-destructive"><X size={10} /></button>
+                    </span>
+                  ))}
+                </div>
+              ) : null;
+            })()}
+            <div className="flex gap-1.5">
+              <Input
+                id="custom-need"
+                className="h-7 text-xs flex-1"
+                placeholder="เพิ่มความต้องการอื่น..."
+                onKeyDown={e => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    const val = (e.target as HTMLInputElement).value.trim();
+                    if (val && !form.needs.includes(val)) {
+                      set('needs', [...form.needs, val]);
+                      (e.target as HTMLInputElement).value = '';
+                    }
+                  }
+                }}
+              />
             </div>
           </div>
 
@@ -249,12 +323,10 @@ export default function CreateOpportunityForm({ open, onOpenChange, customer, on
               </div>
             )}
             <div className="border rounded-md max-h-[140px] overflow-y-auto p-2 space-y-1">
-              {filteredProducts.length === 0 && (
-                <p className="text-xs text-muted-foreground py-2 text-center">
-                  {form.opportunity_type ? 'ไม่พบสินค้าในหมวดนี้' : 'กรุณาเลือกประเภทก่อน'}
-                </p>
+              {products.length === 0 && (
+                <p className="text-xs text-muted-foreground py-2 text-center">ไม่พบสินค้า</p>
               )}
-              {filteredProducts.map(p => (
+              {products.map(p => (
                 <label key={p.id} className="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-muted/50 cursor-pointer">
                   <Checkbox
                     checked={form.selectedProductIds.includes(p.id)}
@@ -267,19 +339,11 @@ export default function CreateOpportunityForm({ open, onOpenChange, customer, on
             </div>
           </div>
 
-          {/* มูลค่าดีล / จำนวน */}
-          {form.opportunity_type === 'DEVICE' && (
-            <div className="space-y-1.5">
-              <Label className="text-xs">มูลค่าดีล (฿) <span className="text-destructive">*</span></Label>
-              <Input type="number" value={form.deal_value} onChange={e => set('deal_value', e.target.value)} className="h-9 text-xs" placeholder="0" />
-            </div>
-          )}
-          {form.opportunity_type === 'CONSUMABLE' && (
-            <div className="space-y-1.5">
-              <Label className="text-xs">จำนวน <span className="text-destructive">*</span></Label>
-              <Input type="number" value={form.quantity} onChange={e => set('quantity', e.target.value)} className="h-9 text-xs" placeholder="0" />
-            </div>
-          )}
+          {/* มูลค่าดีล */}
+          <div className="space-y-1.5">
+            <Label className="text-xs">มูลค่าดีล (฿) <span className="text-destructive">*</span></Label>
+            <Input type="number" value={form.deal_value} onChange={e => set('deal_value', e.target.value)} className="h-9 text-xs" placeholder="0" />
+          </div>
 
           {/* Stage + Probability */}
           <div className="space-y-3">
@@ -310,99 +374,73 @@ export default function CreateOpportunityForm({ open, onOpenChange, customer, on
             </div>
           </div>
 
-          {/* วันปิดคาดการณ์ */}
+          {/* วันปิดคาดการณ์ + ระยะเวลา */}
           <div className="space-y-1.5">
             <Label className="text-xs">วันปิดคาดการณ์</Label>
             <Input type="date" value={form.close_date} onChange={e => set('close_date', e.target.value)} className="h-9 text-xs" />
+            {closeDateDays !== null && (
+              <p className={`text-[10px] font-medium ${closeDateDays >= 0 ? 'text-primary' : 'text-destructive'}`}>
+                {closeDateDays >= 0 ? `อีก ${closeDateDays} วัน` : `เลยกำหนด ${Math.abs(closeDateDays)} วัน`}
+              </p>
+            )}
           </div>
 
-          {/* ฟิลด์สำหรับ DEVICE */}
-          {form.opportunity_type === 'DEVICE' && (
-            <div className="p-3 rounded-md border border-muted bg-muted/30 space-y-3">
-              <p className="text-xs font-medium text-foreground">ข้อมูลเพิ่มเติม (เครื่องมือ)</p>
-              <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-1.5">
-                  <Label className="text-xs">งบประมาณลูกค้า</Label>
-                  <Select value={form.budget_range} onValueChange={v => set('budget_range', v)}>
-                    <SelectTrigger className="h-9 text-xs"><SelectValue placeholder="เลือก" /></SelectTrigger>
-                    <SelectContent>
-                      {BUDGET_RANGES.map(b => <SelectItem key={b.value} value={b.value} className="text-xs">{b.label}</SelectItem>)}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-1.5">
-                  <Label className="text-xs">ช่องทางชำระ</Label>
-                  <Select value={form.payment_method} onValueChange={v => { set('payment_method', v); set('credit_card_option', ''); }}>
-                    <SelectTrigger className="h-9 text-xs"><SelectValue placeholder="เลือก" /></SelectTrigger>
-                    <SelectContent>
-                      {PAYMENT_METHODS.map(p => <SelectItem key={p.value} value={p.value} className="text-xs">{p.label}</SelectItem>)}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-
-              {form.payment_method === 'CREDIT_CARD' && (
-                <div className="space-y-1.5">
-                  <Label className="text-xs">เงื่อนไขบัตรเครดิต</Label>
-                  <div className="flex gap-1.5 flex-wrap">
-                    {CREDIT_CARD_OPTIONS.map(c => (
-                      <button
-                        key={c.value}
-                        onClick={() => set('credit_card_option', c.value)}
-                        className={`px-2.5 py-1.5 rounded-md text-xs font-medium border transition-colors ${form.credit_card_option === c.value ? 'bg-primary text-primary-foreground border-primary' : 'bg-background text-muted-foreground border-input hover:bg-muted/50'}`}
-                      >
-                        {c.label}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              <div className="space-y-1.5">
-                <Label className="text-xs">คู่แข่งที่เทียบ</Label>
-                <Input value={form.competitors} onChange={e => set('competitors', e.target.value)} className="h-9 text-xs" placeholder="เช่น Ultherapy, Thermage..." />
-              </div>
-              <div className="space-y-1.5">
-                <Label className="text-xs">เครื่องที่ใช้อยู่ปัจจุบัน</Label>
-                <Input value={form.current_devices} onChange={e => set('current_devices', e.target.value)} className="h-9 text-xs" placeholder="เช่น Doublo Gold, HIFU เก่า..." />
-              </div>
-            </div>
-          )}
-
-          {/* ฟิลด์สำหรับ CONSUMABLE */}
-          {form.opportunity_type === 'CONSUMABLE' && (
-            <div className="p-3 rounded-md border border-muted bg-muted/30 space-y-3">
-              <p className="text-xs font-medium text-foreground">ข้อมูลเพิ่มเติม (สิ้นเปลือง)</p>
-              <div className="space-y-1.5">
-                <Label className="text-xs">ความถี่สั่งซื้อ</Label>
-                <Select value={form.order_frequency} onValueChange={v => set('order_frequency', v)}>
-                  <SelectTrigger className="h-9 text-xs"><SelectValue placeholder="เลือก" /></SelectTrigger>
-                  <SelectContent>
-                    {ORDER_FREQUENCIES.map(f => <SelectItem key={f.value} value={f.value} className="text-xs">{f.label}</SelectItem>)}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-          )}
-
-          {/* กิจกรรมถัดไป */}
-          <div className="p-3 rounded-md border border-primary/30 bg-primary/5 space-y-3">
-            <p className="text-xs font-medium text-foreground">กิจกรรมถัดไป <span className="text-destructive">*</span></p>
+          {/* ข้อมูลเพิ่มเติม */}
+          <div className="p-3 rounded-md border border-muted bg-muted/30 space-y-3">
+            <p className="text-xs font-medium text-foreground">ข้อมูลเพิ่มเติม</p>
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1.5">
-                <Label className="text-xs">ประเภท</Label>
-                <Select value={form.next_activity_type} onValueChange={v => set('next_activity_type', v)}>
+                <Label className="text-xs">งบประมาณลูกค้า</Label>
+                <Select value={form.budget_range} onValueChange={v => set('budget_range', v)}>
                   <SelectTrigger className="h-9 text-xs"><SelectValue placeholder="เลือก" /></SelectTrigger>
                   <SelectContent>
-                    {ACTIVITY_TYPES.map(a => <SelectItem key={a.value} value={a.value} className="text-xs">{a.label}</SelectItem>)}
+                    {BUDGET_RANGES.map(b => <SelectItem key={b.value} value={b.value} className="text-xs">{b.label}</SelectItem>)}
                   </SelectContent>
                 </Select>
               </div>
               <div className="space-y-1.5">
-                <Label className="text-xs">วันที่</Label>
-                <Input type="date" value={form.next_activity_date} onChange={e => set('next_activity_date', e.target.value)} className="h-9 text-xs" />
+                <Label className="text-xs">ช่องทางชำระ</Label>
+                <Select value={form.payment_method} onValueChange={v => { set('payment_method', v); set('credit_card_option', ''); }}>
+                  <SelectTrigger className="h-9 text-xs"><SelectValue placeholder="เลือก" /></SelectTrigger>
+                  <SelectContent>
+                    {PAYMENT_METHODS.map(p => <SelectItem key={p.value} value={p.value} className="text-xs">{p.label}</SelectItem>)}
+                  </SelectContent>
+                </Select>
               </div>
             </div>
+
+            {form.payment_method === 'CREDIT_CARD' && (
+              <div className="space-y-1.5">
+                <Label className="text-xs">เงื่อนไขบัตรเครดิต</Label>
+                <div className="flex gap-1.5 flex-wrap">
+                  {CREDIT_CARD_OPTIONS.map(c => (
+                    <button
+                      key={c.value}
+                      onClick={() => set('credit_card_option', c.value)}
+                      className={`px-2.5 py-1.5 rounded-md text-xs font-medium border transition-colors ${form.credit_card_option === c.value ? 'bg-primary text-primary-foreground border-primary' : 'bg-background text-muted-foreground border-input hover:bg-muted/50'}`}
+                    >
+                      {c.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* คู่แข่ง — tag chips */}
+            <TagChipInput
+              label="คู่แข่งที่เปรียบเทียบ"
+              tags={form.competitors}
+              onChange={t => set('competitors', t)}
+              placeholder="เช่น Ultherapy, Thermage..."
+            />
+
+            {/* เครื่องปัจจุบัน — tag chips */}
+            <TagChipInput
+              label="เครื่องที่ใช้อยู่ปัจจุบัน"
+              tags={form.current_devices}
+              onChange={t => set('current_devices', t)}
+              placeholder="เช่น Doublo Gold, HIFU เก่า..."
+            />
           </div>
 
           {/* หมายเหตุ */}

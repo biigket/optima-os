@@ -1,52 +1,50 @@
 
 
-## Plan: ปรับปรุงฟอร์มสร้างดีลและหน้า Detail
+# Opportunity Module — Add Functional Features
 
-### สรุปสิ่งที่เปลี่ยน
+## Overview
+Add drag-and-drop stage changes, quick stage editing, inline actions, and other interactive functionality to the Opportunity module.
 
-#### 1. เพิ่ม Authority (คนมีอำนาจตัดสินใจ) ในฟอร์ม
-- เพิ่ม Select dropdown เลือกจาก contacts ที่มีอยู่ (แสดงชื่อ + เบอร์โทร)
-- เก็บ `authority_contact_id` ใน form state
-- เพิ่ม column `authority_contact_id` (uuid) ใน opportunities table
+## Changes
 
-#### 2. เพิ่ม Need (ความต้องการ) แบบ tag chips
-- UI แบบรูปที่ 2 (Chief Complaint style): แถวปุ่ม chip ที่กดเลือก/เพิ่มเองได้
-- Preset tags: ลดริ้วรอย, หน้าเรียว, ผิวกระจ่างใส, รักษาสิว, ลดรอยดำ, กระชับผิว + ปุ่ม "+" เพิ่มเอง
-- เก็บเป็น `needs: string[]` ใน form state
-- เพิ่ม column `needs` (text[]) ใน opportunities table
+### 1. Drag & Drop on Kanban (`OpportunityKanban.tsx`)
+- Lift `opportunities` state up: pass `onStageChange(oppId, newStage)` callback from `OpportunitiesPage`
+- Implement native HTML5 drag-and-drop (no library needed):
+  - `draggable` on each `KanbanCard`
+  - `onDragStart` sets `oppId` in dataTransfer
+  - Each column acts as a drop zone with `onDragOver` + `onDrop`
+  - Visual feedback: highlight column border on drag-over, ghost opacity on dragged card
+- On drop: call `onStageChange` → update state + show toast "ย้าย [clinic] → [stage]"
+- Log stage change in a local `stageHistory` array (for future timeline)
 
-#### 3. คู่แข่ง + เครื่องปัจจุบัน → เปลี่ยนเป็น tag chips style (รูปที่ 2)
-- เปลี่ยนจาก text input เป็น chip-based input: พิมพ์แล้ว Enter เพื่อเพิ่ม tag, กด X ลบ
-- `competitors` และ `current_devices` เก็บเป็น comma-separated string (ไม่ต้องเปลี่ยน DB type)
+### 2. Quick Actions on Kanban Cards (`OpportunityKanban.tsx`)
+- Add a hover-visible action row at bottom of each card:
+  - **Phone** icon → toast "โทรหา [clinic]"
+  - **Calendar** icon → toast "นัดกิจกรรม"  
+  - **MoreHorizontal** → dropdown with "แก้ไข", "เปลี่ยน Stage", "Mark Won/Lost"
+- Prevent card click navigation when clicking action buttons (`e.stopPropagation()`)
 
-#### 4. วันปิดคาดการณ์ → เพิ่มแสดงระยะเวลา
-- คำนวณจำนวนวันจากวันนี้ถึงวันปิด แล้วแสดงข้อความ เช่น "อีก 26 วัน" หรือ "เลยกำหนด 3 วัน"
+### 3. Stage Change on Detail Page (`OpportunityDetailPage.tsx`)
+- Make stage path segments clickable
+- On click → confirm dialog "ย้ายไป [stage]?" → update local state + toast
+- Add "Mark Won" / "Mark Lost" buttons in the header area
 
-#### 5. ลบกิจกรรมถัดไปออกจากฟอร์ม
-- เอา section "กิจกรรมถัดไป" ออก
-- เอาเงื่อนไข `next_activity_type && next_activity_date` ออกจาก `canSave`
+### 4. Inline Edit on Detail Page (`OpportunityDetailPage.tsx`)
+- Add edit button next to Deal Info section
+- Opens a dialog/inline form to edit: expected_value, close_date, notes, next_activity_type, next_activity_date
+- Save updates local state + toast
 
-#### 6. ลบแถบสิ้นเปลืองออก
-- เอาปุ่มเลือก CONSUMABLE ออก ให้เป็น DEVICE only (ไม่ต้องเลือกประเภท)
-- เอา section consumable fields ออก (order_frequency, quantity)
-- แสดงสินค้าทุกประเภทใน product list (DEVICE only)
+### 5. Update State Management (`OpportunitiesPage.tsx`)
+- Pass `setOpportunities` updater to Kanban and Detail via props or shared state
+- `onStageChange` handler: finds opportunity by ID, updates stage, re-renders Kanban
+- Wire route params so Detail page can also update the shared opportunities array
 
-#### 7. ปรับงบประมาณ
-- เปลี่ยน BUDGET_RANGES เป็น: `<500K`, `500K-1M`, `1-2M`, `>2-3M`, `>3M`
+### 6. Add "Reason Stuck" dropdown
+- When a deal is stuck (>14 days), show a small dropdown on the card: "รอราคา / รอผู้ตัดสินใจ / รอ finance / รอ training / อื่นๆ"
+- Store as `stuck_reason` on the opportunity object
 
-#### 8. หน้า Detail (รูปที่ 3) แสดงข้อมูลใหม่
-- Deal Info: เพิ่มแสดง Authority (ชื่อ+เบอร์), Need (tags), คู่แข่ง (tags), เครื่องปัจจุบัน (tags), งบประมาณ, ช่องทางชำระ
-- Probability ใช้ค่าจาก `opp.probability` แทน stage-based lookup
-
-### Database Migration
-```sql
-ALTER TABLE opportunities ADD COLUMN authority_contact_id uuid;
-ALTER TABLE opportunities ADD COLUMN needs text[];
-```
-
-### ไฟล์ที่แก้ไข
-1. **`src/components/opportunities/CreateOpportunityForm.tsx`** — ปรับฟอร์มทั้งหมดตามข้างบน
-2. **`src/pages/OpportunityDetailPage.tsx`** — แสดงฟิลด์ใหม่ใน Deal Info
-3. **`src/types/index.ts`** — เพิ่ม `authority_contact_id`, `needs` ใน Opportunity interface
-4. **Database migration** — เพิ่ม 2 columns
+## Technical Notes
+- Using native HTML5 drag-and-drop keeps bundle size small — no new dependencies
+- All state changes are local (mock data) — ready for database migration later
+- Drop zones use `e.preventDefault()` on `dragOver` to allow drops
 
