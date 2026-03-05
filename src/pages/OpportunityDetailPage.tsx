@@ -16,7 +16,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useMockAuth } from '@/hooks/useMockAuth';
 import { getNotesForOpportunity, addNoteGlobal, deleteNoteGlobal, updateNoteGlobal, type OpportunityNote } from '@/pages/OpportunitiesPage';
 import { toast } from 'sonner';
-import { differenceInDays } from 'date-fns';
+import { differenceInDays, format } from 'date-fns';
 import type { Opportunity, OpportunityStage, Account, Contact, Activity } from '@/types';
 import ActivityForm from '@/components/opportunity-detail/ActivityForm';
 import FocusPanel from '@/components/opportunity-detail/FocusPanel';
@@ -180,6 +180,26 @@ export default function OpportunityDetailPage() {
   const handleCalendarActivityClick = (activity: Activity) => {
     setActiveActivityId(activity.id);
     setActiveTab('activity');
+  };
+
+  const handleActivityReschedule = async (activityId: string, newStartTime: string, newEndTime: string | null) => {
+    const { error } = await supabase.from('activities').update({
+      start_time: newStartTime,
+      end_time: newEndTime,
+    }).eq('id', activityId);
+    if (error) { toast.error('ย้ายเวลาไม่สำเร็จ'); return; }
+    setActivities(prev => prev.map(a => a.id === activityId ? { ...a, start_time: newStartTime, end_time: newEndTime || a.end_time } : a));
+    toast.success(`ย้ายไป ${newStartTime} แล้ว`);
+  };
+
+  const handleQuickScheduleClick = (startTime: string, endTime: string) => {
+    setActiveTab('activity');
+    setActiveActivityId(null);
+    setFormPreview({
+      start_time: startTime,
+      end_time: endTime,
+      activity_date: format(selectedDate, 'yyyy-MM-dd'),
+    });
   };
 
   const editingActivity = activeActivityId ? activities.find(a => a.id === activeActivityId) || null : null;
@@ -513,6 +533,8 @@ export default function OpportunityDetailPage() {
             activeActivityId={activeActivityId}
             onActivityClick={handleCalendarActivityClick}
             previewOverrides={formPreview}
+            onActivityReschedule={handleActivityReschedule}
+            onQuickScheduleClick={handleQuickScheduleClick}
           />
         </div>
       </div>
