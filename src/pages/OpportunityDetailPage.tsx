@@ -167,9 +167,25 @@ export default function OpportunityDetailPage() {
 
   const handleActivityCreated = (activity: Activity) => {
     setActivities(prev => [activity, ...prev]);
+    setActiveActivityId(null);
+    setFormPreview(null);
   };
 
-  const handleMarkDone = (actId: string) => {
+  const handleActivityUpdated = (activity: Activity) => {
+    setActivities(prev => prev.map(a => a.id === activity.id ? activity : a));
+    setActiveActivityId(null);
+    setFormPreview(null);
+  };
+
+  const handleCalendarActivityClick = (activity: Activity) => {
+    setActiveActivityId(activity.id);
+    setActiveTab('activity');
+  };
+
+  const editingActivity = activeActivityId ? activities.find(a => a.id === activeActivityId) || null : null;
+
+  const handleMarkDone = async (actId: string) => {
+    await supabase.from('activities').update({ is_done: true }).eq('id', actId);
     setActivities(prev => prev.map(a => a.id === actId ? { ...a, is_done: true } : a));
   };
 
