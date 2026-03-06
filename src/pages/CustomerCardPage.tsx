@@ -305,6 +305,32 @@ export default function CustomerCardPage() {
                 )}
                 {c.email && <span className="flex items-center gap-1 text-muted-foreground"><Mail size={11} /> {c.email}</span>}
                 {c.line_id && <span className="flex items-center gap-1 text-muted-foreground"><MessageCircle size={11} /> {c.line_id}</span>}
+                <div className="flex items-center gap-1 ml-auto">
+                  <button
+                    onClick={() => {
+                      setEditingContact(c);
+                      setEditContactForm({ name: c.name, role: c.role || '', phone: c.phone || '', email: c.email || '' });
+                      setEditContactOpen(true);
+                    }}
+                    className="inline-flex items-center justify-center w-6 h-6 rounded-full hover:bg-muted transition-colors text-muted-foreground hover:text-foreground"
+                    title="แก้ไขผู้ติดต่อ"
+                  >
+                    <Pencil size={11} />
+                  </button>
+                  <button
+                    onClick={async () => {
+                      if (!confirm(`ลบผู้ติดต่อ "${c.name}" ?`)) return;
+                      const { error } = await supabase.from('contacts').delete().eq('id', c.id);
+                      if (error) { toast.error('ลบไม่สำเร็จ'); return; }
+                      setContacts(prev => prev.filter(x => x.id !== c.id));
+                      toast.success('ลบผู้ติดต่อแล้ว');
+                    }}
+                    className="inline-flex items-center justify-center w-6 h-6 rounded-full hover:bg-destructive/10 transition-colors text-muted-foreground hover:text-destructive"
+                    title="ลบผู้ติดต่อ"
+                  >
+                    <Trash2 size={11} />
+                  </button>
+                </div>
               </div>
             ))}
             {contacts.length === 0 && <span className="text-xs text-muted-foreground">ยังไม่มีผู้ติดต่อ</span>}
