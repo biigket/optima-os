@@ -517,12 +517,10 @@ export default function OpportunityDetailPage() {
               toast.success('ลบบันทึกแล้ว');
             }}
             onPinNote={(id) => {
-              setPinnedIds(prev => {
-                const next = new Set(prev);
-                if (next.has(id)) { next.delete(id); toast.success('ยกเลิกปักหมุดแล้ว'); }
-                else { next.add(id); toast.success('ปักหมุดแล้ว'); }
-                return next;
-              });
+              const wasPinned = pinnedIds.has(id);
+              togglePinGlobal(id);
+              forceUpdate(n => n + 1);
+              toast.success(wasPinned ? 'ยกเลิกปักหมุดแล้ว' : 'ปักหมุดแล้ว');
             }}
             onDeleteActivity={async (id) => {
               const { error } = await supabase.from('activities').delete().eq('id', id);
