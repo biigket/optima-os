@@ -347,8 +347,14 @@ export default function CreateOpportunityForm({ open, onOpenChange, customer, on
                 <Select value={currentStage} onValueChange={v => set('stage', v)}>
                   <SelectTrigger className="h-9 text-xs"><SelectValue /></SelectTrigger>
                   <SelectContent>
-                    {['NEW_LEAD', 'CONTACTED', 'DEMO_SCHEDULED', 'DEMO_DONE', 'NEGOTIATION'].map(s => (
-                      <SelectItem key={s} value={s} className="text-xs">{s.replace(/_/g, ' ')}</SelectItem>
+                    {([
+                      { value: 'NEW_LEAD', label: 'นัดพบ/ค้นหา Need' },
+                      { value: 'CONTACTED', label: 'Demo Schedule' },
+                      { value: 'DEMO_SCHEDULED', label: 'Demo/Workshop' },
+                      { value: 'DEMO_DONE', label: 'Proposal Sent' },
+                      { value: 'NEGOTIATION', label: 'Negotiation' },
+                    ]).map(s => (
+                      <SelectItem key={s.value} value={s.value} className="text-xs">{s.label}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
