@@ -240,13 +240,12 @@ function ActivityItem({ data, clinicName, isPinned, onDelete, onPin, onUpdate, o
         <div className="flex items-center gap-2 flex-wrap">
           <span className="text-xs font-medium text-foreground flex-1">{data.title}</span>
           
-          {isPinned && <Pin size={11} className="text-primary fill-primary" />}
           {data.priority === 'HIGH' && (
             <span className="px-1.5 py-0.5 rounded text-[9px] font-semibold bg-red-100 text-red-700 dark:bg-red-900/50 dark:text-red-400">HIGH</span>
           )}
           <div className="flex items-center gap-0.5">
-            <button onClick={() => onPin?.(data.id)} className="p-1 rounded hover:bg-muted text-muted-foreground" title="Pin">
-              <Pin size={11} />
+            <button onClick={() => onPin?.(data.id)} className={`p-1 rounded hover:bg-muted ${isPinned ? 'text-foreground' : 'text-muted-foreground'}`} title={isPinned ? 'Unpin' : 'Pin'}>
+              <Pin size={11} className={isPinned ? 'fill-foreground' : ''} />
             </button>
             <button onClick={() => setShowComment(!showComment)} className="p-1 rounded hover:bg-muted text-muted-foreground" title="Comment">
               <MessageSquare size={11} />
