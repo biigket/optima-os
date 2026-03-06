@@ -394,6 +394,7 @@ export default function LeadsPage() {
           </DialogHeader>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {/* ชื่อคลินิก / บริษัท */}
             <div className="space-y-1.5">
               <Label>ชื่อคลินิก *</Label>
               <Input value={form.clinic_name || ''} onChange={e => updateField('clinic_name', e.target.value)} />
@@ -402,6 +403,32 @@ export default function LeadsPage() {
               <Label>ชื่อบริษัท</Label>
               <Input value={form.company_name || ''} onChange={e => updateField('company_name', e.target.value)} />
             </div>
+
+            {/* ผู้ติดต่อหลัก - ย้ายมาอยู่ใต้ชื่อคลินิก/บริษัท */}
+            {!editingAccount && (
+              <div className="sm:col-span-2 space-y-3 p-3 rounded-md border border-primary/30 bg-primary/5">
+                <p className="text-sm font-medium text-foreground">ผู้ติดต่อหลัก <span className="text-destructive">*</span></p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div className="space-y-1.5">
+                    <Label>ชื่อผู้ติดต่อ <span className="text-destructive">*</span></Label>
+                    <Input value={form.contact_name} onChange={e => updateField('contact_name', e.target.value)} placeholder="เช่น นพ. สมชาย" />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label>ตำแหน่ง / บทบาท</Label>
+                    <Input value={form.contact_role} onChange={e => updateField('contact_role', e.target.value)} placeholder="เช่น Owner, Doctor" />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label>เบอร์โทรผู้ติดต่อ</Label>
+                    <Input value={form.contact_phone} onChange={e => updateField('contact_phone', e.target.value)} placeholder="08x-xxx-xxxx" />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label>อีเมลผู้ติดต่อ</Label>
+                    <Input type="email" value={form.contact_email} onChange={e => updateField('contact_email', e.target.value)} placeholder="email@example.com" />
+                  </div>
+                </div>
+              </div>
+            )}
+
             <div className="space-y-1.5 sm:col-span-2">
               <Label>ที่อยู่</Label>
               <Input value={form.address || ''} onChange={e => updateField('address', e.target.value)} />
@@ -456,38 +483,81 @@ export default function LeadsPage() {
                 </SelectContent>
               </Select>
             </div>
+
+            {/* แหล่งที่มา - Dropdown with custom option */}
             <div className="space-y-1.5">
               <Label>แหล่งที่มา</Label>
-              <Input value={form.lead_source || ''} onChange={e => updateField('lead_source', e.target.value)} />
+              <Select value={form.lead_source || ''} onValueChange={v => updateField('lead_source', v)}>
+                <SelectTrigger><SelectValue placeholder="เลือกแหล่งที่มา" /></SelectTrigger>
+                <SelectContent>
+                  {LEAD_SOURCE_OPTIONS.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+                  <SelectItem value="OTHER">อื่นๆ (ระบุเอง)</SelectItem>
+                </SelectContent>
+              </Select>
+              {form.lead_source === 'OTHER' && (
+                <Input
+                  className="mt-1.5"
+                  value={form.custom_lead_source}
+                  onChange={e => updateField('custom_lead_source', e.target.value)}
+                  placeholder="ระบุแหล่งที่มา..."
+                />
+              )}
             </div>
+
+            {/* เกรด - Star Rating */}
             <div className="space-y-1.5">
               <Label>เกรด</Label>
-              <Input value={form.grade || ''} onChange={e => updateField('grade', e.target.value)} />
+              <StarRating
+                value={parseInt(form.grade) || 0}
+                onChange={v => updateField('grade', v.toString())}
+              />
             </div>
-            {/* Contact fields - only for new accounts */}
-            {!editingAccount && (
-              <div className="sm:col-span-2 space-y-3 p-3 rounded-md border border-primary/30 bg-primary/5">
-                <p className="text-sm font-medium text-foreground">ผู้ติดต่อหลัก <span className="text-destructive">*</span></p>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <div className="space-y-1.5">
-                    <Label>ชื่อผู้ติดต่อ <span className="text-destructive">*</span></Label>
-                    <Input value={form.contact_name} onChange={e => updateField('contact_name', e.target.value)} placeholder="เช่น นพ. สมชาย" />
+
+            {/* เครื่องที่มีอยู่แล้ว - Multiple choice */}
+            <div className="space-y-1.5 sm:col-span-2">
+              <Label>เครื่องที่มีอยู่แล้ว</Label>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" className="w-full justify-start font-normal h-auto min-h-10 py-2">
+                    {form.current_devices.length > 0 ? (
+                      <div className="flex flex-wrap gap-1">
+                        {form.current_devices.map(d => (
+                          <span key={d} className="inline-flex items-center gap-1 rounded-md bg-primary/10 px-2 py-0.5 text-xs text-primary">
+                            {d}
+                            <X size={12} className="cursor-pointer hover:text-destructive" onClick={e => {
+                              e.stopPropagation();
+                              setForm(prev => ({ ...prev, current_devices: prev.current_devices.filter(x => x !== d) }));
+                            }} />
+                          </span>
+                        ))}
+                      </div>
+                    ) : (
+                      <span className="text-muted-foreground">เลือกเครื่อง...</span>
+                    )}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-64 p-2" align="start">
+                  <div className="space-y-1 max-h-48 overflow-y-auto">
+                    {products.map(p => (
+                      <label key={p.id} className="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-muted cursor-pointer text-sm">
+                        <Checkbox
+                          checked={form.current_devices.includes(p.product_name)}
+                          onCheckedChange={checked => {
+                            setForm(prev => ({
+                              ...prev,
+                              current_devices: checked
+                                ? [...prev.current_devices, p.product_name]
+                                : prev.current_devices.filter(x => x !== p.product_name),
+                            }));
+                          }}
+                        />
+                        {p.product_name}
+                      </label>
+                    ))}
                   </div>
-                  <div className="space-y-1.5">
-                    <Label>ตำแหน่ง / บทบาท</Label>
-                    <Input value={form.contact_role} onChange={e => updateField('contact_role', e.target.value)} placeholder="เช่น Owner, Doctor" />
-                  </div>
-                  <div className="space-y-1.5">
-                    <Label>เบอร์โทรผู้ติดต่อ</Label>
-                    <Input value={form.contact_phone} onChange={e => updateField('contact_phone', e.target.value)} placeholder="08x-xxx-xxxx" />
-                  </div>
-                  <div className="space-y-1.5">
-                    <Label>อีเมลผู้ติดต่อ</Label>
-                    <Input type="email" value={form.contact_email} onChange={e => updateField('contact_email', e.target.value)} placeholder="email@example.com" />
-                  </div>
-                </div>
-              </div>
-            )}
+                </PopoverContent>
+              </Popover>
+            </div>
 
             <div className="space-y-1.5 sm:col-span-2">
               <Label>หมายเหตุ</Label>
