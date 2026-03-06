@@ -24,6 +24,7 @@ interface ActivityRow {
   is_done: boolean | null;
   opportunity_id: string;
   account_id: string;
+  assigned_to: string[] | null;
   // joined
   opp_stage: string | null;
   contact_name: string | null;
