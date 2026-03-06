@@ -146,7 +146,7 @@ export default function TasksPage() {
       start,
       end,
       extendedProps: r,
-      classNames: r.is_done ? ['opacity-40'] : [],
+      classNames: [],
       borderColor: config.color,
       backgroundColor: `${config.color.replace(')', ' / 0.1)')}`,
     };
@@ -280,7 +280,7 @@ export default function TasksPage() {
                 const config = activityTypeConfig[props.activity_type] || activityTypeConfig.TASK;
                 const TypeIcon = config.icon;
                 return (
-                  <div className={`px-1.5 py-1 text-xs ${props.is_done ? 'opacity-40' : ''}`}>
+                  <div className="px-1.5 py-1 text-xs">
                     <div className="flex items-center gap-1.5">
                       <TypeIcon size={12} style={{ color: config.color }} className="shrink-0" />
                       <span className="font-semibold truncate flex-1">{arg.event.title}</span>
