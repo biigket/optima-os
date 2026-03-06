@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
-import { Clock, AlertTriangle, Building2, Calendar, Phone, Eye, Users, Presentation, FileCheck, MoreHorizontal, Trophy, XCircle } from 'lucide-react';
+import { Clock, AlertTriangle, Building2, Calendar, Phone, Eye, Users, Presentation, FileCheck, MoreHorizontal, Trophy, XCircle, Pencil } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -14,7 +14,7 @@ import type { Opportunity, OpportunityStage } from '@/types';
 
 const STAGES: OpportunityStage[] = ['NEW_LEAD', 'CONTACTED', 'DEMO_SCHEDULED', 'DEMO_DONE', 'NEGOTIATION', 'WON', 'LOST'];
 const STAGE_LABELS: Record<string, string> = {
-  NEW_LEAD: 'Lead Qualified', CONTACTED: 'นัดพบ/ค้นหา Need', DEMO_SCHEDULED: 'Demo/Workshop',
+  NEW_LEAD: 'นัดพบ/ค้นหา Need', CONTACTED: 'Demo Schedule', DEMO_SCHEDULED: 'Demo/Workshop',
   DEMO_DONE: 'Proposal Sent', NEGOTIATION: 'Negotiation', WON: 'Won', LOST: 'Lost/Nurture',
 };
 const STAGE_COLORS: Record<string, string> = {
@@ -199,6 +199,7 @@ function KanbanCard({ opp, stage, navigate, pendingActivities, onStageChange, on
   const [otherReason, setOtherReason] = useState('');
   const [showOtherInput, setShowOtherInput] = useState(false);
   const [quickFormType, setQuickFormType] = useState<'CALL' | 'MEETING' | 'DEMO' | null>(null);
+  const [editingActivity, setEditingActivity] = useState<Activity | null>(null);
 
   const account = getCachedAccount(opp.account_id);
   const daysInStage = getDaysInStage(opp);
@@ -307,7 +308,7 @@ function KanbanCard({ opp, stage, navigate, pendingActivities, onStageChange, on
               <div key={a.id} className={`text-xs ${rowColor}`}>
                 <div className="flex items-center gap-1.5">
                   <button
-                    className="shrink-0 w-4 h-4 rounded border border-current flex items-center justify-center hover:bg-muted transition-colors"
+                    className="shrink-0 w-4 h-4 rounded-full border border-current flex items-center justify-center hover:bg-muted transition-colors"
                     title="เสร็จสิ้น"
                     onClick={async (e) => {
                       e.stopPropagation();
@@ -320,6 +321,24 @@ function KanbanCard({ opp, stage, navigate, pendingActivities, onStageChange, on
                   </button>
                   <Icon size={12} className="shrink-0" />
                   <span className="font-medium truncate flex-1">{a.title}</span>
+                  <Popover open={editingActivity?.id === a.id} onOpenChange={(open) => setEditingActivity(open ? a : null)}>
+                    <PopoverTrigger asChild>
+                      <button
+                        className="shrink-0 p-0.5 rounded hover:bg-muted transition-colors opacity-0 group-hover:opacity-100"
+                        title="แก้ไข"
+                        onClick={(e) => { e.stopPropagation(); }}
+                      >
+                        <Pencil size={10} />
+                      </button>
+                    </PopoverTrigger>
+                    <PopoverContent align="end" side="top" className="w-64 p-3" onClick={e => e.stopPropagation()}>
+                      <EditActivityForm
+                        activity={a}
+                        onSaved={() => { setEditingActivity(null); onActivitySaved(); }}
+                        onClose={() => setEditingActivity(null)}
+                      />
+                    </PopoverContent>
+                  </Popover>
                 </div>
                 <div className="flex items-center gap-1.5 ml-[calc(1rem+0.375rem+12px+0.375rem)] text-[11px]">
                   {timeRange && <span>{timeRange}</span>}
