@@ -193,7 +193,14 @@ export default function CustomerCardPage() {
                     <span className="font-medium text-foreground">{c.name}</span>
                     {c.role && <span className="text-muted-foreground ml-1">({c.role})</span>}
                   </div>
-                  {c.phone && <span className="text-muted-foreground">{c.phone}</span>}
+                  {c.phone && (
+                    <>
+                      <span className="text-muted-foreground">{c.phone}</span>
+                      <a href={`tel:${c.phone}`} className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-green-100 hover:bg-green-200 text-green-700 transition-colors" title={`โทร ${c.phone}`}>
+                        <Phone size={11} />
+                      </a>
+                    </>
+                  )}
                 </div>
               ))}
               {contacts.length === 0 && <span className="text-xs text-muted-foreground">ยังไม่มีผู้ติดต่อ</span>}
@@ -218,14 +225,12 @@ export default function CustomerCardPage() {
           }}>
             <Pencil size={13} /> แก้ไข
           </Button>
-          <ActionBtn icon={Phone} label="โทร" />
-          <ActionBtn icon={MessageCircle} label="LINE" />
-          <ActionBtn icon={StickyNote} label="เพิ่มโน้ต" />
-          <ActionBtn icon={CalendarPlus} label="นัดเยี่ยม" />
-          <Button variant="outline" size="sm" className="gap-1.5 text-xs shrink-0 h-8" onClick={() => navigate(`/opportunities?create=${account.id}`)}>
-            <Handshake size={13} /> สร้างโอกาสขาย
+          <Button variant="outline" size="sm" className="gap-1.5 text-xs shrink-0 h-8" onClick={() => {
+            setNewContact({ name: '', role: '', phone: '', email: '' });
+            setAddContactOpen(true);
+          }}>
+            <Users size={13} /> เพิ่มผู้ติดต่อ
           </Button>
-          <ActionBtn icon={ListPlus} label="สร้างงาน" />
         </div>
       </div>
 
