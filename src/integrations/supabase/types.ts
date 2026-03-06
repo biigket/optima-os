@@ -91,7 +91,7 @@ export type Database = {
           account_id: string
           activity_date: string
           activity_type: string
-          assigned_to: string | null
+          assigned_to: string[] | null
           contact_id: string | null
           created_at: string | null
           created_by: string | null
@@ -110,7 +110,7 @@ export type Database = {
           account_id: string
           activity_date: string
           activity_type?: string
-          assigned_to?: string | null
+          assigned_to?: string[] | null
           contact_id?: string | null
           created_at?: string | null
           created_by?: string | null
@@ -129,7 +129,7 @@ export type Database = {
           account_id?: string
           activity_date?: string
           activity_type?: string
-          assigned_to?: string | null
+          assigned_to?: string[] | null
           contact_id?: string | null
           created_at?: string | null
           created_by?: string | null
