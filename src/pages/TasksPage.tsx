@@ -62,8 +62,11 @@ export default function TasksPage() {
   const [selectedActivity, setSelectedActivity] = useState<ActivityRow | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [assigneeFilter, setAssigneeFilter] = useState('ALL');
+  const [calendarView, setCalendarView] = useState<'timeGridWeek' | 'timeGridDay'>('timeGridWeek');
+  const [selectedDate, setSelectedDate] = useState(new Date());
+  const [miniMonth, setMiniMonth] = useState(new Date());
+  const calendarRef = useRef<FullCalendar>(null);
 
-  const fetchData = useCallback(async () => {
     setLoading(true);
     const [actRes, oppRes, conRes, accRes] = await Promise.all([
       supabase.from('activities').select('*').order('activity_date', { ascending: true }),
