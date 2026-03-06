@@ -1,40 +1,50 @@
 
 
-## Plan: เพิ่ม Pending Activities + Quick Activity Shortcuts บน Kanban Card
+# Opportunity Module — Add Functional Features
 
-### สิ่งที่จะทำ
+## Overview
+Add drag-and-drop stage changes, quick stage editing, inline actions, and other interactive functionality to the Opportunity module.
 
-**1. แสดงกิจกรรมที่ยังไม่เสร็จ (Pending Activities) บนการ์ด**
-- ดึง activities จาก Supabase ที่ `is_done = false` สำหรับแต่ละ opportunity
-- แสดงรายการ pending activities (ไอคอน + ชื่อ + วันที่) ใต้ ROW 3 (Next Activity) ด้วยขนาดเล็ก compact
-- Fetch ครั้งเดียวใน `OpportunityKanban` แล้วส่ง activities เข้า `KanbanCard` ผ่าน props (ไม่ fetch ทีละการ์ด)
+## Changes
 
-**2. Quick Activity Shortcuts (มุมซ้ายล่าง)**
-- เพิ่มปุ่มไอคอนเล็กๆ 3 ปุ่ม: Call (โทร), Visit (นัดพบ), Demo (นัดเดโม) ตรงข้ามกับ dropdown จุดสามจุด
-- เมื่อกดปุ่มใดปุ่มหนึ่ง → เปิด Popover inline form ประกอบด้วย:
-  - ชื่อกิจกรรม (auto-fill ภาษาไทยตามประเภท)
-  - วันที่ (DatePicker)
-  - เวลาเริ่ม-สิ้นสุด (Select dropdown 15 นาที)
-  - ความสำคัญ (Select: Low/Normal/High)
-  - ปุ่มบันทึก
-- บันทึกลง `activities` table ใน Supabase โดยตรง แล้ว refresh pending list
+### 1. Drag & Drop on Kanban (`OpportunityKanban.tsx`)
+- Lift `opportunities` state up: pass `onStageChange(oppId, newStage)` callback from `OpportunitiesPage`
+- Implement native HTML5 drag-and-drop (no library needed):
+  - `draggable` on each `KanbanCard`
+  - `onDragStart` sets `oppId` in dataTransfer
+  - Each column acts as a drop zone with `onDragOver` + `onDrop`
+  - Visual feedback: highlight column border on drag-over, ghost opacity on dragged card
+- On drop: call `onStageChange` → update state + show toast "ย้าย [clinic] → [stage]"
+- Log stage change in a local `stageHistory` array (for future timeline)
 
-### ไฟล์ที่แก้ไข
+### 2. Quick Actions on Kanban Cards (`OpportunityKanban.tsx`)
+- Add a hover-visible action row at bottom of each card:
+  - **Phone** icon → toast "โทรหา [clinic]"
+  - **Calendar** icon → toast "นัดกิจกรรม"  
+  - **MoreHorizontal** → dropdown with "แก้ไข", "เปลี่ยน Stage", "Mark Won/Lost"
+- Prevent card click navigation when clicking action buttons (`e.stopPropagation()`)
 
-**`src/components/opportunities/OpportunityKanban.tsx`**
-- เพิ่ม `useEffect` fetch activities ทั้งหมดของ opportunities ที่แสดง (`is_done = false`)
-- จัดกลุ่ม activities ตาม `opportunity_id` แล้วส่งเข้า `KanbanCard`
-- ใน `KanbanCard`:
-  - แสดง pending activities list (compact, max 3 รายการ + "+N more")
-  - เพิ่ม 3 ปุ่ม shortcut (Phone, Users, Presentation icons) ที่ footer ด้านซ้าย
-  - เมื่อกด → เปิด Popover พร้อม mini form
-  - Insert activity ผ่าน supabase แล้ว refetch
+### 3. Stage Change on Detail Page (`OpportunityDetailPage.tsx`)
+- Make stage path segments clickable
+- On click → confirm dialog "ย้ายไป [stage]?" → update local state + toast
+- Add "Mark Won" / "Mark Lost" buttons in the header area
 
-### Technical Details
+### 4. Inline Edit on Detail Page (`OpportunityDetailPage.tsx`)
+- Add edit button next to Deal Info section
+- Opens a dialog/inline form to edit: expected_value, close_date, notes, next_activity_type, next_activity_date
+- Save updates local state + toast
 
-- ใช้ `Popover` + `PopoverContent` สำหรับ inline form (ไม่ใช้ Dialog เพื่อไม่บัง Kanban)
-- Form fields: title (Input, auto-filled), date (Calendar Popover), start/end time (Select), priority (Select)
-- Insert ผ่าน `supabase.from('activities').insert(...)` 
-- หลัง insert → refetch activities + update `next_activity_date/type` ของ opportunity ถ้าจำเป็น
-- ป้องกัน card click navigation เมื่อกด shortcut buttons ด้วย `e.stopPropagation()`
+### 5. Update State Management (`OpportunitiesPage.tsx`)
+- Pass `setOpportunities` updater to Kanban and Detail via props or shared state
+- `onStageChange` handler: finds opportunity by ID, updates stage, re-renders Kanban
+- Wire route params so Detail page can also update the shared opportunities array
+
+### 6. Add "Reason Stuck" dropdown
+- When a deal is stuck (>14 days), show a small dropdown on the card: "รอราคา / รอผู้ตัดสินใจ / รอ finance / รอ training / อื่นๆ"
+- Store as `stuck_reason` on the opportunity object
+
+## Technical Notes
+- Using native HTML5 drag-and-drop keeps bundle size small — no new dependencies
+- All state changes are local (mock data) — ready for database migration later
+- Drop zones use `e.preventDefault()` on `dragOver` to allow drops
 

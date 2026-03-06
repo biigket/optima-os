@@ -1,12 +1,15 @@
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { Clock, AlertTriangle, Building2, Calendar, Phone, Eye, Users, Presentation, FileCheck, MoreHorizontal, Trophy, XCircle } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Input } from '@/components/ui/input';
 import { getCachedAccount } from '@/pages/OpportunitiesPage';
+import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import QuickActivityForm from './QuickActivityForm';
 import type { Opportunity, OpportunityStage } from '@/types';
 
 const STAGES: OpportunityStage[] = ['NEW_LEAD', 'CONTACTED', 'DEMO_SCHEDULED', 'DEMO_DONE', 'NEGOTIATION', 'WON', 'LOST'];
@@ -24,10 +27,23 @@ const PROBABILITY: Record<string, number> = {
 };
 
 const ACTIVITY_ICONS: Record<string, React.ElementType> = {
-  CALL: Phone, VISIT: Eye, DEMO: Presentation, MEETING: Users, PROPOSAL: FileCheck,
+  CALL: Phone, VISIT: Eye, DEMO: Presentation, MEETING: Users, PROPOSAL: FileCheck, TASK: Calendar, DEADLINE: AlertTriangle,
 };
 
 const STUCK_REASONS = ['รอราคา', 'รอผู้ตัดสินใจ', 'รอ finance', 'รอ training', 'อื่นๆ'];
+
+interface Activity {
+  id: string;
+  opportunity_id: string;
+  account_id: string;
+  activity_type: string;
+  title: string;
+  activity_date: string;
+  start_time: string | null;
+  end_time: string | null;
+  priority: string | null;
+  is_done: boolean | null;
+}
 
 function getDaysInStage(opp: Opportunity): number {
   return Math.floor((Date.now() - new Date(opp.created_at || Date.now()).getTime()) / 86400000);
@@ -50,6 +66,29 @@ interface Props {
 export default function OpportunityKanban({ opportunities, typeFilter, onStageChange, onUpdateOpportunity, onAddNote }: Props) {
   const navigate = useNavigate();
   const [dragOverStage, setDragOverStage] = useState<string | null>(null);
+  const [activitiesMap, setActivitiesMap] = useState<Record<string, Activity[]>>({});
+
+  const oppIds = opportunities.map(o => o.id);
+
+  const fetchActivities = useCallback(async () => {
+    if (oppIds.length === 0) { setActivitiesMap({}); return; }
+    const { data } = await supabase
+      .from('activities')
+      .select('id, opportunity_id, account_id, activity_type, title, activity_date, start_time, end_time, priority, is_done')
+      .eq('is_done', false)
+      .in('opportunity_id', oppIds)
+      .order('activity_date', { ascending: true });
+    if (data) {
+      const map: Record<string, Activity[]> = {};
+      (data as Activity[]).forEach(a => {
+        if (!map[a.opportunity_id]) map[a.opportunity_id] = [];
+        map[a.opportunity_id].push(a);
+      });
+      setActivitiesMap(map);
+    }
+  }, [oppIds.join(',')]);
+
+  useEffect(() => { fetchActivities(); }, [fetchActivities]);
 
   const filtered = opportunities.filter(o =>
     typeFilter === 'ALL' || o.opportunity_type === typeFilter
@@ -61,9 +100,7 @@ export default function OpportunityKanban({ opportunities, typeFilter, onStageCh
     setDragOverStage(stage);
   };
 
-  const handleDragLeave = () => {
-    setDragOverStage(null);
-  };
+  const handleDragLeave = () => { setDragOverStage(null); };
 
   const handleDrop = (e: React.DragEvent, newStage: OpportunityStage) => {
     e.preventDefault();
@@ -126,9 +163,10 @@ export default function OpportunityKanban({ opportunities, typeFilter, onStageCh
                     opp={opp}
                     stage={stage}
                     navigate={navigate}
+                    pendingActivities={activitiesMap[opp.id] || []}
                     onStageChange={onStageChange}
                     onUpdateOpportunity={onUpdateOpportunity}
-                    onAddNote={onAddNote}
+                    onActivitySaved={fetchActivities}
                   />
                 ))}
                 {stageOpps.length === 0 && (
@@ -146,17 +184,21 @@ export default function OpportunityKanban({ opportunities, typeFilter, onStageCh
   );
 }
 
-function KanbanCard({ opp, stage, navigate, onStageChange, onUpdateOpportunity, onAddNote }: {
+/* ─── Kanban Card ─── */
+
+function KanbanCard({ opp, stage, navigate, pendingActivities, onStageChange, onUpdateOpportunity, onActivitySaved }: {
   opp: Opportunity;
   stage: OpportunityStage;
   navigate: ReturnType<typeof useNavigate>;
+  pendingActivities: Activity[];
   onStageChange: (oppId: string, newStage: OpportunityStage) => void;
   onUpdateOpportunity?: (oppId: string, updates: Partial<Opportunity>) => void;
-  onAddNote?: (oppId: string, note: string) => void;
+  onActivitySaved: () => void;
 }) {
   const [isDragging, setIsDragging] = useState(false);
   const [otherReason, setOtherReason] = useState('');
   const [showOtherInput, setShowOtherInput] = useState(false);
+  const [quickFormType, setQuickFormType] = useState<'CALL' | 'MEETING' | 'DEMO' | null>(null);
 
   const account = getCachedAccount(opp.account_id);
   const daysInStage = getDaysInStage(opp);
@@ -170,7 +212,6 @@ function KanbanCard({ opp, stage, navigate, onStageChange, onUpdateOpportunity, 
     ? Math.ceil((new Date(opp.next_activity_date).getTime() - Date.now()) / 86400000)
     : null;
 
-  // Color-coded days indicator (always show for non-terminal)
   const stuckColor = !isTerminal ? getStuckColor(daysInStage) : null;
 
   const handleDragStart = (e: React.DragEvent) => {
@@ -179,18 +220,11 @@ function KanbanCard({ opp, stage, navigate, onStageChange, onUpdateOpportunity, 
     setIsDragging(true);
   };
 
-  const handleDragEnd = () => {
-    setIsDragging(false);
-  };
+  const handleDragEnd = () => { setIsDragging(false); };
 
   const handleStuckReasonChange = (val: string) => {
-    if (val === 'อื่นๆ') {
-      setShowOtherInput(true);
-      onUpdateOpportunity?.(opp.id, { stuck_reason: val } as any);
-    } else {
-      setShowOtherInput(false);
-      onUpdateOpportunity?.(opp.id, { stuck_reason: val } as any);
-    }
+    setShowOtherInput(val === 'อื่นๆ');
+    onUpdateOpportunity?.(opp.id, { stuck_reason: val } as any);
   };
 
   const handleSaveOtherReason = () => {
@@ -200,6 +234,9 @@ function KanbanCard({ opp, stage, navigate, onStageChange, onUpdateOpportunity, 
     }
   };
 
+  // Show max 3 pending activities
+  const visibleActivities = pendingActivities.slice(0, 3);
+  const moreCount = pendingActivities.length - 3;
 
   return (
     <div
@@ -240,7 +277,6 @@ function KanbanCard({ opp, stage, navigate, onStageChange, onUpdateOpportunity, 
             {opp.opportunity_type === 'DEVICE' ? 'เครื่อง' : 'สิ้นเปลือง'}
           </span>
         )}
-        {/* Color-coded days indicator */}
         {stuckColor && (
           <span className={`flex items-center gap-0.5 font-semibold ${stuckColor.text}`} title={`อยู่ในสถานะ ${daysInStage} วัน`}>
             <Clock size={10} />
@@ -287,6 +323,29 @@ function KanbanCard({ opp, stage, navigate, onStageChange, onUpdateOpportunity, 
         )
       )}
 
+      {/* ROW 4: Pending Activities */}
+      {pendingActivities.length > 0 && (
+        <div className="mt-2 space-y-1">
+          <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">กิจกรรมค้าง ({pendingActivities.length})</p>
+          {visibleActivities.map(a => {
+            const Icon = ACTIVITY_ICONS[a.activity_type] || Calendar;
+            const isPast = new Date(a.activity_date) < new Date(new Date().toDateString());
+            return (
+              <div key={a.id} className={`flex items-center gap-1.5 text-[10px] ${isPast ? 'text-destructive' : 'text-muted-foreground'}`}>
+                <Icon size={9} className="shrink-0" />
+                <span className="truncate flex-1">{a.title}</span>
+                <span className="shrink-0">
+                  {new Date(a.activity_date).toLocaleDateString('th-TH', { day: 'numeric', month: 'short' })}
+                </span>
+              </div>
+            );
+          })}
+          {moreCount > 0 && (
+            <p className="text-[10px] text-muted-foreground/60">+{moreCount} รายการ</p>
+          )}
+        </div>
+      )}
+
       {/* Stuck reason (days >= 3) */}
       {!isTerminal && daysInStage >= 3 && (
         <div className={`mt-2 text-[10px] rounded px-2 py-1.5 space-y-1 ${stuckColor!.bg}`}>
@@ -328,8 +387,40 @@ function KanbanCard({ opp, stage, navigate, onStageChange, onUpdateOpportunity, 
         </div>
       )}
 
-      {/* Pipeline dropdown */}
+      {/* Footer: Quick shortcuts + Pipeline dropdown */}
       <div className="flex items-center mt-2 pt-2 border-t border-border">
+        {/* Quick Activity Shortcuts */}
+        {!isTerminal && (
+          <div className="flex items-center gap-0.5" onClick={e => e.stopPropagation()}>
+            {([
+              { type: 'CALL' as const, icon: Phone, label: 'โทร' },
+              { type: 'MEETING' as const, icon: Users, label: 'นัดพบ' },
+              { type: 'DEMO' as const, icon: Presentation, label: 'เดโม' },
+            ]).map(({ type, icon: Icon, label }) => (
+              <Popover key={type} open={quickFormType === type} onOpenChange={(open) => setQuickFormType(open ? type : null)}>
+                <PopoverTrigger asChild>
+                  <button
+                    className="p-1.5 rounded hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
+                    title={label}
+                    onClick={e => { e.stopPropagation(); }}
+                  >
+                    <Icon size={12} />
+                  </button>
+                </PopoverTrigger>
+                <PopoverContent align="start" side="top" className="w-auto p-3" onClick={e => e.stopPropagation()}>
+                  <QuickActivityForm
+                    activityType={type}
+                    opportunityId={opp.id}
+                    accountId={opp.account_id}
+                    onSaved={onActivitySaved}
+                    onClose={() => setQuickFormType(null)}
+                  />
+                </PopoverContent>
+              </Popover>
+            ))}
+          </div>
+        )}
+
         <div className="ml-auto" onClick={e => e.stopPropagation()}>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
