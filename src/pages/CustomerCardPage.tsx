@@ -22,7 +22,7 @@ import {
   ChevronDown, LayoutDashboard, Clock, FileText,
   ShoppingCart, Wrench, Receipt, FolderOpen, Megaphone,
   Eye, Presentation, FileCheck, GraduationCap,
-  Phone as PhoneIcon, Star
+  Phone as PhoneIcon, Star, Trash2
 } from 'lucide-react';
 import {
   getLifetimeRevenue, getDevicesForAccount, getVisitsForAccount,
