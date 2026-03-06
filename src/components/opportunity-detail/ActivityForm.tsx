@@ -80,6 +80,7 @@ export default function ActivityForm({
       setDescription(editingActivity.description || '');
       setNotes(editingActivity.notes || '');
       setMarkAsDone(editingActivity.is_done || false);
+      setAssignedTo(editingActivity.assigned_to || (currentUser ? [currentUser.name] : []));
       if (editingActivity.location || editingActivity.description) setShowExtra(true);
     }
   }, [editingActivity?.id]);
@@ -118,6 +119,7 @@ export default function ActivityForm({
     setNotes('');
     setMarkAsDone(false);
     setShowExtra(false);
+    setAssignedTo(currentUser ? [currentUser.name] : []);
   };
 
   const handleSave = async () => {
