@@ -7,10 +7,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Checkbox } from '@/components/ui/checkbox';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Phone, Users, Building2, Target, Presentation, ChevronDown, ChevronUp, CalendarIcon } from 'lucide-react';
+import { Phone, Users, Building2, Target, Presentation, ChevronDown, ChevronUp, CalendarIcon, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
+import { useMockAuth, MOCK_SALES } from '@/hooks/useMockAuth';
 import type { Activity, ActivityType, ActivityPriority } from '@/types';
 
 const TIME_OPTIONS = Array.from({ length: 96 }, (_, i) => {
@@ -49,6 +50,7 @@ export default function ActivityForm({
   editingActivity, onActivityUpdated, onCancelEdit, onFormChange,
   quickScheduleDefaults,
 }: ActivityFormProps) {
+  const { currentUser } = useMockAuth();
   const [selectedType, setSelectedType] = useState<ActivityType>('CALL');
   const [title, setTitle] = useState('');
   const [activityDate, setActivityDate] = useState(quickScheduleDefaults?.activity_date || new Date().toISOString().split('T')[0]);
@@ -61,6 +63,7 @@ export default function ActivityForm({
   const [markAsDone, setMarkAsDone] = useState(false);
   const [showExtra, setShowExtra] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [assignedTo, setAssignedTo] = useState<string[]>(currentUser ? [currentUser.name] : []);
 
   const isEditing = !!editingActivity;
 
@@ -77,6 +80,7 @@ export default function ActivityForm({
       setDescription(editingActivity.description || '');
       setNotes(editingActivity.notes || '');
       setMarkAsDone(editingActivity.is_done || false);
+      setAssignedTo(editingActivity.assigned_to || (currentUser ? [currentUser.name] : []));
       if (editingActivity.location || editingActivity.description) setShowExtra(true);
     }
   }, [editingActivity?.id]);
@@ -115,6 +119,7 @@ export default function ActivityForm({
     setNotes('');
     setMarkAsDone(false);
     setShowExtra(false);
+    setAssignedTo(currentUser ? [currentUser.name] : []);
   };
 
   const handleSave = async () => {
@@ -133,6 +138,7 @@ export default function ActivityForm({
       description: description || null,
       notes: notes || null,
       is_done: markAsDone,
+      assigned_to: assignedTo.length > 0 ? assignedTo : null,
     };
 
     if (isEditing && editingActivity) {
@@ -258,6 +264,38 @@ export default function ActivityForm({
             <SelectItem value="HIGH" className="text-xs">High</SelectItem>
           </SelectContent>
         </Select>
+      </div>
+
+      {/* Assignees */}
+      <div>
+        <label className="text-[10px] text-muted-foreground">มอบหมายให้</label>
+        <div className="flex flex-wrap gap-1.5 mt-1 min-h-[32px] p-1.5 rounded-md border bg-background">
+          {assignedTo.map(name => (
+            <span key={name} className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-primary/10 text-primary text-xs font-medium">
+              {name}
+              <button onClick={() => setAssignedTo(prev => prev.filter(n => n !== name))} className="hover:text-destructive">
+                <X size={12} />
+              </button>
+            </span>
+          ))}
+          <Select
+            value=""
+            onValueChange={(v) => {
+              if (v && !assignedTo.includes(v)) {
+                setAssignedTo(prev => [...prev, v]);
+              }
+            }}
+          >
+            <SelectTrigger className="h-6 w-24 text-[11px] border-dashed border-muted-foreground/30">
+              <SelectValue placeholder="+ เพิ่ม" />
+            </SelectTrigger>
+            <SelectContent>
+              {MOCK_SALES.filter(u => !assignedTo.includes(u.name)).map(u => (
+                <SelectItem key={u.id} value={u.name} className="text-xs">{u.name}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
       </div>
 
       {/* Toggle extra fields */}

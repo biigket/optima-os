@@ -213,7 +213,7 @@ export interface Activity {
   location?: string;
   description?: string;
   notes?: string;
-  assigned_to?: string;
+  assigned_to?: string[];
   contact_id?: string;
   is_done: boolean;
   created_at: string;

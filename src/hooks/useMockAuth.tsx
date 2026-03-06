@@ -15,6 +15,8 @@ export const MOCK_SALES: MockSaleUser[] = [
   { id: 's3', name: 'PETCH', username: 'petch', password: 'petch1234', role: 'SALE' },
   { id: 's4', name: 'FAH', username: 'fah', password: 'fah1234', role: 'SALE' },
   { id: 's5', name: 'VI', username: 'vi', password: 'vi1234', role: 'SALE' },
+  { id: 's6', name: 'NOT', username: 'not', password: 'not1234', role: 'SALE' },
+  { id: 's7', name: 'GAME', username: 'game', password: 'game1234', role: 'SALE' },
 ];
 
 interface MockAuthContextType {

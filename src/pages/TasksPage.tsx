@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Search, Phone, Circle, CheckCircle2, List, CalendarDays, Users, ClipboardList, AlertCircle, Monitor, ArrowUp } from 'lucide-react';
+import { useMockAuth } from '@/hooks/useMockAuth';
 import CalendarEventDialog from '@/components/tasks/CalendarEventDialog';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
@@ -23,6 +24,7 @@ interface ActivityRow {
   is_done: boolean | null;
   opportunity_id: string;
   account_id: string;
+  assigned_to: string[] | null;
   // joined
   opp_stage: string | null;
   contact_name: string | null;
@@ -49,6 +51,7 @@ const formatTime12 = (t: string) => {
 
 export default function TasksPage() {
   const navigate = useNavigate();
+  const { currentUser } = useMockAuth();
   const [search, setSearch] = useState('');
   const [rows, setRows] = useState<ActivityRow[]>([]);
   const [loading, setLoading] = useState(true);
@@ -99,6 +102,7 @@ export default function TasksPage() {
         is_done: act.is_done,
         opportunity_id: act.opportunity_id,
         account_id: act.account_id,
+        assigned_to: (act.assigned_to as string[] | null) || null,
         opp_stage: opp?.stage || null,
         contact_name: contact?.name || null,
         contact_phone: contact?.phone || null,
@@ -145,11 +149,15 @@ export default function TasksPage() {
     setDialogOpen(true);
   };
 
-  // List: show only undone
-  const listRows = rows.filter(r => !r.is_done && r.title.toLowerCase().includes(search.toLowerCase()));
+  // Filter by assigned user (ADMIN sees all)
+  const isAdmin = currentUser?.role === 'ADMIN';
+  const myRows = isAdmin ? rows : rows.filter(r => r.assigned_to?.includes(currentUser?.name || ''));
 
-  // Calendar events: all
-  const calendarEvents = rows.map(r => {
+  // List: show only undone
+  const listRows = myRows.filter(r => !r.is_done && r.title.toLowerCase().includes(search.toLowerCase()));
+
+  // Calendar events: all assigned to user
+  const calendarEvents = myRows.map(r => {
     const dateStr = r.activity_date;
     let start = dateStr;
     let end: string | undefined;
@@ -234,6 +242,7 @@ export default function TasksPage() {
                     <th className="px-3 py-3 text-left font-medium text-muted-foreground">วัน/เวลา</th>
                     <th className="px-3 py-3 text-left font-medium text-muted-foreground">ผู้ติดต่อ</th>
                     <th className="px-3 py-3 text-left font-medium text-muted-foreground">ความสำคัญ</th>
+                    <th className="px-3 py-3 text-left font-medium text-muted-foreground">มอบหมาย</th>
                     <th className="px-3 py-3 text-left font-medium text-muted-foreground">Stage</th>
                     <th className="px-3 py-3 text-left font-medium text-muted-foreground">Due Date</th>
                   </tr>
@@ -270,6 +279,15 @@ export default function TasksPage() {
                       </td>
                       <td className="px-3 py-3">
                         {row.priority && <StatusBadge status={row.priority} />}
+                      </td>
+                      <td className="px-3 py-3">
+                        {row.assigned_to && row.assigned_to.length > 0 ? (
+                          <div className="flex flex-wrap gap-1">
+                            {row.assigned_to.map(name => (
+                              <span key={name} className="inline-block px-1.5 py-0.5 rounded bg-primary/10 text-primary text-[10px] font-medium">{name}</span>
+                            ))}
+                          </div>
+                        ) : <span className="text-xs text-muted-foreground">—</span>}
                       </td>
                       <td className="px-3 py-3">
                         {row.opp_stage ? (

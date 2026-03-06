@@ -1,0 +1,1 @@
+ALTER TABLE public.activities ALTER COLUMN assigned_to TYPE text[] USING CASE WHEN assigned_to IS NOT NULL THEN ARRAY[assigned_to] ELSE NULL END;
