@@ -149,10 +149,14 @@ export default function TasksPage() {
     setDialogOpen(true);
   };
 
-  // List: show only undone
-  const listRows = rows.filter(r => !r.is_done && r.title.toLowerCase().includes(search.toLowerCase()));
+  // Filter by assigned user (ADMIN sees all)
+  const isAdmin = currentUser?.role === 'ADMIN';
+  const myRows = isAdmin ? rows : rows.filter(r => r.assigned_to?.includes(currentUser?.name || ''));
 
-  // Calendar events: all
+  // List: show only undone
+  const listRows = myRows.filter(r => !r.is_done && r.title.toLowerCase().includes(search.toLowerCase()));
+
+  // Calendar events: all assigned to user
   const calendarEvents = rows.map(r => {
     const dateStr = r.activity_date;
     let start = dateStr;
