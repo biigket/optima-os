@@ -448,11 +448,12 @@ export default function OpportunityDetailPage() {
                 <ActivityForm
                   opportunityId={opp.id}
                   accountId={opp.account_id}
-                  onActivityCreated={handleActivityCreated}
+                  onActivityCreated={(a) => { handleActivityCreated(a); setQuickCreateType(null); }}
                   editingActivity={editingActivity}
                   onActivityUpdated={handleActivityUpdated}
-                  onCancelEdit={() => { setActiveActivityId(null); setFormPreview(null); }}
+                  onCancelEdit={() => { setActiveActivityId(null); setFormPreview(null); setQuickCreateType(null); }}
                   onFormChange={setFormPreview}
+                  defaultType={quickCreateType}
                 />
               </TabsContent>
 
@@ -496,6 +497,13 @@ export default function OpportunityDetailPage() {
             }}
             onActivityUpdated={(updated) => {
               setActivities(prev => prev.map(a => a.id === updated.id ? updated : a));
+            }}
+            onQuickCreate={(type) => {
+              setQuickCreateType(type);
+              setActiveTab('activity');
+            }}
+            onAddComment={(activityId) => {
+              setActiveTab('notes');
             }}
             clinicName={account?.clinic_name}
           />
