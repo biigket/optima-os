@@ -622,3 +622,66 @@ function InfoRow({ label, value, highlight }: { label: string; value: string; hi
     </div>
   );
 }
+
+function FileUploadZone({ opportunityId, accountId, userName, onFileUploaded }: {
+  opportunityId: string; accountId: string; userName: string; onFileUploaded: () => void;
+}) {
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [uploading, setUploading] = useState(false);
+  const [dragOver, setDragOver] = useState(false);
+
+  const uploadFiles = async (files: FileList | File[]) => {
+    if (!files.length) return;
+    setUploading(true);
+    for (const file of Array.from(files)) {
+      const filePath = `${opportunityId}/${Date.now()}-${file.name}`;
+      const { error: uploadError } = await supabase.storage.from('opportunity-files').upload(filePath, file);
+      if (uploadError) { toast.error(`อัพโหลด ${file.name} ไม่สำเร็จ`); continue; }
+
+      const { data: { publicUrl } } = supabase.storage.from('opportunity-files').getPublicUrl(filePath);
+
+      // Save metadata to DB
+      await supabase.from('opportunity_files').insert({
+        opportunity_id: opportunityId, account_id: accountId,
+        file_name: file.name, file_url: publicUrl,
+        file_size: file.size, file_type: file.type, uploaded_by: userName,
+      });
+
+      // Create a note for history timeline
+      const note: OpportunityNote = {
+        id: `note-${Date.now()}-${Math.random().toString(36).slice(2)}`,
+        opportunity_id: opportunityId, account_id: accountId,
+        content: `📎 ${file.name}`,
+        created_by: userName, created_at: new Date().toISOString(),
+        file_url: publicUrl, file_name: file.name,
+        file_size: file.size, file_type: file.type,
+      };
+      addNoteGlobal(note);
+      toast.success(`อัพโหลด ${file.name} สำเร็จ`);
+    }
+    setUploading(false);
+    onFileUploaded();
+  };
+
+  return (
+    <div
+      className={`border-2 border-dashed rounded-lg p-6 text-center transition-colors ${dragOver ? 'border-primary bg-primary/5' : 'border-border'}`}
+      onDragOver={e => { e.preventDefault(); setDragOver(true); }}
+      onDragLeave={() => setDragOver(false)}
+      onDrop={e => { e.preventDefault(); setDragOver(false); uploadFiles(e.dataTransfer.files); }}
+    >
+      <input
+        ref={fileInputRef}
+        type="file"
+        multiple
+        className="hidden"
+        onChange={e => { if (e.target.files) uploadFiles(e.target.files); e.target.value = ''; }}
+      />
+      <Upload size={24} className="mx-auto text-muted-foreground mb-2" />
+      <p className="text-xs text-muted-foreground mb-2">ลากไฟล์มาวางที่นี่ หรือ</p>
+      <Button variant="outline" size="sm" className="text-xs gap-1" onClick={() => fileInputRef.current?.click()} disabled={uploading}>
+        <Upload size={12} /> {uploading ? 'กำลังอัพโหลด...' : 'เลือกไฟล์'}
+      </Button>
+    </div>
+  );
+}
