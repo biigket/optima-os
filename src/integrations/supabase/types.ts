@@ -26,16 +26,11 @@ export type Database = {
           customer_status: string
           email: string | null
           entity_type: string | null
-          google_map_link: string | null
           grade: string | null
-          has_budget: boolean | null
           id: string
-          is_kol: boolean | null
-          is_vip: boolean | null
           lead_source: string | null
           notes: string | null
           phone: string | null
-          registered_at: string | null
           single_or_chain: string | null
           tax_id: string | null
         }
@@ -50,16 +45,11 @@ export type Database = {
           customer_status?: string
           email?: string | null
           entity_type?: string | null
-          google_map_link?: string | null
           grade?: string | null
-          has_budget?: boolean | null
           id?: string
-          is_kol?: boolean | null
-          is_vip?: boolean | null
           lead_source?: string | null
           notes?: string | null
           phone?: string | null
-          registered_at?: string | null
           single_or_chain?: string | null
           tax_id?: string | null
         }
@@ -74,16 +64,11 @@ export type Database = {
           customer_status?: string
           email?: string | null
           entity_type?: string | null
-          google_map_link?: string | null
           grade?: string | null
-          has_budget?: boolean | null
           id?: string
-          is_kol?: boolean | null
-          is_vip?: boolean | null
           lead_source?: string | null
           notes?: string | null
           phone?: string | null
-          registered_at?: string | null
           single_or_chain?: string | null
           tax_id?: string | null
         }

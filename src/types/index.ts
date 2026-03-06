@@ -22,16 +22,11 @@ export interface Account {
   branch_type?: string;
   phone?: string;
   email?: string;
-  google_map_link?: string;
   lead_source?: string;
   customer_status: CustomerStatus;
   grade?: string;
-  has_budget?: boolean;
-  is_kol?: boolean;
-  is_vip?: boolean;
   single_or_chain?: string;
   assigned_sale?: string;
-  registered_at?: string;
   notes?: string;
   created_at: string;
 }
