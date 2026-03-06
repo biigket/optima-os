@@ -101,6 +101,7 @@ export default function TasksPage() {
         is_done: act.is_done,
         opportunity_id: act.opportunity_id,
         account_id: act.account_id,
+        assigned_to: (act.assigned_to as string[] | null) || null,
         opp_stage: opp?.stage || null,
         contact_name: contact?.name || null,
         contact_phone: contact?.phone || null,
