@@ -197,7 +197,7 @@ export interface Profile {
   created_at: string;
 }
 
-export type ActivityType = 'CALL' | 'MEETING' | 'TASK' | 'DEADLINE';
+export type ActivityType = 'CALL' | 'MEETING' | 'TASK' | 'DEADLINE' | 'DEMO';
 export type ActivityPriority = 'LOW' | 'NORMAL' | 'HIGH';
 
 export interface Activity {

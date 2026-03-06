@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Checkbox } from '@/components/ui/checkbox';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Phone, Users, Building2, Target, ChevronDown, ChevronUp, CalendarIcon } from 'lucide-react';
+import { Phone, Users, Building2, Target, Presentation, ChevronDown, ChevronUp, CalendarIcon } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
@@ -19,11 +19,12 @@ const TIME_OPTIONS = Array.from({ length: 96 }, (_, i) => {
   return `${h}:${m}`;
 });
 
-const ACTIVITY_TYPES: { type: ActivityType; label: string; icon: React.ElementType; color: string }[] = [
-  { type: 'CALL', label: 'Call', icon: Phone, color: 'text-blue-600 bg-blue-100' },
-  { type: 'MEETING', label: 'Meeting', icon: Users, color: 'text-violet-600 bg-violet-100' },
-  { type: 'TASK', label: 'Task', icon: Building2, color: 'text-emerald-600 bg-emerald-100' },
-  { type: 'DEADLINE', label: 'Deadline', icon: Target, color: 'text-red-600 bg-red-100' },
+const ACTIVITY_TYPES: { type: ActivityType; label: string; icon: React.ElementType; color: string; defaultTitle: string }[] = [
+  { type: 'CALL', label: 'Call', icon: Phone, color: 'text-blue-600 bg-blue-100', defaultTitle: 'โทร' },
+  { type: 'MEETING', label: 'Meeting', icon: Users, color: 'text-violet-600 bg-violet-100', defaultTitle: 'ประชุม' },
+  { type: 'TASK', label: 'Task', icon: Building2, color: 'text-emerald-600 bg-emerald-100', defaultTitle: 'งาน' },
+  { type: 'DEADLINE', label: 'Deadline', icon: Target, color: 'text-red-600 bg-red-100', defaultTitle: 'เส้นตาย' },
+  { type: 'DEMO', label: 'Demo', icon: Presentation, color: 'text-orange-600 bg-orange-100', defaultTitle: 'นัดเดโม' },
 ];
 
 interface QuickScheduleDefaults {
@@ -180,7 +181,13 @@ export default function ActivityForm({
           return (
             <button
               key={at.type}
-              onClick={() => setSelectedType(at.type)}
+              onClick={() => {
+                setSelectedType(at.type);
+                const currentDefault = ACTIVITY_TYPES.find(a => a.type === selectedType)?.defaultTitle;
+                if (!title.trim() || title === currentDefault) {
+                  setTitle(at.defaultTitle);
+                }
+              }}
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all
                 ${active ? at.color + ' ring-1 ring-offset-1 ring-current' : 'bg-muted text-muted-foreground hover:bg-muted/80'}`}
             >
