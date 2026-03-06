@@ -774,7 +774,7 @@ function InfoItem({ label, value, isPhone }: { label: string; value: string | nu
   );
 }
 
-
+function ActionBtn({ icon: Icon, label }: { icon: React.ElementType; label: string }) {
   return (
     <Button variant="outline" size="sm" className="gap-1.5 text-xs shrink-0 h-8">
       <Icon size={13} /> {label}
