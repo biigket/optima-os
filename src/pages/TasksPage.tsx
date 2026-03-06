@@ -343,6 +343,13 @@ export default function TasksPage() {
           </div>
         </TabsContent>
       </Tabs>
+
+      <CalendarEventDialog
+        activity={selectedActivity}
+        open={dialogOpen}
+        onOpenChange={setDialogOpen}
+        onToggleDone={toggleDone}
+      />
     </div>
   );
 }
