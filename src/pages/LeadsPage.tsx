@@ -1,3 +1,4 @@
+// LeadsPage - updated
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Search, Plus, Eye, EyeOff, Building2, Star, X } from 'lucide-react';
