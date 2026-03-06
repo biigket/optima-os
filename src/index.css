@@ -108,28 +108,53 @@
 /* FullCalendar theme overrides */
 .tasks-calendar .fc {
   --fc-border-color: hsl(var(--border));
-  --fc-button-bg-color: hsl(var(--primary));
-  --fc-button-border-color: hsl(var(--primary));
-  --fc-button-hover-bg-color: hsl(var(--primary) / 0.85);
-  --fc-button-hover-border-color: hsl(var(--primary) / 0.85);
-  --fc-button-active-bg-color: hsl(var(--primary) / 0.75);
-  --fc-button-active-border-color: hsl(var(--primary) / 0.75);
-  --fc-today-bg-color: hsl(var(--accent) / 0.08);
-  --fc-event-bg-color: hsl(var(--primary));
-  --fc-event-border-color: hsl(var(--primary));
+  --fc-button-bg-color: hsl(0 0% 100%);
+  --fc-button-text-color: hsl(var(--foreground));
+  --fc-button-border-color: hsl(var(--border));
+  --fc-button-hover-bg-color: hsl(var(--muted));
+  --fc-button-hover-border-color: hsl(var(--border));
+  --fc-button-active-bg-color: hsl(var(--accent));
+  --fc-button-active-text-color: hsl(var(--accent-foreground));
+  --fc-button-active-border-color: hsl(var(--accent));
+  --fc-today-bg-color: hsl(var(--accent) / 0.06);
+  --fc-event-bg-color: hsl(var(--accent) / 0.12);
+  --fc-event-border-color: hsl(var(--accent) / 0.3);
+  --fc-event-text-color: hsl(var(--foreground));
   --fc-page-bg-color: transparent;
+  --fc-neutral-bg-color: hsl(var(--muted) / 0.5);
   font-size: 0.8rem;
 }
 .tasks-calendar .fc .fc-col-header-cell {
   background: hsl(var(--muted));
+  font-weight: 500;
+  color: hsl(var(--muted-foreground));
 }
 .tasks-calendar .fc .fc-timegrid-slot {
   height: 2.5rem;
 }
 .tasks-calendar .fc-event {
   cursor: grab;
-  border-radius: 4px;
+  border-radius: 6px;
+  padding: 2px 4px;
+  box-shadow: 0 1px 2px hsl(0 0% 0% / 0.06);
 }
 .tasks-calendar .fc-event:active {
   cursor: grabbing;
+}
+.tasks-calendar .fc .fc-toolbar-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: hsl(var(--foreground));
+}
+.tasks-calendar .fc .fc-button {
+  font-size: 0.8rem;
+  padding: 0.3em 0.65em;
+  border-radius: 6px;
+  font-weight: 500;
+  text-transform: none;
+}
+.tasks-calendar .fc .fc-daygrid-day-number,
+.tasks-calendar .fc .fc-timegrid-axis-cushion {
+  color: hsl(var(--muted-foreground));
+  font-size: 0.75rem;
 }
