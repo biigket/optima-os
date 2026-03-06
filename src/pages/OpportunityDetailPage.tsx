@@ -322,14 +322,6 @@ export default function OpportunityDetailPage() {
               ) : <p className="text-xs text-muted-foreground mt-0.5">-</p>}
             </div>
 
-            <div>
-              <span className="text-[11px] text-muted-foreground">เครื่องปัจจุบัน</span>
-              {deviceTags.length > 0 ? (
-                <div className="flex flex-wrap gap-1 mt-1">
-                  {deviceTags.map(t => <span key={t} className="px-2 py-0.5 rounded-full bg-muted text-foreground text-[10px] font-medium">{t}</span>)}
-                </div>
-              ) : <p className="text-xs text-muted-foreground mt-0.5">-</p>}
-            </div>
 
             <div className="flex items-start justify-between gap-2">
               <span className="text-[11px] text-muted-foreground shrink-0">วันปิด</span>
