@@ -45,15 +45,10 @@ interface LocalAccount {
   tax_id: string | null;
   entity_type: string | null;
   branch_type: string | null;
-  google_map_link: string | null;
   lead_source: string | null;
-  has_budget: boolean | null;
-  is_vip: boolean | null;
-  is_kol: boolean | null;
   single_or_chain: string | null;
   current_devices: string | null;
   notes: string | null;
-  registered_at: string | null;
 }
 
 interface LocalContact {
@@ -201,13 +196,11 @@ export default function CustomerCardPage() {
             <div className="flex items-center gap-2 flex-wrap">
               <h1 className="text-lg md:text-xl font-bold text-foreground">{account.clinic_name}</h1>
               <StatusBadge status={account.customer_status} />
-              {account.is_vip && <Badge className="text-[10px] bg-amber-100 text-amber-700 border-amber-200">VIP</Badge>}
-              {account.is_kol && <Badge className="text-[10px] bg-purple-100 text-purple-700 border-purple-200">KOL</Badge>}
             </div>
             <div className="flex items-center gap-2 flex-wrap">
               {account.grade && <Badge variant="outline" className="text-xs">เกรด {account.grade}</Badge>}
               {account.grade && <Badge variant="secondary" className="text-xs">Potential: {POTENTIAL_MAP[account.grade || 'C']}</Badge>}
-              {account.has_budget && <Badge variant="secondary" className="text-xs">💰 มีงบประมาณ</Badge>}
+              
               {account.single_or_chain && <Badge variant="outline" className="text-xs">{account.single_or_chain === 'CHAIN' ? '🏢 เครือ' : '🏠 สาขาเดียว'}</Badge>}
             </div>
             {account.company_name && <p className="text-xs text-muted-foreground">บริษัท: {account.company_name}</p>}
@@ -233,13 +226,6 @@ export default function CustomerCardPage() {
             {account.assigned_sale && <InfoItem label="เซลล์ดูแล" value={account.assigned_sale} />}
             {account.lead_source && <InfoItem label="แหล่งที่มา" value={account.lead_source} />}
             {account.current_devices && <InfoItem label="อุปกรณ์ที่มี" value={account.current_devices} />}
-            {account.registered_at && <InfoItem label="วันที่ลงทะเบียน" value={account.registered_at} />}
-            {account.google_map_link && (
-              <div className="flex items-start gap-1.5 text-xs">
-                <span className="text-muted-foreground shrink-0 min-w-[80px]">Google Map</span>
-                <a href={account.google_map_link} target="_blank" rel="noopener noreferrer" className="text-primary underline truncate">{account.google_map_link}</a>
-              </div>
-            )}
           </div>
           {account.notes && (
             <div className="mt-2 text-xs">
