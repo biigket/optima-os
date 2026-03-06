@@ -340,8 +340,8 @@ export default function TasksPage() {
 
         <TabsContent value="calendar">
           <div className="flex gap-4">
-            {/* Left sidebar: mini month calendar */}
-            <div className="hidden md:block w-[220px] shrink-0 space-y-4">
+            {/* Left sidebar: mini month calendar — hidden on mobile */}
+            <div className="hidden lg:block w-[220px] shrink-0 space-y-4">
               <div className="rounded-lg border bg-card p-3">
                 <div className="flex items-center justify-between mb-2">
                   <button onClick={() => setMiniMonth(prev => subMonths(prev, 1))} className="p-1 hover:bg-muted rounded text-muted-foreground">
@@ -413,43 +413,44 @@ export default function TasksPage() {
             </div>
 
             {/* Main calendar */}
-            <div className="flex-1 rounded-lg border bg-card tasks-calendar overflow-hidden">
-              <div className="flex items-center justify-between px-4 py-3 border-b bg-card">
-                <div className="flex items-center gap-2">
-                  <Button variant="outline" size="sm" onClick={() => {
+            <div className="flex-1 min-w-0 rounded-lg border bg-card tasks-calendar overflow-hidden">
+              {/* Custom header */}
+              <div className="flex items-center justify-between px-2 sm:px-4 py-2 sm:py-3 border-b bg-card gap-2">
+                <div className="flex items-center gap-1 sm:gap-2 min-w-0">
+                  <Button variant="outline" size="sm" className="text-xs px-2 sm:px-3 shrink-0" onClick={() => {
                     const today = new Date();
                     setSelectedDate(today);
                     setMiniMonth(today);
                     calendarRef.current?.getApi().today();
                   }}>
-                    Today
+                    วันนี้
                   </Button>
-                  <button onClick={() => { calendarRef.current?.getApi().prev(); setSelectedDate(calendarRef.current?.getApi().getDate() || new Date()); }} className="p-1.5 hover:bg-muted rounded text-muted-foreground">
-                    <ChevronLeft size={18} />
+                  <button onClick={() => { calendarRef.current?.getApi().prev(); setSelectedDate(calendarRef.current?.getApi().getDate() || new Date()); }} className="p-1 hover:bg-muted rounded text-muted-foreground shrink-0">
+                    <ChevronLeft size={16} />
                   </button>
-                  <button onClick={() => { calendarRef.current?.getApi().next(); setSelectedDate(calendarRef.current?.getApi().getDate() || new Date()); }} className="p-1.5 hover:bg-muted rounded text-muted-foreground">
-                    <ChevronRight size={18} />
+                  <button onClick={() => { calendarRef.current?.getApi().next(); setSelectedDate(calendarRef.current?.getApi().getDate() || new Date()); }} className="p-1 hover:bg-muted rounded text-muted-foreground shrink-0">
+                    <ChevronRight size={16} />
                   </button>
-                  <h2 className="text-base font-semibold text-foreground ml-2">
-                    {format(selectedDate, 'd MMMM yyyy', { locale: th })}
+                  <h2 className="text-xs sm:text-sm font-semibold text-foreground truncate">
+                    {format(selectedDate, 'd MMM yyyy', { locale: th })}
                   </h2>
                 </div>
-                <div className="flex items-center rounded-lg border overflow-hidden">
+                <div className="flex items-center rounded-lg border overflow-hidden shrink-0">
                   <button
                     onClick={() => { setCalendarView('timeGridWeek'); calendarRef.current?.getApi().changeView('timeGridWeek'); }}
-                    className={`px-3 py-1.5 text-xs font-medium transition-colors ${calendarView === 'timeGridWeek' ? 'bg-accent text-accent-foreground' : 'text-muted-foreground hover:bg-muted'}`}
+                    className={`px-2 sm:px-3 py-1 sm:py-1.5 text-[11px] sm:text-xs font-medium transition-colors ${calendarView === 'timeGridWeek' ? 'bg-accent text-accent-foreground' : 'text-muted-foreground hover:bg-muted'}`}
                   >
                     Week
                   </button>
                   <button
                     onClick={() => { setCalendarView('timeGridDay'); calendarRef.current?.getApi().changeView('timeGridDay'); }}
-                    className={`px-3 py-1.5 text-xs font-medium transition-colors ${calendarView === 'timeGridDay' ? 'bg-accent text-accent-foreground' : 'text-muted-foreground hover:bg-muted'}`}
+                    className={`px-2 sm:px-3 py-1 sm:py-1.5 text-[11px] sm:text-xs font-medium transition-colors ${calendarView === 'timeGridDay' ? 'bg-accent text-accent-foreground' : 'text-muted-foreground hover:bg-muted'}`}
                   >
                     Day
                   </button>
                 </div>
               </div>
-              <div className="p-2">
+              <div className="p-0 sm:p-1">
                 <FullCalendar
                   ref={calendarRef}
                   plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
@@ -465,44 +466,91 @@ export default function TasksPage() {
                   height="auto"
                   slotDuration="00:15:00"
                   snapDuration="00:15:00"
-                  slotMinTime="07:00:00"
+                  slotMinTime="09:00:00"
                   slotMaxTime="21:00:00"
                   datesSet={(info) => { setSelectedDate(info.start); setMiniMonth(info.start); }}
                   eventContent={(arg) => {
                     const props = arg.event.extendedProps as ActivityRow;
                     const config = activityTypeConfig[props.activity_type] || activityTypeConfig.TASK;
                     const TypeIcon = config.icon;
-                    return (
-                      <div className="px-1.5 py-1 text-xs">
-                        <div className="flex items-center gap-1.5">
-                          <TypeIcon size={12} style={{ color: config.color }} className="shrink-0" />
-                          <span className="font-semibold truncate flex-1">{arg.event.title}</span>
-                          <div className="flex items-center gap-1 shrink-0">
-                            {props.priority === 'HIGH' && <ArrowUp size={12} className="text-destructive" />}
+                    // Calculate duration to decide layout
+                    const start = arg.event.start;
+                    const end = arg.event.end;
+                    const durationMin = start && end ? (end.getTime() - start.getTime()) / 60000 : 60;
+                    const isCompact = durationMin <= 15;
+                    const isMedium = durationMin > 15 && durationMin <= 30;
+
+                    if (isCompact) {
+                      // Single-line compact for 15-min slots
+                      return (
+                        <div className="flex items-center gap-1 px-1 h-full overflow-hidden">
+                          <TypeIcon size={10} style={{ color: config.color }} className="shrink-0" />
+                          <span className="text-[10px] font-medium truncate">{arg.event.title}</span>
+                          {!props.is_done ? (
+                            <button onClick={(e) => { e.stopPropagation(); markDone(props.id); }} className="text-muted-foreground hover:text-success ml-auto shrink-0">
+                              <Circle size={10} />
+                            </button>
+                          ) : (
+                            <CheckCircle2 size={10} className="text-success ml-auto shrink-0" />
+                          )}
+                        </div>
+                      );
+                    }
+
+                    if (isMedium) {
+                      // Two-line for 30-min slots
+                      return (
+                        <div className="px-1.5 py-0.5 text-[10px] overflow-hidden">
+                          <div className="flex items-center gap-1">
+                            <TypeIcon size={10} style={{ color: config.color }} className="shrink-0" />
+                            <span className="font-semibold truncate flex-1">{arg.event.title}</span>
                             {!props.is_done ? (
-                              <button onClick={(e) => { e.stopPropagation(); markDone(props.id); }} className="text-muted-foreground hover:text-success">
-                                <Circle size={13} />
+                              <button onClick={(e) => { e.stopPropagation(); markDone(props.id); }} className="text-muted-foreground hover:text-success shrink-0">
+                                <Circle size={10} />
                               </button>
                             ) : (
-                              <CheckCircle2 size={13} className="text-success" />
+                              <CheckCircle2 size={10} className="text-success shrink-0" />
+                            )}
+                          </div>
+                          {props.clinic_name && (
+                            <div className="text-muted-foreground truncate ml-3.5">{props.clinic_name}</div>
+                          )}
+                        </div>
+                      );
+                    }
+
+                    // Full layout for longer events
+                    return (
+                      <div className="px-1.5 py-1 text-[11px]">
+                        <div className="flex items-center gap-1">
+                          <TypeIcon size={11} style={{ color: config.color }} className="shrink-0" />
+                          <span className="font-semibold truncate flex-1">{arg.event.title}</span>
+                          <div className="flex items-center gap-0.5 shrink-0">
+                            {props.priority === 'HIGH' && <ArrowUp size={10} className="text-destructive" />}
+                            {!props.is_done ? (
+                              <button onClick={(e) => { e.stopPropagation(); markDone(props.id); }} className="text-muted-foreground hover:text-success">
+                                <Circle size={11} />
+                              </button>
+                            ) : (
+                              <CheckCircle2 size={11} className="text-success" />
                             )}
                           </div>
                         </div>
                         {props.clinic_name && (
-                          <div className="text-[10px] text-muted-foreground mt-0.5 ml-5 truncate">{props.clinic_name}</div>
+                          <div className="text-[9px] text-muted-foreground mt-0.5 ml-4 truncate">{props.clinic_name}</div>
                         )}
                         {props.contact_name && (
-                          <div className="text-[10px] text-muted-foreground mt-0.5 ml-5 flex items-center gap-1">
+                          <div className="text-[9px] text-muted-foreground mt-0.5 ml-4 flex items-center gap-1">
                             <span className="truncate">{props.contact_name}</span>
                             {props.contact_phone && (
                               <a href={`tel:${props.contact_phone}`} onClick={e => e.stopPropagation()} className="text-primary hover:text-primary/80 shrink-0">
-                                <Phone size={10} />
+                                <Phone size={9} />
                               </a>
                             )}
                           </div>
                         )}
                         {props.start_time && (
-                          <div className="text-[10px] text-muted-foreground mt-0.5 ml-5">
+                          <div className="text-[9px] text-muted-foreground mt-0.5 ml-4">
                             {formatTime12(props.start_time)}{props.end_time ? ` → ${formatTime12(props.end_time)}` : ''}
                           </div>
                         )}
