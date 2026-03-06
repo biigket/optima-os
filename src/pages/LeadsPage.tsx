@@ -299,28 +299,27 @@ export default function LeadsPage() {
       </Tabs>
 
       {/* Table */}
-      <div className="rounded-lg border bg-card">
+      <div className="rounded-lg border bg-card overflow-x-auto">
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead className="w-[220px]">คลินิก</TableHead>
-              <TableHead>ผู้ติดต่อ</TableHead>
-              <TableHead>สถานะ</TableHead>
-              <TableHead>เซลล์</TableHead>
-              <TableHead>เกรด</TableHead>
-              <TableHead>เครื่องที่มีอยู่</TableHead>
-              <TableHead className="text-right">สร้างเมื่อ</TableHead>
+              <TableHead className="min-w-[180px]">คลินิก / ผู้ติดต่อ</TableHead>
+              <TableHead className="hidden md:table-cell">สถานะ</TableHead>
+              <TableHead className="hidden sm:table-cell">เซลล์</TableHead>
+              <TableHead className="hidden lg:table-cell">เกรด</TableHead>
+              <TableHead className="hidden lg:table-cell">เครื่องที่มีอยู่</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {loading ? (
               <TableRow>
-                <TableCell colSpan={7} className="text-center py-12 text-muted-foreground">
+                <TableCell colSpan={5} className="text-center py-12 text-muted-foreground">
                   กำลังโหลด...
                 </TableCell>
               </TableRow>
             ) : filtered.map(account => {
               const primaryContact = contacts.find(c => c.account_id === account.id);
+              const stars = account.grade === 'A' ? 3 : account.grade === 'B' ? 2 : account.grade === 'C' ? 1 : 0;
               return (
                 <TableRow
                   key={account.id}
@@ -332,58 +331,59 @@ export default function LeadsPage() {
                       <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-primary/10 text-primary">
                         <Building2 size={16} />
                       </div>
-                      <div className="min-w-0">
-                        <p className="text-sm font-medium text-foreground truncate">{account.clinic_name}</p>
-                        {account.address && (
-                          <p className="text-xs text-muted-foreground truncate max-w-[180px]">{account.address}</p>
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-2">
+                          <p className="text-sm font-medium text-foreground truncate">{account.clinic_name}</p>
+                          <span className="md:hidden"><StatusBadge status={account.customer_status} /></span>
+                        </div>
+                        {primaryContact && (
+                          <p className="text-xs text-muted-foreground truncate">
+                            {primaryContact.name}{primaryContact.role ? ` · ${primaryContact.role}` : ''}{primaryContact.phone ? ` · ${primaryContact.phone}` : ''}
+                          </p>
                         )}
+                        {account.address && (
+                          <p className="text-xs text-muted-foreground/60 truncate max-w-[250px]">{account.address}</p>
+                        )}
+                        {/* Mobile-only: show sale & grade inline */}
+                        <div className="flex items-center gap-2 mt-0.5 sm:hidden">
+                          {account.assigned_sale && <span className="text-xs text-muted-foreground">{account.assigned_sale}</span>}
+                          {stars > 0 && (
+                            <div className="flex gap-0.5">
+                              {[1, 2, 3].map(s => (
+                                <Star key={s} size={10} className={s <= stars ? 'fill-yellow-400 text-yellow-400' : 'fill-muted text-muted-foreground/30'} />
+                              ))}
+                            </div>
+                          )}
+                        </div>
                       </div>
                     </div>
                   </TableCell>
-                  <TableCell>
-                    {primaryContact ? (
-                      <div>
-                        <p className="text-sm text-foreground">{primaryContact.name}</p>
-                        {primaryContact.phone && (
-                          <p className="text-xs text-muted-foreground">{primaryContact.phone}</p>
-                        )}
-                      </div>
-                    ) : (
-                      <span className="text-xs text-muted-foreground">-</span>
-                    )}
-                  </TableCell>
-                  <TableCell>
+                  <TableCell className="hidden md:table-cell">
                     <StatusBadge status={account.customer_status} />
                   </TableCell>
-                  <TableCell>
+                  <TableCell className="hidden sm:table-cell">
                     <span className="text-sm text-foreground">{account.assigned_sale || '-'}</span>
                   </TableCell>
-                  <TableCell>
-                    {account.grade ? (
+                  <TableCell className="hidden lg:table-cell">
+                    {stars > 0 ? (
                       <div className="flex gap-0.5">
-                        {[1, 2, 3].map(s => {
-                          const stars = account.grade === 'A' ? 3 : account.grade === 'B' ? 2 : account.grade === 'C' ? 1 : 0;
-                          return (
-                            <Star key={s} size={14} className={s <= stars ? 'fill-yellow-400 text-yellow-400' : 'fill-muted text-muted-foreground/30'} />
-                          );
-                        })}
+                        {[1, 2, 3].map(s => (
+                          <Star key={s} size={14} className={s <= stars ? 'fill-yellow-400 text-yellow-400' : 'fill-muted text-muted-foreground/30'} />
+                        ))}
                       </div>
                     ) : (
                       <span className="text-sm text-muted-foreground">-</span>
                     )}
                   </TableCell>
-                  <TableCell>
+                  <TableCell className="hidden lg:table-cell">
                     <span className="text-sm text-muted-foreground truncate max-w-[200px] block">{account.current_devices || '-'}</span>
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <span className="text-xs text-muted-foreground">{daysSince(account.created_at)}</span>
                   </TableCell>
                 </TableRow>
               );
             })}
             {!loading && filtered.length === 0 && (
               <TableRow>
-                <TableCell colSpan={7} className="text-center py-12 text-muted-foreground">
+                <TableCell colSpan={5} className="text-center py-12 text-muted-foreground">
                   ไม่พบลูกค้า
                 </TableCell>
               </TableRow>
