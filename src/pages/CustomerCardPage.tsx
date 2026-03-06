@@ -595,6 +595,52 @@ export default function CustomerCardPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      {/* Add Contact Dialog */}
+      <Dialog open={addContactOpen} onOpenChange={setAddContactOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>เพิ่มผู้ติดต่อ</DialogTitle>
+            <DialogDescription>เพิ่มข้อมูลผู้ติดต่อใหม่สำหรับลูกค้านี้</DialogDescription>
+          </DialogHeader>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="space-y-1.5">
+              <Label>ชื่อ *</Label>
+              <Input value={newContact.name} onChange={e => setNewContact(c => ({ ...c, name: e.target.value }))} placeholder="ชื่อผู้ติดต่อ" />
+            </div>
+            <div className="space-y-1.5">
+              <Label>ตำแหน่ง</Label>
+              <Input value={newContact.role} onChange={e => setNewContact(c => ({ ...c, role: e.target.value }))} placeholder="เช่น Owner, Doctor" />
+            </div>
+            <div className="space-y-1.5">
+              <Label>เบอร์โทร</Label>
+              <Input value={newContact.phone} onChange={e => setNewContact(c => ({ ...c, phone: e.target.value }))} placeholder="08x-xxx-xxxx" />
+            </div>
+            <div className="space-y-1.5">
+              <Label>อีเมล</Label>
+              <Input value={newContact.email} onChange={e => setNewContact(c => ({ ...c, email: e.target.value }))} placeholder="email@example.com" />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setAddContactOpen(false)}>ยกเลิก</Button>
+            <Button onClick={async () => {
+              if (!newContact.name.trim()) { toast.error('กรุณากรอกชื่อผู้ติดต่อ'); return; }
+              const { error } = await supabase.from('contacts').insert({
+                account_id: account.id,
+                name: newContact.name.trim(),
+                role: newContact.role.trim() || null,
+                phone: newContact.phone.trim() || null,
+                email: newContact.email.trim() || null,
+              });
+              if (error) { toast.error('เพิ่มผู้ติดต่อไม่สำเร็จ'); return; }
+              toast.success('เพิ่มผู้ติดต่อสำเร็จ');
+              setAddContactOpen(false);
+              // Refresh contacts
+              const { data } = await supabase.from('contacts').select('id, account_id, name, role, phone, email').eq('account_id', account.id);
+              if (data) setContacts(data as unknown as LocalContact[]);
+            }}>บันทึก</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
