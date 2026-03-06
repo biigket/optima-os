@@ -151,9 +151,18 @@ export default function TasksPage() {
     setDialogOpen(true);
   };
 
-  // Filter by assigned user (ADMIN sees all)
+  // Unique assignee names for filter dropdown
+  const uniqueAssignees = useMemo(() => {
+    const names = new Set<string>();
+    rows.forEach(r => r.assigned_to?.forEach(n => names.add(n)));
+    return Array.from(names).sort();
+  }, [rows]);
+
+  // Filter by assigned user (ADMIN sees all or filtered)
   const isAdmin = currentUser?.role === 'ADMIN';
-  const myRows = isAdmin ? rows : rows.filter(r => r.assigned_to?.includes(currentUser?.name || ''));
+  const myRows = isAdmin
+    ? (assigneeFilter === 'ALL' ? rows : rows.filter(r => r.assigned_to?.includes(assigneeFilter)))
+    : rows.filter(r => r.assigned_to?.includes(currentUser?.name || ''));
 
   // List: show only undone
   const listRows = myRows.filter(r => !r.is_done && r.title.toLowerCase().includes(search.toLowerCase()));
