@@ -14,7 +14,7 @@ import {
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useMockAuth } from '@/hooks/useMockAuth';
-import { getNotesForOpportunity, addNoteGlobal, deleteNoteGlobal, updateNoteGlobal, type OpportunityNote } from '@/pages/OpportunitiesPage';
+import { getNotesForOpportunity, addNoteGlobal, deleteNoteGlobal, updateNoteGlobal, getPinnedIdsGlobal, togglePinGlobal, type OpportunityNote } from '@/pages/OpportunitiesPage';
 import { toast } from 'sonner';
 import { differenceInDays, format } from 'date-fns';
 import type { Opportunity, OpportunityStage, Account, Contact, Activity } from '@/types';
@@ -51,7 +51,7 @@ export default function OpportunityDetailPage() {
   const [noteInput, setNoteInput] = useState('');
   const [, forceUpdate] = useState(0);
   const [activities, setActivities] = useState<Activity[]>([]);
-  const [pinnedIds, setPinnedIds] = useState<Set<string>>(new Set());
+  const pinnedIds = getPinnedIdsGlobal();
    const [activeActivityId, setActiveActivityId] = useState<string | null>(null);
    const [formPreview, setFormPreview] = useState<Partial<Activity> | null>(null);
    const [activeTab, setActiveTab] = useState('activity');
@@ -517,12 +517,10 @@ export default function OpportunityDetailPage() {
               toast.success('ลบบันทึกแล้ว');
             }}
             onPinNote={(id) => {
-              setPinnedIds(prev => {
-                const next = new Set(prev);
-                if (next.has(id)) { next.delete(id); toast.success('ยกเลิกปักหมุดแล้ว'); }
-                else { next.add(id); toast.success('ปักหมุดแล้ว'); }
-                return next;
-              });
+              const wasPinned = pinnedIds.has(id);
+              togglePinGlobal(id);
+              forceUpdate(n => n + 1);
+              toast.success(wasPinned ? 'ยกเลิกปักหมุดแล้ว' : 'ปักหมุดแล้ว');
             }}
             onDeleteActivity={async (id) => {
               const { error } = await supabase.from('activities').delete().eq('id', id);
