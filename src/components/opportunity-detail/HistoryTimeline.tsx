@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Phone, Users, Building2, Target, FileText, ArrowRight, Pin, MoreHorizontal, MessageSquare, Pencil, Trash2, X, Check, Download } from 'lucide-react';
+import { Phone, Users, Building2, Target, Presentation, FileText, ArrowRight, Pin, MoreHorizontal, MessageSquare, Pencil, Trash2, X, Check, Download } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
