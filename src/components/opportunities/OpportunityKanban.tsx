@@ -473,3 +473,88 @@ function KanbanCard({ opp, stage, navigate, pendingActivities, onStageChange, on
     </div>
   );
 }
+
+/* ─── Edit Activity Form ─── */
+
+function EditActivityForm({ activity, onSaved, onClose }: {
+  activity: Activity;
+  onSaved: () => void;
+  onClose: () => void;
+}) {
+  const [title, setTitle] = useState(activity.title);
+  const [date, setDate] = useState(activity.activity_date);
+  const [startTime, setStartTime] = useState(activity.start_time || '');
+  const [endTime, setEndTime] = useState(activity.end_time || '');
+  const [priority, setPriority] = useState(activity.priority || 'NORMAL');
+  const [saving, setSaving] = useState(false);
+
+  const handleSave = async () => {
+    setSaving(true);
+    await supabase.from('activities').update({
+      title,
+      activity_date: date,
+      start_time: startTime || null,
+      end_time: endTime || null,
+      priority,
+    }).eq('id', activity.id);
+    setSaving(false);
+    toast.success('อัปเดตกิจกรรมแล้ว');
+    onSaved();
+  };
+
+  const timeOptions = Array.from({ length: 48 }, (_, i) => {
+    const h = String(Math.floor(i / 2)).padStart(2, '0');
+    const m = i % 2 === 0 ? '00' : '30';
+    return `${h}:${m}`;
+  });
+
+  return (
+    <div className="space-y-2" onClick={e => e.stopPropagation()}>
+      <p className="text-xs font-semibold text-foreground mb-2">แก้ไขกิจกรรม</p>
+      <Input
+        value={title}
+        onChange={e => setTitle(e.target.value)}
+        placeholder="ชื่อกิจกรรม"
+        className="h-7 text-xs"
+      />
+      <Input
+        type="date"
+        value={date}
+        onChange={e => setDate(e.target.value)}
+        className="h-7 text-xs"
+      />
+      <div className="flex gap-1">
+        <Select value={startTime} onValueChange={setStartTime}>
+          <SelectTrigger className="h-7 text-xs flex-1">
+            <SelectValue placeholder="เริ่ม" />
+          </SelectTrigger>
+          <SelectContent>
+            {timeOptions.map(t => <SelectItem key={t} value={t} className="text-xs">{t}</SelectItem>)}
+          </SelectContent>
+        </Select>
+        <Select value={endTime} onValueChange={setEndTime}>
+          <SelectTrigger className="h-7 text-xs flex-1">
+            <SelectValue placeholder="สิ้นสุด" />
+          </SelectTrigger>
+          <SelectContent>
+            {timeOptions.map(t => <SelectItem key={t} value={t} className="text-xs">{t}</SelectItem>)}
+          </SelectContent>
+        </Select>
+      </div>
+      <Select value={priority} onValueChange={setPriority}>
+        <SelectTrigger className="h-7 text-xs">
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="LOW" className="text-xs">Low</SelectItem>
+          <SelectItem value="NORMAL" className="text-xs">Normal</SelectItem>
+          <SelectItem value="HIGH" className="text-xs">High</SelectItem>
+        </SelectContent>
+      </Select>
+      <div className="flex gap-1 pt-1">
+        <button onClick={onClose} className="flex-1 h-7 text-xs rounded border border-border hover:bg-muted">ยกเลิก</button>
+        <button onClick={handleSave} disabled={saving} className="flex-1 h-7 text-xs rounded bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50">บันทึก</button>
+      </div>
+    </div>
+  );
+}
