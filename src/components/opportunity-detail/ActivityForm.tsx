@@ -50,6 +50,7 @@ export default function ActivityForm({
   editingActivity, onActivityUpdated, onCancelEdit, onFormChange,
   quickScheduleDefaults,
 }: ActivityFormProps) {
+  const { currentUser } = useMockAuth();
   const [selectedType, setSelectedType] = useState<ActivityType>('CALL');
   const [title, setTitle] = useState('');
   const [activityDate, setActivityDate] = useState(quickScheduleDefaults?.activity_date || new Date().toISOString().split('T')[0]);
@@ -62,6 +63,7 @@ export default function ActivityForm({
   const [markAsDone, setMarkAsDone] = useState(false);
   const [showExtra, setShowExtra] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [assignedTo, setAssignedTo] = useState<string[]>(currentUser ? [currentUser.name] : []);
 
   const isEditing = !!editingActivity;
 
