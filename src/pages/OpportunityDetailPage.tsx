@@ -55,7 +55,6 @@ export default function OpportunityDetailPage() {
    const [activeActivityId, setActiveActivityId] = useState<string | null>(null);
    const [formPreview, setFormPreview] = useState<Partial<Activity> | null>(null);
    const [activeTab, setActiveTab] = useState('activity');
-   const [quickCreateType, setQuickCreateType] = useState<import('@/types').ActivityType | null>(null);
   const [stakeholdersOpen, setStakeholdersOpen] = useState(true);
   const [addContactOpen, setAddContactOpen] = useState(false);
   const [newContact, setNewContact] = useState({ name: '', role: '', phone: '' });
@@ -448,12 +447,11 @@ export default function OpportunityDetailPage() {
                 <ActivityForm
                   opportunityId={opp.id}
                   accountId={opp.account_id}
-                  onActivityCreated={(a) => { handleActivityCreated(a); setQuickCreateType(null); }}
+                  onActivityCreated={handleActivityCreated}
                   editingActivity={editingActivity}
                   onActivityUpdated={handleActivityUpdated}
-                  onCancelEdit={() => { setActiveActivityId(null); setFormPreview(null); setQuickCreateType(null); }}
+                  onCancelEdit={() => { setActiveActivityId(null); setFormPreview(null); }}
                   onFormChange={setFormPreview}
-                  defaultType={quickCreateType}
                 />
               </TabsContent>
 
@@ -497,13 +495,6 @@ export default function OpportunityDetailPage() {
             }}
             onActivityUpdated={(updated) => {
               setActivities(prev => prev.map(a => a.id === updated.id ? updated : a));
-            }}
-            onQuickCreate={(type) => {
-              setQuickCreateType(type);
-              setActiveTab('activity');
-            }}
-            onAddComment={(activityId) => {
-              setActiveTab('notes');
             }}
             clinicName={account?.clinic_name}
           />
