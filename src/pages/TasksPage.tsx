@@ -52,6 +52,8 @@ export default function TasksPage() {
   const [search, setSearch] = useState('');
   const [rows, setRows] = useState<ActivityRow[]>([]);
   const [loading, setLoading] = useState(true);
+  const [selectedActivity, setSelectedActivity] = useState<ActivityRow | null>(null);
+  const [dialogOpen, setDialogOpen] = useState(false);
 
   const fetchData = useCallback(async () => {
     setLoading(true);
