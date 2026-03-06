@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search, Plus, SlidersHorizontal, Building2 } from 'lucide-react';
+import { Search, Plus, SlidersHorizontal, Building2, Star, X } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -9,6 +9,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Checkbox } from '@/components/ui/checkbox';
 import StatusBadge from '@/components/ui/StatusBadge';
 import { toast } from 'sonner';
 import { useMockAuth, MOCK_SALES } from '@/hooks/useMockAuth';
@@ -30,6 +32,7 @@ interface Account {
   notes: string | null;
   grade: string | null;
   single_or_chain: string | null;
+  current_devices: string[] | null;
   created_at: string;
 }
 
@@ -59,6 +62,7 @@ const STATUS_OPTIONS = [
 
 const ENTITY_TYPES = ['บุคคลธรรมดา', 'นิติบุคคล', 'คลินิก', 'โรงพยาบาล'];
 const BRANCH_TYPES = ['สำนักงานใหญ่', 'สาขา'];
+const LEAD_SOURCE_OPTIONS = ['เพื่อนแนะนำ', 'Social media', 'งานแสดงสินค้า'];
 
 const emptyForm = {
   clinic_name: '',
@@ -75,12 +79,34 @@ const emptyForm = {
   notes: '',
   grade: '',
   single_or_chain: '',
+  current_devices: [] as string[],
   // Contact fields (required for new accounts)
   contact_name: '',
   contact_role: '',
   contact_phone: '',
   contact_email: '',
+  custom_lead_source: '',
 };
+
+function StarRating({ value, onChange }: { value: number; onChange: (v: number) => void }) {
+  return (
+    <div className="flex gap-1">
+      {[1, 2, 3].map(star => (
+        <button
+          key={star}
+          type="button"
+          onClick={() => onChange(value === star ? 0 : star)}
+          className="p-0.5 hover:scale-110 transition-transform"
+        >
+          <Star
+            size={24}
+            className={star <= value ? 'fill-yellow-400 text-yellow-400' : 'fill-muted text-muted-foreground/40'}
+          />
+        </button>
+      ))}
+    </div>
+  );
+}
 
 function daysSince(dateStr: string | null): string {
   if (!dateStr) return '-';
@@ -94,6 +120,7 @@ export default function LeadsPage() {
   const { currentUser } = useMockAuth();
   const [accounts, setAccounts] = useState<Account[]>([]);
   const [contacts, setContacts] = useState<Contact[]>([]);
+  const [products, setProducts] = useState<{ id: string; product_name: string }[]>([]);
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('ALL');
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -101,15 +128,17 @@ export default function LeadsPage() {
   const [form, setForm] = useState(emptyForm);
   const [loading, setLoading] = useState(true);
 
-  // Fetch accounts and contacts from database
+  // Fetch accounts, contacts, and products from database
   const fetchData = async () => {
     setLoading(true);
-    const [accRes, conRes] = await Promise.all([
+    const [accRes, conRes, prodRes] = await Promise.all([
       supabase.from('accounts').select('*').order('created_at', { ascending: false }),
       supabase.from('contacts').select('id, account_id, name, role, phone, email'),
+      supabase.from('products').select('id, product_name').eq('category', 'DEVICE'),
     ]);
     if (accRes.data) setAccounts(accRes.data as unknown as Account[]);
     if (conRes.data) setContacts(conRes.data as unknown as Contact[]);
+    if (prodRes.data) setProducts(prodRes.data);
     setLoading(false);
   };
 
@@ -133,6 +162,7 @@ export default function LeadsPage() {
 
   const openEdit = (account: Account) => {
     setEditingAccount(account);
+    const isCustomSource = account.lead_source && !LEAD_SOURCE_OPTIONS.includes(account.lead_source);
     setForm({
       clinic_name: account.clinic_name,
       company_name: account.company_name || '',
@@ -144,14 +174,16 @@ export default function LeadsPage() {
       email: account.email || '',
       customer_status: account.customer_status,
       assigned_sale: account.assigned_sale || '',
-      lead_source: account.lead_source || '',
+      lead_source: isCustomSource ? 'OTHER' : (account.lead_source || ''),
       notes: account.notes || '',
       grade: account.grade || '',
       single_or_chain: account.single_or_chain || '',
+      current_devices: account.current_devices || [],
       contact_name: '',
       contact_role: '',
       contact_phone: '',
       contact_email: '',
+      custom_lead_source: isCustomSource ? account.lead_source! : '',
     });
     setDialogOpen(true);
   };
@@ -161,11 +193,12 @@ export default function LeadsPage() {
       toast.error('กรุณากรอกชื่อคลินิก');
       return;
     }
-    // Require contact for new accounts
     if (!editingAccount && !form.contact_name?.trim()) {
       toast.error('กรุณากรอกชื่อผู้ติดต่อ');
       return;
     }
+
+    const resolvedLeadSource = form.lead_source === 'OTHER' ? (form.custom_lead_source || null) : (form.lead_source || null);
 
     const payload = {
       clinic_name: form.clinic_name!.trim(),
@@ -178,10 +211,11 @@ export default function LeadsPage() {
       email: form.email || null,
       customer_status: form.customer_status || 'NEW_LEAD',
       assigned_sale: form.assigned_sale || currentUser?.name || null,
-      lead_source: form.lead_source || null,
+      lead_source: resolvedLeadSource,
       notes: form.notes || null,
       grade: form.grade || null,
       single_or_chain: form.single_or_chain || null,
+      current_devices: form.current_devices.length > 0 ? form.current_devices : null,
     };
 
     if (editingAccount) {
@@ -327,7 +361,15 @@ export default function LeadsPage() {
                     <span className="text-sm text-foreground">{account.assigned_sale || '-'}</span>
                   </TableCell>
                   <TableCell>
-                    <span className="text-sm text-foreground">{account.grade || '-'}</span>
+                    {account.grade && parseInt(account.grade) > 0 ? (
+                      <div className="flex gap-0.5">
+                        {[1, 2, 3].map(s => (
+                          <Star key={s} size={14} className={s <= parseInt(account.grade!) ? 'fill-yellow-400 text-yellow-400' : 'fill-muted text-muted-foreground/30'} />
+                        ))}
+                      </div>
+                    ) : (
+                      <span className="text-sm text-muted-foreground">-</span>
+                    )}
                   </TableCell>
                   <TableCell>
                     <span className="text-sm text-muted-foreground">{account.lead_source || '-'}</span>
@@ -360,6 +402,7 @@ export default function LeadsPage() {
           </DialogHeader>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {/* ชื่อคลินิก / บริษัท */}
             <div className="space-y-1.5">
               <Label>ชื่อคลินิก *</Label>
               <Input value={form.clinic_name || ''} onChange={e => updateField('clinic_name', e.target.value)} />
@@ -368,6 +411,32 @@ export default function LeadsPage() {
               <Label>ชื่อบริษัท</Label>
               <Input value={form.company_name || ''} onChange={e => updateField('company_name', e.target.value)} />
             </div>
+
+            {/* ผู้ติดต่อหลัก - ย้ายมาอยู่ใต้ชื่อคลินิก/บริษัท */}
+            {!editingAccount && (
+              <div className="sm:col-span-2 space-y-3 p-3 rounded-md border border-primary/30 bg-primary/5">
+                <p className="text-sm font-medium text-foreground">ผู้ติดต่อหลัก <span className="text-destructive">*</span></p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div className="space-y-1.5">
+                    <Label>ชื่อผู้ติดต่อ <span className="text-destructive">*</span></Label>
+                    <Input value={form.contact_name} onChange={e => updateField('contact_name', e.target.value)} placeholder="เช่น นพ. สมชาย" />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label>ตำแหน่ง / บทบาท</Label>
+                    <Input value={form.contact_role} onChange={e => updateField('contact_role', e.target.value)} placeholder="เช่น Owner, Doctor" />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label>เบอร์โทรผู้ติดต่อ</Label>
+                    <Input value={form.contact_phone} onChange={e => updateField('contact_phone', e.target.value)} placeholder="08x-xxx-xxxx" />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label>อีเมลผู้ติดต่อ</Label>
+                    <Input type="email" value={form.contact_email} onChange={e => updateField('contact_email', e.target.value)} placeholder="email@example.com" />
+                  </div>
+                </div>
+              </div>
+            )}
+
             <div className="space-y-1.5 sm:col-span-2">
               <Label>ที่อยู่</Label>
               <Input value={form.address || ''} onChange={e => updateField('address', e.target.value)} />
@@ -422,38 +491,81 @@ export default function LeadsPage() {
                 </SelectContent>
               </Select>
             </div>
+
+            {/* แหล่งที่มา - Dropdown with custom option */}
             <div className="space-y-1.5">
               <Label>แหล่งที่มา</Label>
-              <Input value={form.lead_source || ''} onChange={e => updateField('lead_source', e.target.value)} />
+              <Select value={form.lead_source || ''} onValueChange={v => updateField('lead_source', v)}>
+                <SelectTrigger><SelectValue placeholder="เลือกแหล่งที่มา" /></SelectTrigger>
+                <SelectContent>
+                  {LEAD_SOURCE_OPTIONS.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+                  <SelectItem value="OTHER">อื่นๆ (ระบุเอง)</SelectItem>
+                </SelectContent>
+              </Select>
+              {form.lead_source === 'OTHER' && (
+                <Input
+                  className="mt-1.5"
+                  value={form.custom_lead_source}
+                  onChange={e => updateField('custom_lead_source', e.target.value)}
+                  placeholder="ระบุแหล่งที่มา..."
+                />
+              )}
             </div>
+
+            {/* เกรด - Star Rating */}
             <div className="space-y-1.5">
               <Label>เกรด</Label>
-              <Input value={form.grade || ''} onChange={e => updateField('grade', e.target.value)} />
+              <StarRating
+                value={parseInt(form.grade) || 0}
+                onChange={v => updateField('grade', v.toString())}
+              />
             </div>
-            {/* Contact fields - only for new accounts */}
-            {!editingAccount && (
-              <div className="sm:col-span-2 space-y-3 p-3 rounded-md border border-primary/30 bg-primary/5">
-                <p className="text-sm font-medium text-foreground">ผู้ติดต่อหลัก <span className="text-destructive">*</span></p>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <div className="space-y-1.5">
-                    <Label>ชื่อผู้ติดต่อ <span className="text-destructive">*</span></Label>
-                    <Input value={form.contact_name} onChange={e => updateField('contact_name', e.target.value)} placeholder="เช่น นพ. สมชาย" />
+
+            {/* เครื่องที่มีอยู่แล้ว - Multiple choice */}
+            <div className="space-y-1.5 sm:col-span-2">
+              <Label>เครื่องที่มีอยู่แล้ว</Label>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" className="w-full justify-start font-normal h-auto min-h-10 py-2">
+                    {form.current_devices.length > 0 ? (
+                      <div className="flex flex-wrap gap-1">
+                        {form.current_devices.map(d => (
+                          <span key={d} className="inline-flex items-center gap-1 rounded-md bg-primary/10 px-2 py-0.5 text-xs text-primary">
+                            {d}
+                            <X size={12} className="cursor-pointer hover:text-destructive" onClick={e => {
+                              e.stopPropagation();
+                              setForm(prev => ({ ...prev, current_devices: prev.current_devices.filter(x => x !== d) }));
+                            }} />
+                          </span>
+                        ))}
+                      </div>
+                    ) : (
+                      <span className="text-muted-foreground">เลือกเครื่อง...</span>
+                    )}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-64 p-2" align="start">
+                  <div className="space-y-1 max-h-48 overflow-y-auto">
+                    {products.map(p => (
+                      <label key={p.id} className="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-muted cursor-pointer text-sm">
+                        <Checkbox
+                          checked={form.current_devices.includes(p.product_name)}
+                          onCheckedChange={checked => {
+                            setForm(prev => ({
+                              ...prev,
+                              current_devices: checked
+                                ? [...prev.current_devices, p.product_name]
+                                : prev.current_devices.filter(x => x !== p.product_name),
+                            }));
+                          }}
+                        />
+                        {p.product_name}
+                      </label>
+                    ))}
                   </div>
-                  <div className="space-y-1.5">
-                    <Label>ตำแหน่ง / บทบาท</Label>
-                    <Input value={form.contact_role} onChange={e => updateField('contact_role', e.target.value)} placeholder="เช่น Owner, Doctor" />
-                  </div>
-                  <div className="space-y-1.5">
-                    <Label>เบอร์โทรผู้ติดต่อ</Label>
-                    <Input value={form.contact_phone} onChange={e => updateField('contact_phone', e.target.value)} placeholder="08x-xxx-xxxx" />
-                  </div>
-                  <div className="space-y-1.5">
-                    <Label>อีเมลผู้ติดต่อ</Label>
-                    <Input type="email" value={form.contact_email} onChange={e => updateField('contact_email', e.target.value)} placeholder="email@example.com" />
-                  </div>
-                </div>
-              </div>
-            )}
+                </PopoverContent>
+              </Popover>
+            </div>
 
             <div className="space-y-1.5 sm:col-span-2">
               <Label>หมายเหตุ</Label>
