@@ -106,6 +106,36 @@ export default function CustomerCardPage() {
   const [addContactOpen, setAddContactOpen] = useState(false);
   const [newContact, setNewContact] = useState({ name: '', role: '', phone: '', email: '' });
 
+  const handleSubmit = async () => {
+    const { error } = await supabase.from('accounts').update({
+      clinic_name: editForm.clinic_name,
+      company_name: editForm.company_name || null,
+      address: editForm.address || null,
+      phone: editForm.phone || null,
+      email: editForm.email || null,
+      tax_id: editForm.tax_id || null,
+      entity_type: editForm.entity_type || null,
+      branch_type: editForm.branch_type || null,
+      google_map_link: editForm.google_map_link || null,
+      lead_source: editForm.lead_source || null,
+      has_budget: editForm.has_budget === 'true',
+      is_vip: editForm.is_vip === 'true',
+      is_kol: editForm.is_kol === 'true',
+      single_or_chain: editForm.single_or_chain || null,
+      current_devices: editForm.current_devices || null,
+      notes: editForm.notes || null,
+      registered_at: editForm.registered_at || null,
+      customer_status: editForm.customer_status || 'NEW_LEAD',
+      assigned_sale: editForm.assigned_sale || null,
+      grade: editForm.grade || null,
+    }).eq('id', account!.id);
+    if (error) { toast.error('บันทึกไม่สำเร็จ'); return; }
+    toast.success('บันทึกข้อมูลสำเร็จ');
+    setEditOpen(false);
+    const { data } = await supabase.from('accounts').select('*').eq('id', account!.id).single();
+    if (data) setAccount(data as unknown as LocalAccount);
+  };
+
   useEffect(() => {
     if (!id) return;
     setLoading(true);
@@ -675,35 +705,7 @@ export default function CustomerCardPage() {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setEditOpen(false)}>ยกเลิก</Button>
-            <Button onClick={async () => {
-              const { error } = await supabase.from('accounts').update({
-                clinic_name: editForm.clinic_name,
-                company_name: editForm.company_name || null,
-                address: editForm.address || null,
-                phone: editForm.phone || null,
-                email: editForm.email || null,
-                tax_id: editForm.tax_id || null,
-                entity_type: editForm.entity_type || null,
-                branch_type: editForm.branch_type || null,
-                google_map_link: editForm.google_map_link || null,
-                lead_source: editForm.lead_source || null,
-                has_budget: editForm.has_budget === 'true',
-                is_vip: editForm.is_vip === 'true',
-                is_kol: editForm.is_kol === 'true',
-                single_or_chain: editForm.single_or_chain || null,
-                current_devices: editForm.current_devices || null,
-                notes: editForm.notes || null,
-                registered_at: editForm.registered_at || null,
-                customer_status: editForm.customer_status || 'NEW_LEAD',
-                assigned_sale: editForm.assigned_sale || null,
-                grade: editForm.grade || null,
-              }).eq('id', account.id);
-              if (error) { toast.error('บันทึกไม่สำเร็จ'); return; }
-              toast.success('บันทึกข้อมูลสำเร็จ');
-              setEditOpen(false);
-              const { data } = await supabase.from('accounts').select('*').eq('id', account.id).single();
-              if (data) setAccount(data as unknown as LocalAccount);
-            }}>บันทึก</Button>
+            <Button onClick={handleSubmit}>บันทึก</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
