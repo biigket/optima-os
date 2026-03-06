@@ -51,6 +51,7 @@ const formatTime12 = (t: string) => {
 
 export default function TasksPage() {
   const navigate = useNavigate();
+  const { currentUser } = useMockAuth();
   const [search, setSearch] = useState('');
   const [rows, setRows] = useState<ActivityRow[]>([]);
   const [loading, setLoading] = useState(true);
