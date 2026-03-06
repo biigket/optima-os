@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search, Plus, SlidersHorizontal, Building2 } from 'lucide-react';
+import { Search, Plus, SlidersHorizontal, Building2, Star, X } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -9,6 +9,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Checkbox } from '@/components/ui/checkbox';
 import StatusBadge from '@/components/ui/StatusBadge';
 import { toast } from 'sonner';
 import { useMockAuth, MOCK_SALES } from '@/hooks/useMockAuth';
@@ -30,6 +32,7 @@ interface Account {
   notes: string | null;
   grade: string | null;
   single_or_chain: string | null;
+  current_devices: string[] | null;
   created_at: string;
 }
 
@@ -59,6 +62,7 @@ const STATUS_OPTIONS = [
 
 const ENTITY_TYPES = ['บุคคลธรรมดา', 'นิติบุคคล', 'คลินิก', 'โรงพยาบาล'];
 const BRANCH_TYPES = ['สำนักงานใหญ่', 'สาขา'];
+const LEAD_SOURCE_OPTIONS = ['เพื่อนแนะนำ', 'Social media', 'งานแสดงสินค้า'];
 
 const emptyForm = {
   clinic_name: '',
@@ -75,12 +79,34 @@ const emptyForm = {
   notes: '',
   grade: '',
   single_or_chain: '',
+  current_devices: [] as string[],
   // Contact fields (required for new accounts)
   contact_name: '',
   contact_role: '',
   contact_phone: '',
   contact_email: '',
+  custom_lead_source: '',
 };
+
+function StarRating({ value, onChange }: { value: number; onChange: (v: number) => void }) {
+  return (
+    <div className="flex gap-1">
+      {[1, 2, 3].map(star => (
+        <button
+          key={star}
+          type="button"
+          onClick={() => onChange(value === star ? 0 : star)}
+          className="p-0.5 hover:scale-110 transition-transform"
+        >
+          <Star
+            size={24}
+            className={star <= value ? 'fill-yellow-400 text-yellow-400' : 'fill-muted text-muted-foreground/40'}
+          />
+        </button>
+      ))}
+    </div>
+  );
+}
 
 function daysSince(dateStr: string | null): string {
   if (!dateStr) return '-';
