@@ -22,7 +22,7 @@ import {
   ChevronDown, LayoutDashboard, Clock, FileText,
   ShoppingCart, Wrench, Receipt, FolderOpen, Megaphone,
   Eye, Presentation, FileCheck, GraduationCap,
-  Phone as PhoneIcon, Star
+  Phone as PhoneIcon, Star, Trash2
 } from 'lucide-react';
 import {
   getLifetimeRevenue, getDevicesForAccount, getVisitsForAccount,
@@ -102,6 +102,9 @@ export default function CustomerCardPage() {
   const [loading, setLoading] = useState(true);
   const [addContactOpen, setAddContactOpen] = useState(false);
   const [newContact, setNewContact] = useState({ name: '', role: '', phone: '', email: '' });
+  const [editContactOpen, setEditContactOpen] = useState(false);
+  const [editingContact, setEditingContact] = useState<LocalContact | null>(null);
+  const [editContactForm, setEditContactForm] = useState({ name: '', role: '', phone: '', email: '' });
 
   const handleSubmit = async () => {
     if (!editForm.clinic_name?.trim()) {
@@ -302,6 +305,32 @@ export default function CustomerCardPage() {
                 )}
                 {c.email && <span className="flex items-center gap-1 text-muted-foreground"><Mail size={11} /> {c.email}</span>}
                 {c.line_id && <span className="flex items-center gap-1 text-muted-foreground"><MessageCircle size={11} /> {c.line_id}</span>}
+                <div className="flex items-center gap-1 ml-auto">
+                  <button
+                    onClick={() => {
+                      setEditingContact(c);
+                      setEditContactForm({ name: c.name, role: c.role || '', phone: c.phone || '', email: c.email || '' });
+                      setEditContactOpen(true);
+                    }}
+                    className="inline-flex items-center justify-center w-6 h-6 rounded-full hover:bg-muted transition-colors text-muted-foreground hover:text-foreground"
+                    title="แก้ไขผู้ติดต่อ"
+                  >
+                    <Pencil size={11} />
+                  </button>
+                  <button
+                    onClick={async () => {
+                      if (!confirm(`ลบผู้ติดต่อ "${c.name}" ?`)) return;
+                      const { error } = await supabase.from('contacts').delete().eq('id', c.id);
+                      if (error) { toast.error('ลบไม่สำเร็จ'); return; }
+                      setContacts(prev => prev.filter(x => x.id !== c.id));
+                      toast.success('ลบผู้ติดต่อแล้ว');
+                    }}
+                    className="inline-flex items-center justify-center w-6 h-6 rounded-full hover:bg-destructive/10 transition-colors text-muted-foreground hover:text-destructive"
+                    title="ลบผู้ติดต่อ"
+                  >
+                    <Trash2 size={11} />
+                  </button>
+                </div>
               </div>
             ))}
             {contacts.length === 0 && <span className="text-xs text-muted-foreground">ยังไม่มีผู้ติดต่อ</span>}
@@ -736,6 +765,49 @@ export default function CustomerCardPage() {
               // Refresh contacts
               const { data } = await supabase.from('contacts').select('*').eq('account_id', account.id);
               if (data) setContacts(data as unknown as LocalContact[]);
+            }}>บันทึก</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      {/* Edit Contact Dialog */}
+      <Dialog open={editContactOpen} onOpenChange={setEditContactOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>แก้ไขผู้ติดต่อ</DialogTitle>
+            <DialogDescription>แก้ไขข้อมูลผู้ติดต่อ</DialogDescription>
+          </DialogHeader>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="space-y-1.5">
+              <Label>ชื่อ *</Label>
+              <Input value={editContactForm.name} onChange={e => setEditContactForm(f => ({ ...f, name: e.target.value }))} />
+            </div>
+            <div className="space-y-1.5">
+              <Label>ตำแหน่ง</Label>
+              <Input value={editContactForm.role} onChange={e => setEditContactForm(f => ({ ...f, role: e.target.value }))} />
+            </div>
+            <div className="space-y-1.5">
+              <Label>เบอร์โทร</Label>
+              <Input value={editContactForm.phone} onChange={e => setEditContactForm(f => ({ ...f, phone: e.target.value }))} />
+            </div>
+            <div className="space-y-1.5">
+              <Label>อีเมล</Label>
+              <Input value={editContactForm.email} onChange={e => setEditContactForm(f => ({ ...f, email: e.target.value }))} />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditContactOpen(false)}>ยกเลิก</Button>
+            <Button onClick={async () => {
+              if (!editingContact || !editContactForm.name.trim()) { toast.error('กรุณากรอกชื่อ'); return; }
+              const { error } = await supabase.from('contacts').update({
+                name: editContactForm.name.trim(),
+                role: editContactForm.role.trim() || null,
+                phone: editContactForm.phone.trim() || null,
+                email: editContactForm.email.trim() || null,
+              }).eq('id', editingContact.id);
+              if (error) { toast.error('แก้ไขไม่สำเร็จ'); return; }
+              setContacts(prev => prev.map(c => c.id === editingContact.id ? { ...c, name: editContactForm.name.trim(), role: editContactForm.role.trim() || null, phone: editContactForm.phone.trim() || null, email: editContactForm.email.trim() || null } : c));
+              toast.success('แก้ไขผู้ติดต่อสำเร็จ');
+              setEditContactOpen(false);
             }}>บันทึก</Button>
           </DialogFooter>
         </DialogContent>

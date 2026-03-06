@@ -1,0 +1,2 @@
+CREATE POLICY "Anon users can delete contacts" ON public.contacts FOR DELETE USING (true);
+CREATE POLICY "Authenticated users can delete contacts" ON public.contacts FOR DELETE TO authenticated USING (true);
