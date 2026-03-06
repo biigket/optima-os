@@ -58,6 +58,7 @@ export default function TasksPage() {
   const [loading, setLoading] = useState(true);
   const [selectedActivity, setSelectedActivity] = useState<ActivityRow | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [assigneeFilter, setAssigneeFilter] = useState('ALL');
 
   const fetchData = useCallback(async () => {
     setLoading(true);
