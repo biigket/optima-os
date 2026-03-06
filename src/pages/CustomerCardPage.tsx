@@ -613,7 +613,7 @@ export default function CustomerCardPage() {
               </Select>
             </div>
             <div className="space-y-1.5">
-              <Label>โทรศัพท์</Label>
+              <Label>โทรศัพท์คลินิก</Label>
               <Input value={editForm.phone || ''} onChange={e => setEditForm(f => ({ ...f, phone: e.target.value }))} />
             </div>
             <div className="space-y-1.5">
