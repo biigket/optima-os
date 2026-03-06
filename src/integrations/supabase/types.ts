@@ -468,6 +468,42 @@ export type Database = {
           },
         ]
       }
+      opportunity_files: {
+        Row: {
+          account_id: string
+          created_at: string
+          file_name: string
+          file_size: number | null
+          file_type: string | null
+          file_url: string
+          id: string
+          opportunity_id: string
+          uploaded_by: string | null
+        }
+        Insert: {
+          account_id: string
+          created_at?: string
+          file_name: string
+          file_size?: number | null
+          file_type?: string | null
+          file_url: string
+          id?: string
+          opportunity_id: string
+          uploaded_by?: string | null
+        }
+        Update: {
+          account_id?: string
+          created_at?: string
+          file_name?: string
+          file_size?: number | null
+          file_type?: string | null
+          file_url?: string
+          id?: string
+          opportunity_id?: string
+          uploaded_by?: string | null
+        }
+        Relationships: []
+      }
       payment_installments: {
         Row: {
           amount: number | null
