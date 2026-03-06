@@ -63,7 +63,10 @@ export default function OpportunityDetailPage() {
 
   const [editForm, setEditForm] = useState({
     expected_value: '', close_date: '', notes: '',
+    interested_products: [] as string[], budget_range: '',
+    payment_method: '', credit_card_option: '', competitors: '',
   });
+  const [allProducts, setAllProducts] = useState<{ id: string; product_name: string }[]>([]);
 
   // Fetch opportunity
   useEffect(() => {
