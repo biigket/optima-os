@@ -281,6 +281,15 @@ export default function TasksPage() {
                         {row.priority && <StatusBadge status={row.priority} />}
                       </td>
                       <td className="px-3 py-3">
+                        {row.assigned_to && row.assigned_to.length > 0 ? (
+                          <div className="flex flex-wrap gap-1">
+                            {row.assigned_to.map(name => (
+                              <span key={name} className="inline-block px-1.5 py-0.5 rounded bg-primary/10 text-primary text-[10px] font-medium">{name}</span>
+                            ))}
+                          </div>
+                        ) : <span className="text-xs text-muted-foreground">—</span>}
+                      </td>
+                      <td className="px-3 py-3">
                         {row.opp_stage ? (
                           <button onClick={() => navigate(`/opportunities/${row.opportunity_id}`)} className="hover:underline">
                             <StatusBadge status={row.opp_stage} />
