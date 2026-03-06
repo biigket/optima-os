@@ -54,7 +54,6 @@ function isFollowUp(account: Account): boolean {
 const STATUS_OPTIONS = [
   { value: 'ALL', label: 'ทั้งหมด' },
   { value: 'PROSPECT', label: 'ยังไม่ซื้อ' },
-  { value: 'FOLLOW_UP', label: 'ต้องติดตาม' },
   { value: 'PURCHASED', label: 'ซื้อแล้ว' },
   { value: 'DORMANT', label: 'ไม่เคลื่อนไหว' },
 ];
