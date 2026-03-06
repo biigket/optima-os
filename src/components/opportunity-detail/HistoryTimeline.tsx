@@ -426,21 +426,32 @@ function NoteItem({ data, isPinned, onUpdate, onDelete, onPin, onAddComment, onU
           ) : (
             <>
               {data.file_url ? (
-                <div className="flex items-center gap-2.5 p-2.5 border border-blue-200 dark:border-blue-800 rounded-lg bg-blue-50/50 dark:bg-blue-950/30 mt-0.5">
-                  <div className="w-8 h-8 rounded-lg bg-blue-100 dark:bg-blue-900/50 flex items-center justify-center shrink-0">
-                    <FileText size={14} className="text-blue-600" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <a href={data.file_url} target="_blank" rel="noopener noreferrer" className="text-xs font-medium text-foreground hover:underline truncate block">
-                      {data.file_name || data.content}
+                <div className="space-y-2 mt-0.5">
+                  {data.file_type?.startsWith('image/') && (
+                    <a href={data.file_url} target="_blank" rel="noopener noreferrer" className="block w-1/3">
+                      <img
+                        src={data.file_url}
+                        alt={data.file_name || 'preview'}
+                        className="rounded-lg border border-blue-200 dark:border-blue-800 object-cover w-full"
+                      />
                     </a>
-                    {data.file_size && (
-                      <p className="text-[10px] text-muted-foreground">{(data.file_size / 1024).toFixed(0)} KB · {data.file_type || 'file'}</p>
-                    )}
+                  )}
+                  <div className="flex items-center gap-2.5 p-2.5 border border-blue-200 dark:border-blue-800 rounded-lg bg-blue-50/50 dark:bg-blue-950/30">
+                    <div className="w-8 h-8 rounded-lg bg-blue-100 dark:bg-blue-900/50 flex items-center justify-center shrink-0">
+                      <FileText size={14} className="text-blue-600" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <a href={data.file_url} target="_blank" rel="noopener noreferrer" className="text-xs font-medium text-foreground hover:underline truncate block">
+                        {data.file_name || data.content}
+                      </a>
+                      {data.file_size && (
+                        <p className="text-[10px] text-muted-foreground">{(data.file_size / 1024).toFixed(0)} KB · {data.file_type || 'file'}</p>
+                      )}
+                    </div>
+                    <a href={data.file_url} download target="_blank" rel="noopener noreferrer" className="p-1.5 rounded-md hover:bg-blue-100 dark:hover:bg-blue-800 text-blue-600 shrink-0">
+                      <Download size={14} />
+                    </a>
                   </div>
-                  <a href={data.file_url} download target="_blank" rel="noopener noreferrer" className="p-1.5 rounded-md hover:bg-blue-100 dark:hover:bg-blue-800 text-blue-600 shrink-0">
-                    <Download size={14} />
-                  </a>
                 </div>
               ) : (
                 <p className="text-xs text-foreground pr-16">{data.content}</p>
