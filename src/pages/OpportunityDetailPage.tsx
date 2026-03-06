@@ -134,19 +134,40 @@ export default function OpportunityDetailPage() {
   };
 
   const openEdit = () => {
+    // Parse payment method for credit card options
+    const pm = opp.payment_method || '';
+    const isCreditCard = pm.startsWith('CREDIT_CARD');
+    const basePayment = isCreditCard ? 'CREDIT_CARD' : pm;
+    const creditOption = isCreditCard && pm.includes(':') ? pm : '';
+
     setEditForm({
       expected_value: String(opp.expected_value || ''),
       close_date: opp.close_date || '',
       notes: opp.notes || '',
+      interested_products: opp.interested_products || [],
+      budget_range: opp.budget_range || '',
+      payment_method: basePayment,
+      credit_card_option: creditOption,
+      competitors: opp.competitors || '',
+    });
+    // Fetch products for select
+    supabase.from('products').select('id, product_name').eq('category', 'DEVICE').then(({ data }) => {
+      if (data) setAllProducts(data);
     });
     setEditOpen(true);
   };
 
   const saveEdit = async () => {
-    const updates = {
+    const paymentFull = editForm.payment_method === 'CREDIT_CARD' && editForm.credit_card_option
+      ? editForm.credit_card_option : editForm.payment_method;
+    const updates: Record<string, any> = {
       expected_value: Number(editForm.expected_value) || opp.expected_value,
       close_date: editForm.close_date || opp.close_date,
-      notes: editForm.notes,
+      notes: editForm.notes || null,
+      interested_products: editForm.interested_products.length > 0 ? editForm.interested_products : opp.interested_products,
+      budget_range: editForm.budget_range || null,
+      payment_method: paymentFull || null,
+      competitors: editForm.competitors || null,
     };
     const { error } = await supabase.from('opportunities').update(updates).eq('id', opp.id);
     if (error) { toast.error('อัปเดตไม่สำเร็จ'); return; }
