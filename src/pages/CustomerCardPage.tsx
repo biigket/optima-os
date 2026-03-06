@@ -254,27 +254,24 @@ export default function CustomerCardPage() {
         {/* Action Buttons */}
         <div className="flex gap-2 pt-3 border-t border-border overflow-x-auto pb-1">
           <Button variant="outline" size="sm" className="gap-1.5 text-xs shrink-0 h-8" onClick={() => {
+            const isCustomSource = account.lead_source && !['เพื่อนแนะนำ', 'Social media', 'งานแสดงสินค้า'].includes(account.lead_source);
             setEditForm({
               clinic_name: account.clinic_name,
               company_name: account.company_name || '',
               address: account.address || '',
+              tax_id: account.tax_id || '',
+              entity_type: account.entity_type || '',
+              branch_type: account.branch_type || '',
               phone: account.phone || '',
               email: account.email || '',
               customer_status: account.customer_status,
               assigned_sale: account.assigned_sale || '',
+              lead_source: isCustomSource ? 'OTHER' : (account.lead_source || ''),
+              notes: account.notes || '',
               grade: account.grade || '',
-              tax_id: account.tax_id || '',
-              entity_type: account.entity_type || '',
-              branch_type: account.branch_type || '',
-              google_map_link: account.google_map_link || '',
-              lead_source: account.lead_source || '',
-              has_budget: account.has_budget ? 'true' : 'false',
-              is_vip: account.is_vip ? 'true' : 'false',
-              is_kol: account.is_kol ? 'true' : 'false',
               single_or_chain: account.single_or_chain || '',
               current_devices: account.current_devices || '',
-              notes: account.notes || '',
-              registered_at: account.registered_at || '',
+              custom_lead_source: isCustomSource ? account.lead_source! : '',
             });
             setEditOpen(true);
           }}>
