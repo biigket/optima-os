@@ -331,6 +331,19 @@ export default function TasksPage() {
                         )}
                       </div>
                     </div>
+                    {props.clinic_name && (
+                      <div className="text-[10px] text-muted-foreground mt-0.5 ml-5 truncate">{props.clinic_name}</div>
+                    )}
+                    {props.contact_name && (
+                      <div className="text-[10px] text-muted-foreground mt-0.5 ml-5 flex items-center gap-1">
+                        <span className="truncate">{props.contact_name}</span>
+                        {props.contact_phone && (
+                          <a href={`tel:${props.contact_phone}`} onClick={e => e.stopPropagation()} className="text-primary hover:text-primary/80 shrink-0">
+                            <Phone size={10} />
+                          </a>
+                        )}
+                      </div>
+                    )}
                     {props.start_time && (
                       <div className="text-[10px] text-muted-foreground mt-0.5 ml-5">
                         {formatTime12(props.start_time)}{props.end_time ? ` → ${formatTime12(props.end_time)}` : ''}
