@@ -42,14 +42,15 @@ interface ActivityFormProps {
   onCancelEdit?: () => void;
   onFormChange?: (preview: Partial<Activity>) => void;
   quickScheduleDefaults?: QuickScheduleDefaults | null;
+  defaultType?: ActivityType | null;
 }
 
 export default function ActivityForm({
   opportunityId, accountId, onActivityCreated,
   editingActivity, onActivityUpdated, onCancelEdit, onFormChange,
-  quickScheduleDefaults,
+  quickScheduleDefaults, defaultType,
 }: ActivityFormProps) {
-  const [selectedType, setSelectedType] = useState<ActivityType>('CALL');
+  const [selectedType, setSelectedType] = useState<ActivityType>(defaultType || 'CALL');
   const [title, setTitle] = useState('');
   const [activityDate, setActivityDate] = useState(quickScheduleDefaults?.activity_date || new Date().toISOString().split('T')[0]);
   const [startTime, setStartTime] = useState(quickScheduleDefaults?.start_time || '');
