@@ -266,6 +266,38 @@ export default function ActivityForm({
         </Select>
       </div>
 
+      {/* Assignees */}
+      <div>
+        <label className="text-[10px] text-muted-foreground">มอบหมายให้</label>
+        <div className="flex flex-wrap gap-1.5 mt-1 min-h-[32px] p-1.5 rounded-md border bg-background">
+          {assignedTo.map(name => (
+            <span key={name} className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-primary/10 text-primary text-xs font-medium">
+              {name}
+              <button onClick={() => setAssignedTo(prev => prev.filter(n => n !== name))} className="hover:text-destructive">
+                <X size={12} />
+              </button>
+            </span>
+          ))}
+          <Select
+            value=""
+            onValueChange={(v) => {
+              if (v && !assignedTo.includes(v)) {
+                setAssignedTo(prev => [...prev, v]);
+              }
+            }}
+          >
+            <SelectTrigger className="h-6 w-24 text-[11px] border-dashed border-muted-foreground/30">
+              <SelectValue placeholder="+ เพิ่ม" />
+            </SelectTrigger>
+            <SelectContent>
+              {MOCK_SALES.filter(u => !assignedTo.includes(u.name)).map(u => (
+                <SelectItem key={u.id} value={u.name} className="text-xs">{u.name}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+
       {/* Toggle extra fields */}
       <button onClick={() => setShowExtra(!showExtra)} className="text-[11px] text-primary flex items-center gap-1 hover:underline">
         {showExtra ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
