@@ -13,6 +13,7 @@ import StatusBadge from '@/components/ui/StatusBadge';
 import { toast } from 'sonner';
 import { useMockAuth, MOCK_SALES } from '@/hooks/useMockAuth';
 import { supabase } from '@/integrations/supabase/client';
+import QuickNoteButtons from '@/components/ui/QuickNoteButtons';
 
 interface Account {
   id: string;
