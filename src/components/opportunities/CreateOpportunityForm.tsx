@@ -60,7 +60,6 @@ interface CreateOpportunityFormProps {
 }
 
 const DEFAULT_COMPETITORS = ['Ultherapy', 'Thermage', 'HIFU (อื่นๆ)', 'Sofwave', 'Morpheus8'];
-const DEFAULT_CURRENT_DEVICES = ['Doublo Gold', 'Ultraformer III', 'HIFU เก่า', 'Thermage FLX', 'Profound Matrix'];
 
 function MultiSelectWithCustom({ label, options: defaultOptions, selected, onChange, placeholder }: {
   label: string; options: string[]; selected: string[]; onChange: (v: string[]) => void; placeholder?: string;
@@ -141,7 +140,6 @@ export default function CreateOpportunityForm({ open, onOpenChange, customer, on
     payment_method: '',
     credit_card_option: '',
     competitors: [] as string[],
-    current_devices: [] as string[],
     authority_contact_id: '',
   });
 
@@ -216,7 +214,6 @@ export default function CreateOpportunityForm({ open, onOpenChange, customer, on
       budget_range: form.budget_range || undefined,
       payment_method: paymentMethodFull || undefined,
       competitors: form.competitors.join(', ') || undefined,
-      current_devices: form.current_devices.join(', ') || undefined,
       authority_contact_id: form.authority_contact_id || undefined,
       needs: undefined,
       created_at: new Date().toISOString(),
@@ -232,7 +229,7 @@ export default function CreateOpportunityForm({ open, onOpenChange, customer, on
     selectedProductIds: [], deal_value: '',
     stage: '', close_date: '', notes: '',
     budget_range: '', payment_method: '', credit_card_option: '',
-    competitors: [], current_devices: [],
+    competitors: [],
     authority_contact_id: '',
   });
 
@@ -444,14 +441,6 @@ export default function CreateOpportunityForm({ open, onOpenChange, customer, on
               placeholder="เพิ่มคู่แข่งใหม่..."
             />
 
-            {/* เครื่องปัจจุบัน — multi-select */}
-            <MultiSelectWithCustom
-              label="เครื่องที่ใช้อยู่ปัจจุบัน"
-              options={DEFAULT_CURRENT_DEVICES}
-              selected={form.current_devices}
-              onChange={t => set('current_devices', t)}
-              placeholder="เพิ่มเครื่องใหม่..."
-            />
           </div>
 
           {/* หมายเหตุ */}

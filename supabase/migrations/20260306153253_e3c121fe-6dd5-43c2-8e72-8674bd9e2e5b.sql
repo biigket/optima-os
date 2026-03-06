@@ -1,0 +1,1 @@
+ALTER TABLE public.opportunities DROP COLUMN IF EXISTS current_devices;
