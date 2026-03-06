@@ -305,6 +305,7 @@ export default function TasksPage() {
               droppable={true}
               eventDrop={handleEventDrop}
               eventResize={handleEventResize}
+              eventClick={handleEventClick}
               height="auto"
               slotDuration="00:15:00"
               snapDuration="00:15:00"
