@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Search, Phone, Circle, CheckCircle2, List, CalendarDays, Users, ClipboardList, AlertCircle, Monitor, ArrowUp } from 'lucide-react';
+import CalendarEventDialog from '@/components/tasks/CalendarEventDialog';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import StatusBadge from '@/components/ui/StatusBadge';
@@ -51,6 +52,8 @@ export default function TasksPage() {
   const [search, setSearch] = useState('');
   const [rows, setRows] = useState<ActivityRow[]>([]);
   const [loading, setLoading] = useState(true);
+  const [selectedActivity, setSelectedActivity] = useState<ActivityRow | null>(null);
+  const [dialogOpen, setDialogOpen] = useState(false);
 
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -125,6 +128,21 @@ export default function TasksPage() {
     if (error) { toast.error('อัปเดตไม่สำเร็จ'); return; }
     toast.success('ทำเครื่องหมายเสร็จแล้ว');
     setRows(prev => prev.map(r => r.id === id ? { ...r, is_done: true } : r));
+  };
+
+  const toggleDone = async (id: string, currentDone: boolean) => {
+    const newDone = !currentDone;
+    const { error } = await supabase.from('activities').update({ is_done: newDone }).eq('id', id);
+    if (error) { toast.error('อัปเดตไม่สำเร็จ'); return; }
+    toast.success(newDone ? 'ทำเครื่องหมายเสร็จแล้ว' : 'ยกเลิกเสร็จแล้ว');
+    setRows(prev => prev.map(r => r.id === id ? { ...r, is_done: newDone } : r));
+    setSelectedActivity(prev => prev?.id === id ? { ...prev, is_done: newDone } : prev);
+  };
+
+  const handleEventClick = (info: any) => {
+    const props = info.event.extendedProps as ActivityRow;
+    setSelectedActivity(props);
+    setDialogOpen(true);
   };
 
   // List: show only undone
@@ -287,6 +305,7 @@ export default function TasksPage() {
               droppable={true}
               eventDrop={handleEventDrop}
               eventResize={handleEventResize}
+              eventClick={handleEventClick}
               height="auto"
               slotDuration="00:15:00"
               snapDuration="00:15:00"
@@ -324,6 +343,13 @@ export default function TasksPage() {
           </div>
         </TabsContent>
       </Tabs>
+
+      <CalendarEventDialog
+        activity={selectedActivity}
+        open={dialogOpen}
+        onOpenChange={setDialogOpen}
+        onToggleDone={toggleDone}
+      />
     </div>
   );
 }
