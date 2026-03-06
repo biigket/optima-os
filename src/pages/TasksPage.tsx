@@ -286,6 +286,7 @@ export default function TasksPage() {
               editable={true}
               droppable={true}
               eventDrop={handleEventDrop}
+              eventResize={handleEventResize}
               height="auto"
               slotMinTime="07:00:00"
               slotMaxTime="21:00:00"
