@@ -1,50 +1,58 @@
 
 
-# Opportunity Module — Add Functional Features
+## Plan: Refactor TasksPage — Live Data + Calendar View
 
-## Overview
-Add drag-and-drop stage changes, quick stage editing, inline actions, and other interactive functionality to the Opportunity module.
+### Overview
+Replace mock data in TasksPage with live data from the `activities` table, joined with `opportunities` (for stage) and `contacts` (for authority phone). Add two view modes: **List** and **Calendar** with drag-and-drop.
 
-## Changes
+### Data Flow
+Each activity links to an opportunity via `opportunity_id`. The opportunity has `authority_contact_id` and `stage`. We join `contacts` to get the phone number for click-to-call.
 
-### 1. Drag & Drop on Kanban (`OpportunityKanban.tsx`)
-- Lift `opportunities` state up: pass `onStageChange(oppId, newStage)` callback from `OpportunitiesPage`
-- Implement native HTML5 drag-and-drop (no library needed):
-  - `draggable` on each `KanbanCard`
-  - `onDragStart` sets `oppId` in dataTransfer
-  - Each column acts as a drop zone with `onDragOver` + `onDrop`
-  - Visual feedback: highlight column border on drag-over, ghost opacity on dragged card
-- On drop: call `onStageChange` → update state + show toast "ย้าย [clinic] → [stage]"
-- Log stage change in a local `stageHistory` array (for future timeline)
+```text
+activities → opportunities (stage, authority_contact_id) → contacts (name, phone)
+           → accounts (clinic_name)
+```
 
-### 2. Quick Actions on Kanban Cards (`OpportunityKanban.tsx`)
-- Add a hover-visible action row at bottom of each card:
-  - **Phone** icon → toast "โทรหา [clinic]"
-  - **Calendar** icon → toast "นัดกิจกรรม"  
-  - **MoreHorizontal** → dropdown with "แก้ไข", "เปลี่ยน Stage", "Mark Won/Lost"
-- Prevent card click navigation when clicking action buttons (`e.stopPropagation()`)
+### 1. Fetch Data (TasksPage)
+- Query `activities` with all fields, ordered by `activity_date asc`
+- Query `opportunities` to get `stage`, `authority_contact_id`, `account_id` per opportunity
+- Query `contacts` for authority contacts to get `name` and `phone`
+- Query `accounts` for clinic names
+- Build a merged list with all needed display fields
 
-### 3. Stage Change on Detail Page (`OpportunityDetailPage.tsx`)
-- Make stage path segments clickable
-- On click → confirm dialog "ย้ายไป [stage]?" → update local state + toast
-- Add "Mark Won" / "Mark Lost" buttons in the header area
+### 2. List View (default tab)
+- **Filter**: Show only `is_done = false` by default (hide completed)
+- **Columns/Row data**:
+  - Circle checkbox to mark as done (updates `is_done` to `true` in DB)
+  - Activity title (ชื่อกิจกรรม)
+  - Activity date + start_time — end_time
+  - Authority contact name + phone icon (click-to-call via `tel:` link)
+  - Priority badge
+  - Stage badge (from opportunity) — clickable, navigates to `/opportunities/:id`
+  - Due date (activity_date)
+- On mark-as-done: `supabase.from('activities').update({ is_done: true }).eq('id', activityId)`
 
-### 4. Inline Edit on Detail Page (`OpportunityDetailPage.tsx`)
-- Add edit button next to Deal Info section
-- Opens a dialog/inline form to edit: expected_value, close_date, notes, next_activity_type, next_activity_date
-- Save updates local state + toast
+### 3. Calendar View (second tab)
+- Install `@fullcalendar/react`, `@fullcalendar/daygrid`, `@fullcalendar/timegrid`, `@fullcalendar/interaction` for drag-and-drop calendar
+- Map activities to calendar events using `activity_date`, `start_time`, `end_time`
+- **Event card content**:
+  - Activity title as headline
+  - Authority contact + phone icon (click-to-call)
+  - Priority badge
+  - Mark-as-done circle
+  - If `is_done = true`: render with `opacity-40`
+- **Drag & Drop**: On event drop, update `activity_date`, `start_time`, `end_time` in DB
 
-### 5. Update State Management (`OpportunitiesPage.tsx`)
-- Pass `setOpportunities` updater to Kanban and Detail via props or shared state
-- `onStageChange` handler: finds opportunity by ID, updates stage, re-renders Kanban
-- Wire route params so Detail page can also update the shared opportunities array
+### 4. Tab Switching
+- Use existing `Tabs` component with two tabs: "รายการ" (List) and "ปฏิทิน" (Calendar)
 
-### 6. Add "Reason Stuck" dropdown
-- When a deal is stuck (>14 days), show a small dropdown on the card: "รอราคา / รอผู้ตัดสินใจ / รอ finance / รอ training / อื่นๆ"
-- Store as `stuck_reason` on the opportunity object
+### Files Changed
+- **`src/pages/TasksPage.tsx`** — Complete rewrite: remove mock data, add Supabase queries, two-tab layout (List + Calendar)
+- **`package.json`** — Add FullCalendar packages
 
-## Technical Notes
-- Using native HTML5 drag-and-drop keeps bundle size small — no new dependencies
-- All state changes are local (mock data) — ready for database migration later
-- Drop zones use `e.preventDefault()` on `dragOver` to allow drops
+### Dependencies to Add
+- `@fullcalendar/react`
+- `@fullcalendar/daygrid`
+- `@fullcalendar/timegrid`
+- `@fullcalendar/interaction`
 
