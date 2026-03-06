@@ -500,13 +500,9 @@ export default function TasksPage() {
                           <div className="flex items-center gap-1">
                             <TypeIcon size={10} style={{ color: config.color }} className="shrink-0" />
                             <span className="font-semibold truncate flex-1">{arg.event.title}</span>
-                            {!props.is_done ? (
-                              <button onClick={(e) => { e.stopPropagation(); markDone(props.id); }} className="text-muted-foreground hover:text-success shrink-0">
-                                <Circle size={10} />
-                              </button>
-                            ) : (
-                              <CheckCircle2 size={10} className="text-success shrink-0" />
-                            )}
+                            <button onClick={(e) => { e.stopPropagation(); toggleDone(props.id, !!props.is_done); }} className={`shrink-0 ${props.is_done ? 'text-success' : 'text-muted-foreground hover:text-success'}`}>
+                              {props.is_done ? <CheckCircle2 size={16} /> : <Circle size={16} />}
+                            </button>
                           </div>
                           {props.clinic_name && (
                             <div className="text-muted-foreground truncate ml-3.5">{props.clinic_name}</div>
