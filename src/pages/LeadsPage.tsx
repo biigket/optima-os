@@ -465,7 +465,7 @@ export default function LeadsPage() {
               </Select>
             </div>
             <div className="space-y-1.5">
-              <Label>โทรศัพท์</Label>
+              <Label>โทรศัพท์คลินิก</Label>
               <Input value={form.phone || ''} onChange={e => updateField('phone', e.target.value)} />
             </div>
             <div className="space-y-1.5">
