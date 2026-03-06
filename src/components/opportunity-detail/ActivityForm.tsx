@@ -90,6 +90,16 @@ export default function ActivityForm({
       setActivityDate(quickScheduleDefaults.activity_date);
     }
   }, [quickScheduleDefaults?.start_time, quickScheduleDefaults?.end_time, quickScheduleDefaults?.activity_date]);
+  // Apply defaultType when set externally
+  useEffect(() => {
+    if (defaultType && !editingActivity) {
+      setSelectedType(defaultType);
+      const typeConfig = ACTIVITY_TYPES.find(a => a.type === defaultType);
+      if (typeConfig && (!title.trim() || ACTIVITY_TYPES.some(a => a.defaultTitle === title))) {
+        setTitle(typeConfig.defaultTitle);
+      }
+    }
+  }, [defaultType]);
 
 
   useEffect(() => {
