@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
-import { Clock, AlertTriangle, Building2, Calendar, Phone, Eye, Users, Presentation, FileCheck, MoreHorizontal, Trophy, XCircle } from 'lucide-react';
+import { Clock, AlertTriangle, Building2, Calendar, Phone, Eye, Users, Presentation, FileCheck, MoreHorizontal, Trophy, XCircle, Pencil } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -14,7 +14,7 @@ import type { Opportunity, OpportunityStage } from '@/types';
 
 const STAGES: OpportunityStage[] = ['NEW_LEAD', 'CONTACTED', 'DEMO_SCHEDULED', 'DEMO_DONE', 'NEGOTIATION', 'WON', 'LOST'];
 const STAGE_LABELS: Record<string, string> = {
-  NEW_LEAD: 'Lead Qualified', CONTACTED: 'นัดพบ/ค้นหา Need', DEMO_SCHEDULED: 'Demo/Workshop',
+  NEW_LEAD: 'นัดพบ/ค้นหา Need', CONTACTED: 'Demo Schedule', DEMO_SCHEDULED: 'Demo/Workshop',
   DEMO_DONE: 'Proposal Sent', NEGOTIATION: 'Negotiation', WON: 'Won', LOST: 'Lost/Nurture',
 };
 const STAGE_COLORS: Record<string, string> = {
@@ -199,6 +199,7 @@ function KanbanCard({ opp, stage, navigate, pendingActivities, onStageChange, on
   const [otherReason, setOtherReason] = useState('');
   const [showOtherInput, setShowOtherInput] = useState(false);
   const [quickFormType, setQuickFormType] = useState<'CALL' | 'MEETING' | 'DEMO' | null>(null);
+  const [editingActivity, setEditingActivity] = useState<Activity | null>(null);
 
   const account = getCachedAccount(opp.account_id);
   const daysInStage = getDaysInStage(opp);
@@ -307,7 +308,7 @@ function KanbanCard({ opp, stage, navigate, pendingActivities, onStageChange, on
               <div key={a.id} className={`text-xs ${rowColor}`}>
                 <div className="flex items-center gap-1.5">
                   <button
-                    className="shrink-0 w-4 h-4 rounded border border-current flex items-center justify-center hover:bg-muted transition-colors"
+                    className="shrink-0 w-4 h-4 rounded-full border border-current flex items-center justify-center hover:bg-muted transition-colors"
                     title="เสร็จสิ้น"
                     onClick={async (e) => {
                       e.stopPropagation();
@@ -320,6 +321,24 @@ function KanbanCard({ opp, stage, navigate, pendingActivities, onStageChange, on
                   </button>
                   <Icon size={12} className="shrink-0" />
                   <span className="font-medium truncate flex-1">{a.title}</span>
+                  <Popover open={editingActivity?.id === a.id} onOpenChange={(open) => setEditingActivity(open ? a : null)}>
+                    <PopoverTrigger asChild>
+                      <button
+                        className="shrink-0 p-0.5 rounded hover:bg-muted transition-colors opacity-0 group-hover:opacity-100"
+                        title="แก้ไข"
+                        onClick={(e) => { e.stopPropagation(); }}
+                      >
+                        <Pencil size={10} />
+                      </button>
+                    </PopoverTrigger>
+                    <PopoverContent align="end" side="top" className="w-64 p-3" onClick={e => e.stopPropagation()}>
+                      <EditActivityForm
+                        activity={a}
+                        onSaved={() => { setEditingActivity(null); onActivitySaved(); }}
+                        onClose={() => setEditingActivity(null)}
+                      />
+                    </PopoverContent>
+                  </Popover>
                 </div>
                 <div className="flex items-center gap-1.5 ml-[calc(1rem+0.375rem+12px+0.375rem)] text-[11px]">
                   {timeRange && <span>{timeRange}</span>}
@@ -450,6 +469,91 @@ function KanbanCard({ opp, stage, navigate, pendingActivities, onStageChange, on
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
+      </div>
+    </div>
+  );
+}
+
+/* ─── Edit Activity Form ─── */
+
+function EditActivityForm({ activity, onSaved, onClose }: {
+  activity: Activity;
+  onSaved: () => void;
+  onClose: () => void;
+}) {
+  const [title, setTitle] = useState(activity.title);
+  const [date, setDate] = useState(activity.activity_date);
+  const [startTime, setStartTime] = useState(activity.start_time || '');
+  const [endTime, setEndTime] = useState(activity.end_time || '');
+  const [priority, setPriority] = useState(activity.priority || 'NORMAL');
+  const [saving, setSaving] = useState(false);
+
+  const handleSave = async () => {
+    setSaving(true);
+    await supabase.from('activities').update({
+      title,
+      activity_date: date,
+      start_time: startTime || null,
+      end_time: endTime || null,
+      priority,
+    }).eq('id', activity.id);
+    setSaving(false);
+    toast.success('อัปเดตกิจกรรมแล้ว');
+    onSaved();
+  };
+
+  const timeOptions = Array.from({ length: 48 }, (_, i) => {
+    const h = String(Math.floor(i / 2)).padStart(2, '0');
+    const m = i % 2 === 0 ? '00' : '30';
+    return `${h}:${m}`;
+  });
+
+  return (
+    <div className="space-y-2" onClick={e => e.stopPropagation()}>
+      <p className="text-xs font-semibold text-foreground mb-2">แก้ไขกิจกรรม</p>
+      <Input
+        value={title}
+        onChange={e => setTitle(e.target.value)}
+        placeholder="ชื่อกิจกรรม"
+        className="h-7 text-xs"
+      />
+      <Input
+        type="date"
+        value={date}
+        onChange={e => setDate(e.target.value)}
+        className="h-7 text-xs"
+      />
+      <div className="flex gap-1">
+        <Select value={startTime} onValueChange={setStartTime}>
+          <SelectTrigger className="h-7 text-xs flex-1">
+            <SelectValue placeholder="เริ่ม" />
+          </SelectTrigger>
+          <SelectContent>
+            {timeOptions.map(t => <SelectItem key={t} value={t} className="text-xs">{t}</SelectItem>)}
+          </SelectContent>
+        </Select>
+        <Select value={endTime} onValueChange={setEndTime}>
+          <SelectTrigger className="h-7 text-xs flex-1">
+            <SelectValue placeholder="สิ้นสุด" />
+          </SelectTrigger>
+          <SelectContent>
+            {timeOptions.map(t => <SelectItem key={t} value={t} className="text-xs">{t}</SelectItem>)}
+          </SelectContent>
+        </Select>
+      </div>
+      <Select value={priority} onValueChange={setPriority}>
+        <SelectTrigger className="h-7 text-xs">
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="LOW" className="text-xs">Low</SelectItem>
+          <SelectItem value="NORMAL" className="text-xs">Normal</SelectItem>
+          <SelectItem value="HIGH" className="text-xs">High</SelectItem>
+        </SelectContent>
+      </Select>
+      <div className="flex gap-1 pt-1">
+        <button onClick={onClose} className="flex-1 h-7 text-xs rounded border border-border hover:bg-muted">ยกเลิก</button>
+        <button onClick={handleSave} disabled={saving} className="flex-1 h-7 text-xs rounded bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50">บันทึก</button>
       </div>
     </div>
   );
