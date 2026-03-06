@@ -166,6 +166,20 @@ export default function TasksPage() {
     setRows(prev => prev.map(r => r.id === id ? { ...r, activity_date: newDate, start_time: newStart, end_time: newEnd } : r));
   };
 
+  const handleEventResize = async (info: any) => {
+    const id = info.event.id;
+    const newDate = info.event.startStr.slice(0, 10);
+    const newStart = info.event.start ? info.event.start.toTimeString().slice(0, 5) : null;
+    const newEnd = info.event.end ? info.event.end.toTimeString().slice(0, 5) : null;
+    const update: Record<string, any> = { activity_date: newDate };
+    if (newStart) update.start_time = newStart;
+    if (newEnd) update.end_time = newEnd;
+    const { error } = await supabase.from('activities').update(update).eq('id', id);
+    if (error) { toast.error('เปลี่ยนเวลาไม่สำเร็จ'); info.revert(); return; }
+    toast.success('เปลี่ยนเวลาแล้ว');
+    setRows(prev => prev.map(r => r.id === id ? { ...r, activity_date: newDate, start_time: newStart, end_time: newEnd } : r));
+  };
+
   return (
     <div className="space-y-4 animate-fade-in">
       <div className="flex items-center justify-between">
