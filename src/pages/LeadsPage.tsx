@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search, Plus, SlidersHorizontal, Building2, Star, X } from 'lucide-react';
+import { Search, Plus, Eye, EyeOff, Building2, Star, X } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -8,7 +8,6 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Checkbox } from '@/components/ui/checkbox';
 import StatusBadge from '@/components/ui/StatusBadge';
@@ -45,17 +44,9 @@ interface Contact {
   email: string | null;
 }
 
-const FOLLOW_UP_DAYS = 7;
-
-function isFollowUp(account: Account): boolean {
-  const diff = Math.floor((Date.now() - new Date(account.created_at).getTime()) / 86400000);
-  return diff >= FOLLOW_UP_DAYS && account.customer_status !== 'PURCHASED' && account.customer_status !== 'DORMANT';
-}
-
 const STATUS_OPTIONS = [
   { value: 'ALL', label: 'ทั้งหมด' },
   { value: 'PROSPECT', label: 'ยังไม่ซื้อ' },
-  { value: 'FOLLOW_UP', label: 'ต้องติดตาม' },
   { value: 'PURCHASED', label: 'ซื้อแล้ว' },
   { value: 'DORMANT', label: 'ไม่เคลื่อนไหว' },
 ];
