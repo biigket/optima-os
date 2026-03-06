@@ -170,7 +170,7 @@ export default function OpportunitiesPage() {
       budget_range: rest.budget_range || null,
       payment_method: rest.payment_method || null,
       competitors: rest.competitors || null,
-      current_devices: rest.current_devices || null,
+      
       order_frequency: rest.order_frequency || null,
     };
     const { error } = await supabase.from('opportunities').insert(insertPayload);

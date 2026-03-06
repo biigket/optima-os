@@ -118,7 +118,7 @@ export default function OpportunityDetailPage() {
   const closeDateDays = opp.close_date ? differenceInDays(new Date(opp.close_date), new Date()) : null;
   const notes = getNotesForOpportunity(opp.id);
   const competitorTags = opp.competitors ? opp.competitors.split(',').map(s => s.trim()).filter(Boolean) : [];
-  const deviceTags = opp.current_devices ? opp.current_devices.split(',').map(s => s.trim()).filter(Boolean) : [];
+  
 
   const changeStage = async (newStage: OpportunityStage) => {
     const oldStage = opp.stage;
