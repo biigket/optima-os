@@ -361,7 +361,15 @@ export default function LeadsPage() {
                     <span className="text-sm text-foreground">{account.assigned_sale || '-'}</span>
                   </TableCell>
                   <TableCell>
-                    <span className="text-sm text-foreground">{account.grade || '-'}</span>
+                    {account.grade && parseInt(account.grade) > 0 ? (
+                      <div className="flex gap-0.5">
+                        {[1, 2, 3].map(s => (
+                          <Star key={s} size={14} className={s <= parseInt(account.grade!) ? 'fill-yellow-400 text-yellow-400' : 'fill-muted text-muted-foreground/30'} />
+                        ))}
+                      </div>
+                    ) : (
+                      <span className="text-sm text-muted-foreground">-</span>
+                    )}
                   </TableCell>
                   <TableCell>
                     <span className="text-sm text-muted-foreground">{account.lead_source || '-'}</span>
