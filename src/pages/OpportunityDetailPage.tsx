@@ -10,7 +10,7 @@ import StatusBadge from '@/components/ui/StatusBadge';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import {
   ArrowLeft, Building2, ExternalLink, Users, Calendar, Clock,
-  Pencil, Trophy, XCircle, Check, Send, ChevronDown, ChevronUp, Plus, Trash2, Upload, FileText
+  Pencil, Trophy, XCircle, Check, Send, ChevronDown, ChevronUp, Plus, Trash2, Upload, FileText, Star, Monitor
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useMockAuth } from '@/hooks/useMockAuth';
@@ -244,9 +244,19 @@ export default function OpportunityDetailPage() {
             <ExternalLink size={11} /> Customer Card
           </button>
         </div>
-        <div className="flex gap-4 text-xs text-muted-foreground">
+        <div className="flex gap-4 text-xs text-muted-foreground flex-wrap">
           <span>🧑‍💼 {opp.assigned_sale || '-'}</span>
           <span className="flex items-center gap-1"><Users size={10} /> {contacts.length} ผู้ติดต่อ</span>
+          {account?.grade && (
+            <span className="flex items-center gap-0.5">
+              {Array.from({ length: account.grade === 'A' ? 3 : account.grade === 'B' ? 2 : 1 }).map((_, i) => (
+                <Star key={i} size={11} className="fill-amber-400 text-amber-400" />
+              ))}
+            </span>
+          )}
+          {account?.current_devices && (
+            <span className="flex items-center gap-1"><Monitor size={10} /> {account.current_devices}</span>
+          )}
           {isStuck && <span className="text-destructive flex items-center gap-1"><Clock size={10} /> ค้าง {daysInStage} วัน</span>}
         </div>
       </div>
