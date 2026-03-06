@@ -28,6 +28,7 @@ export interface Account {
   single_or_chain?: string;
   assigned_sale?: string;
   notes?: string;
+  current_devices?: string;
   created_at: string;
 }
 
