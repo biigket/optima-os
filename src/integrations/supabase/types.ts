@@ -22,7 +22,7 @@ export type Database = {
           clinic_name: string
           company_name: string | null
           created_at: string
-          current_devices: string[] | null
+          current_devices: string | null
           customer_status: string
           email: string | null
           entity_type: string | null
@@ -46,7 +46,7 @@ export type Database = {
           clinic_name: string
           company_name?: string | null
           created_at?: string
-          current_devices?: string[] | null
+          current_devices?: string | null
           customer_status?: string
           email?: string | null
           entity_type?: string | null
@@ -70,7 +70,7 @@ export type Database = {
           clinic_name?: string
           company_name?: string | null
           created_at?: string
-          current_devices?: string[] | null
+          current_devices?: string | null
           customer_status?: string
           email?: string | null
           entity_type?: string | null
