@@ -120,6 +120,7 @@ export default function LeadsPage() {
   const { currentUser } = useMockAuth();
   const [accounts, setAccounts] = useState<Account[]>([]);
   const [contacts, setContacts] = useState<Contact[]>([]);
+  const [products, setProducts] = useState<{ id: string; product_name: string }[]>([]);
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('ALL');
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -127,15 +128,17 @@ export default function LeadsPage() {
   const [form, setForm] = useState(emptyForm);
   const [loading, setLoading] = useState(true);
 
-  // Fetch accounts and contacts from database
+  // Fetch accounts, contacts, and products from database
   const fetchData = async () => {
     setLoading(true);
-    const [accRes, conRes] = await Promise.all([
+    const [accRes, conRes, prodRes] = await Promise.all([
       supabase.from('accounts').select('*').order('created_at', { ascending: false }),
       supabase.from('contacts').select('id, account_id, name, role, phone, email'),
+      supabase.from('products').select('id, product_name').eq('category', 'DEVICE'),
     ]);
     if (accRes.data) setAccounts(accRes.data as unknown as Account[]);
     if (conRes.data) setContacts(conRes.data as unknown as Contact[]);
+    if (prodRes.data) setProducts(prodRes.data);
     setLoading(false);
   };
 
@@ -159,6 +162,7 @@ export default function LeadsPage() {
 
   const openEdit = (account: Account) => {
     setEditingAccount(account);
+    const isCustomSource = account.lead_source && !LEAD_SOURCE_OPTIONS.includes(account.lead_source);
     setForm({
       clinic_name: account.clinic_name,
       company_name: account.company_name || '',
@@ -170,14 +174,16 @@ export default function LeadsPage() {
       email: account.email || '',
       customer_status: account.customer_status,
       assigned_sale: account.assigned_sale || '',
-      lead_source: account.lead_source || '',
+      lead_source: isCustomSource ? 'OTHER' : (account.lead_source || ''),
       notes: account.notes || '',
       grade: account.grade || '',
       single_or_chain: account.single_or_chain || '',
+      current_devices: account.current_devices || [],
       contact_name: '',
       contact_role: '',
       contact_phone: '',
       contact_email: '',
+      custom_lead_source: isCustomSource ? account.lead_source! : '',
     });
     setDialogOpen(true);
   };
@@ -187,11 +193,12 @@ export default function LeadsPage() {
       toast.error('กรุณากรอกชื่อคลินิก');
       return;
     }
-    // Require contact for new accounts
     if (!editingAccount && !form.contact_name?.trim()) {
       toast.error('กรุณากรอกชื่อผู้ติดต่อ');
       return;
     }
+
+    const resolvedLeadSource = form.lead_source === 'OTHER' ? (form.custom_lead_source || null) : (form.lead_source || null);
 
     const payload = {
       clinic_name: form.clinic_name!.trim(),
@@ -204,10 +211,11 @@ export default function LeadsPage() {
       email: form.email || null,
       customer_status: form.customer_status || 'NEW_LEAD',
       assigned_sale: form.assigned_sale || currentUser?.name || null,
-      lead_source: form.lead_source || null,
+      lead_source: resolvedLeadSource,
       notes: form.notes || null,
       grade: form.grade || null,
       single_or_chain: form.single_or_chain || null,
+      current_devices: form.current_devices.length > 0 ? form.current_devices : null,
     };
 
     if (editingAccount) {
