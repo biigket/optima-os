@@ -107,28 +107,29 @@ export default function CustomerCardPage() {
   const [newContact, setNewContact] = useState({ name: '', role: '', phone: '', email: '' });
 
   const handleSubmit = async () => {
-    const { error } = await supabase.from('accounts').update({
-      clinic_name: editForm.clinic_name,
+    if (!editForm.clinic_name?.trim()) {
+      toast.error('กรุณากรอกชื่อคลินิก');
+      return;
+    }
+    const resolvedLeadSource = editForm.lead_source === 'OTHER' ? (editForm.custom_lead_source || null) : (editForm.lead_source || null);
+    const payload = {
+      clinic_name: editForm.clinic_name.trim(),
       company_name: editForm.company_name || null,
       address: editForm.address || null,
-      phone: editForm.phone || null,
-      email: editForm.email || null,
       tax_id: editForm.tax_id || null,
       entity_type: editForm.entity_type || null,
       branch_type: editForm.branch_type || null,
-      google_map_link: editForm.google_map_link || null,
-      lead_source: editForm.lead_source || null,
-      has_budget: editForm.has_budget === 'true',
-      is_vip: editForm.is_vip === 'true',
-      is_kol: editForm.is_kol === 'true',
-      single_or_chain: editForm.single_or_chain || null,
-      current_devices: editForm.current_devices || null,
-      notes: editForm.notes || null,
-      registered_at: editForm.registered_at || null,
+      phone: editForm.phone || null,
+      email: editForm.email || null,
       customer_status: editForm.customer_status || 'NEW_LEAD',
       assigned_sale: editForm.assigned_sale || null,
+      lead_source: resolvedLeadSource,
+      notes: editForm.notes || null,
       grade: editForm.grade || null,
-    }).eq('id', account!.id);
+      single_or_chain: editForm.single_or_chain || null,
+      current_devices: (editForm.current_devices || '').trim() || null,
+    };
+    const { error } = await supabase.from('accounts').update(payload).eq('id', account!.id);
     if (error) { toast.error('บันทึกไม่สำเร็จ'); return; }
     toast.success('บันทึกข้อมูลสำเร็จ');
     setEditOpen(false);
