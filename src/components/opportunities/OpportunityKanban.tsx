@@ -1,12 +1,12 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
-import { Clock, AlertTriangle, Building2, Calendar, Phone, Eye, Users, Presentation, FileCheck, MoreHorizontal, Trophy, XCircle, Pencil, Pin, Send } from 'lucide-react';
+import { Clock, AlertTriangle, Building2, Calendar, Phone, Eye, Users, Presentation, FileCheck, MoreHorizontal, Trophy, XCircle, Pencil, Pin, Send, Trash2 } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Input } from '@/components/ui/input';
-import { getCachedAccount, getNotesForOpportunity, addNoteGlobal, updateNoteGlobal, getPinnedIdsGlobal, togglePinGlobal, type OpportunityNote } from '@/pages/OpportunitiesPage';
+import { getCachedAccount, getNotesForOpportunity, addNoteGlobal, updateNoteGlobal, deleteNoteGlobal, getPinnedIdsGlobal, togglePinGlobal, type OpportunityNote } from '@/pages/OpportunitiesPage';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import QuickActivityForm from './QuickActivityForm';
@@ -519,8 +519,8 @@ function PinnedNotesRow({ oppId, accountId, isTerminal }: { oppId: string; accou
   return (
     <div className="space-y-1 mt-1.5 pt-1.5 border-t border-border" onClick={e => e.stopPropagation()}>
       {pinnedNotes.map(note => (
-        <div key={note.id} className="flex items-center gap-1.5 text-xs text-muted-foreground">
-          <Pin size={10} className="shrink-0 text-primary fill-primary" />
+        <div key={note.id} className="flex items-center gap-1.5 text-sm text-muted-foreground">
+          <Pin size={14} className="shrink-0 text-primary fill-primary" />
           <span className="truncate flex-1">{note.content}</span>
           <Popover open={editingNote?.id === note.id} onOpenChange={(open) => {
             if (open) { setEditingNote(note); setEditContent(note.content); }
@@ -528,7 +528,7 @@ function PinnedNotesRow({ oppId, accountId, isTerminal }: { oppId: string; accou
           }}>
             <PopoverTrigger asChild>
               <button className="shrink-0 p-0.5 rounded hover:bg-muted transition-colors" onClick={e => e.stopPropagation()}>
-                <Pencil size={8} />
+                <Pencil size={12} />
               </button>
             </PopoverTrigger>
             <PopoverContent align="end" side="top" className="w-52 p-2" onClick={e => e.stopPropagation()}>
@@ -539,6 +539,17 @@ function PinnedNotesRow({ oppId, accountId, isTerminal }: { oppId: string; accou
               </div>
             </PopoverContent>
           </Popover>
+          <button
+            className="shrink-0 p-0.5 rounded hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors"
+            title="ลบ"
+            onClick={e => {
+              e.stopPropagation();
+              deleteNoteGlobal(note.id);
+              forceUpdate(n => n + 1);
+            }}
+          >
+            <Trash2 size={12} />
+          </button>
         </div>
       ))}
       {!isTerminal && (
