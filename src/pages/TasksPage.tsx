@@ -519,13 +519,9 @@ export default function TasksPage() {
                           <span className="font-semibold truncate flex-1">{arg.event.title}</span>
                           <div className="flex items-center gap-0.5 shrink-0">
                             {props.priority === 'HIGH' && <ArrowUp size={10} className="text-destructive" />}
-                            {!props.is_done ? (
-                              <button onClick={(e) => { e.stopPropagation(); markDone(props.id); }} className="text-muted-foreground hover:text-success">
-                                <Circle size={11} />
-                              </button>
-                            ) : (
-                              <CheckCircle2 size={11} className="text-success" />
-                            )}
+                            <button onClick={(e) => { e.stopPropagation(); toggleDone(props.id, !!props.is_done); }} className={`${props.is_done ? 'text-success' : 'text-muted-foreground hover:text-success'}`}>
+                              {props.is_done ? <CheckCircle2 size={16} /> : <Circle size={16} />}
+                            </button>
                           </div>
                         </div>
                         {props.clinic_name && (
