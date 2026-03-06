@@ -71,7 +71,6 @@ const emptyForm = {
   grade: '',
   single_or_chain: '',
   current_devices: [] as string[],
-  // Contact fields (required for new accounts)
   contact_name: '',
   contact_role: '',
   contact_phone: '',
@@ -114,12 +113,12 @@ export default function LeadsPage() {
   const [products, setProducts] = useState<{ id: string; product_name: string }[]>([]);
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('ALL');
+  const [showFilters, setShowFilters] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingAccount, setEditingAccount] = useState<Account | null>(null);
   const [form, setForm] = useState(emptyForm);
   const [loading, setLoading] = useState(true);
 
-  // Fetch accounts, contacts, and products from database
   const fetchData = async () => {
     setLoading(true);
     const [accRes, conRes, prodRes] = await Promise.all([
@@ -135,7 +134,6 @@ export default function LeadsPage() {
 
   useEffect(() => { fetchData(); }, []);
 
-  // Admin sees all, sales see only their own
   const isAdmin = currentUser?.role === 'ADMIN';
   const myAccounts = isAdmin ? accounts : accounts.filter(a => a.assigned_sale === currentUser?.name);
 
@@ -216,7 +214,6 @@ export default function LeadsPage() {
     } else {
       const { data: newAcc, error } = await supabase.from('accounts').insert(payload).select('id').single();
       if (error || !newAcc) { toast.error('เพิ่มลูกค้าไม่สำเร็จ'); return; }
-      // Insert contact
       const { error: conErr } = await supabase.from('contacts').insert({
         account_id: newAcc.id,
         name: form.contact_name!.trim(),
@@ -238,9 +235,7 @@ export default function LeadsPage() {
   const filtered = myAccounts.filter(a => {
     let matchStatus = true;
     if (statusFilter === 'PROSPECT') {
-      matchStatus = !isFollowUp(a) && a.customer_status !== 'PURCHASED' && a.customer_status !== 'DORMANT';
-    } else if (statusFilter === 'FOLLOW_UP') {
-      matchStatus = isFollowUp(a);
+      matchStatus = a.customer_status !== 'PURCHASED' && a.customer_status !== 'DORMANT';
     } else if (statusFilter !== 'ALL') {
       matchStatus = a.customer_status === statusFilter;
     }
@@ -271,8 +266,13 @@ export default function LeadsPage() {
               className="pl-9 w-64"
             />
           </div>
-          <Button variant="outline" size="sm" className="gap-1.5">
-            <SlidersHorizontal size={14} /> ตัวกรอง
+          <Button
+            variant={showFilters ? 'default' : 'outline'}
+            size="icon"
+            onClick={() => setShowFilters(v => !v)}
+            title={showFilters ? 'ซ่อนตัวกรอง' : 'แสดงตัวกรอง'}
+          >
+            {showFilters ? <Eye size={16} /> : <EyeOff size={16} />}
           </Button>
           <Button size="sm" className="gap-1.5" onClick={openAdd}>
             <Plus size={14} /> เพิ่มลูกค้า
@@ -280,106 +280,96 @@ export default function LeadsPage() {
         </div>
       </div>
 
-      {/* Status Tabs */}
-      <Tabs value={statusFilter} onValueChange={setStatusFilter}>
-        <TabsList className="h-auto flex-wrap">
-          {STATUS_OPTIONS.map(s => (
-            <TabsTrigger key={s.value} value={s.value} className="text-xs">
-              {s.label}
-            </TabsTrigger>
-          ))}
-        </TabsList>
-      </Tabs>
+      {/* Status Tabs - toggleable */}
+      {showFilters && (
+        <Tabs value={statusFilter} onValueChange={setStatusFilter}>
+          <TabsList className="h-auto flex-wrap">
+            {STATUS_OPTIONS.map(s => (
+              <TabsTrigger key={s.value} value={s.value} className="text-xs">
+                {s.label}
+              </TabsTrigger>
+            ))}
+          </TabsList>
+        </Tabs>
+      )}
 
-      {/* Table */}
-      <div className="rounded-lg border bg-card">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead className="w-[220px]">คลินิก</TableHead>
-              <TableHead>ผู้ติดต่อ</TableHead>
-              <TableHead>สถานะ</TableHead>
-              <TableHead>เซลล์</TableHead>
-              <TableHead>เกรด</TableHead>
-              <TableHead>แหล่งที่มา</TableHead>
-              <TableHead className="text-right">สร้างเมื่อ</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {loading ? (
-              <TableRow>
-                <TableCell colSpan={7} className="text-center py-12 text-muted-foreground">
-                  กำลังโหลด...
-                </TableCell>
-              </TableRow>
-            ) : filtered.map(account => {
+      {/* Card List */}
+      <div className="rounded-lg border bg-card overflow-hidden">
+        {/* Header row */}
+        <div className="grid grid-cols-[1fr_160px_110px_80px_70px_120px_70px] gap-2 px-4 py-3 border-b bg-muted/30 text-xs font-medium text-muted-foreground">
+          <span>คลินิก</span>
+          <span>ผู้ติดต่อ</span>
+          <span>สถานะ</span>
+          <span>เซลล์</span>
+          <span>เกรด</span>
+          <span>แหล่งที่มา</span>
+          <span className="text-right">สร้างเมื่อ</span>
+        </div>
+
+        {loading ? (
+          <div className="text-center py-12 text-muted-foreground">กำลังโหลด...</div>
+        ) : filtered.length === 0 ? (
+          <div className="text-center py-12 text-muted-foreground">ไม่พบลูกค้า</div>
+        ) : (
+          <div className="divide-y">
+            {filtered.map(account => {
               const primaryContact = contacts.find(c => c.account_id === account.id);
               return (
-                <TableRow
+                <div
                   key={account.id}
-                  className="cursor-pointer hover:bg-muted/50 transition-colors"
+                  className="grid grid-cols-[1fr_160px_110px_80px_70px_120px_70px] gap-2 px-4 py-4 items-center cursor-pointer hover:bg-muted/40 transition-colors"
                   onClick={() => navigate(`/leads/${account.id}`)}
                 >
-                  <TableCell>
-                    <div className="flex items-center gap-3">
-                      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-primary/10 text-primary">
-                        <Building2 size={16} />
-                      </div>
-                      <div className="min-w-0">
-                        <p className="text-sm font-medium text-foreground truncate">{account.clinic_name}</p>
-                        {account.address && (
-                          <p className="text-xs text-muted-foreground truncate max-w-[180px]">{account.address}</p>
-                        )}
-                      </div>
+                  {/* คลินิก */}
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-muted text-muted-foreground">
+                      <Building2 size={16} />
                     </div>
-                  </TableCell>
-                  <TableCell>
+                    <div className="min-w-0">
+                      <p className="text-sm font-semibold text-foreground truncate">{account.clinic_name}</p>
+                      {account.address && (
+                        <p className="text-xs text-muted-foreground truncate">{account.address}</p>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* ผู้ติดต่อ */}
+                  <div className="min-w-0">
                     {primaryContact ? (
-                      <div>
-                        <p className="text-sm text-foreground">{primaryContact.name}</p>
+                      <>
+                        <p className="text-sm font-medium text-foreground truncate">{primaryContact.name}</p>
                         {primaryContact.phone && (
                           <p className="text-xs text-muted-foreground">{primaryContact.phone}</p>
                         )}
-                      </div>
+                      </>
                     ) : (
                       <span className="text-xs text-muted-foreground">-</span>
                     )}
-                  </TableCell>
-                  <TableCell>
+                  </div>
+
+                  {/* สถานะ */}
+                  <div>
                     <StatusBadge status={account.customer_status} />
-                  </TableCell>
-                  <TableCell>
-                    <span className="text-sm text-foreground">{account.assigned_sale || '-'}</span>
-                  </TableCell>
-                  <TableCell>
-                    {account.grade && parseInt(account.grade) > 0 ? (
-                      <div className="flex gap-0.5">
-                        {[1, 2, 3].map(s => (
-                          <Star key={s} size={14} className={s <= parseInt(account.grade!) ? 'fill-yellow-400 text-yellow-400' : 'fill-muted text-muted-foreground/30'} />
-                        ))}
-                      </div>
-                    ) : (
-                      <span className="text-sm text-muted-foreground">-</span>
-                    )}
-                  </TableCell>
-                  <TableCell>
-                    <span className="text-sm text-muted-foreground">{account.lead_source || '-'}</span>
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <span className="text-xs text-muted-foreground">{daysSince(account.created_at)}</span>
-                  </TableCell>
-                </TableRow>
+                  </div>
+
+                  {/* เซลล์ */}
+                  <span className="text-sm font-medium text-foreground uppercase truncate">
+                    {account.assigned_sale || '-'}
+                  </span>
+
+                  {/* เกรด */}
+                  <span className="text-sm text-muted-foreground">-</span>
+
+                  {/* แหล่งที่มา */}
+                  <span className="text-sm text-muted-foreground truncate">{account.lead_source || '-'}</span>
+
+                  {/* สร้างเมื่อ */}
+                  <span className="text-xs text-muted-foreground text-right">{daysSince(account.created_at)}</span>
+                </div>
               );
             })}
-            {!loading && filtered.length === 0 && (
-              <TableRow>
-                <TableCell colSpan={7} className="text-center py-12 text-muted-foreground">
-                  ไม่พบลูกค้า
-                </TableCell>
-              </TableRow>
-            )}
-          </TableBody>
-        </Table>
+          </div>
+        )}
       </div>
 
       {/* Add/Edit Dialog */}
@@ -403,7 +393,7 @@ export default function LeadsPage() {
               <Input value={form.company_name || ''} onChange={e => updateField('company_name', e.target.value)} />
             </div>
 
-            {/* ผู้ติดต่อหลัก - ย้ายมาอยู่ใต้ชื่อคลินิก/บริษัท */}
+            {/* ผู้ติดต่อหลัก */}
             {!editingAccount && (
               <div className="sm:col-span-2 space-y-3 p-3 rounded-md border border-primary/30 bg-primary/5">
                 <p className="text-sm font-medium text-foreground">ผู้ติดต่อหลัก <span className="text-destructive">*</span></p>
@@ -467,7 +457,7 @@ export default function LeadsPage() {
               <Select value={form.customer_status || 'NEW_LEAD'} onValueChange={v => updateField('customer_status', v)}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  {STATUS_OPTIONS.filter(s => s.value !== 'ALL' && s.value !== 'FOLLOW_UP').map(s => (
+                  {STATUS_OPTIONS.filter(s => s.value !== 'ALL').map(s => (
                     <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>
                   ))}
                 </SelectContent>
@@ -483,7 +473,7 @@ export default function LeadsPage() {
               </Select>
             </div>
 
-            {/* แหล่งที่มา - Dropdown with custom option */}
+            {/* แหล่งที่มา */}
             <div className="space-y-1.5">
               <Label>แหล่งที่มา</Label>
               <Select value={form.lead_source || ''} onValueChange={v => updateField('lead_source', v)}>
@@ -503,7 +493,7 @@ export default function LeadsPage() {
               )}
             </div>
 
-            {/* เกรด - Star Rating */}
+            {/* เกรด */}
             <div className="space-y-1.5">
               <Label>เกรด</Label>
               <StarRating
@@ -512,7 +502,7 @@ export default function LeadsPage() {
               />
             </div>
 
-            {/* เครื่องที่มีอยู่แล้ว - Multiple choice */}
+            {/* เครื่องที่มีอยู่แล้ว */}
             <div className="space-y-1.5 sm:col-span-2">
               <Label>เครื่องที่มีอยู่แล้ว</Label>
               <Popover>
