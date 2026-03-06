@@ -7,10 +7,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Checkbox } from '@/components/ui/checkbox';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Phone, Users, Building2, Target, Presentation, ChevronDown, ChevronUp, CalendarIcon } from 'lucide-react';
+import { Phone, Users, Building2, Target, Presentation, ChevronDown, ChevronUp, CalendarIcon, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
+import { useMockAuth, MOCK_SALES } from '@/hooks/useMockAuth';
 import type { Activity, ActivityType, ActivityPriority } from '@/types';
 
 const TIME_OPTIONS = Array.from({ length: 96 }, (_, i) => {
