@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Slider } from '@/components/ui/slider';
+
 import StatusBadge from '@/components/ui/StatusBadge';
 import { toast } from 'sonner';
 import { ExternalLink, Users, AlertTriangle, X, UserPlus } from 'lucide-react';
@@ -15,10 +15,6 @@ import { supabase } from '@/integrations/supabase/client';
 import type { Account, OpportunityStage, Opportunity } from '@/types';
 import { differenceInDays } from 'date-fns';
 
-const STAGE_PROBABILITY: Record<string, number> = {
-  NEW_LEAD: 10, CONTACTED: 20, DEMO_SCHEDULED: 40, DEMO_DONE: 60,
-  NEGOTIATION: 75, WON: 100, LOST: 0,
-};
 
 const BUDGET_RANGES = [
   { value: '<500K', label: 'ต่ำกว่า 500K' },
@@ -63,31 +59,66 @@ interface CreateOpportunityFormProps {
   onSave: (data: Opportunity) => void;
 }
 
-function TagChipInput({ label, tags, onChange, placeholder }: { label: string; tags: string[]; onChange: (t: string[]) => void; placeholder?: string }) {
-  const [input, setInput] = useState('');
-  const addTag = (tag: string) => {
-    const t = tag.trim();
-    if (t && !tags.includes(t)) onChange([...tags, t]);
-    setInput('');
+const DEFAULT_COMPETITORS = ['Ultherapy', 'Thermage', 'HIFU (อื่นๆ)', 'Sofwave', 'Morpheus8'];
+const DEFAULT_CURRENT_DEVICES = ['Doublo Gold', 'Ultraformer III', 'HIFU เก่า', 'Thermage FLX', 'Profound Matrix'];
+
+function MultiSelectWithCustom({ label, options: defaultOptions, selected, onChange, placeholder }: {
+  label: string; options: string[]; selected: string[]; onChange: (v: string[]) => void; placeholder?: string;
+}) {
+  const [customInput, setCustomInput] = useState('');
+  const [allOptions, setAllOptions] = useState(defaultOptions);
+
+  useEffect(() => {
+    // Ensure selected items that aren't in defaults are added to options
+    const extras = selected.filter(s => !defaultOptions.includes(s));
+    if (extras.length > 0) setAllOptions([...defaultOptions, ...extras]);
+  }, []);
+
+  const toggle = (item: string) => {
+    onChange(selected.includes(item) ? selected.filter(s => s !== item) : [...selected, item]);
   };
+
+  const addCustom = () => {
+    const t = customInput.trim();
+    if (!t) return;
+    if (!allOptions.includes(t)) setAllOptions(prev => [...prev, t]);
+    if (!selected.includes(t)) onChange([...selected, t]);
+    setCustomInput('');
+  };
+
   return (
     <div className="space-y-1.5">
       <Label className="text-xs">{label}</Label>
-      <div className="flex flex-wrap gap-1.5 mb-1.5">
-        {tags.map(t => (
-          <span key={t} className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-primary/10 text-primary text-xs font-medium">
-            {t}
-            <button onClick={() => onChange(tags.filter(x => x !== t))} className="hover:text-destructive"><X size={10} /></button>
-          </span>
+      {selected.length > 0 && (
+        <div className="flex flex-wrap gap-1.5 mb-1">
+          {selected.map(t => (
+            <span key={t} className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-primary/10 text-primary text-xs font-medium">
+              {t}
+              <button onClick={() => onChange(selected.filter(x => x !== t))} className="hover:text-destructive"><X size={10} /></button>
+            </span>
+          ))}
+        </div>
+      )}
+      <div className="border rounded-md max-h-[120px] overflow-y-auto p-2 space-y-1">
+        {allOptions.map(opt => (
+          <label key={opt} className="flex items-center gap-2 px-2 py-1 rounded hover:bg-muted/50 cursor-pointer">
+            <Checkbox checked={selected.includes(opt)} onCheckedChange={() => toggle(opt)} />
+            <span className="text-xs">{opt}</span>
+          </label>
         ))}
       </div>
-      <Input
-        value={input}
-        onChange={e => setInput(e.target.value)}
-        onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); addTag(input); } }}
-        className="h-8 text-xs"
-        placeholder={placeholder || 'พิมพ์แล้วกด Enter'}
-      />
+      <div className="flex gap-1.5">
+        <Input
+          value={customInput}
+          onChange={e => setCustomInput(e.target.value)}
+          onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); addCustom(); } }}
+          className="h-7 text-xs flex-1"
+          placeholder={placeholder || 'เพิ่มรายการใหม่...'}
+        />
+        <Button type="button" variant="outline" size="sm" className="h-7 text-xs px-2" onClick={addCustom} disabled={!customInput.trim()}>
+          เพิ่ม
+        </Button>
+      </div>
     </div>
   );
 }
@@ -104,7 +135,6 @@ export default function CreateOpportunityForm({ open, onOpenChange, customer, on
     selectedProductIds: [] as string[],
     deal_value: '',
     stage: '' as OpportunityStage | '',
-    probability: 10,
     close_date: '',
     notes: '',
     budget_range: '',
@@ -139,10 +169,6 @@ export default function CreateOpportunityForm({ open, onOpenChange, customer, on
 
   const currentStage = form.stage || 'NEW_LEAD';
 
-  useEffect(() => {
-    const stageProbability = STAGE_PROBABILITY[currentStage] ?? 10;
-    set('probability', stageProbability);
-  }, [currentStage]);
 
   const closeDateDays = form.close_date
     ? differenceInDays(new Date(form.close_date), new Date())
@@ -187,7 +213,6 @@ export default function CreateOpportunityForm({ open, onOpenChange, customer, on
       assigned_sale: customer.assigned_sale || undefined,
       close_date: form.close_date || undefined,
       notes: form.notes || undefined,
-      probability: form.probability,
       budget_range: form.budget_range || undefined,
       payment_method: paymentMethodFull || undefined,
       competitors: form.competitors.join(', ') || undefined,
@@ -205,7 +230,7 @@ export default function CreateOpportunityForm({ open, onOpenChange, customer, on
 
   const resetForm = () => setForm({
     selectedProductIds: [], deal_value: '',
-    stage: '', probability: 10, close_date: '', notes: '',
+    stage: '', close_date: '', notes: '',
     budget_range: '', payment_method: '', credit_card_option: '',
     competitors: [], current_devices: [],
     authority_contact_id: '',
@@ -339,39 +364,23 @@ export default function CreateOpportunityForm({ open, onOpenChange, customer, on
             <Input type="number" value={form.deal_value} onChange={e => set('deal_value', e.target.value)} className="h-9 text-xs" placeholder="0" />
           </div>
 
-          {/* Stage + Probability */}
-          <div className="space-y-3">
-            <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-1.5">
-                <Label className="text-xs">ขั้นตอน</Label>
-                <Select value={currentStage} onValueChange={v => set('stage', v)}>
-                  <SelectTrigger className="h-9 text-xs"><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    {([
-                      { value: 'NEW_LEAD', label: 'นัดพบ/ค้นหา Need' },
-                      { value: 'CONTACTED', label: 'Demo Schedule' },
-                      { value: 'DEMO_SCHEDULED', label: 'Demo/Workshop' },
-                      { value: 'DEMO_DONE', label: 'Proposal Sent' },
-                      { value: 'NEGOTIATION', label: 'Negotiation' },
-                    ]).map(s => (
-                      <SelectItem key={s.value} value={s.value} className="text-xs">{s.label}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-1.5">
-                <Label className="text-xs">Probability: {form.probability}%</Label>
-                <div className="pt-2 px-1">
-                  <Slider
-                    value={[form.probability]}
-                    onValueChange={([v]) => set('probability', v)}
-                    min={0}
-                    max={100}
-                    step={5}
-                  />
-                </div>
-              </div>
-            </div>
+          {/* Stage */}
+          <div className="space-y-1.5">
+            <Label className="text-xs">ขั้นตอน</Label>
+            <Select value={currentStage} onValueChange={v => set('stage', v)}>
+              <SelectTrigger className="h-9 text-xs"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                {([
+                  { value: 'NEW_LEAD', label: 'นัดพบ/ค้นหา Need' },
+                  { value: 'CONTACTED', label: 'Demo Schedule' },
+                  { value: 'DEMO_SCHEDULED', label: 'Demo/Workshop' },
+                  { value: 'DEMO_DONE', label: 'Proposal Sent' },
+                  { value: 'NEGOTIATION', label: 'Negotiation' },
+                ]).map(s => (
+                  <SelectItem key={s.value} value={s.value} className="text-xs">{s.label}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           {/* วันปิดคาดการณ์ + ระยะเวลา */}
@@ -426,20 +435,22 @@ export default function CreateOpportunityForm({ open, onOpenChange, customer, on
               </div>
             )}
 
-            {/* คู่แข่ง — tag chips */}
-            <TagChipInput
+            {/* คู่แข่ง — multi-select */}
+            <MultiSelectWithCustom
               label="คู่แข่งที่เปรียบเทียบ"
-              tags={form.competitors}
+              options={DEFAULT_COMPETITORS}
+              selected={form.competitors}
               onChange={t => set('competitors', t)}
-              placeholder="เช่น Ultherapy, Thermage..."
+              placeholder="เพิ่มคู่แข่งใหม่..."
             />
 
-            {/* เครื่องปัจจุบัน — tag chips */}
-            <TagChipInput
+            {/* เครื่องปัจจุบัน — multi-select */}
+            <MultiSelectWithCustom
               label="เครื่องที่ใช้อยู่ปัจจุบัน"
-              tags={form.current_devices}
+              options={DEFAULT_CURRENT_DEVICES}
+              selected={form.current_devices}
               onChange={t => set('current_devices', t)}
-              placeholder="เช่น Doublo Gold, HIFU เก่า..."
+              placeholder="เพิ่มเครื่องใหม่..."
             />
           </div>
 
