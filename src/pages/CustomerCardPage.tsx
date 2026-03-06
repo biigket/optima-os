@@ -22,7 +22,7 @@ import {
   ChevronDown, LayoutDashboard, Clock, FileText,
   ShoppingCart, Wrench, Receipt, FolderOpen, Megaphone,
   Eye, Presentation, FileCheck, GraduationCap,
-  Phone as PhoneIcon
+  Phone as PhoneIcon, Star
 } from 'lucide-react';
 import {
   getLifetimeRevenue, getDevicesForAccount, getVisitsForAccount,
@@ -197,11 +197,35 @@ export default function CustomerCardPage() {
               <h1 className="text-lg md:text-xl font-bold text-foreground">{account.clinic_name}</h1>
               <StatusBadge status={account.customer_status} />
             </div>
-            <div className="flex items-center gap-2 flex-wrap">
-              {account.grade && <Badge variant="outline" className="text-xs">เกรด {account.grade}</Badge>}
-              {account.grade && <Badge variant="secondary" className="text-xs">Potential: {POTENTIAL_MAP[account.grade || 'C']}</Badge>}
-              
-              {account.single_or_chain && <Badge variant="outline" className="text-xs">{account.single_or_chain === 'CHAIN' ? '🏢 เครือ' : '🏠 สาขาเดียว'}</Badge>}
+            <div className="flex items-center gap-1 ml-1">
+              {[1, 2, 3].map((star) => {
+                const gradeMap: Record<string, number> = { C: 1, B: 2, A: 3 };
+                const currentStars = gradeMap[account.grade || ''] || 0;
+                const filled = star <= currentStars;
+                return (
+                  <button
+                    key={star}
+                    onClick={async () => {
+                      const reverseMap: Record<number, string> = { 1: 'C', 2: 'B', 3: 'A' };
+                      const newGrade = star === currentStars ? null : reverseMap[star];
+                      const { error } = await supabase.from('accounts').update({ grade: newGrade }).eq('id', account.id);
+                      if (!error) {
+                        setAccount(prev => prev ? { ...prev, grade: newGrade } : prev);
+                        toast.success('อัปเดตเกรดแล้ว');
+                      }
+                    }}
+                    className="p-0 hover:scale-125 transition-transform"
+                  >
+                    <Star
+                      size={18}
+                      className={cn(
+                        'transition-colors',
+                        filled ? 'fill-amber-400 text-amber-400' : 'text-muted-foreground/30'
+                      )}
+                    />
+                  </button>
+                );
+              })}
             </div>
             {account.company_name && <p className="text-xs text-muted-foreground">บริษัท: {account.company_name}</p>}
           </div>
