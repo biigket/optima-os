@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Slider } from '@/components/ui/slider';
+
 import StatusBadge from '@/components/ui/StatusBadge';
 import { toast } from 'sonner';
 import { ExternalLink, Users, AlertTriangle, X, UserPlus } from 'lucide-react';
@@ -15,10 +15,6 @@ import { supabase } from '@/integrations/supabase/client';
 import type { Account, OpportunityStage, Opportunity } from '@/types';
 import { differenceInDays } from 'date-fns';
 
-const STAGE_PROBABILITY: Record<string, number> = {
-  NEW_LEAD: 10, CONTACTED: 20, DEMO_SCHEDULED: 40, DEMO_DONE: 60,
-  NEGOTIATION: 75, WON: 100, LOST: 0,
-};
 
 const BUDGET_RANGES = [
   { value: '<500K', label: 'ต่ำกว่า 500K' },
