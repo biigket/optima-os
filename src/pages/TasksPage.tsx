@@ -339,69 +339,179 @@ export default function TasksPage() {
         </TabsContent>
 
         <TabsContent value="calendar">
-          <div className="rounded-lg border bg-card p-4 tasks-calendar">
-            <FullCalendar
-              plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
-              initialView="timeGridWeek"
-              headerToolbar={{
-                left: 'prev,next today',
-                center: 'title',
-                right: 'dayGridMonth,timeGridWeek,timeGridDay',
-              }}
-              locale="th"
-              events={calendarEvents}
-              editable={true}
-              droppable={true}
-              eventDrop={handleEventDrop}
-              eventResize={handleEventResize}
-              eventClick={handleEventClick}
-              height="auto"
-              slotDuration="00:15:00"
-              snapDuration="00:15:00"
-              slotMinTime="07:00:00"
-              slotMaxTime="21:00:00"
-              eventContent={(arg) => {
-                const props = arg.event.extendedProps as ActivityRow;
-                const config = activityTypeConfig[props.activity_type] || activityTypeConfig.TASK;
-                const TypeIcon = config.icon;
-                return (
-                  <div className="px-1.5 py-1 text-xs">
-                    <div className="flex items-center gap-1.5">
-                      <TypeIcon size={12} style={{ color: config.color }} className="shrink-0" />
-                      <span className="font-semibold truncate flex-1">{arg.event.title}</span>
-                      <div className="flex items-center gap-1 shrink-0">
-                        {props.priority === 'HIGH' && <ArrowUp size={12} className="text-destructive" />}
-                        {!props.is_done ? (
-                          <button onClick={(e) => { e.stopPropagation(); markDone(props.id); }} className="text-muted-foreground hover:text-success">
-                            <Circle size={13} />
-                          </button>
-                        ) : (
-                          <CheckCircle2 size={13} className="text-success" />
+          <div className="flex gap-4">
+            {/* Left sidebar: mini month calendar */}
+            <div className="hidden md:block w-[220px] shrink-0 space-y-4">
+              <div className="rounded-lg border bg-card p-3">
+                <div className="flex items-center justify-between mb-2">
+                  <button onClick={() => setMiniMonth(prev => subMonths(prev, 1))} className="p-1 hover:bg-muted rounded text-muted-foreground">
+                    <ChevronLeft size={16} />
+                  </button>
+                  <span className="text-sm font-semibold text-foreground">
+                    {format(miniMonth, 'MMMM yyyy', { locale: th })}
+                  </span>
+                  <button onClick={() => setMiniMonth(prev => addMonths(prev, 1))} className="p-1 hover:bg-muted rounded text-muted-foreground">
+                    <ChevronRight size={16} />
+                  </button>
+                </div>
+                <div className="grid grid-cols-7 text-center mb-1">
+                  {['อา', 'จ', 'อ', 'พ', 'พฤ', 'ศ', 'ส'].map(d => (
+                    <div key={d} className="text-[10px] font-medium text-muted-foreground py-1">{d}</div>
+                  ))}
+                </div>
+                <div className="grid grid-cols-7 text-center">
+                  {(() => {
+                    const monthStart = startOfMonth(miniMonth);
+                    const monthEnd = endOfMonth(miniMonth);
+                    const calStart = startOfWeek(monthStart, { weekStartsOn: 0 });
+                    const calEnd = endOfWeek(monthEnd, { weekStartsOn: 0 });
+                    const days: Date[] = [];
+                    let day = calStart;
+                    while (day <= calEnd) { days.push(day); day = addDays(day, 1); }
+                    return days.map((d, i) => {
+                      const inMonth = isSameMonth(d, miniMonth);
+                      const selected = isSameDay(d, selectedDate);
+                      const today = isDateToday(d);
+                      return (
+                        <button
+                          key={i}
+                          onClick={() => {
+                            setSelectedDate(d);
+                            const api = calendarRef.current?.getApi();
+                            if (api) { api.gotoDate(d); }
+                          }}
+                          className={`text-[11px] py-1 rounded-full w-7 h-7 mx-auto flex items-center justify-center transition-colors
+                            ${!inMonth ? 'text-muted-foreground/40' : 'text-foreground'}
+                            ${selected ? 'bg-accent text-accent-foreground font-bold' : ''}
+                            ${today && !selected ? 'bg-accent/20 font-semibold' : ''}
+                            ${!selected ? 'hover:bg-muted' : ''}
+                          `}
+                        >
+                          {format(d, 'd')}
+                        </button>
+                      );
+                    });
+                  })()}
+                </div>
+              </div>
+              {isAdmin && (
+                <div className="rounded-lg border bg-card p-3">
+                  <div className="text-xs font-medium text-muted-foreground mb-2">กรองตามพนักงาน</div>
+                  <Select value={assigneeFilter} onValueChange={setAssigneeFilter}>
+                    <SelectTrigger className="w-full h-8 text-xs">
+                      <SelectValue placeholder="ทั้งหมด" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="ALL">ทั้งหมด</SelectItem>
+                      {uniqueAssignees.map(name => (
+                        <SelectItem key={name} value={name}>{name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+            </div>
+
+            {/* Main calendar */}
+            <div className="flex-1 rounded-lg border bg-card tasks-calendar overflow-hidden">
+              <div className="flex items-center justify-between px-4 py-3 border-b bg-card">
+                <div className="flex items-center gap-2">
+                  <Button variant="outline" size="sm" onClick={() => {
+                    const today = new Date();
+                    setSelectedDate(today);
+                    setMiniMonth(today);
+                    calendarRef.current?.getApi().today();
+                  }}>
+                    Today
+                  </Button>
+                  <button onClick={() => { calendarRef.current?.getApi().prev(); setSelectedDate(calendarRef.current?.getApi().getDate() || new Date()); }} className="p-1.5 hover:bg-muted rounded text-muted-foreground">
+                    <ChevronLeft size={18} />
+                  </button>
+                  <button onClick={() => { calendarRef.current?.getApi().next(); setSelectedDate(calendarRef.current?.getApi().getDate() || new Date()); }} className="p-1.5 hover:bg-muted rounded text-muted-foreground">
+                    <ChevronRight size={18} />
+                  </button>
+                  <h2 className="text-base font-semibold text-foreground ml-2">
+                    {format(selectedDate, 'd MMMM yyyy', { locale: th })}
+                  </h2>
+                </div>
+                <div className="flex items-center rounded-lg border overflow-hidden">
+                  <button
+                    onClick={() => { setCalendarView('timeGridWeek'); calendarRef.current?.getApi().changeView('timeGridWeek'); }}
+                    className={`px-3 py-1.5 text-xs font-medium transition-colors ${calendarView === 'timeGridWeek' ? 'bg-accent text-accent-foreground' : 'text-muted-foreground hover:bg-muted'}`}
+                  >
+                    Week
+                  </button>
+                  <button
+                    onClick={() => { setCalendarView('timeGridDay'); calendarRef.current?.getApi().changeView('timeGridDay'); }}
+                    className={`px-3 py-1.5 text-xs font-medium transition-colors ${calendarView === 'timeGridDay' ? 'bg-accent text-accent-foreground' : 'text-muted-foreground hover:bg-muted'}`}
+                  >
+                    Day
+                  </button>
+                </div>
+              </div>
+              <div className="p-2">
+                <FullCalendar
+                  ref={calendarRef}
+                  plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
+                  initialView={calendarView}
+                  headerToolbar={false}
+                  locale="th"
+                  events={calendarEvents}
+                  editable={true}
+                  droppable={true}
+                  eventDrop={handleEventDrop}
+                  eventResize={handleEventResize}
+                  eventClick={handleEventClick}
+                  height="auto"
+                  slotDuration="00:15:00"
+                  snapDuration="00:15:00"
+                  slotMinTime="07:00:00"
+                  slotMaxTime="21:00:00"
+                  datesSet={(info) => { setSelectedDate(info.start); setMiniMonth(info.start); }}
+                  eventContent={(arg) => {
+                    const props = arg.event.extendedProps as ActivityRow;
+                    const config = activityTypeConfig[props.activity_type] || activityTypeConfig.TASK;
+                    const TypeIcon = config.icon;
+                    return (
+                      <div className="px-1.5 py-1 text-xs">
+                        <div className="flex items-center gap-1.5">
+                          <TypeIcon size={12} style={{ color: config.color }} className="shrink-0" />
+                          <span className="font-semibold truncate flex-1">{arg.event.title}</span>
+                          <div className="flex items-center gap-1 shrink-0">
+                            {props.priority === 'HIGH' && <ArrowUp size={12} className="text-destructive" />}
+                            {!props.is_done ? (
+                              <button onClick={(e) => { e.stopPropagation(); markDone(props.id); }} className="text-muted-foreground hover:text-success">
+                                <Circle size={13} />
+                              </button>
+                            ) : (
+                              <CheckCircle2 size={13} className="text-success" />
+                            )}
+                          </div>
+                        </div>
+                        {props.clinic_name && (
+                          <div className="text-[10px] text-muted-foreground mt-0.5 ml-5 truncate">{props.clinic_name}</div>
+                        )}
+                        {props.contact_name && (
+                          <div className="text-[10px] text-muted-foreground mt-0.5 ml-5 flex items-center gap-1">
+                            <span className="truncate">{props.contact_name}</span>
+                            {props.contact_phone && (
+                              <a href={`tel:${props.contact_phone}`} onClick={e => e.stopPropagation()} className="text-primary hover:text-primary/80 shrink-0">
+                                <Phone size={10} />
+                              </a>
+                            )}
+                          </div>
+                        )}
+                        {props.start_time && (
+                          <div className="text-[10px] text-muted-foreground mt-0.5 ml-5">
+                            {formatTime12(props.start_time)}{props.end_time ? ` → ${formatTime12(props.end_time)}` : ''}
+                          </div>
                         )}
                       </div>
-                    </div>
-                    {props.clinic_name && (
-                      <div className="text-[10px] text-muted-foreground mt-0.5 ml-5 truncate">{props.clinic_name}</div>
-                    )}
-                    {props.contact_name && (
-                      <div className="text-[10px] text-muted-foreground mt-0.5 ml-5 flex items-center gap-1">
-                        <span className="truncate">{props.contact_name}</span>
-                        {props.contact_phone && (
-                          <a href={`tel:${props.contact_phone}`} onClick={e => e.stopPropagation()} className="text-primary hover:text-primary/80 shrink-0">
-                            <Phone size={10} />
-                          </a>
-                        )}
-                      </div>
-                    )}
-                    {props.start_time && (
-                      <div className="text-[10px] text-muted-foreground mt-0.5 ml-5">
-                        {formatTime12(props.start_time)}{props.end_time ? ` → ${formatTime12(props.end_time)}` : ''}
-                      </div>
-                    )}
-                  </div>
-                );
-              }}
-            />
+                    );
+                  }}
+                />
+              </div>
+            </div>
           </div>
         </TabsContent>
       </Tabs>
