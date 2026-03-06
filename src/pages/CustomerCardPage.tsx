@@ -247,7 +247,28 @@ export default function CustomerCardPage() {
             {account.tax_id && <InfoItem label="เลขผู้เสียภาษี" value={account.tax_id} />}
             {account.entity_type && <InfoItem label="ประเภทนิติบุคคล" value={account.entity_type} />}
             {account.branch_type && <InfoItem label="ประเภทสาขา" value={account.branch_type} />}
-            {account.assigned_sale && <InfoItem label="เซลล์ดูแล" value={account.assigned_sale} />}
+            <div className="flex items-start gap-1.5 text-xs">
+              <span className="text-muted-foreground shrink-0 min-w-[80px]">เซลล์ดูแล</span>
+              <Select
+                value={account.assigned_sale || ''}
+                onValueChange={async (newSale) => {
+                  const { error: accErr } = await supabase.from('accounts').update({ assigned_sale: newSale }).eq('id', account.id);
+                  if (accErr) { toast.error('อัปเดตเซลล์ไม่สำเร็จ'); return; }
+                  const { error: oppErr } = await supabase.from('opportunities').update({ assigned_sale: newSale }).eq('account_id', account.id);
+                  if (oppErr) { toast.error('อัปเดตดีลไม่สำเร็จ'); return; }
+                  setAccount(prev => prev ? { ...prev, assigned_sale: newSale } : prev);
+                  setOpportunities(prev => prev.map(o => ({ ...o, assigned_sale: newSale })));
+                  toast.success(`เปลี่ยนเซลล์เป็น ${newSale} แล้ว (รวมดีลทั้งหมด)`);
+                }}
+              >
+                <SelectTrigger className="h-6 text-xs w-auto min-w-[100px] border-dashed">
+                  <SelectValue placeholder="ยังไม่ระบุ" />
+                </SelectTrigger>
+                <SelectContent>
+                  {MOCK_SALES.map(s => <SelectItem key={s.id} value={s.name}>{s.name}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
             {account.lead_source && <InfoItem label="แหล่งที่มา" value={account.lead_source} />}
             {account.current_devices && <InfoItem label="อุปกรณ์ที่มี" value={account.current_devices} />}
           </div>
@@ -656,39 +677,6 @@ export default function CustomerCardPage() {
                   <SelectItem value="NEGOTIATION">เจรจา</SelectItem>
                   <SelectItem value="PURCHASED">ซื้อแล้ว</SelectItem>
                   <SelectItem value="DORMANT">ไม่เคลื่อนไหว</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-1.5">
-              <Label>เซลล์ผู้ดูแล</Label>
-              <Select value={editForm.assigned_sale || ''} onValueChange={v => setEditForm(f => ({ ...f, assigned_sale: v }))}>
-                <SelectTrigger><SelectValue placeholder="เลือกเซลล์" /></SelectTrigger>
-                <SelectContent>
-                  {MOCK_SALES.map(s => <SelectItem key={s.id} value={s.name}>{s.name}</SelectItem>)}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-1.5">
-              <Label>แหล่งที่มา</Label>
-              <Select value={editForm.lead_source || ''} onValueChange={v => setEditForm(f => ({ ...f, lead_source: v }))}>
-                <SelectTrigger><SelectValue placeholder="เลือกแหล่งที่มา" /></SelectTrigger>
-                <SelectContent>
-                  {['เพื่อนแนะนำ', 'Social media', 'งานแสดงสินค้า'].map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
-                  <SelectItem value="OTHER">อื่นๆ (ระบุเอง)</SelectItem>
-                </SelectContent>
-              </Select>
-              {editForm.lead_source === 'OTHER' && (
-                <Input className="mt-1.5" value={editForm.custom_lead_source || ''} onChange={e => setEditForm(f => ({ ...f, custom_lead_source: e.target.value }))} placeholder="ระบุแหล่งที่มา..." />
-              )}
-            </div>
-            <div className="space-y-1.5">
-              <Label>เกรด</Label>
-              <Select value={editForm.grade || ''} onValueChange={v => setEditForm(f => ({ ...f, grade: v }))}>
-                <SelectTrigger><SelectValue placeholder="เลือก" /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="1">1</SelectItem>
-                  <SelectItem value="2">2</SelectItem>
-                  <SelectItem value="3">3</SelectItem>
                 </SelectContent>
               </Select>
             </div>
