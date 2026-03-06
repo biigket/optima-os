@@ -102,6 +102,9 @@ export default function CustomerCardPage() {
   const [loading, setLoading] = useState(true);
   const [addContactOpen, setAddContactOpen] = useState(false);
   const [newContact, setNewContact] = useState({ name: '', role: '', phone: '', email: '' });
+  const [editContactOpen, setEditContactOpen] = useState(false);
+  const [editingContact, setEditingContact] = useState<LocalContact | null>(null);
+  const [editContactForm, setEditContactForm] = useState({ name: '', role: '', phone: '', email: '' });
 
   const handleSubmit = async () => {
     if (!editForm.clinic_name?.trim()) {
