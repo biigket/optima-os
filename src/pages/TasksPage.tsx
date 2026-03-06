@@ -288,6 +288,8 @@ export default function TasksPage() {
               eventDrop={handleEventDrop}
               eventResize={handleEventResize}
               height="auto"
+              slotDuration="00:15:00"
+              snapDuration="00:15:00"
               slotMinTime="07:00:00"
               slotMaxTime="21:00:00"
               eventContent={(arg) => {
