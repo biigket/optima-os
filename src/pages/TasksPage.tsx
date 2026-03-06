@@ -432,14 +432,17 @@ export default function TasksPage() {
                   <button onClick={() => { calendarRef.current?.getApi().next(); setSelectedDate(calendarRef.current?.getApi().getDate() || new Date()); }} className="p-1 hover:bg-muted rounded text-muted-foreground shrink-0">
                     <ChevronRight size={16} />
                   </button>
-                  <h2 className="text-xs sm:text-sm font-semibold text-foreground truncate">
+                  <button
+                    onClick={() => setShowMobileMiniCal(prev => !prev)}
+                    className="lg:pointer-events-none text-xs sm:text-sm font-semibold text-foreground truncate hover:bg-muted lg:hover:bg-transparent px-1.5 py-0.5 rounded"
+                  >
                     {format(selectedDate, 'd MMM yyyy', { locale: th })}
-                  </h2>
+                  </button>
                 </div>
                 <div className="flex items-center rounded-lg border overflow-hidden shrink-0">
                   <button
                     onClick={() => { setCalendarView('timeGridWeek'); calendarRef.current?.getApi().changeView('timeGridWeek'); }}
-                    className={`px-2 sm:px-3 py-1 sm:py-1.5 text-[11px] sm:text-xs font-medium transition-colors ${calendarView === 'timeGridWeek' ? 'bg-accent text-accent-foreground' : 'text-muted-foreground hover:bg-muted'}`}
+                    className={`hidden lg:block px-3 py-1.5 text-xs font-medium transition-colors ${calendarView === 'timeGridWeek' ? 'bg-accent text-accent-foreground' : 'text-muted-foreground hover:bg-muted'}`}
                   >
                     Week
                   </button>
@@ -451,6 +454,64 @@ export default function TasksPage() {
                   </button>
                 </div>
               </div>
+
+              {/* Mobile mini calendar popup */}
+              {showMobileMiniCal && (
+                <div className="lg:hidden border-b bg-card p-3">
+                  <div className="max-w-[260px] mx-auto">
+                    <div className="flex items-center justify-between mb-2">
+                      <button onClick={() => setMiniMonth(prev => subMonths(prev, 1))} className="p-1 hover:bg-muted rounded text-muted-foreground">
+                        <ChevronLeft size={16} />
+                      </button>
+                      <span className="text-sm font-semibold text-foreground">
+                        {format(miniMonth, 'MMMM yyyy', { locale: th })}
+                      </span>
+                      <button onClick={() => setMiniMonth(prev => addMonths(prev, 1))} className="p-1 hover:bg-muted rounded text-muted-foreground">
+                        <ChevronRight size={16} />
+                      </button>
+                    </div>
+                    <div className="grid grid-cols-7 text-center mb-1">
+                      {['อา', 'จ', 'อ', 'พ', 'พฤ', 'ศ', 'ส'].map(d => (
+                        <div key={d} className="text-[10px] font-medium text-muted-foreground py-1">{d}</div>
+                      ))}
+                    </div>
+                    <div className="grid grid-cols-7 text-center">
+                      {(() => {
+                        const monthStart = startOfMonth(miniMonth);
+                        const monthEnd = endOfMonth(miniMonth);
+                        const calStart = startOfWeek(monthStart, { weekStartsOn: 0 });
+                        const calEnd = endOfWeek(monthEnd, { weekStartsOn: 0 });
+                        const days: Date[] = [];
+                        let day = calStart;
+                        while (day <= calEnd) { days.push(day); day = addDays(day, 1); }
+                        return days.map((d, i) => {
+                          const inMonth = isSameMonth(d, miniMonth);
+                          const selected = isSameDay(d, selectedDate);
+                          const today = isDateToday(d);
+                          return (
+                            <button
+                              key={i}
+                              onClick={() => {
+                                setSelectedDate(d);
+                                calendarRef.current?.getApi().gotoDate(d);
+                                setShowMobileMiniCal(false);
+                              }}
+                              className={`text-[11px] py-1 rounded-full w-8 h-8 mx-auto flex items-center justify-center transition-colors
+                                ${!inMonth ? 'text-muted-foreground/40' : 'text-foreground'}
+                                ${selected ? 'bg-accent text-accent-foreground font-bold' : ''}
+                                ${today && !selected ? 'bg-accent/20 font-semibold' : ''}
+                                ${!selected ? 'hover:bg-muted' : ''}
+                              `}
+                            >
+                              {format(d, 'd')}
+                            </button>
+                          );
+                        });
+                      })()}
+                    </div>
+                  </div>
+                </div>
+              )}
               <div className="p-0 sm:p-1">
                 <FullCalendar
                   ref={calendarRef}
