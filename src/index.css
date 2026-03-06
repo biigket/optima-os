@@ -128,13 +128,15 @@
   background: hsl(var(--muted));
   font-weight: 500;
   color: hsl(var(--muted-foreground));
+  font-size: 0.7rem;
+  padding: 4px 0;
 }
 .tasks-calendar .fc .fc-timegrid-slot {
-  height: 2.5rem;
+  height: 2rem;
 }
 .tasks-calendar .fc-event {
   cursor: grab;
-  border-radius: 6px;
+  border-radius: 4px;
   padding: 0;
   border-left-width: 3px;
   border-left-style: solid;
@@ -142,6 +144,7 @@
   border-right: none;
   border-bottom: none;
   box-shadow: 0 1px 3px hsl(0 0% 0% / 0.08);
+  overflow: hidden;
 }
 .tasks-calendar .fc-event:active {
   cursor: grabbing;
@@ -164,5 +167,26 @@
 .tasks-calendar .fc .fc-daygrid-day-number,
 .tasks-calendar .fc .fc-timegrid-axis-cushion {
   color: hsl(var(--muted-foreground));
-  font-size: 0.75rem;
+  font-size: 0.7rem;
+}
+/* Compact event content for short slots */
+.tasks-calendar .fc-timegrid-event .fc-event-main {
+  padding: 0;
+  overflow: hidden;
+}
+.tasks-calendar .fc-timegrid-event {
+  min-height: 0 !important;
+}
+/* Mobile: narrower columns */
+@media (max-width: 768px) {
+  .tasks-calendar .fc .fc-col-header-cell {
+    font-size: 0.6rem;
+    padding: 2px 0;
+  }
+  .tasks-calendar .fc .fc-timegrid-slot {
+    height: 1.75rem;
+  }
+  .tasks-calendar .fc .fc-timegrid-axis-cushion {
+    font-size: 0.6rem;
+  }
 }
