@@ -42,6 +42,18 @@ interface LocalAccount {
   customer_status: string;
   assigned_sale: string | null;
   grade: string | null;
+  tax_id: string | null;
+  entity_type: string | null;
+  branch_type: string | null;
+  google_map_link: string | null;
+  lead_source: string | null;
+  has_budget: boolean | null;
+  is_vip: boolean | null;
+  is_kol: boolean | null;
+  single_or_chain: string | null;
+  current_devices: string | null;
+  notes: string | null;
+  registered_at: string | null;
 }
 
 interface LocalContact {
@@ -220,6 +232,18 @@ export default function CustomerCardPage() {
               customer_status: account.customer_status,
               assigned_sale: account.assigned_sale || '',
               grade: account.grade || '',
+              tax_id: account.tax_id || '',
+              entity_type: account.entity_type || '',
+              branch_type: account.branch_type || '',
+              google_map_link: account.google_map_link || '',
+              lead_source: account.lead_source || '',
+              has_budget: account.has_budget ? 'true' : 'false',
+              is_vip: account.is_vip ? 'true' : 'false',
+              is_kol: account.is_kol ? 'true' : 'false',
+              single_or_chain: account.single_or_chain || '',
+              current_devices: account.current_devices || '',
+              notes: account.notes || '',
+              registered_at: account.registered_at || '',
             });
             setEditOpen(true);
           }}>
@@ -537,6 +561,57 @@ export default function CustomerCardPage() {
               <Input value={editForm.email || ''} onChange={e => setEditForm(f => ({ ...f, email: e.target.value }))} />
             </div>
             <div className="space-y-1.5">
+              <Label>เลขประจำตัวผู้เสียภาษี</Label>
+              <Input value={editForm.tax_id || ''} onChange={e => setEditForm(f => ({ ...f, tax_id: e.target.value }))} />
+            </div>
+            <div className="space-y-1.5">
+              <Label>ประเภทกิจการ</Label>
+              <Select value={editForm.entity_type || ''} onValueChange={v => setEditForm(f => ({ ...f, entity_type: v }))}>
+                <SelectTrigger><SelectValue placeholder="เลือก" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="บุคคลธรรมดา">บุคคลธรรมดา</SelectItem>
+                  <SelectItem value="นิติบุคคล">นิติบุคคล</SelectItem>
+                  <SelectItem value="ห้างหุ้นส่วน">ห้างหุ้นส่วน</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-1.5">
+              <Label>ประเภทสาขา</Label>
+              <Select value={editForm.branch_type || ''} onValueChange={v => setEditForm(f => ({ ...f, branch_type: v }))}>
+                <SelectTrigger><SelectValue placeholder="เลือก" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="สำนักงานใหญ่">สำนักงานใหญ่</SelectItem>
+                  <SelectItem value="สาขา">สาขา</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-1.5">
+              <Label>สาขาเดียว / เครือ</Label>
+              <Select value={editForm.single_or_chain || ''} onValueChange={v => setEditForm(f => ({ ...f, single_or_chain: v }))}>
+                <SelectTrigger><SelectValue placeholder="เลือก" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="สาขาเดียว">สาขาเดียว</SelectItem>
+                  <SelectItem value="เครือ">เครือ</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-1.5">
+              <Label>Google Map</Label>
+              <Input value={editForm.google_map_link || ''} onChange={e => setEditForm(f => ({ ...f, google_map_link: e.target.value }))} placeholder="ลิงก์ Google Map" />
+            </div>
+            <div className="space-y-1.5">
+              <Label>แหล่งที่มา</Label>
+              <Select value={editForm.lead_source || ''} onValueChange={v => setEditForm(f => ({ ...f, lead_source: v }))}>
+                <SelectTrigger><SelectValue placeholder="เลือก" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="เพื่อนแนะนำ">เพื่อนแนะนำ</SelectItem>
+                  <SelectItem value="Social media">Social media</SelectItem>
+                  <SelectItem value="งานแสดงสินค้า">งานแสดงสินค้า</SelectItem>
+                  <SelectItem value="Other">อื่นๆ</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-1.5">
               <Label>สถานะ</Label>
               <Select value={editForm.customer_status || 'NEW_LEAD'} onValueChange={v => setEditForm(f => ({ ...f, customer_status: v }))}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
@@ -571,6 +646,32 @@ export default function CustomerCardPage() {
                 </SelectContent>
               </Select>
             </div>
+            <div className="space-y-1.5">
+              <Label>วันที่ลงทะเบียน</Label>
+              <Input type="date" value={editForm.registered_at || ''} onChange={e => setEditForm(f => ({ ...f, registered_at: e.target.value }))} />
+            </div>
+            <div className="space-y-1.5">
+              <Label>เครื่องที่ใช้อยู่</Label>
+              <Input value={editForm.current_devices || ''} onChange={e => setEditForm(f => ({ ...f, current_devices: e.target.value }))} placeholder="เช่น Doublo, Ultraformer" />
+            </div>
+            <div className="flex items-center gap-6 sm:col-span-2 pt-2">
+              <label className="flex items-center gap-2 text-sm cursor-pointer">
+                <input type="checkbox" checked={editForm.has_budget === 'true'} onChange={e => setEditForm(f => ({ ...f, has_budget: e.target.checked ? 'true' : 'false' }))} className="rounded" />
+                มีงบประมาณ
+              </label>
+              <label className="flex items-center gap-2 text-sm cursor-pointer">
+                <input type="checkbox" checked={editForm.is_vip === 'true'} onChange={e => setEditForm(f => ({ ...f, is_vip: e.target.checked ? 'true' : 'false' }))} className="rounded" />
+                VIP
+              </label>
+              <label className="flex items-center gap-2 text-sm cursor-pointer">
+                <input type="checkbox" checked={editForm.is_kol === 'true'} onChange={e => setEditForm(f => ({ ...f, is_kol: e.target.checked ? 'true' : 'false' }))} className="rounded" />
+                KOL
+              </label>
+            </div>
+            <div className="space-y-1.5 sm:col-span-2">
+              <Label>หมายเหตุ</Label>
+              <Textarea value={editForm.notes || ''} onChange={e => setEditForm(f => ({ ...f, notes: e.target.value }))} className="min-h-[60px] resize-none" placeholder="หมายเหตุเพิ่มเติม..." />
+            </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setEditOpen(false)}>ยกเลิก</Button>
@@ -581,6 +682,18 @@ export default function CustomerCardPage() {
                 address: editForm.address || null,
                 phone: editForm.phone || null,
                 email: editForm.email || null,
+                tax_id: editForm.tax_id || null,
+                entity_type: editForm.entity_type || null,
+                branch_type: editForm.branch_type || null,
+                google_map_link: editForm.google_map_link || null,
+                lead_source: editForm.lead_source || null,
+                has_budget: editForm.has_budget === 'true',
+                is_vip: editForm.is_vip === 'true',
+                is_kol: editForm.is_kol === 'true',
+                single_or_chain: editForm.single_or_chain || null,
+                current_devices: editForm.current_devices || null,
+                notes: editForm.notes || null,
+                registered_at: editForm.registered_at || null,
                 customer_status: editForm.customer_status || 'NEW_LEAD',
                 assigned_sale: editForm.assigned_sale || null,
                 grade: editForm.grade || null,
@@ -588,7 +701,6 @@ export default function CustomerCardPage() {
               if (error) { toast.error('บันทึกไม่สำเร็จ'); return; }
               toast.success('บันทึกข้อมูลสำเร็จ');
               setEditOpen(false);
-              // Refresh
               const { data } = await supabase.from('accounts').select('*').eq('id', account.id).single();
               if (data) setAccount(data as unknown as LocalAccount);
             }}>บันทึก</Button>
