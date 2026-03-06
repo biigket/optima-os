@@ -121,6 +121,8 @@ export default function LeadsPage() {
   const [products, setProducts] = useState<{ id: string; product_name: string }[]>([]);
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('ALL');
+  const [saleFilter, setSaleFilter] = useState('ALL');
+  const [gradeFilter, setGradeFilter] = useState('ALL');
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingAccount, setEditingAccount] = useState<Account | null>(null);
   const [form, setForm] = useState(emptyForm);
@@ -257,7 +259,9 @@ export default function LeadsPage() {
       (a.company_name || '').toLowerCase().includes(q) ||
       (a.address || '').toLowerCase().includes(q) ||
       (a.assigned_sale || '').toLowerCase().includes(q);
-    return matchStatus && matchSearch;
+    const matchSale = saleFilter === 'ALL' || a.assigned_sale === saleFilter;
+    const matchGrade = gradeFilter === 'ALL' || a.grade === gradeFilter;
+    return matchStatus && matchSearch && matchSale && matchGrade;
   });
 
   return (
@@ -278,9 +282,28 @@ export default function LeadsPage() {
               className="pl-9 w-64"
             />
           </div>
-          <Button variant="outline" size="sm" className="gap-1.5">
-            <SlidersHorizontal size={14} /> ตัวกรอง
-          </Button>
+          {isAdmin && (
+            <Select value={saleFilter} onValueChange={setSaleFilter}>
+              <SelectTrigger className="w-[130px] h-9 text-xs">
+                <SelectValue placeholder="เซลล์ทั้งหมด" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="ALL">เซลล์ทั้งหมด</SelectItem>
+                {MOCK_SALES.map(s => <SelectItem key={s.id} value={s.name}>{s.name}</SelectItem>)}
+              </SelectContent>
+            </Select>
+          )}
+          <Select value={gradeFilter} onValueChange={setGradeFilter}>
+            <SelectTrigger className="w-[120px] h-9 text-xs">
+              <SelectValue placeholder="เกรดทั้งหมด" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="ALL">เกรดทั้งหมด</SelectItem>
+              <SelectItem value="A">⭐⭐⭐ A</SelectItem>
+              <SelectItem value="B">⭐⭐ B</SelectItem>
+              <SelectItem value="C">⭐ C</SelectItem>
+            </SelectContent>
+          </Select>
           <Button size="sm" className="gap-1.5" onClick={openAdd}>
             <Plus size={14} /> เพิ่มลูกค้า
           </Button>
