@@ -1,10 +1,11 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Search, Phone, Circle, CheckCircle2, List, CalendarDays, Users, ClipboardList, AlertCircle, Monitor, ArrowUp } from 'lucide-react';
 import { useMockAuth } from '@/hooks/useMockAuth';
 import CalendarEventDialog from '@/components/tasks/CalendarEventDialog';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import StatusBadge from '@/components/ui/StatusBadge';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -57,6 +58,7 @@ export default function TasksPage() {
   const [loading, setLoading] = useState(true);
   const [selectedActivity, setSelectedActivity] = useState<ActivityRow | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [assigneeFilter, setAssigneeFilter] = useState('ALL');
 
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -149,9 +151,18 @@ export default function TasksPage() {
     setDialogOpen(true);
   };
 
-  // Filter by assigned user (ADMIN sees all)
+  // Unique assignee names for filter dropdown
+  const uniqueAssignees = useMemo(() => {
+    const names = new Set<string>();
+    rows.forEach(r => r.assigned_to?.forEach(n => names.add(n)));
+    return Array.from(names).sort();
+  }, [rows]);
+
+  // Filter by assigned user (ADMIN sees all or filtered)
   const isAdmin = currentUser?.role === 'ADMIN';
-  const myRows = isAdmin ? rows : rows.filter(r => r.assigned_to?.includes(currentUser?.name || ''));
+  const myRows = isAdmin
+    ? (assigneeFilter === 'ALL' ? rows : rows.filter(r => r.assigned_to?.includes(assigneeFilter)))
+    : rows.filter(r => r.assigned_to?.includes(currentUser?.name || ''));
 
   // List: show only undone
   const listRows = myRows.filter(r => !r.is_done && r.title.toLowerCase().includes(search.toLowerCase()));
@@ -221,6 +232,19 @@ export default function TasksPage() {
             <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
             <Input placeholder="ค้นหางาน..." value={search} onChange={e => setSearch(e.target.value)} className="pl-9" />
           </div>
+          {isAdmin && (
+            <Select value={assigneeFilter} onValueChange={setAssigneeFilter}>
+              <SelectTrigger className="w-[160px]">
+                <SelectValue placeholder="ทั้งหมด" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="ALL">ทั้งหมด</SelectItem>
+                {uniqueAssignees.map(name => (
+                  <SelectItem key={name} value={name}>{name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
           <TabsList>
             <TabsTrigger value="list" className="gap-1.5"><List size={14} />รายการ</TabsTrigger>
             <TabsTrigger value="calendar" className="gap-1.5"><CalendarDays size={14} />ปฏิทิน</TabsTrigger>
