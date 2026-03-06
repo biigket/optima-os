@@ -769,6 +769,49 @@ export default function CustomerCardPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      {/* Edit Contact Dialog */}
+      <Dialog open={editContactOpen} onOpenChange={setEditContactOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>แก้ไขผู้ติดต่อ</DialogTitle>
+            <DialogDescription>แก้ไขข้อมูลผู้ติดต่อ</DialogDescription>
+          </DialogHeader>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="space-y-1.5">
+              <Label>ชื่อ *</Label>
+              <Input value={editContactForm.name} onChange={e => setEditContactForm(f => ({ ...f, name: e.target.value }))} />
+            </div>
+            <div className="space-y-1.5">
+              <Label>ตำแหน่ง</Label>
+              <Input value={editContactForm.role} onChange={e => setEditContactForm(f => ({ ...f, role: e.target.value }))} />
+            </div>
+            <div className="space-y-1.5">
+              <Label>เบอร์โทร</Label>
+              <Input value={editContactForm.phone} onChange={e => setEditContactForm(f => ({ ...f, phone: e.target.value }))} />
+            </div>
+            <div className="space-y-1.5">
+              <Label>อีเมล</Label>
+              <Input value={editContactForm.email} onChange={e => setEditContactForm(f => ({ ...f, email: e.target.value }))} />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditContactOpen(false)}>ยกเลิก</Button>
+            <Button onClick={async () => {
+              if (!editingContact || !editContactForm.name.trim()) { toast.error('กรุณากรอกชื่อ'); return; }
+              const { error } = await supabase.from('contacts').update({
+                name: editContactForm.name.trim(),
+                role: editContactForm.role.trim() || null,
+                phone: editContactForm.phone.trim() || null,
+                email: editContactForm.email.trim() || null,
+              }).eq('id', editingContact.id);
+              if (error) { toast.error('แก้ไขไม่สำเร็จ'); return; }
+              setContacts(prev => prev.map(c => c.id === editingContact.id ? { ...c, name: editContactForm.name.trim(), role: editContactForm.role.trim() || null, phone: editContactForm.phone.trim() || null, email: editContactForm.email.trim() || null } : c));
+              toast.success('แก้ไขผู้ติดต่อสำเร็จ');
+              setEditContactOpen(false);
+            }}>บันทึก</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
