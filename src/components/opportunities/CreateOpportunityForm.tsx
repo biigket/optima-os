@@ -169,10 +169,6 @@ export default function CreateOpportunityForm({ open, onOpenChange, customer, on
 
   const currentStage = form.stage || 'NEW_LEAD';
 
-  useEffect(() => {
-    const stageProbability = STAGE_PROBABILITY[currentStage] ?? 10;
-    set('probability', stageProbability);
-  }, [currentStage]);
 
   const closeDateDays = form.close_date
     ? differenceInDays(new Date(form.close_date), new Date())
