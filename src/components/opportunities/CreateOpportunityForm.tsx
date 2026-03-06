@@ -372,39 +372,23 @@ export default function CreateOpportunityForm({ open, onOpenChange, customer, on
             <Input type="number" value={form.deal_value} onChange={e => set('deal_value', e.target.value)} className="h-9 text-xs" placeholder="0" />
           </div>
 
-          {/* Stage + Probability */}
-          <div className="space-y-3">
-            <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-1.5">
-                <Label className="text-xs">ขั้นตอน</Label>
-                <Select value={currentStage} onValueChange={v => set('stage', v)}>
-                  <SelectTrigger className="h-9 text-xs"><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    {([
-                      { value: 'NEW_LEAD', label: 'นัดพบ/ค้นหา Need' },
-                      { value: 'CONTACTED', label: 'Demo Schedule' },
-                      { value: 'DEMO_SCHEDULED', label: 'Demo/Workshop' },
-                      { value: 'DEMO_DONE', label: 'Proposal Sent' },
-                      { value: 'NEGOTIATION', label: 'Negotiation' },
-                    ]).map(s => (
-                      <SelectItem key={s.value} value={s.value} className="text-xs">{s.label}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-1.5">
-                <Label className="text-xs">Probability: {form.probability}%</Label>
-                <div className="pt-2 px-1">
-                  <Slider
-                    value={[form.probability]}
-                    onValueChange={([v]) => set('probability', v)}
-                    min={0}
-                    max={100}
-                    step={5}
-                  />
-                </div>
-              </div>
-            </div>
+          {/* Stage */}
+          <div className="space-y-1.5">
+            <Label className="text-xs">ขั้นตอน</Label>
+            <Select value={currentStage} onValueChange={v => set('stage', v)}>
+              <SelectTrigger className="h-9 text-xs"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                {([
+                  { value: 'NEW_LEAD', label: 'นัดพบ/ค้นหา Need' },
+                  { value: 'CONTACTED', label: 'Demo Schedule' },
+                  { value: 'DEMO_SCHEDULED', label: 'Demo/Workshop' },
+                  { value: 'DEMO_DONE', label: 'Proposal Sent' },
+                  { value: 'NEGOTIATION', label: 'Negotiation' },
+                ]).map(s => (
+                  <SelectItem key={s.value} value={s.value} className="text-xs">{s.label}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           {/* วันปิดคาดการณ์ + ระยะเวลา */}
@@ -459,20 +443,22 @@ export default function CreateOpportunityForm({ open, onOpenChange, customer, on
               </div>
             )}
 
-            {/* คู่แข่ง — tag chips */}
-            <TagChipInput
+            {/* คู่แข่ง — multi-select */}
+            <MultiSelectWithCustom
               label="คู่แข่งที่เปรียบเทียบ"
-              tags={form.competitors}
+              options={DEFAULT_COMPETITORS}
+              selected={form.competitors}
               onChange={t => set('competitors', t)}
-              placeholder="เช่น Ultherapy, Thermage..."
+              placeholder="เพิ่มคู่แข่งใหม่..."
             />
 
-            {/* เครื่องปัจจุบัน — tag chips */}
-            <TagChipInput
+            {/* เครื่องปัจจุบัน — multi-select */}
+            <MultiSelectWithCustom
               label="เครื่องที่ใช้อยู่ปัจจุบัน"
-              tags={form.current_devices}
+              options={DEFAULT_CURRENT_DEVICES}
+              selected={form.current_devices}
               onChange={t => set('current_devices', t)}
-              placeholder="เช่น Doublo Gold, HIFU เก่า..."
+              placeholder="เพิ่มเครื่องใหม่..."
             />
           </div>
 
