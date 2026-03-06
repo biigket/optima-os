@@ -308,7 +308,7 @@ export default function LeadsPage() {
               <TableHead>สถานะ</TableHead>
               <TableHead>เซลล์</TableHead>
               <TableHead>เกรด</TableHead>
-              <TableHead>แหล่งที่มา</TableHead>
+              <TableHead>เครื่องที่มีอยู่</TableHead>
               <TableHead className="text-right">สร้างเมื่อ</TableHead>
             </TableRow>
           </TableHeader>
@@ -359,18 +359,21 @@ export default function LeadsPage() {
                     <span className="text-sm text-foreground">{account.assigned_sale || '-'}</span>
                   </TableCell>
                   <TableCell>
-                    {account.grade && parseInt(account.grade) > 0 ? (
+                    {account.grade ? (
                       <div className="flex gap-0.5">
-                        {[1, 2, 3].map(s => (
-                          <Star key={s} size={14} className={s <= parseInt(account.grade!) ? 'fill-yellow-400 text-yellow-400' : 'fill-muted text-muted-foreground/30'} />
-                        ))}
+                        {[1, 2, 3].map(s => {
+                          const stars = account.grade === 'A' ? 3 : account.grade === 'B' ? 2 : account.grade === 'C' ? 1 : 0;
+                          return (
+                            <Star key={s} size={14} className={s <= stars ? 'fill-yellow-400 text-yellow-400' : 'fill-muted text-muted-foreground/30'} />
+                          );
+                        })}
                       </div>
                     ) : (
                       <span className="text-sm text-muted-foreground">-</span>
                     )}
                   </TableCell>
                   <TableCell>
-                    <span className="text-sm text-muted-foreground">{account.lead_source || '-'}</span>
+                    <span className="text-sm text-muted-foreground truncate max-w-[200px] block">{account.current_devices || '-'}</span>
                   </TableCell>
                   <TableCell className="text-right">
                     <span className="text-xs text-muted-foreground">{daysSince(account.created_at)}</span>
