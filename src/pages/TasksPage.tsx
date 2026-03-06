@@ -39,11 +39,10 @@ export default function TasksPage() {
 
   const fetchData = useCallback(async () => {
     setLoading(true);
-    // Fetch all in parallel
     const [actRes, oppRes, conRes, accRes] = await Promise.all([
       supabase.from('activities').select('*').order('activity_date', { ascending: true }),
       supabase.from('opportunities').select('id, stage, authority_contact_id, account_id'),
-      supabase.from('contacts').select('id, name, phone'),
+      supabase.from('contacts').select('id, name, phone, account_id'),
       supabase.from('accounts').select('id, clinic_name'),
     ]);
 
@@ -56,9 +55,20 @@ export default function TasksPage() {
     const contactMap = new Map(contacts.map(c => [c.id, c]));
     const accountMap = new Map(accounts.map(a => [a.id, a]));
 
+    // Build account → first contact fallback map
+    const accountContactMap = new Map<string, { name: string; phone: string | null }>();
+    for (const c of contacts) {
+      if (!accountContactMap.has(c.account_id)) {
+        accountContactMap.set(c.account_id, { name: c.name, phone: c.phone });
+      }
+    }
+
     const merged: ActivityRow[] = activities.map(act => {
       const opp = oppMap.get(act.opportunity_id);
-      const contact = opp?.authority_contact_id ? contactMap.get(opp.authority_contact_id) : null;
+      // Priority: authority_contact_id from opportunity → fallback to first contact of account
+      const authorityContact = opp?.authority_contact_id ? contactMap.get(opp.authority_contact_id) : null;
+      const fallbackContact = accountContactMap.get(act.account_id) || null;
+      const contact = authorityContact || fallbackContact;
       const account = accountMap.get(act.account_id);
       return {
         id: act.id,
