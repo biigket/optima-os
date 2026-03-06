@@ -9,8 +9,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Checkbox } from '@/components/ui/checkbox';
 import StatusBadge from '@/components/ui/StatusBadge';
 import { toast } from 'sonner';
 import { useMockAuth, MOCK_SALES } from '@/hooks/useMockAuth';
@@ -32,7 +30,7 @@ interface Account {
   notes: string | null;
   grade: string | null;
   single_or_chain: string | null;
-  current_devices: string[] | null;
+  current_devices: string | null;
   created_at: string;
 }
 
@@ -79,7 +77,7 @@ const emptyForm = {
   notes: '',
   grade: '',
   single_or_chain: '',
-  current_devices: [] as string[],
+  current_devices: '',
   // Contact fields (required for new accounts)
   contact_name: '',
   contact_role: '',
@@ -178,7 +176,7 @@ export default function LeadsPage() {
       notes: account.notes || '',
       grade: account.grade || '',
       single_or_chain: account.single_or_chain || '',
-      current_devices: account.current_devices || [],
+      current_devices: account.current_devices || '',
       contact_name: '',
       contact_role: '',
       contact_phone: '',
@@ -215,7 +213,7 @@ export default function LeadsPage() {
       notes: form.notes || null,
       grade: form.grade || null,
       single_or_chain: form.single_or_chain || null,
-      current_devices: form.current_devices.length > 0 ? form.current_devices : null,
+      current_devices: form.current_devices.trim() || null,
     };
 
     if (editingAccount) {
@@ -521,50 +519,51 @@ export default function LeadsPage() {
               />
             </div>
 
-            {/* เครื่องที่มีอยู่แล้ว - Multiple choice */}
+            {/* เครื่องที่มีอยู่แล้ว - Text with quick notes */}
             <div className="space-y-1.5 sm:col-span-2">
               <Label>เครื่องที่มีอยู่แล้ว</Label>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button variant="outline" className="w-full justify-start font-normal h-auto min-h-10 py-2">
-                    {form.current_devices.length > 0 ? (
-                      <div className="flex flex-wrap gap-1">
-                        {form.current_devices.map(d => (
-                          <span key={d} className="inline-flex items-center gap-1 rounded-md bg-primary/10 px-2 py-0.5 text-xs text-primary">
-                            {d}
-                            <X size={12} className="cursor-pointer hover:text-destructive" onClick={e => {
-                              e.stopPropagation();
-                              setForm(prev => ({ ...prev, current_devices: prev.current_devices.filter(x => x !== d) }));
-                            }} />
-                          </span>
-                        ))}
-                      </div>
-                    ) : (
-                      <span className="text-muted-foreground">เลือกเครื่อง...</span>
-                    )}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-64 p-2" align="start">
-                  <div className="space-y-1 max-h-48 overflow-y-auto">
-                    {products.map(p => (
-                      <label key={p.id} className="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-muted cursor-pointer text-sm">
-                        <Checkbox
-                          checked={form.current_devices.includes(p.product_name)}
-                          onCheckedChange={checked => {
-                            setForm(prev => ({
-                              ...prev,
-                              current_devices: checked
-                                ? [...prev.current_devices, p.product_name]
-                                : prev.current_devices.filter(x => x !== p.product_name),
-                            }));
-                          }}
-                        />
-                        {p.product_name}
-                      </label>
-                    ))}
-                  </div>
-                </PopoverContent>
-              </Popover>
+              <Textarea
+                value={form.current_devices}
+                onChange={e => updateField('current_devices', e.target.value)}
+                rows={2}
+                placeholder="พิมพ์ชื่อเครื่องที่ลูกค้ามีอยู่..."
+              />
+              <div className="flex flex-wrap gap-1.5">
+                {products.map(p => {
+                  const isInText = form.current_devices.includes(p.product_name);
+                  return (
+                    <button
+                      key={p.id}
+                      type="button"
+                      onClick={() => {
+                        if (isInText) {
+                          // Remove from text
+                          const updated = form.current_devices
+                            .replace(new RegExp(`,?\\s*${p.product_name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\s*,?`), match => {
+                              // Clean up separators
+                              if (match.startsWith(',') && match.endsWith(',')) return ',';
+                              return '';
+                            })
+                            .replace(/^[,\s]+|[,\s]+$/g, '')
+                            .replace(/,\s*,/g, ', ');
+                          updateField('current_devices', updated);
+                        } else {
+                          const current = form.current_devices.trim();
+                          const updated = current ? `${current}, ${p.product_name}` : p.product_name;
+                          updateField('current_devices', updated);
+                        }
+                      }}
+                      className={`px-2 py-1 rounded-md text-xs font-medium border transition-colors ${
+                        isInText
+                          ? 'bg-primary text-primary-foreground border-primary'
+                          : 'bg-background text-muted-foreground border-input hover:bg-muted/50'
+                      }`}
+                    >
+                      {isInText ? `✕ ${p.product_name}` : `+ ${p.product_name}`}
+                    </button>
+                  );
+                })}
+              </div>
             </div>
 
             <div className="space-y-1.5 sm:col-span-2">
