@@ -157,7 +157,7 @@ export default function TasksPage() {
   const listRows = myRows.filter(r => !r.is_done && r.title.toLowerCase().includes(search.toLowerCase()));
 
   // Calendar events: all assigned to user
-  const calendarEvents = rows.map(r => {
+  const calendarEvents = myRows.map(r => {
     const dateStr = r.activity_date;
     let start = dateStr;
     let end: string | undefined;
