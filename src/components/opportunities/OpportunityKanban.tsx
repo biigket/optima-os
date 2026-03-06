@@ -271,17 +271,14 @@ function KanbanCard({ opp, stage, navigate, pendingActivities, onStageChange, on
         </span>
         <span className="text-muted-foreground/40">·</span>
         <span className="text-muted-foreground truncate flex-1">{opp.assigned_sale || '-'}</span>
-        <span className="text-muted-foreground/40">·</span>
-        {opp.opportunity_type && (
-          <span className="px-1.5 py-0.5 rounded bg-muted text-muted-foreground font-medium">
-            {opp.opportunity_type === 'DEVICE' ? 'เครื่อง' : 'สิ้นเปลือง'}
-          </span>
-        )}
         {stuckColor && (
-          <span className={`flex items-center gap-0.5 font-semibold ${stuckColor.text}`} title={`อยู่ในสถานะ ${daysInStage} วัน`}>
-            <Clock size={10} />
-            {daysInStage}d
-          </span>
+          <>
+            <span className="text-muted-foreground/40">·</span>
+            <span className={`flex items-center gap-0.5 font-semibold ${stuckColor.text}`} title={`อยู่ในสถานะ ${daysInStage} วัน`}>
+              <Clock size={10} />
+              {daysInStage}d
+            </span>
+          </>
         )}
         {noActivity && !isTerminal && (
           <span className="text-warning" title="ไม่มีกิจกรรมถัดไป">
@@ -290,58 +287,50 @@ function KanbanCard({ opp, stage, navigate, pendingActivities, onStageChange, on
         )}
       </div>
 
-      {/* ROW 3: Next Activity */}
-      {opp.next_activity_type ? (
-        <div className="flex items-center gap-1.5 text-[11px]">
-          <div className={`w-5 h-5 rounded-full flex items-center justify-center shrink-0 ${
-            activityDaysLeft !== null && activityDaysLeft <= 1 ? 'bg-destructive/15 text-destructive' :
-            activityDaysLeft !== null && activityDaysLeft <= 3 ? 'bg-warning/15 text-warning' :
-            'bg-accent/10 text-accent'
-          }`}>
-            <ActivityIcon size={10} />
-          </div>
-          <span className="text-foreground font-medium">{opp.next_activity_type}</span>
-          <span className="text-muted-foreground ml-auto">
-            {opp.next_activity_date ? new Date(opp.next_activity_date).toLocaleDateString('th-TH', { day: 'numeric', month: 'short' }) : ''}
-          </span>
-          {activityDaysLeft !== null && (
-            <span className={`font-semibold ${
-              activityDaysLeft <= 0 ? 'text-destructive' :
-              activityDaysLeft <= 1 ? 'text-warning' :
-              'text-muted-foreground'
-            }`}>
-              {activityDaysLeft <= 0 ? 'วันนี้!' : `${activityDaysLeft}d`}
-            </span>
-          )}
-        </div>
-      ) : (
-        !isTerminal && (
-          <div className="flex items-center gap-1.5 text-[11px] text-warning">
-            <AlertTriangle size={11} />
-            <span className="font-medium">ยังไม่มีกิจกรรมถัดไป</span>
-          </div>
-        )
-      )}
-
-      {/* ROW 4: Pending Activities */}
+      {/* ROW 3: Pending Activities */}
       {pendingActivities.length > 0 && (
-        <div className="mt-2 space-y-1">
-          <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">กิจกรรมค้าง ({pendingActivities.length})</p>
+        <div className="space-y-1.5">
           {visibleActivities.map(a => {
             const Icon = ACTIVITY_ICONS[a.activity_type] || Calendar;
-            const isPast = new Date(a.activity_date) < new Date(new Date().toDateString());
+            const isHigh = a.priority === 'HIGH';
+            const actDate = new Date(a.activity_date);
+            const today = new Date(); today.setHours(0,0,0,0);
+            const tomorrow = new Date(today); tomorrow.setDate(tomorrow.getDate() + 1);
+            const isToday = actDate.toDateString() === today.toDateString();
+            const isTomorrow = actDate.toDateString() === tomorrow.toDateString();
+            const dateLabel = isToday ? 'วันนี้' : isTomorrow ? 'พรุ่งนี้' : actDate.toLocaleDateString('th-TH', { day: 'numeric', month: 'short' });
+            const dateColor = isToday ? 'text-destructive font-bold' : isTomorrow ? 'text-warning font-semibold' : '';
+            const rowColor = isHigh ? 'text-destructive' : 'text-muted-foreground';
+            const timeRange = a.start_time && a.end_time ? `${a.start_time}-${a.end_time}` : a.start_time || '';
+
             return (
-              <div key={a.id} className={`flex items-center gap-1.5 text-[10px] ${isPast ? 'text-destructive' : 'text-muted-foreground'}`}>
-                <Icon size={9} className="shrink-0" />
-                <span className="truncate flex-1">{a.title}</span>
-                <span className="shrink-0">
-                  {new Date(a.activity_date).toLocaleDateString('th-TH', { day: 'numeric', month: 'short' })}
-                </span>
+              <div key={a.id} className={`text-xs ${rowColor}`}>
+                <div className="flex items-center gap-1.5">
+                  <button
+                    className="shrink-0 w-4 h-4 rounded border border-current flex items-center justify-center hover:bg-muted transition-colors"
+                    title="เสร็จสิ้น"
+                    onClick={async (e) => {
+                      e.stopPropagation();
+                      await supabase.from('activities').update({ is_done: true }).eq('id', a.id);
+                      onActivitySaved();
+                      toast.success('เสร็จสิ้นกิจกรรม');
+                    }}
+                  >
+                    <span className="text-[8px]">✓</span>
+                  </button>
+                  <Icon size={12} className="shrink-0" />
+                  <span className="font-medium truncate flex-1">{a.title}</span>
+                </div>
+                <div className="flex items-center gap-1.5 ml-[calc(1rem+0.375rem+12px+0.375rem)] text-[11px]">
+                  {timeRange && <span>{timeRange}</span>}
+                  {timeRange && <span className="opacity-40">·</span>}
+                  <span className={dateColor || 'inherit'}>{dateLabel}</span>
+                </div>
               </div>
             );
           })}
           {moreCount > 0 && (
-            <p className="text-[10px] text-muted-foreground/60">+{moreCount} รายการ</p>
+            <p className="text-[11px] text-muted-foreground/60 ml-[calc(1rem+0.375rem)]">+{moreCount} รายการ</p>
           )}
         </div>
       )}
