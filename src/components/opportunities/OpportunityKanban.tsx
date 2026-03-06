@@ -6,7 +6,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSepara
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Input } from '@/components/ui/input';
-import { getCachedAccount, getNotesForOpportunity, addNoteGlobal, updateNoteGlobal, getPinnedIdsGlobal, togglePinGlobal, type OpportunityNote } from '@/pages/OpportunitiesPage';
+import { getCachedAccount, getNotesForOpportunity, addNoteGlobal, updateNoteGlobal, deleteNoteGlobal, getPinnedIdsGlobal, togglePinGlobal, type OpportunityNote } from '@/pages/OpportunitiesPage';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import QuickActivityForm from './QuickActivityForm';
@@ -544,8 +544,6 @@ function PinnedNotesRow({ oppId, accountId, isTerminal }: { oppId: string; accou
             title="ลบ"
             onClick={e => {
               e.stopPropagation();
-              togglePinGlobal(note.id);
-              const { deleteNoteGlobal } = require('@/pages/OpportunitiesPage');
               deleteNoteGlobal(note.id);
               forceUpdate(n => n + 1);
             }}
