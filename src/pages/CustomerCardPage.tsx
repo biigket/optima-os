@@ -760,7 +760,21 @@ function QuickStat({ icon: Icon, label, value }: { icon: React.ElementType; labe
   );
 }
 
-function ActionBtn({ icon: Icon, label }: { icon: React.ElementType; label: string }) {
+function InfoItem({ label, value, isPhone }: { label: string; value: string | null; isPhone?: boolean }) {
+  if (!value) return null;
+  return (
+    <div className="flex items-start gap-1.5 text-xs">
+      <span className="text-muted-foreground shrink-0 min-w-[80px]">{label}</span>
+      {isPhone ? (
+        <a href={`tel:${value}`} className="text-foreground hover:text-primary">{value}</a>
+      ) : (
+        <span className="text-foreground">{value}</span>
+      )}
+    </div>
+  );
+}
+
+
   return (
     <Button variant="outline" size="sm" className="gap-1.5 text-xs shrink-0 h-8">
       <Icon size={13} /> {label}
