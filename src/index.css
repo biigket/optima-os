@@ -104,3 +104,32 @@
     background: linear-gradient(180deg, hsl(222 47% 13%) 0%, hsl(222 47% 9%) 100%);
   }
 }
+
+/* FullCalendar theme overrides */
+.tasks-calendar .fc {
+  --fc-border-color: hsl(var(--border));
+  --fc-button-bg-color: hsl(var(--primary));
+  --fc-button-border-color: hsl(var(--primary));
+  --fc-button-hover-bg-color: hsl(var(--primary) / 0.85);
+  --fc-button-hover-border-color: hsl(var(--primary) / 0.85);
+  --fc-button-active-bg-color: hsl(var(--primary) / 0.75);
+  --fc-button-active-border-color: hsl(var(--primary) / 0.75);
+  --fc-today-bg-color: hsl(var(--accent) / 0.08);
+  --fc-event-bg-color: hsl(var(--primary));
+  --fc-event-border-color: hsl(var(--primary));
+  --fc-page-bg-color: transparent;
+  font-size: 0.8rem;
+}
+.tasks-calendar .fc .fc-col-header-cell {
+  background: hsl(var(--muted));
+}
+.tasks-calendar .fc .fc-timegrid-slot {
+  height: 2.5rem;
+}
+.tasks-calendar .fc-event {
+  cursor: grab;
+  border-radius: 4px;
+}
+.tasks-calendar .fc-event:active {
+  cursor: grabbing;
+}
