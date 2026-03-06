@@ -63,6 +63,8 @@ interface LocalContact {
   role: string | null;
   phone: string | null;
   email: string | null;
+  line_id: string | null;
+  is_decision_maker: boolean | null;
 }
 
 const POTENTIAL_MAP: Record<string, string> = { A: 'High', B: 'Medium', C: 'Low' };
@@ -142,7 +144,7 @@ export default function CustomerCardPage() {
     setLoading(true);
     Promise.all([
       supabase.from('accounts').select('*').eq('id', id).single(),
-      supabase.from('contacts').select('id, account_id, name, role, phone, email').eq('account_id', id),
+      supabase.from('contacts').select('*').eq('account_id', id),
       supabase.from('opportunities').select('*').eq('account_id', id).order('created_at', { ascending: false }),
     ]).then(([accRes, conRes, oppRes]) => {
       if (accRes.data) setAccount(accRes.data as unknown as LocalAccount);
@@ -192,19 +194,23 @@ export default function CustomerCardPage() {
         <ArrowLeft size={16} /> กลับ
       </Button>
 
-      {/* ===== HEADER: Identity + Clinic Info + Contacts ===== */}
       <div className="rounded-xl border bg-card p-4 md:p-5 shadow-sm mb-4 space-y-4">
-        {/* Row 1: Name + Quick Stats */}
+        {/* Row 1: Name + Status + Badges + Quick Stats */}
         <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
           <div className="space-y-1.5 min-w-0">
             <div className="flex items-center gap-2 flex-wrap">
               <h1 className="text-lg md:text-xl font-bold text-foreground">{account.clinic_name}</h1>
               <StatusBadge status={account.customer_status} />
+              {account.is_vip && <Badge className="text-[10px] bg-amber-100 text-amber-700 border-amber-200">VIP</Badge>}
+              {account.is_kol && <Badge className="text-[10px] bg-purple-100 text-purple-700 border-purple-200">KOL</Badge>}
             </div>
-            <div className="flex items-center gap-2">
-              <Badge variant="outline" className="text-xs">เกรด {account.grade}</Badge>
-              <Badge variant="secondary" className="text-xs">Potential: {POTENTIAL_MAP[account.grade || 'C']}</Badge>
+            <div className="flex items-center gap-2 flex-wrap">
+              {account.grade && <Badge variant="outline" className="text-xs">เกรด {account.grade}</Badge>}
+              {account.grade && <Badge variant="secondary" className="text-xs">Potential: {POTENTIAL_MAP[account.grade || 'C']}</Badge>}
+              {account.has_budget && <Badge variant="secondary" className="text-xs">💰 มีงบประมาณ</Badge>}
+              {account.single_or_chain && <Badge variant="outline" className="text-xs">{account.single_or_chain === 'CHAIN' ? '🏢 เครือ' : '🏠 สาขาเดียว'}</Badge>}
             </div>
+            {account.company_name && <p className="text-xs text-muted-foreground">บริษัท: {account.company_name}</p>}
           </div>
           <div className="flex gap-3 overflow-x-auto pb-1 shrink-0">
             <QuickStat icon={DollarSign} label="รายได้รวม" value={formatCurrency(revenue)} />
@@ -214,40 +220,60 @@ export default function CustomerCardPage() {
           </div>
         </div>
 
-        {/* Row 2: Clinic + Contact Info inline */}
-        <div className={cn("grid gap-3 pt-3 border-t border-border", isMobile ? "grid-cols-1" : "grid-cols-2")}>
-          {/* Clinic Info */}
-          <div className="space-y-1.5">
-            <p className="text-xs font-medium text-muted-foreground flex items-center gap-1"><Building2 size={12} /> ข้อมูลคลินิก</p>
-            <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-foreground">
-              <span className="flex items-center gap-1 text-xs"><MapPin size={11} className="text-muted-foreground" /> {account.address}</span>
-              <span className="flex items-center gap-1 text-xs"><Phone size={11} className="text-muted-foreground" /> {account.phone}</span>
-              {account.email && <span className="flex items-center gap-1 text-xs"><Mail size={11} className="text-muted-foreground" /> {account.email}</span>}
-              <span className="flex items-center gap-1 text-xs">🧑‍💼 {account.assigned_sale}</span>
-            </div>
+        {/* Row 2: All Account Details */}
+        <div className="pt-3 border-t border-border">
+          <p className="text-xs font-medium text-muted-foreground flex items-center gap-1 mb-2"><Building2 size={12} /> ข้อมูลคลินิก</p>
+          <div className={cn("grid gap-x-6 gap-y-1.5", isMobile ? "grid-cols-1" : "grid-cols-2 lg:grid-cols-3")}>
+            {account.address && <InfoItem label="ที่อยู่" value={account.address} />}
+            {account.phone && <InfoItem label="โทร" value={account.phone} isPhone />}
+            {account.email && <InfoItem label="อีเมล" value={account.email} />}
+            {account.tax_id && <InfoItem label="เลขผู้เสียภาษี" value={account.tax_id} />}
+            {account.entity_type && <InfoItem label="ประเภทนิติบุคคล" value={account.entity_type} />}
+            {account.branch_type && <InfoItem label="ประเภทสาขา" value={account.branch_type} />}
+            {account.assigned_sale && <InfoItem label="เซลล์ดูแล" value={account.assigned_sale} />}
+            {account.lead_source && <InfoItem label="แหล่งที่มา" value={account.lead_source} />}
+            {account.current_devices && <InfoItem label="อุปกรณ์ที่มี" value={account.current_devices} />}
+            {account.registered_at && <InfoItem label="วันที่ลงทะเบียน" value={account.registered_at} />}
+            {account.google_map_link && (
+              <div className="flex items-start gap-1.5 text-xs">
+                <span className="text-muted-foreground shrink-0 min-w-[80px]">Google Map</span>
+                <a href={account.google_map_link} target="_blank" rel="noopener noreferrer" className="text-primary underline truncate">{account.google_map_link}</a>
+              </div>
+            )}
           </div>
-          {/* Contacts */}
-          <div className="space-y-1.5">
-            <p className="text-xs font-medium text-muted-foreground flex items-center gap-1"><Users size={12} /> ผู้ติดต่อ ({contacts.length})</p>
-            <div className="flex flex-wrap gap-2">
-              {contacts.map(c => (
-                <div key={c.id} className="flex items-center gap-2 px-2.5 py-1.5 rounded-md bg-muted/40 text-xs">
-                  <div>
-                    <span className="font-medium text-foreground">{c.name}</span>
-                    {c.role && <span className="text-muted-foreground ml-1">({c.role})</span>}
-                  </div>
-                  {c.phone && (
-                    <>
-                      <span className="text-muted-foreground">{c.phone}</span>
-                      <a href={`tel:${c.phone}`} className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-green-100 hover:bg-green-200 text-green-700 transition-colors" title={`โทร ${c.phone}`}>
-                        <Phone size={11} />
-                      </a>
-                    </>
-                  )}
-                </div>
-              ))}
-              {contacts.length === 0 && <span className="text-xs text-muted-foreground">ยังไม่มีผู้ติดต่อ</span>}
+          {account.notes && (
+            <div className="mt-2 text-xs">
+              <span className="text-muted-foreground">หมายเหตุ: </span>
+              <span className="text-foreground">{account.notes}</span>
             </div>
+          )}
+        </div>
+
+        {/* Row 3: All Contacts */}
+        <div className="pt-3 border-t border-border">
+          <p className="text-xs font-medium text-muted-foreground flex items-center gap-1 mb-2"><Users size={12} /> ผู้ติดต่อ ({contacts.length})</p>
+          <div className="space-y-2">
+            {contacts.map(c => (
+              <div key={c.id} className="flex items-center gap-3 px-3 py-2 rounded-lg bg-muted/40 text-xs flex-wrap">
+                <div className="flex items-center gap-1.5">
+                  <span className="font-medium text-foreground">{c.name}</span>
+                  {c.role && <span className="text-muted-foreground">({c.role})</span>}
+                  {c.is_decision_maker && <Badge className="text-[9px] px-1.5 py-0 bg-amber-100 text-amber-700 border-amber-200">⭐ ผู้ตัดสินใจ</Badge>}
+                </div>
+                {c.phone && (
+                  <span className="flex items-center gap-1.5">
+                    <Phone size={11} className="text-muted-foreground" />
+                    <span className="text-muted-foreground">{c.phone}</span>
+                    <a href={`tel:${c.phone}`} className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-green-100 hover:bg-green-200 text-green-700 transition-colors" title={`โทร ${c.phone}`}>
+                      <Phone size={11} />
+                    </a>
+                  </span>
+                )}
+                {c.email && <span className="flex items-center gap-1 text-muted-foreground"><Mail size={11} /> {c.email}</span>}
+                {c.line_id && <span className="flex items-center gap-1 text-muted-foreground"><MessageCircle size={11} /> {c.line_id}</span>}
+              </div>
+            ))}
+            {contacts.length === 0 && <span className="text-xs text-muted-foreground">ยังไม่มีผู้ติดต่อ</span>}
           </div>
         </div>
 
@@ -285,8 +311,6 @@ export default function CustomerCardPage() {
           </Button>
         </div>
       </div>
-
-      {/* ===== SINGLE TAB PANEL ===== */}
       <div className="rounded-xl border bg-card overflow-hidden shadow-sm">
         <Tabs defaultValue="overview">
           <div className="border-b">
@@ -712,7 +736,7 @@ export default function CustomerCardPage() {
               toast.success('เพิ่มผู้ติดต่อสำเร็จ');
               setAddContactOpen(false);
               // Refresh contacts
-              const { data } = await supabase.from('contacts').select('id, account_id, name, role, phone, email').eq('account_id', account.id);
+              const { data } = await supabase.from('contacts').select('*').eq('account_id', account.id);
               if (data) setContacts(data as unknown as LocalContact[]);
             }}>บันทึก</Button>
           </DialogFooter>
@@ -732,6 +756,20 @@ function QuickStat({ icon: Icon, label, value }: { icon: React.ElementType; labe
         <p className="text-[11px] text-muted-foreground leading-tight">{label}</p>
         <p className="text-sm font-semibold text-foreground leading-tight">{value}</p>
       </div>
+    </div>
+  );
+}
+
+function InfoItem({ label, value, isPhone }: { label: string; value: string | null; isPhone?: boolean }) {
+  if (!value) return null;
+  return (
+    <div className="flex items-start gap-1.5 text-xs">
+      <span className="text-muted-foreground shrink-0 min-w-[80px]">{label}</span>
+      {isPhone ? (
+        <a href={`tel:${value}`} className="text-foreground hover:text-primary">{value}</a>
+      ) : (
+        <span className="text-foreground">{value}</span>
+      )}
     </div>
   );
 }
