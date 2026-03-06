@@ -11,12 +11,13 @@ import type { Activity } from '@/types';
 import type { OpportunityNote } from '@/pages/OpportunitiesPage';
 
 const TYPE_ICONS: Record<string, React.ElementType> = {
-  CALL: Phone, MEETING: Users, TASK: Building2, DEADLINE: Target,
+  CALL: Phone, MEETING: Users, TASK: Building2, DEADLINE: Target, DEMO: Presentation,
 };
 
 const TYPE_COLORS: Record<string, string> = {
   CALL: 'text-blue-600 bg-blue-50', MEETING: 'text-violet-600 bg-violet-50',
   TASK: 'text-emerald-600 bg-emerald-50', DEADLINE: 'text-red-600 bg-red-50',
+  DEMO: 'text-orange-600 bg-orange-50',
 };
 
 interface StageChange {
