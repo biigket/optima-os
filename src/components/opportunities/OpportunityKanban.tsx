@@ -1,12 +1,12 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
-import { Clock, AlertTriangle, Building2, Calendar, Phone, Eye, Users, Presentation, FileCheck, MoreHorizontal, Trophy, XCircle, Pencil } from 'lucide-react';
+import { Clock, AlertTriangle, Building2, Calendar, Phone, Eye, Users, Presentation, FileCheck, MoreHorizontal, Trophy, XCircle, Pencil, Pin, Send } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Input } from '@/components/ui/input';
-import { getCachedAccount } from '@/pages/OpportunitiesPage';
+import { getCachedAccount, getNotesForOpportunity, addNoteGlobal, updateNoteGlobal, getPinnedIdsGlobal, togglePinGlobal, type OpportunityNote } from '@/pages/OpportunitiesPage';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import QuickActivityForm from './QuickActivityForm';
@@ -289,7 +289,7 @@ function KanbanCard({ opp, stage, navigate, pendingActivities, onStageChange, on
       </div>
 
       {/* ROW 3: Pending Activities */}
-      {pendingActivities.length > 0 && (
+      {pendingActivities.length > 0 ? (
         <div className="space-y-1.5">
           {visibleActivities.map(a => {
             const Icon = ACTIVITY_ICONS[a.activity_type] || Calendar;
@@ -308,7 +308,7 @@ function KanbanCard({ opp, stage, navigate, pendingActivities, onStageChange, on
               <div key={a.id} className={`text-xs ${rowColor}`}>
                 <div className="flex items-center gap-1.5">
                   <button
-                    className="shrink-0 w-4 h-4 rounded-full border border-current flex items-center justify-center hover:bg-muted transition-colors"
+                    className="shrink-0 w-4 h-4 rounded-full border border-current flex items-center justify-center self-center hover:bg-muted transition-colors"
                     title="เสร็จสิ้น"
                     onClick={async (e) => {
                       e.stopPropagation();
@@ -324,7 +324,7 @@ function KanbanCard({ opp, stage, navigate, pendingActivities, onStageChange, on
                   <Popover open={editingActivity?.id === a.id} onOpenChange={(open) => setEditingActivity(open ? a : null)}>
                     <PopoverTrigger asChild>
                       <button
-                        className="shrink-0 p-0.5 rounded hover:bg-muted transition-colors opacity-0 group-hover:opacity-100"
+                        className="shrink-0 p-0.5 rounded hover:bg-muted transition-colors text-muted-foreground"
                         title="แก้ไข"
                         onClick={(e) => { e.stopPropagation(); }}
                       >
@@ -352,7 +352,12 @@ function KanbanCard({ opp, stage, navigate, pendingActivities, onStageChange, on
             <p className="text-[11px] text-muted-foreground/60 ml-[calc(1rem+0.375rem)]">+{moreCount} รายการ</p>
           )}
         </div>
-      )}
+      ) : !isTerminal ? (
+        <div className="text-[11px] text-warning font-medium py-1">⚠ ไม่มี Next Activity</div>
+      ) : null}
+
+      {/* ROW 4: Pinned Notes + Quick Add */}
+      <PinnedNotesRow oppId={opp.id} accountId={opp.account_id} isTerminal={isTerminal} />
 
       {/* Stuck reason (days >= 3) */}
       {!isTerminal && daysInStage >= 3 && (
@@ -470,6 +475,91 @@ function KanbanCard({ opp, stage, navigate, pendingActivities, onStageChange, on
           </DropdownMenu>
         </div>
       </div>
+    </div>
+  );
+}
+
+/* ─── Pinned Notes Row ─── */
+
+function PinnedNotesRow({ oppId, accountId, isTerminal }: { oppId: string; accountId: string; isTerminal: boolean }) {
+  const [noteInput, setNoteInput] = useState('');
+  const [editingNote, setEditingNote] = useState<OpportunityNote | null>(null);
+  const [editContent, setEditContent] = useState('');
+  const [, forceUpdate] = useState(0);
+
+  const pinnedIds = getPinnedIdsGlobal();
+  const notes = getNotesForOpportunity(oppId);
+  const pinnedNotes = notes.filter(n => pinnedIds.has(n.id));
+
+  const handleQuickAdd = (e: React.MouseEvent | React.KeyboardEvent) => {
+    e.stopPropagation();
+    if (!noteInput.trim()) return;
+    const note: OpportunityNote = {
+      id: `note-${Date.now()}`,
+      opportunity_id: oppId,
+      account_id: accountId,
+      content: noteInput.trim(),
+      created_by: 'Me',
+      created_at: new Date().toISOString(),
+    };
+    addNoteGlobal(note);
+    togglePinGlobal(note.id);
+    setNoteInput('');
+    forceUpdate(n => n + 1);
+  };
+
+  const handleEditSave = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!editingNote || !editContent.trim()) return;
+    updateNoteGlobal(editingNote.id, editContent.trim());
+    setEditingNote(null);
+    forceUpdate(n => n + 1);
+  };
+
+  return (
+    <div className="space-y-1 mt-1.5 pt-1.5 border-t border-border" onClick={e => e.stopPropagation()}>
+      {pinnedNotes.map(note => (
+        <div key={note.id} className="flex items-center gap-1 text-[10px] text-muted-foreground">
+          <Pin size={8} className="shrink-0 text-primary fill-primary" />
+          <span className="truncate flex-1">{note.content}</span>
+          <Popover open={editingNote?.id === note.id} onOpenChange={(open) => {
+            if (open) { setEditingNote(note); setEditContent(note.content); }
+            else setEditingNote(null);
+          }}>
+            <PopoverTrigger asChild>
+              <button className="shrink-0 p-0.5 rounded hover:bg-muted transition-colors" onClick={e => e.stopPropagation()}>
+                <Pencil size={8} />
+              </button>
+            </PopoverTrigger>
+            <PopoverContent align="end" side="top" className="w-52 p-2" onClick={e => e.stopPropagation()}>
+              <Input value={editContent} onChange={e => setEditContent(e.target.value)} className="h-7 text-xs mb-1.5" />
+              <div className="flex gap-1">
+                <button onClick={() => setEditingNote(null)} className="flex-1 h-6 text-[10px] rounded border border-border hover:bg-muted">ยกเลิก</button>
+                <button onClick={handleEditSave} className="flex-1 h-6 text-[10px] rounded bg-primary text-primary-foreground hover:bg-primary/90">บันทึก</button>
+              </div>
+            </PopoverContent>
+          </Popover>
+        </div>
+      ))}
+      {!isTerminal && (
+        <div className="flex items-center gap-1">
+          <Input
+            value={noteInput}
+            onChange={e => setNoteInput(e.target.value)}
+            placeholder="เพิ่มบันทึก..."
+            className="h-6 text-[10px] flex-1"
+            onClick={e => e.stopPropagation()}
+            onKeyDown={e => { if (e.key === 'Enter') handleQuickAdd(e); }}
+          />
+          <button
+            onClick={handleQuickAdd}
+            disabled={!noteInput.trim()}
+            className="shrink-0 p-1 rounded hover:bg-muted text-muted-foreground hover:text-foreground transition-colors disabled:opacity-30"
+          >
+            <Send size={10} />
+          </button>
+        </div>
+      )}
     </div>
   );
 }

@@ -48,6 +48,15 @@ export function addNoteGlobal(note: OpportunityNote) { globalNotes = [note, ...g
 export function deleteNoteGlobal(id: string) { globalNotes = globalNotes.filter(n => n.id !== id); }
 export function updateNoteGlobal(id: string, content: string) { globalNotes = globalNotes.map(n => n.id === id ? { ...n, content } : n); }
 
+// Global pinned IDs store — shared between Kanban & Detail page
+export let globalPinnedIds = new Set<string>();
+export function getPinnedIdsGlobal() { return globalPinnedIds; }
+export function togglePinGlobal(noteId: string) {
+  if (globalPinnedIds.has(noteId)) globalPinnedIds.delete(noteId);
+  else globalPinnedIds.add(noteId);
+  globalPinnedIds = new Set(globalPinnedIds); // trigger re-render via new ref
+}
+
 // Account cache — populated on demand from DB
 const accountCache: Record<string, { clinic_name: string; customer_status: string; assigned_sale?: string }> = {};
 export function getCachedAccount(id: string) { return accountCache[id]; }
