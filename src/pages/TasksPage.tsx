@@ -486,13 +486,9 @@ export default function TasksPage() {
                         <div className="flex items-center gap-1 px-1 h-full overflow-hidden">
                           <TypeIcon size={10} style={{ color: config.color }} className="shrink-0" />
                           <span className="text-[10px] font-medium truncate">{arg.event.title}</span>
-                          {!props.is_done ? (
-                            <button onClick={(e) => { e.stopPropagation(); markDone(props.id); }} className="text-muted-foreground hover:text-success ml-auto shrink-0">
-                              <Circle size={10} />
-                            </button>
-                          ) : (
-                            <CheckCircle2 size={10} className="text-success ml-auto shrink-0" />
-                          )}
+                          <button onClick={(e) => { e.stopPropagation(); toggleDone(props.id, !!props.is_done); }} className={`ml-auto shrink-0 ${props.is_done ? 'text-success' : 'text-muted-foreground hover:text-success'}`}>
+                            {props.is_done ? <CheckCircle2 size={14} /> : <Circle size={14} />}
+                          </button>
                         </div>
                       );
                     }
@@ -504,13 +500,9 @@ export default function TasksPage() {
                           <div className="flex items-center gap-1">
                             <TypeIcon size={10} style={{ color: config.color }} className="shrink-0" />
                             <span className="font-semibold truncate flex-1">{arg.event.title}</span>
-                            {!props.is_done ? (
-                              <button onClick={(e) => { e.stopPropagation(); markDone(props.id); }} className="text-muted-foreground hover:text-success shrink-0">
-                                <Circle size={10} />
-                              </button>
-                            ) : (
-                              <CheckCircle2 size={10} className="text-success shrink-0" />
-                            )}
+                            <button onClick={(e) => { e.stopPropagation(); toggleDone(props.id, !!props.is_done); }} className={`shrink-0 ${props.is_done ? 'text-success' : 'text-muted-foreground hover:text-success'}`}>
+                              {props.is_done ? <CheckCircle2 size={16} /> : <Circle size={16} />}
+                            </button>
                           </div>
                           {props.clinic_name && (
                             <div className="text-muted-foreground truncate ml-3.5">{props.clinic_name}</div>
@@ -527,13 +519,9 @@ export default function TasksPage() {
                           <span className="font-semibold truncate flex-1">{arg.event.title}</span>
                           <div className="flex items-center gap-0.5 shrink-0">
                             {props.priority === 'HIGH' && <ArrowUp size={10} className="text-destructive" />}
-                            {!props.is_done ? (
-                              <button onClick={(e) => { e.stopPropagation(); markDone(props.id); }} className="text-muted-foreground hover:text-success">
-                                <Circle size={11} />
-                              </button>
-                            ) : (
-                              <CheckCircle2 size={11} className="text-success" />
-                            )}
+                            <button onClick={(e) => { e.stopPropagation(); toggleDone(props.id, !!props.is_done); }} className={`${props.is_done ? 'text-success' : 'text-muted-foreground hover:text-success'}`}>
+                              {props.is_done ? <CheckCircle2 size={16} /> : <Circle size={16} />}
+                            </button>
                           </div>
                         </div>
                         {props.clinic_name && (
