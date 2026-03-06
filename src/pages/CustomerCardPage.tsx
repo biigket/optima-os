@@ -736,7 +736,7 @@ export default function CustomerCardPage() {
               toast.success('เพิ่มผู้ติดต่อสำเร็จ');
               setAddContactOpen(false);
               // Refresh contacts
-              const { data } = await supabase.from('contacts').select('id, account_id, name, role, phone, email').eq('account_id', account.id);
+              const { data } = await supabase.from('contacts').select('*').eq('account_id', account.id);
               if (data) setContacts(data as unknown as LocalContact[]);
             }}>บันทึก</Button>
           </DialogFooter>
