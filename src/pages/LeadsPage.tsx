@@ -528,42 +528,12 @@ export default function LeadsPage() {
                 rows={2}
                 placeholder="พิมพ์ชื่อเครื่องที่ลูกค้ามีอยู่..."
               />
-              <div className="flex flex-wrap gap-1.5">
-                {products.map(p => {
-                  const isInText = form.current_devices.includes(p.product_name);
-                  return (
-                    <button
-                      key={p.id}
-                      type="button"
-                      onClick={() => {
-                        if (isInText) {
-                          // Remove from text
-                          const updated = form.current_devices
-                            .replace(new RegExp(`,?\\s*${p.product_name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\s*,?`), match => {
-                              // Clean up separators
-                              if (match.startsWith(',') && match.endsWith(',')) return ',';
-                              return '';
-                            })
-                            .replace(/^[,\s]+|[,\s]+$/g, '')
-                            .replace(/,\s*,/g, ', ');
-                          updateField('current_devices', updated);
-                        } else {
-                          const current = form.current_devices.trim();
-                          const updated = current ? `${current}, ${p.product_name}` : p.product_name;
-                          updateField('current_devices', updated);
-                        }
-                      }}
-                      className={`px-2 py-1 rounded-md text-xs font-medium border transition-colors ${
-                        isInText
-                          ? 'bg-primary text-primary-foreground border-primary'
-                          : 'bg-background text-muted-foreground border-input hover:bg-muted/50'
-                      }`}
-                    >
-                      {isInText ? `✕ ${p.product_name}` : `+ ${p.product_name}`}
-                    </button>
-                  );
-                })}
-              </div>
+              <QuickNoteButtons
+                value={form.current_devices}
+                onChange={v => updateField('current_devices', v)}
+                storageKey="quick_notes_devices"
+                defaults={['Doublo Gold', 'Ultraformer III', 'HIFU เก่า', 'Thermage FLX']}
+              />
             </div>
 
             <div className="space-y-1.5 sm:col-span-2">
