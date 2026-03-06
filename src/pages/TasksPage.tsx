@@ -242,6 +242,7 @@ export default function TasksPage() {
                     <th className="px-3 py-3 text-left font-medium text-muted-foreground">วัน/เวลา</th>
                     <th className="px-3 py-3 text-left font-medium text-muted-foreground">ผู้ติดต่อ</th>
                     <th className="px-3 py-3 text-left font-medium text-muted-foreground">ความสำคัญ</th>
+                    <th className="px-3 py-3 text-left font-medium text-muted-foreground">มอบหมาย</th>
                     <th className="px-3 py-3 text-left font-medium text-muted-foreground">Stage</th>
                     <th className="px-3 py-3 text-left font-medium text-muted-foreground">Due Date</th>
                   </tr>
