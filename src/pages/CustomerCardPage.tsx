@@ -91,6 +91,8 @@ export default function CustomerCardPage() {
   const [contacts, setContacts] = useState<LocalContact[]>([]);
   const [opportunities, setOpportunities] = useState<Opportunity[]>([]);
   const [loading, setLoading] = useState(true);
+  const [addContactOpen, setAddContactOpen] = useState(false);
+  const [newContact, setNewContact] = useState({ name: '', role: '', phone: '', email: '' });
 
   useEffect(() => {
     if (!id) return;
