@@ -135,11 +135,19 @@
 .tasks-calendar .fc-event {
   cursor: grab;
   border-radius: 6px;
-  padding: 2px 4px;
-  box-shadow: 0 1px 2px hsl(0 0% 0% / 0.06);
+  padding: 0;
+  border-left-width: 3px;
+  border-left-style: solid;
+  border-top: none;
+  border-right: none;
+  border-bottom: none;
+  box-shadow: 0 1px 3px hsl(0 0% 0% / 0.08);
 }
 .tasks-calendar .fc-event:active {
   cursor: grabbing;
+}
+.tasks-calendar .fc-daygrid-event {
+  border-left-width: 3px;
 }
 .tasks-calendar .fc .fc-toolbar-title {
   font-size: 1.1rem;

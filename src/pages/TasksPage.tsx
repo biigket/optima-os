@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search, Phone, Circle, CheckCircle2, List, CalendarDays } from 'lucide-react';
+import { Search, Phone, Circle, CheckCircle2, List, CalendarDays, Users, ClipboardList, AlertCircle, Monitor, ArrowUp } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import StatusBadge from '@/components/ui/StatusBadge';
@@ -30,6 +30,21 @@ interface ActivityRow {
 }
 
 const priorityOrder: Record<string, number> = { HIGH: 0, NORMAL: 1, LOW: 2 };
+
+const activityTypeConfig: Record<string, { icon: typeof Phone; color: string }> = {
+  CALL: { icon: Phone, color: 'hsl(213 94% 55%)' },
+  MEETING: { icon: Users, color: 'hsl(152 60% 42%)' },
+  TASK: { icon: ClipboardList, color: 'hsl(38 92% 50%)' },
+  DEADLINE: { icon: AlertCircle, color: 'hsl(0 84% 60%)' },
+  DEMO: { icon: Monitor, color: 'hsl(270 60% 55%)' },
+};
+
+const formatTime12 = (t: string) => {
+  const [h, m] = t.split(':').map(Number);
+  const ampm = h >= 12 ? 'PM' : 'AM';
+  const h12 = h % 12 || 12;
+  return `${h12}:${String(m).padStart(2, '0')} ${ampm}`;
+};
 
 export default function TasksPage() {
   const navigate = useNavigate();
@@ -124,6 +139,7 @@ export default function TasksPage() {
       start = `${dateStr}T${r.start_time}`;
       if (r.end_time) end = `${dateStr}T${r.end_time}`;
     }
+    const config = activityTypeConfig[r.activity_type] || activityTypeConfig.TASK;
     return {
       id: r.id,
       title: r.title,
@@ -131,6 +147,8 @@ export default function TasksPage() {
       end,
       extendedProps: r,
       classNames: r.is_done ? ['opacity-40'] : [],
+      borderColor: config.color,
+      backgroundColor: `${config.color.replace(')', ' / 0.1)')}`,
     };
   });
 
@@ -259,31 +277,29 @@ export default function TasksPage() {
               slotMaxTime="21:00:00"
               eventContent={(arg) => {
                 const props = arg.event.extendedProps as ActivityRow;
+                const config = activityTypeConfig[props.activity_type] || activityTypeConfig.TASK;
+                const TypeIcon = config.icon;
                 return (
-                  <div className={`p-1 text-xs space-y-0.5 ${props.is_done ? 'opacity-40' : ''}`}>
-                    <div className="font-semibold truncate">{arg.event.title}</div>
-                    {props.contact_name && (
-                      <div className="flex items-center gap-1">
-                        <span className="truncate">{props.contact_name}</span>
-                        {props.contact_phone && (
-                          <a href={`tel:${props.contact_phone}`} onClick={e => e.stopPropagation()} className="shrink-0">
-                            <Phone size={10} />
-                          </a>
+                  <div className={`px-1.5 py-1 text-xs ${props.is_done ? 'opacity-40' : ''}`}>
+                    <div className="flex items-center gap-1.5">
+                      <TypeIcon size={12} style={{ color: config.color }} className="shrink-0" />
+                      <span className="font-semibold truncate flex-1">{arg.event.title}</span>
+                      <div className="flex items-center gap-1 shrink-0">
+                        {props.priority === 'HIGH' && <ArrowUp size={12} className="text-destructive" />}
+                        {!props.is_done ? (
+                          <button onClick={(e) => { e.stopPropagation(); markDone(props.id); }} className="text-muted-foreground hover:text-success">
+                            <Circle size={13} />
+                          </button>
+                        ) : (
+                          <CheckCircle2 size={13} className="text-success" />
                         )}
                       </div>
-                    )}
-                    <div className="flex items-center gap-1">
-                      {props.priority && <StatusBadge status={props.priority} className="text-[9px] px-1 py-0" />}
-                      {!props.is_done && (
-                        <button
-                          onClick={(e) => { e.stopPropagation(); markDone(props.id); }}
-                          className="text-muted-foreground hover:text-success"
-                        >
-                          <Circle size={12} />
-                        </button>
-                      )}
-                      {props.is_done && <CheckCircle2 size={12} className="text-success" />}
                     </div>
+                    {props.start_time && (
+                      <div className="text-[10px] text-muted-foreground mt-0.5 ml-5">
+                        {formatTime12(props.start_time)}{props.end_time ? ` → ${formatTime12(props.end_time)}` : ''}
+                      </div>
+                    )}
                   </div>
                 );
               }}
