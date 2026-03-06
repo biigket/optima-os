@@ -21,7 +21,7 @@ const TIME_OPTIONS = Array.from({ length: 96 }, (_, i) => {
 
 const ACTIVITY_TYPES: { type: ActivityType; label: string; icon: React.ElementType; color: string; defaultTitle: string }[] = [
   { type: 'CALL', label: 'Call', icon: Phone, color: 'text-blue-600 bg-blue-100', defaultTitle: 'โทร' },
-  { type: 'MEETING', label: 'Meeting', icon: Users, color: 'text-violet-600 bg-violet-100', defaultTitle: 'ประชุม' },
+  { type: 'MEETING', label: 'Visit', icon: Users, color: 'text-violet-600 bg-violet-100', defaultTitle: 'นัดพบ' },
   { type: 'TASK', label: 'Task', icon: Building2, color: 'text-emerald-600 bg-emerald-100', defaultTitle: 'งาน' },
   { type: 'DEADLINE', label: 'Deadline', icon: Target, color: 'text-red-600 bg-red-100', defaultTitle: 'เส้นตาย' },
   { type: 'DEMO', label: 'Demo', icon: Presentation, color: 'text-orange-600 bg-orange-100', defaultTitle: 'นัดเดโม' },
