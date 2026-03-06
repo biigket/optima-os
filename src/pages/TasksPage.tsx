@@ -130,6 +130,21 @@ export default function TasksPage() {
     setRows(prev => prev.map(r => r.id === id ? { ...r, is_done: true } : r));
   };
 
+  const toggleDone = async (id: string, currentDone: boolean) => {
+    const newDone = !currentDone;
+    const { error } = await supabase.from('activities').update({ is_done: newDone }).eq('id', id);
+    if (error) { toast.error('อัปเดตไม่สำเร็จ'); return; }
+    toast.success(newDone ? 'ทำเครื่องหมายเสร็จแล้ว' : 'ยกเลิกเสร็จแล้ว');
+    setRows(prev => prev.map(r => r.id === id ? { ...r, is_done: newDone } : r));
+    setSelectedActivity(prev => prev?.id === id ? { ...prev, is_done: newDone } : prev);
+  };
+
+  const handleEventClick = (info: any) => {
+    const props = info.event.extendedProps as ActivityRow;
+    setSelectedActivity(props);
+    setDialogOpen(true);
+  };
+
   // List: show only undone
   const listRows = rows.filter(r => !r.is_done && r.title.toLowerCase().includes(search.toLowerCase()));
 
