@@ -144,7 +144,7 @@ export default function CustomerCardPage() {
     setLoading(true);
     Promise.all([
       supabase.from('accounts').select('*').eq('id', id).single(),
-      supabase.from('contacts').select('id, account_id, name, role, phone, email').eq('account_id', id),
+      supabase.from('contacts').select('*').eq('account_id', id),
       supabase.from('opportunities').select('*').eq('account_id', id).order('created_at', { ascending: false }),
     ]).then(([accRes, conRes, oppRes]) => {
       if (accRes.data) setAccount(accRes.data as unknown as LocalAccount);
