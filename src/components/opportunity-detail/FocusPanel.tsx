@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { format, parse } from 'date-fns';
-import { Phone, Users, Building2, Target, AlertTriangle, MoreHorizontal, ChevronDown, Pencil, Trash2, X, Check, CalendarIcon } from 'lucide-react';
+import { Phone, Users, Building2, Target, Presentation, AlertTriangle, MoreHorizontal, ChevronDown, Pencil, Trash2, X, Check, CalendarIcon, CalendarPlus, MessageSquare } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
@@ -21,9 +21,10 @@ import type { Activity } from '@/types';
 
 const TYPE_CONFIG: Record<string, { icon: React.ElementType; color: string; borderColor: string; label: string }> = {
   CALL: { icon: Phone, label: 'Call', color: 'text-blue-600', borderColor: 'border-blue-400' },
-  MEETING: { icon: Users, label: 'Meeting', color: 'text-violet-600', borderColor: 'border-violet-400' },
+  MEETING: { icon: Users, label: 'Visit', color: 'text-violet-600', borderColor: 'border-violet-400' },
   TASK: { icon: Building2, label: 'Task', color: 'text-emerald-600', borderColor: 'border-emerald-400' },
   DEADLINE: { icon: Target, label: 'Deadline', color: 'text-red-600', borderColor: 'border-red-400' },
+  DEMO: { icon: Presentation, label: 'Demo', color: 'text-orange-600', borderColor: 'border-orange-400' },
 };
 
 interface FocusPanelProps {
@@ -32,10 +33,12 @@ interface FocusPanelProps {
   onEdit?: (id: string) => void;
   onDelete?: (id: string) => void;
   onActivityUpdated?: (activity: Activity) => void;
+  onQuickCreate?: (type: 'CALL' | 'MEETING' | 'DEMO') => void;
+  onAddComment?: (activityId: string) => void;
   clinicName?: string;
 }
 
-export default function FocusPanel({ activities, onMarkDone, onEdit, onDelete, onActivityUpdated, clinicName }: FocusPanelProps) {
+export default function FocusPanel({ activities, onMarkDone, onEdit, onDelete, onActivityUpdated, onQuickCreate, onAddComment, clinicName }: FocusPanelProps) {
   const [expandAll, setExpandAll] = useState(true);
   const [editingId, setEditingId] = useState<string | null>(null);
   const pending = activities.filter(a => !a.is_done).sort((a, b) => a.activity_date.localeCompare(b.activity_date));
@@ -81,6 +84,8 @@ export default function FocusPanel({ activities, onMarkDone, onEdit, onDelete, o
             onDone={() => handleDone(act.id)}
             onEdit={() => setEditingId(act.id)}
             onDelete={() => onDelete?.(act.id)}
+            onQuickCreate={onQuickCreate}
+            onAddComment={onAddComment}
           />
         )
       ))}
@@ -88,8 +93,10 @@ export default function FocusPanel({ activities, onMarkDone, onEdit, onDelete, o
   );
 }
 
-function FocusCard({ activity: act, clinicName, onDone, onEdit, onDelete }: {
+function FocusCard({ activity: act, clinicName, onDone, onEdit, onDelete, onQuickCreate, onAddComment }: {
   activity: Activity; clinicName?: string; onDone: () => void; onEdit: () => void; onDelete: () => void;
+  onQuickCreate?: (type: 'CALL' | 'MEETING' | 'DEMO') => void;
+  onAddComment?: (activityId: string) => void;
 }) {
   const cfg = TYPE_CONFIG[act.activity_type] || TYPE_CONFIG.TASK;
   const Icon = cfg.icon;
@@ -125,6 +132,30 @@ function FocusCard({ activity: act, clinicName, onDone, onEdit, onDelete }: {
             {act.notes}
           </p>
         )}
+        {/* Quick action buttons */}
+        <div className="flex items-center gap-1 mt-2 pt-1.5 border-t border-border/50">
+          <button
+            onClick={() => onQuickCreate?.('CALL')}
+            className="p-1.5 rounded hover:bg-muted text-muted-foreground hover:text-blue-600 transition-colors"
+            title="สร้าง Follow-up Call"
+          >
+            <Phone size={13} />
+          </button>
+          <button
+            onClick={() => onQuickCreate?.('MEETING')}
+            className="p-1.5 rounded hover:bg-muted text-muted-foreground hover:text-violet-600 transition-colors"
+            title="นัดพบ"
+          >
+            <CalendarPlus size={13} />
+          </button>
+          <button
+            onClick={() => onAddComment?.(act.id)}
+            className="p-1.5 rounded hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
+            title="เพิ่มความคิดเห็น"
+          >
+            <MessageSquare size={13} />
+          </button>
+        </div>
       </div>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
