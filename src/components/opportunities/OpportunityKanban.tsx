@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
-import { Clock, AlertTriangle, Building2, Calendar, Phone, Eye, Users, Presentation, FileCheck, MoreHorizontal, Trophy, XCircle, MessageSquare } from 'lucide-react';
+import { Clock, AlertTriangle, Building2, Calendar, Phone, Eye, Users, Presentation, FileCheck, MoreHorizontal, Trophy, XCircle } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
@@ -157,8 +157,6 @@ function KanbanCard({ opp, stage, navigate, onStageChange, onUpdateOpportunity, 
   const [isDragging, setIsDragging] = useState(false);
   const [otherReason, setOtherReason] = useState('');
   const [showOtherInput, setShowOtherInput] = useState(false);
-  const [quickNote, setQuickNote] = useState('');
-  const [showNoteInput, setShowNoteInput] = useState(false);
 
   const account = getCachedAccount(opp.account_id);
   const daysInStage = getDaysInStage(opp);
@@ -202,14 +200,6 @@ function KanbanCard({ opp, stage, navigate, onStageChange, onUpdateOpportunity, 
     }
   };
 
-  const handleSaveNote = () => {
-    if (quickNote.trim()) {
-      onAddNote?.(opp.id, quickNote.trim());
-      setQuickNote('');
-      setShowNoteInput(false);
-      toast.success('บันทึกโน้ตแล้ว');
-    }
-  };
 
   return (
     <div
@@ -338,51 +328,8 @@ function KanbanCard({ opp, stage, navigate, onStageChange, onUpdateOpportunity, 
         </div>
       )}
 
-      {/* Quick Note input */}
-      {showNoteInput && (
-        <div className="mt-2" onClick={e => e.stopPropagation()} onMouseDown={e => e.stopPropagation()}>
-          <div className="flex gap-1">
-            <Input
-              value={quickNote}
-              onChange={e => setQuickNote(e.target.value)}
-              placeholder="พิมพ์บันทึก..."
-              className="h-6 text-[10px] flex-1"
-              autoFocus
-              onKeyDown={e => { if (e.key === 'Enter') handleSaveNote(); if (e.key === 'Escape') setShowNoteInput(false); }}
-            />
-            <button
-              onClick={handleSaveNote}
-              className="px-1.5 h-6 text-[10px] bg-primary text-primary-foreground rounded hover:bg-primary/90"
-            >
-              บันทึก
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* Quick Actions — always visible */}
-      <div className="flex items-center gap-1 mt-2 pt-2 border-t border-border">
-        <button
-          onClick={(e) => { e.stopPropagation(); toast.info(`โทรหา ${account?.clinic_name}`); }}
-          className="p-1.5 rounded hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
-          title="โทร"
-        >
-          <Phone size={12} />
-        </button>
-        <button
-          onClick={(e) => { e.stopPropagation(); toast.info('นัดกิจกรรม'); }}
-          className="p-1.5 rounded hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
-          title="นัดกิจกรรม"
-        >
-          <Calendar size={12} />
-        </button>
-        <button
-          onClick={(e) => { e.stopPropagation(); setShowNoteInput(!showNoteInput); }}
-          className="p-1.5 rounded hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
-          title="บันทึกภายใน"
-        >
-          <MessageSquare size={12} />
-        </button>
+      {/* Pipeline dropdown */}
+      <div className="flex items-center mt-2 pt-2 border-t border-border">
         <div className="ml-auto" onClick={e => e.stopPropagation()}>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
