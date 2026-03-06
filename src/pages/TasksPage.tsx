@@ -232,6 +232,19 @@ export default function TasksPage() {
             <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
             <Input placeholder="ค้นหางาน..." value={search} onChange={e => setSearch(e.target.value)} className="pl-9" />
           </div>
+          {isAdmin && (
+            <Select value={assigneeFilter} onValueChange={setAssigneeFilter}>
+              <SelectTrigger className="w-[160px]">
+                <SelectValue placeholder="ทั้งหมด" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="ALL">ทั้งหมด</SelectItem>
+                {uniqueAssignees.map(name => (
+                  <SelectItem key={name} value={name}>{name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
           <TabsList>
             <TabsTrigger value="list" className="gap-1.5"><List size={14} />รายการ</TabsTrigger>
             <TabsTrigger value="calendar" className="gap-1.5"><CalendarDays size={14} />ปฏิทิน</TabsTrigger>
