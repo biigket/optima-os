@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -10,7 +10,7 @@ import StatusBadge from '@/components/ui/StatusBadge';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import {
   ArrowLeft, Building2, ExternalLink, Users, Calendar, Clock,
-  Pencil, Trophy, XCircle, Check, Send, ChevronDown, ChevronUp, Plus, Trash2
+  Pencil, Trophy, XCircle, Check, Send, ChevronDown, ChevronUp, Plus, Trash2, Upload, FileText
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useMockAuth } from '@/hooks/useMockAuth';
@@ -428,7 +428,7 @@ export default function OpportunityDetailPage() {
 
         {/* RIGHT COLUMN: Tab UI + Focus + History + Calendar */}
         <div className="lg:col-span-7 space-y-4">
-          {/* Tab-based Activity / Notes input */}
+          {/* Tab-based Activity / Notes / Files input */}
           <div className="rounded-xl border bg-card p-4 shadow-sm">
             <Tabs value={activeTab} onValueChange={setActiveTab}>
               <TabsList className="h-8 mb-3">
@@ -437,6 +437,9 @@ export default function OpportunityDetailPage() {
                 </TabsTrigger>
                 <TabsTrigger value="notes" className="text-xs h-6 px-3 gap-1">
                   📝 เพิ่มบันทึก
+                </TabsTrigger>
+                <TabsTrigger value="files" className="text-xs h-6 px-3 gap-1">
+                  <Upload size={12} /> ไฟล์
                 </TabsTrigger>
               </TabsList>
 
@@ -467,6 +470,15 @@ export default function OpportunityDetailPage() {
                     </Button>
                   </div>
                 </div>
+              </TabsContent>
+
+              <TabsContent value="files">
+                <FileUploadZone
+                  opportunityId={opp.id}
+                  accountId={opp.account_id}
+                  userName={currentUser?.name || 'Unknown'}
+                  onFileUploaded={() => forceUpdate(n => n + 1)}
+                />
               </TabsContent>
             </Tabs>
           </div>
