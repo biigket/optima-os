@@ -62,7 +62,8 @@ export default function TasksPage() {
   const [selectedActivity, setSelectedActivity] = useState<ActivityRow | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [assigneeFilter, setAssigneeFilter] = useState('ALL');
-  const [calendarView, setCalendarView] = useState<'timeGridWeek' | 'timeGridDay'>('timeGridWeek');
+  const [calendarView, setCalendarView] = useState<'timeGridWeek' | 'timeGridDay'>('timeGridDay');
+  const [showMobileMiniCal, setShowMobileMiniCal] = useState(false);
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [miniMonth, setMiniMonth] = useState(new Date());
   const calendarRef = useRef<FullCalendar>(null);
