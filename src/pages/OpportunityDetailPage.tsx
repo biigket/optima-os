@@ -63,7 +63,10 @@ export default function OpportunityDetailPage() {
 
   const [editForm, setEditForm] = useState({
     expected_value: '', close_date: '', notes: '',
+    interested_products: [] as string[], budget_range: '',
+    payment_method: '', credit_card_option: '', competitors: '',
   });
+  const [allProducts, setAllProducts] = useState<{ id: string; product_name: string }[]>([]);
 
   // Fetch opportunity
   useEffect(() => {
@@ -131,19 +134,40 @@ export default function OpportunityDetailPage() {
   };
 
   const openEdit = () => {
+    // Parse payment method for credit card options
+    const pm = opp.payment_method || '';
+    const isCreditCard = pm.startsWith('CREDIT_CARD');
+    const basePayment = isCreditCard ? 'CREDIT_CARD' : pm;
+    const creditOption = isCreditCard && pm.includes(':') ? pm : '';
+
     setEditForm({
       expected_value: String(opp.expected_value || ''),
       close_date: opp.close_date || '',
       notes: opp.notes || '',
+      interested_products: opp.interested_products || [],
+      budget_range: opp.budget_range || '',
+      payment_method: basePayment,
+      credit_card_option: creditOption,
+      competitors: opp.competitors || '',
+    });
+    // Fetch products for select
+    supabase.from('products').select('id, product_name').eq('category', 'DEVICE').then(({ data }) => {
+      if (data) setAllProducts(data);
     });
     setEditOpen(true);
   };
 
   const saveEdit = async () => {
-    const updates = {
+    const paymentFull = editForm.payment_method === 'CREDIT_CARD' && editForm.credit_card_option
+      ? editForm.credit_card_option : editForm.payment_method;
+    const updates: Record<string, any> = {
       expected_value: Number(editForm.expected_value) || opp.expected_value,
       close_date: editForm.close_date || opp.close_date,
-      notes: editForm.notes,
+      notes: editForm.notes || null,
+      interested_products: editForm.interested_products.length > 0 ? editForm.interested_products : opp.interested_products,
+      budget_range: editForm.budget_range || null,
+      payment_method: paymentFull || null,
+      competitors: editForm.competitors || null,
     };
     const { error } = await supabase.from('opportunities').update(updates).eq('id', opp.id);
     if (error) { toast.error('อัปเดตไม่สำเร็จ'); return; }
@@ -563,17 +587,80 @@ export default function OpportunityDetailPage() {
 
       {/* Edit Dialog */}
       <Dialog open={editOpen} onOpenChange={setEditOpen}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="max-w-lg">
           <DialogHeader><DialogTitle className="text-sm">แก้ไขข้อมูลดีล</DialogTitle></DialogHeader>
-          <div className="space-y-3">
+          <div className="space-y-3 max-h-[60vh] overflow-y-auto pr-1">
+            {/* สินค้า */}
+            <div>
+              <label className="text-xs text-muted-foreground">สินค้า</label>
+              <div className="flex flex-wrap gap-2 mt-1">
+                {allProducts.map(p => {
+                  const selected = editForm.interested_products.includes(p.product_name);
+                  return (
+                    <button key={p.id} type="button"
+                      onClick={() => setEditForm(f => ({
+                        ...f,
+                        interested_products: selected
+                          ? f.interested_products.filter(x => x !== p.product_name)
+                          : [...f.interested_products, p.product_name],
+                      }))}
+                      className={`px-3 py-1.5 rounded-lg border text-xs transition-colors ${selected ? 'bg-primary text-primary-foreground border-primary' : 'bg-muted/40 text-foreground border-border hover:bg-muted'}`}
+                    >
+                      {p.product_name}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+            {/* มูลค่า */}
             <div>
               <label className="text-xs text-muted-foreground">มูลค่า (฿)</label>
               <Input type="number" value={editForm.expected_value} onChange={e => setEditForm(f => ({ ...f, expected_value: e.target.value }))} className="h-8 text-sm" />
             </div>
+            {/* งบประมาณ */}
+            <div>
+              <label className="text-xs text-muted-foreground">งบประมาณ</label>
+              <Select value={editForm.budget_range} onValueChange={v => setEditForm(f => ({ ...f, budget_range: v }))}>
+                <SelectTrigger className="h-8 text-sm"><SelectValue placeholder="เลือกงบประมาณ" /></SelectTrigger>
+                <SelectContent>
+                  {['<500K', '500K-1M', '1-2M', '2-5M', '5M+'].map(b => <SelectItem key={b} value={b}>{b}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+            {/* ช่องทางชำระ */}
+            <div>
+              <label className="text-xs text-muted-foreground">ช่องทางชำระ</label>
+              <Select value={editForm.payment_method} onValueChange={v => setEditForm(f => ({ ...f, payment_method: v, credit_card_option: '' }))}>
+                <SelectTrigger className="h-8 text-sm"><SelectValue placeholder="เลือกช่องทาง" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="CASH">เงินสด</SelectItem>
+                  <SelectItem value="LEASING">ลีสซิ่ง</SelectItem>
+                  <SelectItem value="CREDIT_CARD">บัตรเครดิต</SelectItem>
+                </SelectContent>
+              </Select>
+              {editForm.payment_method === 'CREDIT_CARD' && (
+                <Select value={editForm.credit_card_option} onValueChange={v => setEditForm(f => ({ ...f, credit_card_option: v }))}>
+                  <SelectTrigger className="h-8 text-sm mt-2"><SelectValue placeholder="เลือกรูปแบบ" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="CREDIT_CARD:FULL">รูดเต็ม</SelectItem>
+                    <SelectItem value="CREDIT_CARD:INST_3">ผ่อน 3 เดือน</SelectItem>
+                    <SelectItem value="CREDIT_CARD:INST_6">ผ่อน 6 เดือน</SelectItem>
+                    <SelectItem value="CREDIT_CARD:INST_10">ผ่อน 10 เดือน</SelectItem>
+                  </SelectContent>
+                </Select>
+              )}
+            </div>
+            {/* คู่แข่ง */}
+            <div>
+              <label className="text-xs text-muted-foreground">คู่แข่ง</label>
+              <Input value={editForm.competitors} onChange={e => setEditForm(f => ({ ...f, competitors: e.target.value }))} className="h-8 text-sm" placeholder="คั่นด้วย comma เช่น Ultherapy, Thermage" />
+            </div>
+            {/* วันปิด */}
             <div>
               <label className="text-xs text-muted-foreground">วันปิด</label>
               <Input type="date" value={editForm.close_date} onChange={e => setEditForm(f => ({ ...f, close_date: e.target.value }))} className="h-8 text-sm" />
             </div>
+            {/* หมายเหตุ */}
             <div>
               <label className="text-xs text-muted-foreground">หมายเหตุ</label>
               <Textarea value={editForm.notes} onChange={e => setEditForm(f => ({ ...f, notes: e.target.value }))} className="text-sm min-h-[60px]" />
