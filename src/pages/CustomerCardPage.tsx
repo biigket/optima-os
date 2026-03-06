@@ -562,7 +562,7 @@ export default function CustomerCardPage() {
 
       {/* Edit Dialog */}
       <Dialog open={editOpen} onOpenChange={setEditOpen}>
-        <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto">
+        <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>แก้ไขข้อมูลลูกค้า</DialogTitle>
             <DialogDescription>แก้ไขข้อมูลและกดบันทึก</DialogDescription>
@@ -581,25 +581,15 @@ export default function CustomerCardPage() {
               <Input value={editForm.address || ''} onChange={e => setEditForm(f => ({ ...f, address: e.target.value }))} />
             </div>
             <div className="space-y-1.5">
-              <Label>โทรศัพท์</Label>
-              <Input value={editForm.phone || ''} onChange={e => setEditForm(f => ({ ...f, phone: e.target.value }))} />
-            </div>
-            <div className="space-y-1.5">
-              <Label>อีเมล</Label>
-              <Input value={editForm.email || ''} onChange={e => setEditForm(f => ({ ...f, email: e.target.value }))} />
-            </div>
-            <div className="space-y-1.5">
               <Label>เลขประจำตัวผู้เสียภาษี</Label>
               <Input value={editForm.tax_id || ''} onChange={e => setEditForm(f => ({ ...f, tax_id: e.target.value }))} />
             </div>
             <div className="space-y-1.5">
-              <Label>ประเภทกิจการ</Label>
+              <Label>ประเภทนิติบุคคล</Label>
               <Select value={editForm.entity_type || ''} onValueChange={v => setEditForm(f => ({ ...f, entity_type: v }))}>
                 <SelectTrigger><SelectValue placeholder="เลือก" /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="บุคคลธรรมดา">บุคคลธรรมดา</SelectItem>
-                  <SelectItem value="นิติบุคคล">นิติบุคคล</SelectItem>
-                  <SelectItem value="ห้างหุ้นส่วน">ห้างหุ้นส่วน</SelectItem>
+                  {['บุคคลธรรมดา', 'นิติบุคคล', 'คลินิก', 'โรงพยาบาล'].map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}
                 </SelectContent>
               </Select>
             </div>
@@ -608,36 +598,17 @@ export default function CustomerCardPage() {
               <Select value={editForm.branch_type || ''} onValueChange={v => setEditForm(f => ({ ...f, branch_type: v }))}>
                 <SelectTrigger><SelectValue placeholder="เลือก" /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="สำนักงานใหญ่">สำนักงานใหญ่</SelectItem>
-                  <SelectItem value="สาขา">สาขา</SelectItem>
+                  {['สำนักงานใหญ่', 'สาขา'].map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}
                 </SelectContent>
               </Select>
             </div>
             <div className="space-y-1.5">
-              <Label>สาขาเดียว / เครือ</Label>
-              <Select value={editForm.single_or_chain || ''} onValueChange={v => setEditForm(f => ({ ...f, single_or_chain: v }))}>
-                <SelectTrigger><SelectValue placeholder="เลือก" /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="สาขาเดียว">สาขาเดียว</SelectItem>
-                  <SelectItem value="เครือ">เครือ</SelectItem>
-                </SelectContent>
-              </Select>
+              <Label>โทรศัพท์</Label>
+              <Input value={editForm.phone || ''} onChange={e => setEditForm(f => ({ ...f, phone: e.target.value }))} />
             </div>
             <div className="space-y-1.5">
-              <Label>Google Map</Label>
-              <Input value={editForm.google_map_link || ''} onChange={e => setEditForm(f => ({ ...f, google_map_link: e.target.value }))} placeholder="ลิงก์ Google Map" />
-            </div>
-            <div className="space-y-1.5">
-              <Label>แหล่งที่มา</Label>
-              <Select value={editForm.lead_source || ''} onValueChange={v => setEditForm(f => ({ ...f, lead_source: v }))}>
-                <SelectTrigger><SelectValue placeholder="เลือก" /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="เพื่อนแนะนำ">เพื่อนแนะนำ</SelectItem>
-                  <SelectItem value="Social media">Social media</SelectItem>
-                  <SelectItem value="งานแสดงสินค้า">งานแสดงสินค้า</SelectItem>
-                  <SelectItem value="Other">อื่นๆ</SelectItem>
-                </SelectContent>
-              </Select>
+              <Label>อีเมล</Label>
+              <Input type="email" value={editForm.email || ''} onChange={e => setEditForm(f => ({ ...f, email: e.target.value }))} />
             </div>
             <div className="space-y-1.5">
               <Label>สถานะ</Label>
@@ -664,41 +635,36 @@ export default function CustomerCardPage() {
               </Select>
             </div>
             <div className="space-y-1.5">
+              <Label>แหล่งที่มา</Label>
+              <Select value={editForm.lead_source || ''} onValueChange={v => setEditForm(f => ({ ...f, lead_source: v }))}>
+                <SelectTrigger><SelectValue placeholder="เลือกแหล่งที่มา" /></SelectTrigger>
+                <SelectContent>
+                  {['เพื่อนแนะนำ', 'Social media', 'งานแสดงสินค้า'].map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+                  <SelectItem value="OTHER">อื่นๆ (ระบุเอง)</SelectItem>
+                </SelectContent>
+              </Select>
+              {editForm.lead_source === 'OTHER' && (
+                <Input className="mt-1.5" value={editForm.custom_lead_source || ''} onChange={e => setEditForm(f => ({ ...f, custom_lead_source: e.target.value }))} placeholder="ระบุแหล่งที่มา..." />
+              )}
+            </div>
+            <div className="space-y-1.5">
               <Label>เกรด</Label>
               <Select value={editForm.grade || ''} onValueChange={v => setEditForm(f => ({ ...f, grade: v }))}>
                 <SelectTrigger><SelectValue placeholder="เลือก" /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="A">A</SelectItem>
-                  <SelectItem value="B">B</SelectItem>
-                  <SelectItem value="C">C</SelectItem>
+                  <SelectItem value="1">1</SelectItem>
+                  <SelectItem value="2">2</SelectItem>
+                  <SelectItem value="3">3</SelectItem>
                 </SelectContent>
               </Select>
             </div>
-            <div className="space-y-1.5">
-              <Label>วันที่ลงทะเบียน</Label>
-              <Input type="date" value={editForm.registered_at || ''} onChange={e => setEditForm(f => ({ ...f, registered_at: e.target.value }))} />
-            </div>
-            <div className="space-y-1.5">
-              <Label>เครื่องที่ใช้อยู่</Label>
-              <Input value={editForm.current_devices || ''} onChange={e => setEditForm(f => ({ ...f, current_devices: e.target.value }))} placeholder="เช่น Doublo, Ultraformer" />
-            </div>
-            <div className="flex items-center gap-6 sm:col-span-2 pt-2">
-              <label className="flex items-center gap-2 text-sm cursor-pointer">
-                <input type="checkbox" checked={editForm.has_budget === 'true'} onChange={e => setEditForm(f => ({ ...f, has_budget: e.target.checked ? 'true' : 'false' }))} className="rounded" />
-                มีงบประมาณ
-              </label>
-              <label className="flex items-center gap-2 text-sm cursor-pointer">
-                <input type="checkbox" checked={editForm.is_vip === 'true'} onChange={e => setEditForm(f => ({ ...f, is_vip: e.target.checked ? 'true' : 'false' }))} className="rounded" />
-                VIP
-              </label>
-              <label className="flex items-center gap-2 text-sm cursor-pointer">
-                <input type="checkbox" checked={editForm.is_kol === 'true'} onChange={e => setEditForm(f => ({ ...f, is_kol: e.target.checked ? 'true' : 'false' }))} className="rounded" />
-                KOL
-              </label>
+            <div className="space-y-1.5 sm:col-span-2">
+              <Label>เครื่องที่มีอยู่แล้ว</Label>
+              <Textarea value={editForm.current_devices || ''} onChange={e => setEditForm(f => ({ ...f, current_devices: e.target.value }))} rows={2} placeholder="พิมพ์ชื่อเครื่องที่ลูกค้ามีอยู่..." />
             </div>
             <div className="space-y-1.5 sm:col-span-2">
               <Label>หมายเหตุ</Label>
-              <Textarea value={editForm.notes || ''} onChange={e => setEditForm(f => ({ ...f, notes: e.target.value }))} className="min-h-[60px] resize-none" placeholder="หมายเหตุเพิ่มเติม..." />
+              <Textarea value={editForm.notes || ''} onChange={e => setEditForm(f => ({ ...f, notes: e.target.value }))} rows={3} />
             </div>
           </div>
           <DialogFooter>
@@ -707,7 +673,6 @@ export default function CustomerCardPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-      {/* Add Contact Dialog */}
       <Dialog open={addContactOpen} onOpenChange={setAddContactOpen}>
         <DialogContent className="max-w-md">
           <DialogHeader>
