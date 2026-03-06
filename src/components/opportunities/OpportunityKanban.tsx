@@ -519,8 +519,8 @@ function PinnedNotesRow({ oppId, accountId, isTerminal }: { oppId: string; accou
   return (
     <div className="space-y-1 mt-1.5 pt-1.5 border-t border-border" onClick={e => e.stopPropagation()}>
       {pinnedNotes.map(note => (
-        <div key={note.id} className="flex items-center gap-1 text-[10px] text-muted-foreground">
-          <Pin size={8} className="shrink-0 text-primary fill-primary" />
+        <div key={note.id} className="flex items-center gap-1.5 text-xs text-muted-foreground">
+          <Pin size={10} className="shrink-0 text-primary fill-primary" />
           <span className="truncate flex-1">{note.content}</span>
           <Popover open={editingNote?.id === note.id} onOpenChange={(open) => {
             if (open) { setEditingNote(note); setEditContent(note.content); }
