@@ -375,7 +375,6 @@ export type Database = {
           close_date: string | null
           competitors: string | null
           created_at: string
-          current_devices: string | null
           customer_grade: string | null
           expected_value: number | null
           id: string
@@ -399,7 +398,6 @@ export type Database = {
           close_date?: string | null
           competitors?: string | null
           created_at?: string
-          current_devices?: string | null
           customer_grade?: string | null
           expected_value?: number | null
           id?: string
@@ -423,7 +421,6 @@ export type Database = {
           close_date?: string | null
           competitors?: string | null
           created_at?: string
-          current_devices?: string | null
           customer_grade?: string | null
           expected_value?: number | null
           id?: string
