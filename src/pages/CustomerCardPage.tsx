@@ -63,6 +63,8 @@ interface LocalContact {
   role: string | null;
   phone: string | null;
   email: string | null;
+  line_id: string | null;
+  is_decision_maker: boolean | null;
 }
 
 const POTENTIAL_MAP: Record<string, string> = { A: 'High', B: 'Medium', C: 'Low' };
