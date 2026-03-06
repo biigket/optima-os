@@ -138,6 +138,7 @@ export default function ActivityForm({
       description: description || null,
       notes: notes || null,
       is_done: markAsDone,
+      assigned_to: assignedTo.length > 0 ? assignedTo : null,
     };
 
     if (isEditing && editingActivity) {
