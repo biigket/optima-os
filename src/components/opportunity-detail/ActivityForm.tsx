@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { format, parse } from 'date-fns';
+import { format, parse, addDays } from 'date-fns';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Checkbox } from '@/components/ui/checkbox';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Phone, Users, Building2, Target, Presentation, ChevronDown, ChevronUp, CalendarIcon, X } from 'lucide-react';
+import { Phone, Users, Building2, Target, Presentation, ChevronDown, ChevronUp, CalendarIcon, X, Sparkles, Loader2, MessageSquare } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
@@ -43,12 +43,25 @@ interface ActivityFormProps {
   onCancelEdit?: () => void;
   onFormChange?: (preview: Partial<Activity>) => void;
   quickScheduleDefaults?: QuickScheduleDefaults | null;
+  clinicName?: string;
+  currentStage?: string;
+  interestedProducts?: string[];
+}
+
+interface AISuggestion {
+  activity_type: ActivityType;
+  title: string;
+  days_from_now: number;
+  priority: string;
+  description: string;
+  talking_points: string[];
+  reason: string;
 }
 
 export default function ActivityForm({
   opportunityId, accountId, onActivityCreated,
   editingActivity, onActivityUpdated, onCancelEdit, onFormChange,
-  quickScheduleDefaults,
+  quickScheduleDefaults, clinicName, currentStage, interestedProducts,
 }: ActivityFormProps) {
   const { currentUser } = useMockAuth();
   const [selectedType, setSelectedType] = useState<ActivityType>('CALL');
@@ -64,6 +77,10 @@ export default function ActivityForm({
   const [showExtra, setShowExtra] = useState(false);
   const [saving, setSaving] = useState(false);
   const [assignedTo, setAssignedTo] = useState<string[]>(currentUser ? [currentUser.name] : []);
+  const [aiPrompt, setAiPrompt] = useState('');
+  const [aiLoading, setAiLoading] = useState(false);
+  const [aiSuggestion, setAiSuggestion] = useState<AISuggestion | null>(null);
+  const [showAiPanel, setShowAiPanel] = useState(false);
 
   const isEditing = !!editingActivity;
 
@@ -120,6 +137,48 @@ export default function ActivityForm({
     setMarkAsDone(false);
     setShowExtra(false);
     setAssignedTo(currentUser ? [currentUser.name] : []);
+    setAiSuggestion(null);
+    setAiPrompt('');
+    setShowAiPanel(false);
+  };
+
+  const handleAiSuggest = async () => {
+    if (!aiPrompt.trim()) { toast.error('กรุณาเล่าสิ่งที่คุยกับลูกค้า'); return; }
+    setAiLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('suggest-activity', {
+        body: { prompt: aiPrompt.trim(), clinicName, currentStage, interestedProducts },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      setAiSuggestion(data.suggestion);
+    } catch (e: any) {
+      console.error('AI suggest error:', e);
+      toast.error(e.message || 'AI แนะนำไม่สำเร็จ');
+    } finally {
+      setAiLoading(false);
+    }
+  };
+
+  const applyAiSuggestion = () => {
+    if (!aiSuggestion) return;
+    const validTypes: ActivityType[] = ['CALL', 'MEETING', 'TASK', 'DEADLINE', 'DEMO'];
+    const suggestedType = validTypes.includes(aiSuggestion.activity_type as ActivityType) 
+      ? aiSuggestion.activity_type as ActivityType : 'CALL';
+    setSelectedType(suggestedType);
+    setTitle(aiSuggestion.title || '');
+    const suggestedDate = format(addDays(new Date(), aiSuggestion.days_from_now || 1), 'yyyy-MM-dd');
+    setActivityDate(suggestedDate);
+    const validPriorities: ActivityPriority[] = ['LOW', 'NORMAL', 'HIGH'];
+    setPriority(validPriorities.includes(aiSuggestion.priority as ActivityPriority) 
+      ? aiSuggestion.priority as ActivityPriority : 'NORMAL');
+    setDescription(aiSuggestion.description || '');
+    if (aiSuggestion.talking_points?.length) {
+      setNotes('💡 คำแนะนำ:\n' + aiSuggestion.talking_points.map((t, i) => `${i + 1}. ${t}`).join('\n'));
+    }
+    setShowExtra(true);
+    setShowAiPanel(false);
+    toast.success('ใช้คำแนะนำ AI แล้ว — ตรวจสอบและบันทึกได้เลย');
   };
 
   const handleSave = async () => {
@@ -176,6 +235,88 @@ export default function ActivityForm({
         <div className="flex items-center gap-2 px-2 py-1.5 rounded-lg bg-primary/5 border border-primary/20">
           <span className="text-[11px] text-primary font-medium">✏️ กำลังแก้ไข: {editingActivity?.title}</span>
           <button onClick={handleCancel} className="ml-auto text-[10px] text-muted-foreground hover:text-foreground">ยกเลิก</button>
+        </div>
+      )}
+
+      {/* AI Suggest Button */}
+      {!isEditing && (
+        <button
+          onClick={() => setShowAiPanel(!showAiPanel)}
+          className={cn(
+            "w-full flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium transition-all border border-dashed",
+            showAiPanel 
+              ? "border-primary bg-primary/5 text-primary" 
+              : "border-muted-foreground/30 text-muted-foreground hover:border-primary/50 hover:text-primary"
+          )}
+        >
+          <Sparkles size={13} />
+          {showAiPanel ? 'ซ่อน AI แนะนำ' : '✨ AI แนะนำกิจกรรมถัดไป'}
+        </button>
+      )}
+
+      {/* AI Suggestion Panel */}
+      {showAiPanel && !isEditing && (
+        <div className="rounded-lg border border-primary/20 bg-primary/5 p-3 space-y-2.5">
+          <div className="flex items-center gap-1.5">
+            <Sparkles size={14} className="text-primary" />
+            <span className="text-xs font-semibold text-primary">AI แนะนำ Next Activity</span>
+          </div>
+          <Textarea
+            value={aiPrompt}
+            onChange={e => setAiPrompt(e.target.value)}
+            placeholder="เล่าสิ่งที่คุยกับลูกค้า เช่น ลูกค้าสนใจเครื่อง X แต่ติดเรื่องราคา อยากเห็น demo ก่อน..."
+            className="text-xs min-h-[70px] bg-background/50 border-primary/20"
+          />
+          <div className="flex justify-end">
+            <Button
+              size="sm"
+              className="text-xs h-7 gap-1"
+              onClick={handleAiSuggest}
+              disabled={aiLoading || !aiPrompt.trim()}
+            >
+              {aiLoading ? <Loader2 size={12} className="animate-spin" /> : <Sparkles size={12} />}
+              {aiLoading ? 'กำลังวิเคราะห์...' : 'AI แนะนำ'}
+            </Button>
+          </div>
+
+          {aiSuggestion && (
+            <div className="space-y-2 pt-1 border-t border-primary/10">
+              <div className="flex items-center justify-between">
+                <span className="text-[11px] font-semibold text-foreground">
+                  📌 {aiSuggestion.title}
+                </span>
+                <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-primary/10 text-primary font-medium">
+                  {aiSuggestion.activity_type} • {aiSuggestion.days_from_now} วัน
+                </span>
+              </div>
+              <p className="text-[11px] text-muted-foreground">{aiSuggestion.reason}</p>
+              {aiSuggestion.description && (
+                <p className="text-[11px] text-foreground">{aiSuggestion.description}</p>
+              )}
+              {aiSuggestion.talking_points?.length > 0 && (
+                <div className="space-y-1">
+                  <p className="text-[10px] font-semibold text-primary flex items-center gap-1">
+                    <MessageSquare size={11} /> คำแนะนำในการคุย
+                  </p>
+                  <ul className="space-y-0.5">
+                    {aiSuggestion.talking_points.map((tp, i) => (
+                      <li key={i} className="text-[11px] text-foreground pl-3 relative before:content-['•'] before:absolute before:left-0 before:text-primary">
+                        {tp}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+              <div className="flex justify-end gap-2 pt-1">
+                <Button variant="ghost" size="sm" className="text-[11px] h-7" onClick={() => setAiSuggestion(null)}>
+                  ลองใหม่
+                </Button>
+                <Button size="sm" className="text-[11px] h-7 gap-1" onClick={applyAiSuggestion}>
+                  ✅ ใช้คำแนะนำนี้
+                </Button>
+              </div>
+            </div>
+          )}
         </div>
       )}
 
