@@ -740,9 +740,11 @@ export type Database = {
           account_id: string
           created_at: string
           created_by: string | null
+          end_time: string | null
           id: string
           notes: string | null
           plan_date: string
+          start_time: string | null
           status: string
           visit_report_id: string | null
           visit_type: string
@@ -751,9 +753,11 @@ export type Database = {
           account_id: string
           created_at?: string
           created_by?: string | null
+          end_time?: string | null
           id?: string
           notes?: string | null
           plan_date: string
+          start_time?: string | null
           status?: string
           visit_report_id?: string | null
           visit_type?: string
@@ -762,9 +766,11 @@ export type Database = {
           account_id?: string
           created_at?: string
           created_by?: string | null
+          end_time?: string | null
           id?: string
           notes?: string | null
           plan_date?: string
+          start_time?: string | null
           status?: string
           visit_report_id?: string | null
           visit_type?: string
