@@ -2,7 +2,7 @@ import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Highlight from '@tiptap/extension-highlight';
 import Color from '@tiptap/extension-color';
-import TextStyle from '@tiptap/extension-text-style';
+import { TextStyle } from '@tiptap/extension-text-style';
 import {
   Bold, Italic, List, ListOrdered, Heading2, Minus, Highlighter, Type, Undo, Redo,
 } from 'lucide-react';
@@ -97,7 +97,7 @@ export default function RichTextEditor({
   // Sync external content changes (e.g. AI suggestion apply)
   useEffect(() => {
     if (editor && content !== editor.getHTML()) {
-      editor.commands.setContent(content, false);
+      editor.commands.setContent(content, { emitUpdate: false });
     }
   }, [content]);
 
