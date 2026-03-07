@@ -14,7 +14,7 @@ import {
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useMockAuth } from '@/hooks/useMockAuth';
-import { getNotesForOpportunity, addNoteGlobal, deleteNoteGlobal, updateNoteGlobal, getPinnedIdsGlobal, togglePinGlobal, type OpportunityNote } from '@/pages/OpportunitiesPage';
+import { useOpportunityNotes, type OpportunityNote } from '@/hooks/useOpportunityNotes';
 import { toast } from 'sonner';
 import { differenceInDays, format } from 'date-fns';
 import type { Opportunity, OpportunityStage, Account, Contact, Activity } from '@/types';
@@ -49,9 +49,8 @@ export default function OpportunityDetailPage() {
   const [stageConfirm, setStageConfirm] = useState<OpportunityStage | null>(null);
   const [stageHistory, setStageHistory] = useState<{ from: string; to: string; date: string }[]>([]);
   const [noteInput, setNoteInput] = useState('');
-  const [, forceUpdate] = useState(0);
   const [activities, setActivities] = useState<Activity[]>([]);
-  const pinnedIds = getPinnedIdsGlobal();
+  const { notes, pinnedIds, addNote, updateNote, deleteNote, togglePin } = useOpportunityNotes(id);
    const [activeActivityId, setActiveActivityId] = useState<string | null>(null);
    const [formPreview, setFormPreview] = useState<Partial<Activity> | null>(null);
    const [activeTab, setActiveTab] = useState('activity');
