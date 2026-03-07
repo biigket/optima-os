@@ -61,7 +61,7 @@ interface AISuggestion {
 export default function ActivityForm({
   opportunityId, accountId, onActivityCreated,
   editingActivity, onActivityUpdated, onCancelEdit, onFormChange,
-  quickScheduleDefaults,
+  quickScheduleDefaults, clinicName, currentStage, interestedProducts,
 }: ActivityFormProps) {
   const { currentUser } = useMockAuth();
   const [selectedType, setSelectedType] = useState<ActivityType>('CALL');
