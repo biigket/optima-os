@@ -127,7 +127,6 @@ export default function OpportunityDetailPage() {
   const weighted = Math.round((opp.expected_value || 0) * prob / 100);
   const isOverdue = opp.close_date && new Date(opp.close_date) < new Date() && !['WON', 'LOST'].includes(opp.stage);
   const closeDateDays = opp.close_date ? differenceInDays(new Date(opp.close_date), new Date()) : null;
-  const notes = getNotesForOpportunity(opp.id);
   const competitorTags = opp.competitors ? opp.competitors.split(',').map(s => s.trim()).filter(Boolean) : [];
   
 
@@ -188,15 +187,13 @@ export default function OpportunityDetailPage() {
     toast.success('บันทึกแล้ว');
   };
 
-  const handleAddNote = () => {
+  const handleAddNote = async () => {
     if (!noteInput.trim()) return;
-    const note: OpportunityNote = {
-      id: `note-${Date.now()}`, opportunity_id: opp.id, account_id: opp.account_id,
-      content: noteInput.trim(), created_by: currentUser?.name || 'Unknown', created_at: new Date().toISOString(),
-    };
-    addNoteGlobal(note);
+    await addNote({
+      opportunity_id: opp.id, account_id: opp.account_id,
+      content: noteInput.trim(), created_by: currentUser?.name || 'Unknown',
+    });
     setNoteInput('');
-    forceUpdate(n => n + 1);
     toast.success('บันทึกโน้ตแล้ว');
   };
 
@@ -515,7 +512,7 @@ export default function OpportunityDetailPage() {
                   opportunityId={opp.id}
                   accountId={opp.account_id}
                   userName={currentUser?.name || 'Unknown'}
-                  onFileUploaded={() => forceUpdate(n => n + 1)}
+                  onFileUploaded={() => {}}
                 />
               </TabsContent>
             </Tabs>
@@ -544,20 +541,17 @@ export default function OpportunityDetailPage() {
             notes={notes}
             clinicName={account?.clinic_name}
             pinnedIds={pinnedIds}
-            onUpdateNote={(id, content) => {
-              updateNoteGlobal(id, content);
-              forceUpdate(n => n + 1);
+            onUpdateNote={async (id, content) => {
+              await updateNote(id, content);
               toast.success('แก้ไขบันทึกแล้ว');
             }}
-            onDeleteNote={(id) => {
-              deleteNoteGlobal(id);
-              forceUpdate(n => n + 1);
+            onDeleteNote={async (id) => {
+              await deleteNote(id);
               toast.success('ลบบันทึกแล้ว');
             }}
-            onPinNote={(id) => {
+            onPinNote={async (id) => {
               const wasPinned = pinnedIds.has(id);
-              togglePinGlobal(id);
-              forceUpdate(n => n + 1);
+              await togglePin(id);
               toast.success(wasPinned ? 'ยกเลิกปักหมุดแล้ว' : 'ปักหมุดแล้ว');
             }}
             onDeleteActivity={async (id) => {
@@ -569,14 +563,12 @@ export default function OpportunityDetailPage() {
             onUpdateActivity={(updated) => {
               setActivities(prev => prev.map(a => a.id === updated.id ? updated : a));
             }}
-            onAddComment={(parentId, comment) => {
-              const note: OpportunityNote = {
-                id: `note-${Date.now()}`, opportunity_id: opp.id, account_id: opp.account_id,
-                content: comment, created_by: currentUser?.name || 'Unknown', created_at: new Date().toISOString(),
+            onAddComment={async (parentId, comment) => {
+              await addNote({
+                opportunity_id: opp.id, account_id: opp.account_id,
+                content: comment, created_by: currentUser?.name || 'Unknown',
                 parent_id: parentId,
-              };
-              addNoteGlobal(note);
-              forceUpdate(n => n + 1);
+              });
               toast.success('เพิ่มความคิดเห็นแล้ว');
             }}
           />
