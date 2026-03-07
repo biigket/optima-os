@@ -107,7 +107,36 @@ export default function CustomerCardPage() {
   const [editContactOpen, setEditContactOpen] = useState(false);
   const [editingContact, setEditingContact] = useState<LocalContact | null>(null);
   const [editContactForm, setEditContactForm] = useState({ name: '', role: '', phone: '', email: '' });
+  const [accountActivities, setAccountActivities] = useState<Activity[]>([]);
+  const [accountStageHistory, setAccountStageHistory] = useState<{ from: string; to: string; date: string }[]>([]);
+  const [accountNotes, setAccountNotes] = useState<OpportunityNote[]>([]);
+  const [accountPinnedIds, setAccountPinnedIds] = useState<Set<string>>(new Set());
 
+  // Fetch activities, stage history, and notes for this account
+  useEffect(() => {
+    if (!id) return;
+    // Activities (done) for timeline
+    supabase.from('activities').select('*').eq('account_id', id).eq('is_done', true)
+      .order('created_at', { ascending: false })
+      .then(({ data }) => { if (data) setAccountActivities(data as unknown as Activity[]); });
+    // Stage history across all opportunities for this account
+    supabase.from('opportunity_stage_history').select('*')
+      .in('opportunity_id', opportunities.map(o => o.id).length > 0 ? opportunities.map(o => o.id) : ['__none__'])
+      .order('created_at', { ascending: false })
+      .then(({ data }) => {
+        if (data) setAccountStageHistory(data.map((r: any) => ({ from: r.from_stage, to: r.to_stage, date: r.created_at })));
+      });
+    // Notes
+    supabase.from('opportunity_notes').select('*').eq('account_id', id)
+      .order('created_at', { ascending: false })
+      .then(({ data }) => {
+        if (data) {
+          const notes = data as unknown as OpportunityNote[];
+          setAccountNotes(notes);
+          setAccountPinnedIds(new Set(notes.filter(n => n.is_pinned).map(n => n.id)));
+        }
+      });
+  }, [id, opportunities]);
   const handleSubmit = async () => {
     if (!editForm.clinic_name?.trim()) {
       toast.error('กรุณากรอกชื่อคลินิก');
