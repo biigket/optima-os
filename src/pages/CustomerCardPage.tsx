@@ -424,6 +424,7 @@ export default function CustomerCardPage() {
                   { value: 'purchases', icon: Receipt, label: 'ซื้อ' },
                   { value: 'documents', icon: FolderOpen, label: 'เอกสาร' },
                   { value: 'marketing', icon: Megaphone, label: 'การตลาด' },
+                  { value: 'chat_images', icon: ImageIcon, label: `รูปแชท (${chatImages.length})` },
                 ].map(t => (
                   <TabsTrigger key={t.value} value={t.value} className="text-xs gap-1.5 rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none px-3 py-2.5 shrink-0">
                     <t.icon size={13} /> {t.label}
@@ -709,6 +710,30 @@ export default function CustomerCardPage() {
                 {marketing.length === 0 && <Empty text="ไม่มีข้อมูล" />}
               </div>
             </TabsContent>
+
+            {/* ===== CHAT IMAGES ===== */}
+            <TabsContent value="chat_images" className="mt-0">
+              {chatImages.length > 0 ? (
+                <div className="space-y-4">
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+                    {chatImages.map(img => (
+                      <a key={img.id} href={img.file_url} target="_blank" rel="noopener noreferrer" className="group block">
+                        <div className="aspect-square rounded-lg border border-border overflow-hidden bg-muted/30 hover:border-primary/50 transition-colors">
+                          <img src={img.file_url} alt={img.file_name} className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
+                        </div>
+                        <div className="mt-1.5">
+                          <p className="text-[10px] text-muted-foreground truncate">{img.uploaded_by || '-'}</p>
+                          <p className="text-[10px] text-muted-foreground">
+                            {new Date(img.created_at).toLocaleDateString('th-TH', { day: 'numeric', month: 'short', year: '2-digit', hour: '2-digit', minute: '2-digit' })}
+                          </p>
+                        </div>
+                      </a>
+                    ))}
+                  </div>
+                </div>
+              ) : (
+                <Empty text="ยังไม่มีรูปแชท — อัปโหลดผ่าน AI สรุปแชท ในหน้าโอกาสขาย" />
+              )}
           </div>
         </Tabs>
       </div>
