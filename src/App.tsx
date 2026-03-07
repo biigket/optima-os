@@ -9,6 +9,7 @@ import LeadsPage from "@/pages/LeadsPage";
 import CustomerCardPage from "@/pages/CustomerCardPage";
 import OpportunitiesPage from "@/pages/OpportunitiesPage";
 import OpportunityDetailPage from "@/pages/OpportunityDetailPage";
+import WeeklyPlanPage from "@/pages/WeeklyPlanPage";
 import VisitCheckinPage from "@/pages/VisitCheckinPage";
 import VisitReportsPage from "@/pages/VisitReportsPage";
 import DemosPage from "@/pages/DemosPage";
@@ -47,6 +48,7 @@ function AppRoutes() {
         <Route path="/leads/:id" element={<CustomerCardPage />} />
         <Route path="/opportunities" element={<OpportunitiesPage />} />
         <Route path="/opportunities/:id" element={<OpportunityDetailPage />} />
+        <Route path="/weekly-plan" element={<WeeklyPlanPage />} />
         <Route path="/visit-checkin" element={<VisitCheckinPage />} />
         <Route path="/visit-reports" element={<VisitReportsPage />} />
         <Route path="/demos" element={<DemosPage />} />
