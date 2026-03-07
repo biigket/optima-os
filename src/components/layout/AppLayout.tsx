@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import {
-  LayoutDashboard, Users, Target, MapPin, FileText, Presentation,
+  LayoutDashboard, Users, Target, MapPin, FileText, Presentation, CalendarDays,
   ListTodo, Calendar, Cpu, Package, Wrench, ChevronLeft, ChevronRight, Bell,
   FileSpreadsheet, ShoppingCart, Warehouse, Receipt,
   Megaphone, Gift, Star,
@@ -23,11 +23,18 @@ const navGroups = [
     ],
   },
   {
+    label: 'PRE-CRM',
+    phase: 1,
+    items: [
+      { to: '/weekly-plan', icon: CalendarDays, label: 'แผนเยี่ยมรายสัปดาห์' },
+      { to: '/visit-checkin', icon: MapPin, label: 'เช็คอินเยี่ยมลูกค้า' },
+      { to: '/visit-reports', icon: FileText, label: 'รายงานเยี่ยมลูกค้า' },
+    ],
+  },
+  {
     label: 'SALES OPERATION',
     phase: 1,
     items: [
-      { to: '/visit-checkin', icon: MapPin, label: 'เช็คอินเยี่ยมลูกค้า' },
-      { to: '/visit-reports', icon: FileText, label: 'รายงานเยี่ยมลูกค้า' },
       { to: '/demos', icon: Presentation, label: 'สาธิตสินค้า' },
     ],
   },
