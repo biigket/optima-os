@@ -489,6 +489,33 @@ export type Database = {
         }
         Relationships: []
       }
+      opportunity_stage_history: {
+        Row: {
+          changed_by: string | null
+          created_at: string
+          from_stage: string
+          id: string
+          opportunity_id: string
+          to_stage: string
+        }
+        Insert: {
+          changed_by?: string | null
+          created_at?: string
+          from_stage: string
+          id?: string
+          opportunity_id: string
+          to_stage: string
+        }
+        Update: {
+          changed_by?: string | null
+          created_at?: string
+          from_stage?: string
+          id?: string
+          opportunity_id?: string
+          to_stage?: string
+        }
+        Relationships: []
+      }
       payment_installments: {
         Row: {
           amount: number | null

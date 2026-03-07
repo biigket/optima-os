@@ -103,6 +103,15 @@ export default function OpportunityDetailPage() {
       .then(({ data }) => { if (data) setActivities(data as unknown as Activity[]); });
   }, [id]);
 
+  // Fetch stage history from DB
+  useEffect(() => {
+    if (!id) return;
+    supabase.from('opportunity_stage_history').select('*').eq('opportunity_id', id).order('created_at', { ascending: false })
+      .then(({ data }) => {
+        if (data) setStageHistory(data.map((r: any) => ({ from: r.from_stage, to: r.to_stage, date: r.created_at })));
+      });
+  }, [id]);
+
   if (!opp) {
     return (
       <div className="flex flex-col items-center justify-center h-[60vh] gap-4">
@@ -127,7 +136,11 @@ export default function OpportunityDetailPage() {
     const oldStage = opp.stage;
     const { error } = await supabase.from('opportunities').update({ stage: newStage }).eq('id', opp.id);
     if (error) { toast.error('อัปเดตไม่สำเร็จ'); return; }
-    setStageHistory(prev => [...prev, { from: oldStage, to: newStage, date: new Date().toISOString() }]);
+    const now = new Date().toISOString();
+    await supabase.from('opportunity_stage_history').insert({
+      opportunity_id: opp.id, from_stage: oldStage, to_stage: newStage, changed_by: currentUser?.name || null,
+    });
+    setStageHistory(prev => [...prev, { from: oldStage, to: newStage, date: now }]);
     setOpp(prev => prev ? { ...prev, stage: newStage } : prev);
     toast.success(`ย้ายไป ${STAGE_LABELS[newStage]}`);
     setStageConfirm(null);
