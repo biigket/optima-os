@@ -19,6 +19,7 @@ import { toast } from 'sonner';
 import { differenceInDays, format } from 'date-fns';
 import type { Opportunity, OpportunityStage, Account, Contact, Activity } from '@/types';
 import ActivityForm from '@/components/opportunity-detail/ActivityForm';
+import ChatSummaryForm from '@/components/opportunity-detail/ChatSummaryForm';
 import FocusPanel from '@/components/opportunity-detail/FocusPanel';
 import HistoryTimeline from '@/components/opportunity-detail/HistoryTimeline';
 
