@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
@@ -30,7 +30,9 @@ import {
   getConsumablesForAccount, getServiceForAccount,
   getPurchasesForAccount, getDocumentsForAccount, getMarketingForAccount
 } from '@/data/customerCardMockData';
-import type { Opportunity } from '@/types';
+import type { Opportunity, Activity } from '@/types';
+import HistoryTimeline from '@/components/opportunity-detail/HistoryTimeline';
+import { useOpportunityNotes, type OpportunityNote } from '@/hooks/useOpportunityNotes';
 
 interface LocalAccount {
   id: string;
@@ -105,7 +107,36 @@ export default function CustomerCardPage() {
   const [editContactOpen, setEditContactOpen] = useState(false);
   const [editingContact, setEditingContact] = useState<LocalContact | null>(null);
   const [editContactForm, setEditContactForm] = useState({ name: '', role: '', phone: '', email: '' });
+  const [accountActivities, setAccountActivities] = useState<Activity[]>([]);
+  const [accountStageHistory, setAccountStageHistory] = useState<{ from: string; to: string; date: string }[]>([]);
+  const [accountNotes, setAccountNotes] = useState<OpportunityNote[]>([]);
+  const [accountPinnedIds, setAccountPinnedIds] = useState<Set<string>>(new Set());
 
+  // Fetch activities, stage history, and notes for this account
+  useEffect(() => {
+    if (!id) return;
+    // Activities (done) for timeline
+    supabase.from('activities').select('*').eq('account_id', id).eq('is_done', true)
+      .order('created_at', { ascending: false })
+      .then(({ data }) => { if (data) setAccountActivities(data as unknown as Activity[]); });
+    // Stage history across all opportunities for this account
+    supabase.from('opportunity_stage_history').select('*')
+      .in('opportunity_id', opportunities.map(o => o.id).length > 0 ? opportunities.map(o => o.id) : ['__none__'])
+      .order('created_at', { ascending: false })
+      .then(({ data }) => {
+        if (data) setAccountStageHistory(data.map((r: any) => ({ from: r.from_stage, to: r.to_stage, date: r.created_at })));
+      });
+    // Notes
+    supabase.from('opportunity_notes').select('*').eq('account_id', id)
+      .order('created_at', { ascending: false })
+      .then(({ data }) => {
+        if (data) {
+          const notes = data as unknown as OpportunityNote[];
+          setAccountNotes(notes);
+          setAccountPinnedIds(new Set(notes.filter(n => n.is_pinned).map(n => n.id)));
+        }
+      });
+  }, [id, opportunities]);
   const handleSubmit = async () => {
     if (!editForm.clinic_name?.trim()) {
       toast.error('กรุณากรอกชื่อคลินิก');
@@ -420,30 +451,61 @@ export default function CustomerCardPage() {
                 />
               </div>
 
-              {/* Timeline */}
-              <div>
-                <p className="text-xs font-medium text-muted-foreground flex items-center gap-1 mb-3"><Clock size={12} /> ไทม์ไลน์</p>
-                <div className="space-y-3">
-                  {timeline.map(ev => {
-                    const Icon = TIMELINE_ICONS[ev.type] || Clock;
-                    const colorClass = TIMELINE_COLORS[ev.type] || 'bg-muted text-muted-foreground';
-                    return (
-                      <div key={ev.id} className="flex gap-3 items-start">
-                        <div className={`flex items-center justify-center w-7 h-7 rounded-full shrink-0 ${colorClass}`}>
-                          <Icon size={13} />
-                        </div>
-                        <div className="min-w-0 flex-1 pb-3 border-b border-border last:border-0">
-                          <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                            <span>{ev.date}</span><span>•</span><span>{ev.user}</span>
-                          </div>
-                          <p className="text-sm text-foreground mt-0.5">{ev.description}</p>
-                        </div>
-                      </div>
-                    );
-                  })}
-                  {timeline.length === 0 && <Empty text="ยังไม่มีกิจกรรม" />}
-                </div>
-              </div>
+              {/* Timeline from DB */}
+              <HistoryTimeline
+                activities={accountActivities}
+                stageHistory={accountStageHistory}
+                notes={accountNotes}
+                clinicName={account.clinic_name}
+                pinnedIds={accountPinnedIds}
+                onUpdateNote={async (noteId, content) => {
+                  const { error } = await supabase.from('opportunity_notes').update({ content }).eq('id', noteId);
+                  if (error) { toast.error('แก้ไขไม่สำเร็จ'); return; }
+                  setAccountNotes(prev => prev.map(n => n.id === noteId ? { ...n, content } : n));
+                  toast.success('แก้ไขบันทึกแล้ว');
+                }}
+                onDeleteNote={async (noteId) => {
+                  const { error } = await supabase.from('opportunity_notes').delete().eq('id', noteId);
+                  if (error) { toast.error('ลบไม่สำเร็จ'); return; }
+                  setAccountNotes(prev => prev.filter(n => n.id !== noteId));
+                  toast.success('ลบบันทึกแล้ว');
+                }}
+                onPinNote={async (noteId) => {
+                  const note = accountNotes.find(n => n.id === noteId);
+                  if (!note) return;
+                  const newPinned = !note.is_pinned;
+                  const { error } = await supabase.from('opportunity_notes').update({ is_pinned: newPinned }).eq('id', noteId);
+                  if (error) { toast.error('อัปเดตไม่สำเร็จ'); return; }
+                  setAccountNotes(prev => prev.map(n => n.id === noteId ? { ...n, is_pinned: newPinned } : n));
+                  setAccountPinnedIds(prev => {
+                    const next = new Set(prev);
+                    if (newPinned) next.add(noteId); else next.delete(noteId);
+                    return next;
+                  });
+                  toast.success(newPinned ? 'ปักหมุดแล้ว' : 'ยกเลิกปักหมุดแล้ว');
+                }}
+                onDeleteActivity={async (actId) => {
+                  const { error } = await supabase.from('activities').delete().eq('id', actId);
+                  if (error) { toast.error('ลบกิจกรรมไม่สำเร็จ'); return; }
+                  setAccountActivities(prev => prev.filter(a => a.id !== actId));
+                  toast.success('ลบกิจกรรมแล้ว');
+                }}
+                onUpdateActivity={(updated) => {
+                  setAccountActivities(prev => prev.map(a => a.id === updated.id ? updated : a));
+                }}
+                onAddComment={async (parentId, comment) => {
+                  const { data, error } = await supabase.from('opportunity_notes').insert({
+                    opportunity_id: accountActivities.find(a => a.id === parentId)?.opportunity_id || opportunities[0]?.id || '',
+                    account_id: id!,
+                    content: comment,
+                    created_by: 'Me',
+                    parent_id: parentId,
+                  }).select().single();
+                  if (error) { toast.error('เพิ่มความคิดเห็นไม่สำเร็จ'); return; }
+                  setAccountNotes(prev => [data as unknown as OpportunityNote, ...prev]);
+                  toast.success('เพิ่มความคิดเห็นแล้ว');
+                }}
+              />
             </TabsContent>
 
             {/* ===== DEALS (โอกาสขาย) ===== */}
