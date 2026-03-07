@@ -471,6 +471,9 @@ export default function OpportunityDetailPage() {
                 <TabsTrigger value="activity" className="text-xs h-6 px-3 gap-1">
                   <Calendar size={12} /> เพิ่มกิจกรรม
                 </TabsTrigger>
+                <TabsTrigger value="ai-summary" className="text-xs h-6 px-3 gap-1">
+                  ✨ AI สรุปแชท
+                </TabsTrigger>
                 <TabsTrigger value="notes" className="text-xs h-6 px-3 gap-1">
                   📝 เพิ่มบันทึก
                 </TabsTrigger>
@@ -488,6 +491,24 @@ export default function OpportunityDetailPage() {
                   onActivityUpdated={handleActivityUpdated}
                   onCancelEdit={() => { setActiveActivityId(null); setFormPreview(null); }}
                   onFormChange={setFormPreview}
+                />
+              </TabsContent>
+
+              <TabsContent value="ai-summary">
+                <ChatSummaryForm
+                  opportunityId={opp.id}
+                  accountId={opp.account_id}
+                  clinicName={account?.clinic_name}
+                  userName={currentUser?.name || 'Unknown'}
+                  onSummaryCreated={async (summaryText) => {
+                    await addNote({
+                      opportunity_id: opp.id,
+                      account_id: opp.account_id,
+                      content: `✨ AI สรุปแชท\n\n${summaryText}`,
+                      created_by: currentUser?.name || 'Unknown',
+                    });
+                    toast.success('บันทึกสรุป AI ลง History แล้ว');
+                  }}
                 />
               </TabsContent>
 
