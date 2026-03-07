@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { format, parse } from 'date-fns';
+import { format, parse, addDays } from 'date-fns';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Checkbox } from '@/components/ui/checkbox';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Phone, Users, Building2, Target, Presentation, ChevronDown, ChevronUp, CalendarIcon, X } from 'lucide-react';
+import { Phone, Users, Building2, Target, Presentation, ChevronDown, ChevronUp, CalendarIcon, X, Sparkles, Loader2, MessageSquare } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
