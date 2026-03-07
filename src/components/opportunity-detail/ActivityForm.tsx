@@ -176,12 +176,11 @@ export default function ActivityForm({
       ? aiSuggestion.priority as ActivityPriority : 'NORMAL');
     setDescription(aiSuggestion.description || '');
     if (aiSuggestion.talking_points?.length) {
-      const talkingPoints = aiSuggestion.talking_points.map((t, i) => `${i + 1}. ${t}`).join('\n');
+      const talkingPointsHtml = `<h3>💡 คำแนะนำ</h3><ol>${aiSuggestion.talking_points.map(t => `<li>${t}</li>`).join('')}</ol>`;
       setNotes(prev => {
         const userNotes = prev?.trim() || '';
-        return userNotes
-          ? `${userNotes}\n---\n💡 คำแนะนำ:\n${talkingPoints}`
-          : `💡 คำแนะนำ:\n${talkingPoints}`;
+        const isEmpty = !userNotes || userNotes === '<p></p>';
+        return isEmpty ? talkingPointsHtml : `${userNotes}<hr>${talkingPointsHtml}`;
       });
     }
     setShowExtra(true);
