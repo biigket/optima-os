@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -13,7 +14,8 @@ import {
   getLifetimeRevenue, getDevicesForAccount
 } from '@/data/customerCardMockData';
 import { mockWorkItems, type WorkItem } from '@/data/mockData';
-import { getNotesForAccount } from '@/pages/OpportunitiesPage';
+import { supabase } from '@/integrations/supabase/client';
+import type { OpportunityNote } from '@/hooks/useOpportunityNotes';
 
 interface Opportunity {
   id: string;
@@ -54,7 +56,11 @@ export default function CustomerCenterPanel({ accountId, opportunities }: Props)
   const devices = getDevicesForAccount(accountId);
   const revenue = getLifetimeRevenue(accountId);
   const tasks = mockWorkItems.filter((w: WorkItem) => w.linkedAccountId === accountId);
-  const internalNotes = getNotesForAccount(accountId);
+  const [internalNotes, setInternalNotes] = useState<OpportunityNote[]>([]);
+  useEffect(() => {
+    supabase.from('opportunity_notes').select('*').eq('account_id', accountId).order('created_at', { ascending: false })
+      .then(({ data }) => { if (data) setInternalNotes(data as unknown as OpportunityNote[]); });
+  }, [accountId]);
 
   const lastVisit = visits.length > 0 ? visits[0].date : '-';
   const activeDeals = opportunities.filter(o => !['WON', 'LOST', 'CLOSED'].includes(o.stage)).length;

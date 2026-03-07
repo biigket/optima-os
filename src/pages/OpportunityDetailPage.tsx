@@ -14,7 +14,7 @@ import {
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useMockAuth } from '@/hooks/useMockAuth';
-import { getNotesForOpportunity, addNoteGlobal, deleteNoteGlobal, updateNoteGlobal, getPinnedIdsGlobal, togglePinGlobal, type OpportunityNote } from '@/pages/OpportunitiesPage';
+import { useOpportunityNotes, type OpportunityNote } from '@/hooks/useOpportunityNotes';
 import { toast } from 'sonner';
 import { differenceInDays, format } from 'date-fns';
 import type { Opportunity, OpportunityStage, Account, Contact, Activity } from '@/types';
@@ -49,9 +49,8 @@ export default function OpportunityDetailPage() {
   const [stageConfirm, setStageConfirm] = useState<OpportunityStage | null>(null);
   const [stageHistory, setStageHistory] = useState<{ from: string; to: string; date: string }[]>([]);
   const [noteInput, setNoteInput] = useState('');
-  const [, forceUpdate] = useState(0);
   const [activities, setActivities] = useState<Activity[]>([]);
-  const pinnedIds = getPinnedIdsGlobal();
+  const { notes, pinnedIds, addNote, updateNote, deleteNote, togglePin } = useOpportunityNotes(id);
    const [activeActivityId, setActiveActivityId] = useState<string | null>(null);
    const [formPreview, setFormPreview] = useState<Partial<Activity> | null>(null);
    const [activeTab, setActiveTab] = useState('activity');
@@ -128,7 +127,6 @@ export default function OpportunityDetailPage() {
   const weighted = Math.round((opp.expected_value || 0) * prob / 100);
   const isOverdue = opp.close_date && new Date(opp.close_date) < new Date() && !['WON', 'LOST'].includes(opp.stage);
   const closeDateDays = opp.close_date ? differenceInDays(new Date(opp.close_date), new Date()) : null;
-  const notes = getNotesForOpportunity(opp.id);
   const competitorTags = opp.competitors ? opp.competitors.split(',').map(s => s.trim()).filter(Boolean) : [];
   
 
@@ -189,15 +187,13 @@ export default function OpportunityDetailPage() {
     toast.success('บันทึกแล้ว');
   };
 
-  const handleAddNote = () => {
+  const handleAddNote = async () => {
     if (!noteInput.trim()) return;
-    const note: OpportunityNote = {
-      id: `note-${Date.now()}`, opportunity_id: opp.id, account_id: opp.account_id,
-      content: noteInput.trim(), created_by: currentUser?.name || 'Unknown', created_at: new Date().toISOString(),
-    };
-    addNoteGlobal(note);
+    await addNote({
+      opportunity_id: opp.id, account_id: opp.account_id,
+      content: noteInput.trim(), created_by: currentUser?.name || 'Unknown',
+    });
     setNoteInput('');
-    forceUpdate(n => n + 1);
     toast.success('บันทึกโน้ตแล้ว');
   };
 
@@ -516,7 +512,7 @@ export default function OpportunityDetailPage() {
                   opportunityId={opp.id}
                   accountId={opp.account_id}
                   userName={currentUser?.name || 'Unknown'}
-                  onFileUploaded={() => forceUpdate(n => n + 1)}
+                  onFileUploaded={() => {}}
                 />
               </TabsContent>
             </Tabs>
@@ -545,20 +541,17 @@ export default function OpportunityDetailPage() {
             notes={notes}
             clinicName={account?.clinic_name}
             pinnedIds={pinnedIds}
-            onUpdateNote={(id, content) => {
-              updateNoteGlobal(id, content);
-              forceUpdate(n => n + 1);
+            onUpdateNote={async (id, content) => {
+              await updateNote(id, content);
               toast.success('แก้ไขบันทึกแล้ว');
             }}
-            onDeleteNote={(id) => {
-              deleteNoteGlobal(id);
-              forceUpdate(n => n + 1);
+            onDeleteNote={async (id) => {
+              await deleteNote(id);
               toast.success('ลบบันทึกแล้ว');
             }}
-            onPinNote={(id) => {
+            onPinNote={async (id) => {
               const wasPinned = pinnedIds.has(id);
-              togglePinGlobal(id);
-              forceUpdate(n => n + 1);
+              await togglePin(id);
               toast.success(wasPinned ? 'ยกเลิกปักหมุดแล้ว' : 'ปักหมุดแล้ว');
             }}
             onDeleteActivity={async (id) => {
@@ -570,14 +563,12 @@ export default function OpportunityDetailPage() {
             onUpdateActivity={(updated) => {
               setActivities(prev => prev.map(a => a.id === updated.id ? updated : a));
             }}
-            onAddComment={(parentId, comment) => {
-              const note: OpportunityNote = {
-                id: `note-${Date.now()}`, opportunity_id: opp.id, account_id: opp.account_id,
-                content: comment, created_by: currentUser?.name || 'Unknown', created_at: new Date().toISOString(),
+            onAddComment={async (parentId, comment) => {
+              await addNote({
+                opportunity_id: opp.id, account_id: opp.account_id,
+                content: comment, created_by: currentUser?.name || 'Unknown',
                 parent_id: parentId,
-              };
-              addNoteGlobal(note);
-              forceUpdate(n => n + 1);
+              });
               toast.success('เพิ่มความคิดเห็นแล้ว');
             }}
           />
@@ -747,16 +738,14 @@ function FileUploadZone({ opportunityId, accountId, userName, onFileUploaded }: 
         file_size: file.size, file_type: file.type, uploaded_by: userName,
       });
 
-      // Create a note for history timeline
-      const note: OpportunityNote = {
-        id: `note-${Date.now()}-${Math.random().toString(36).slice(2)}`,
+      // Create a note for history timeline via DB
+      await supabase.from('opportunity_notes').insert({
         opportunity_id: opportunityId, account_id: accountId,
         content: `📎 ${file.name}`,
-        created_by: userName, created_at: new Date().toISOString(),
+        created_by: userName,
         file_url: publicUrl, file_name: file.name,
         file_size: file.size, file_type: file.type,
-      };
-      addNoteGlobal(note);
+      });
       toast.success(`อัพโหลด ${file.name} สำเร็จ`);
     }
     setUploading(false);

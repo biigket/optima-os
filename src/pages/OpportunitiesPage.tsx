@@ -26,36 +26,8 @@ const PROBABILITY: Record<string, number> = {
 
 type SortKey = 'next_activity' | 'value' | 'close_date' | 'days_in_stage';
 
-// Internal notes store (shared across app via export)
-export interface OpportunityNote {
-  id: string;
-  opportunity_id: string;
-  account_id: string;
-  content: string;
-  created_by: string;
-  created_at: string;
-  parent_id?: string;
-  file_url?: string;
-  file_name?: string;
-  file_size?: number;
-  file_type?: string;
-}
-
-let globalNotes: OpportunityNote[] = [];
-export function getNotesForOpportunity(oppId: string) { return globalNotes.filter(n => n.opportunity_id === oppId); }
-export function getNotesForAccount(accountId: string) { return globalNotes.filter(n => n.account_id === accountId); }
-export function addNoteGlobal(note: OpportunityNote) { globalNotes = [note, ...globalNotes]; }
-export function deleteNoteGlobal(id: string) { globalNotes = globalNotes.filter(n => n.id !== id); }
-export function updateNoteGlobal(id: string, content: string) { globalNotes = globalNotes.map(n => n.id === id ? { ...n, content } : n); }
-
-// Global pinned IDs store — shared between Kanban & Detail page
-export let globalPinnedIds = new Set<string>();
-export function getPinnedIdsGlobal() { return globalPinnedIds; }
-export function togglePinGlobal(noteId: string) {
-  if (globalPinnedIds.has(noteId)) globalPinnedIds.delete(noteId);
-  else globalPinnedIds.add(noteId);
-  globalPinnedIds = new Set(globalPinnedIds); // trigger re-render via new ref
-}
+// Re-export OpportunityNote type from hook for backward compatibility
+export type { OpportunityNote } from '@/hooks/useOpportunityNotes';
 
 // Account cache — populated on demand from DB
 const accountCache: Record<string, { clinic_name: string; customer_status: string; assigned_sale?: string }> = {};
@@ -191,18 +163,7 @@ export default function OpportunitiesPage() {
   };
 
   const handleAddNote = (oppId: string, content: string) => {
-    const opp = opportunities.find(o => o.id === oppId);
-    if (!opp) return;
-    const note: OpportunityNote = {
-      id: `note-${Date.now()}`,
-      opportunity_id: oppId,
-      account_id: opp.account_id,
-      content,
-      created_by: currentUser?.name || 'Unknown',
-      created_at: new Date().toISOString(),
-    };
-    addNoteGlobal(note);
-    forceUpdate(n => n + 1);
+    // Notes are now handled directly via useMultiOpportunityNotes in Kanban
   };
 
   return (
