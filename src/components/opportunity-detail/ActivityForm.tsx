@@ -238,6 +238,88 @@ export default function ActivityForm({
         </div>
       )}
 
+      {/* AI Suggest Button */}
+      {!isEditing && (
+        <button
+          onClick={() => setShowAiPanel(!showAiPanel)}
+          className={cn(
+            "w-full flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium transition-all border border-dashed",
+            showAiPanel 
+              ? "border-primary bg-primary/5 text-primary" 
+              : "border-muted-foreground/30 text-muted-foreground hover:border-primary/50 hover:text-primary"
+          )}
+        >
+          <Sparkles size={13} />
+          {showAiPanel ? 'ซ่อน AI แนะนำ' : '✨ AI แนะนำกิจกรรมถัดไป'}
+        </button>
+      )}
+
+      {/* AI Suggestion Panel */}
+      {showAiPanel && !isEditing && (
+        <div className="rounded-lg border border-primary/20 bg-primary/5 p-3 space-y-2.5">
+          <div className="flex items-center gap-1.5">
+            <Sparkles size={14} className="text-primary" />
+            <span className="text-xs font-semibold text-primary">AI แนะนำ Next Activity</span>
+          </div>
+          <Textarea
+            value={aiPrompt}
+            onChange={e => setAiPrompt(e.target.value)}
+            placeholder="เล่าสิ่งที่คุยกับลูกค้า เช่น ลูกค้าสนใจเครื่อง X แต่ติดเรื่องราคา อยากเห็น demo ก่อน..."
+            className="text-xs min-h-[70px] bg-background/50 border-primary/20"
+          />
+          <div className="flex justify-end">
+            <Button
+              size="sm"
+              className="text-xs h-7 gap-1"
+              onClick={handleAiSuggest}
+              disabled={aiLoading || !aiPrompt.trim()}
+            >
+              {aiLoading ? <Loader2 size={12} className="animate-spin" /> : <Sparkles size={12} />}
+              {aiLoading ? 'กำลังวิเคราะห์...' : 'AI แนะนำ'}
+            </Button>
+          </div>
+
+          {aiSuggestion && (
+            <div className="space-y-2 pt-1 border-t border-primary/10">
+              <div className="flex items-center justify-between">
+                <span className="text-[11px] font-semibold text-foreground">
+                  📌 {aiSuggestion.title}
+                </span>
+                <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-primary/10 text-primary font-medium">
+                  {aiSuggestion.activity_type} • {aiSuggestion.days_from_now} วัน
+                </span>
+              </div>
+              <p className="text-[11px] text-muted-foreground">{aiSuggestion.reason}</p>
+              {aiSuggestion.description && (
+                <p className="text-[11px] text-foreground">{aiSuggestion.description}</p>
+              )}
+              {aiSuggestion.talking_points?.length > 0 && (
+                <div className="space-y-1">
+                  <p className="text-[10px] font-semibold text-primary flex items-center gap-1">
+                    <MessageSquare size={11} /> คำแนะนำในการคุย
+                  </p>
+                  <ul className="space-y-0.5">
+                    {aiSuggestion.talking_points.map((tp, i) => (
+                      <li key={i} className="text-[11px] text-foreground pl-3 relative before:content-['•'] before:absolute before:left-0 before:text-primary">
+                        {tp}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+              <div className="flex justify-end gap-2 pt-1">
+                <Button variant="ghost" size="sm" className="text-[11px] h-7" onClick={() => setAiSuggestion(null)}>
+                  ลองใหม่
+                </Button>
+                <Button size="sm" className="text-[11px] h-7 gap-1" onClick={applyAiSuggestion}>
+                  ✅ ใช้คำแนะนำนี้
+                </Button>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
       {/* Type selector */}
       <div className="flex gap-1">
         {ACTIVITY_TYPES.map(at => {
