@@ -70,6 +70,9 @@ export default function OpportunityKanban({ opportunities, typeFilter, onStageCh
   const [activitiesMap, setActivitiesMap] = useState<Record<string, Activity[]>>({});
 
   const oppIds = opportunities.map(o => o.id);
+  const notesHook = useMultiOpportunityNotes(oppIds);
+
+  const oppIds = opportunities.map(o => o.id);
 
   const fetchActivities = useCallback(async () => {
     if (oppIds.length === 0) { setActivitiesMap({}); return; }
@@ -168,6 +171,7 @@ export default function OpportunityKanban({ opportunities, typeFilter, onStageCh
                     onStageChange={onStageChange}
                     onUpdateOpportunity={onUpdateOpportunity}
                     onActivitySaved={fetchActivities}
+                    notesHook={notesHook}
                   />
                 ))}
                 {stageOpps.length === 0 && (
