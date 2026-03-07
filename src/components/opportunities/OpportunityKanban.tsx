@@ -72,8 +72,6 @@ export default function OpportunityKanban({ opportunities, typeFilter, onStageCh
   const oppIds = opportunities.map(o => o.id);
   const notesHook = useMultiOpportunityNotes(oppIds);
 
-  const oppIds = opportunities.map(o => o.id);
-
   const fetchActivities = useCallback(async () => {
     if (oppIds.length === 0) { setActivitiesMap({}); return; }
     const { data } = await supabase
