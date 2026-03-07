@@ -14,6 +14,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useMockAuth, MOCK_SALES } from '@/hooks/useMockAuth';
 import type { Activity, ActivityType, ActivityPriority } from '@/types';
 import StructuredNotes from './StructuredNotes';
+import RichTextEditor from '@/components/ui/RichTextEditor';
 
 const TIME_OPTIONS = Array.from({ length: 96 }, (_, i) => {
   const h = Math.floor(i / 4).toString().padStart(2, '0');
