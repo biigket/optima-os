@@ -734,6 +734,7 @@ export default function CustomerCardPage() {
               ) : (
                 <Empty text="ยังไม่มีรูปแชท — อัปโหลดผ่าน AI สรุปแชท ในหน้าโอกาสขาย" />
               )}
+            </TabsContent>
           </div>
         </Tabs>
       </div>
