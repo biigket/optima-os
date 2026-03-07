@@ -1,10 +1,10 @@
 import { useState, useEffect, useMemo } from 'react';
-import { Search, Building2, UserPlus, Users } from 'lucide-react';
+import { Search, Building2 } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+
 import { supabase } from '@/integrations/supabase/client';
 import { format } from 'date-fns';
 import { th } from 'date-fns/locale';
@@ -33,7 +33,7 @@ export default function AddVisitPlanDialog({
   const [accounts, setAccounts] = useState<Account[]>([]);
   const [loading, setLoading] = useState(false);
   const [selectedAccount, setSelectedAccount] = useState<Account | null>(null);
-  const [visitType, setVisitType] = useState('EXISTING');
+  
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
@@ -41,7 +41,6 @@ export default function AddVisitPlanDialog({
       fetchAccounts();
       setSearch('');
       setSelectedAccount(null);
-      setVisitType('EXISTING');
     }
   }, [open]);
 
@@ -71,7 +70,7 @@ export default function AddVisitPlanDialog({
     const { error } = await supabase.from('visit_plans').insert({
       plan_date: format(selectedDate, 'yyyy-MM-dd'),
       account_id: selectedAccount.id,
-      visit_type: visitType,
+      visit_type: 'EXISTING',
       start_time: startTime,
       end_time: endTime,
     });
@@ -92,24 +91,6 @@ export default function AddVisitPlanDialog({
         </DialogHeader>
 
         <div className="space-y-4 flex-1 overflow-hidden flex flex-col">
-          {/* Visit type */}
-          <div>
-            <label className="text-sm font-medium text-foreground mb-1 block">ประเภท</label>
-            <Select value={visitType} onValueChange={setVisitType}>
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="NEW">
-                  <span className="flex items-center gap-2"><UserPlus size={14} /> ลูกค้าใหม่</span>
-                </SelectItem>
-                <SelectItem value="EXISTING">
-                  <span className="flex items-center gap-2"><Users size={14} /> ลูกค้าเก่า</span>
-                </SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
           {/* Search */}
           <div className="relative">
             <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
