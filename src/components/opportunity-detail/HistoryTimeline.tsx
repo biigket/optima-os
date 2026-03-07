@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import type { Activity } from '@/types';
 import type { OpportunityNote } from '@/pages/OpportunitiesPage';
+import StructuredNotes from './StructuredNotes';
 
 const TYPE_ICONS: Record<string, React.ElementType> = {
   CALL: Phone, MEETING: Users, TASK: Building2, DEADLINE: Target, DEMO: Presentation,
@@ -299,7 +300,9 @@ function ActivityItem({ data, clinicName, isPinned, onDelete, onPin, onUpdate, o
           </div>
         ) : (
           data.notes && (
-            <p className="text-[10px] text-muted-foreground mt-1 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded px-2 py-1">{data.notes}</p>
+            <div className="mt-1.5 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-lg px-2.5 py-2">
+              <StructuredNotes content={data.notes} />
+            </div>
           )
         )}
 

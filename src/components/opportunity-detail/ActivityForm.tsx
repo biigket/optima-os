@@ -13,6 +13,7 @@ import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
 import { useMockAuth, MOCK_SALES } from '@/hooks/useMockAuth';
 import type { Activity, ActivityType, ActivityPriority } from '@/types';
+import StructuredNotes from './StructuredNotes';
 
 const TIME_OPTIONS = Array.from({ length: 96 }, (_, i) => {
   const h = Math.floor(i / 4).toString().padStart(2, '0');
@@ -174,7 +175,13 @@ export default function ActivityForm({
       ? aiSuggestion.priority as ActivityPriority : 'NORMAL');
     setDescription(aiSuggestion.description || '');
     if (aiSuggestion.talking_points?.length) {
-      setNotes('💡 คำแนะนำ:\n' + aiSuggestion.talking_points.map((t, i) => `${i + 1}. ${t}`).join('\n'));
+      const talkingPoints = aiSuggestion.talking_points.map((t, i) => `${i + 1}. ${t}`).join('\n');
+      setNotes(prev => {
+        const userNotes = prev?.trim() || '';
+        return userNotes
+          ? `${userNotes}\n---\n💡 คำแนะนำ:\n${talkingPoints}`
+          : `💡 คำแนะนำ:\n${talkingPoints}`;
+      });
     }
     setShowExtra(true);
     setShowAiPanel(false);
@@ -452,15 +459,22 @@ export default function ActivityForm({
         </div>
       )}
 
-      {/* Notes (yellow) */}
-      <div>
+      {/* Notes */}
+      <div className="space-y-1.5">
         <label className="text-[10px] text-muted-foreground">Notes</label>
         <Textarea
           placeholder="บันทึกเพิ่มเติม..."
           value={notes}
           onChange={e => setNotes(e.target.value)}
-          className="text-xs min-h-[50px] bg-amber-50 border-amber-200 dark:bg-amber-950/30 dark:border-amber-800"
+          className="text-xs min-h-[70px] bg-amber-50 border-amber-200 dark:bg-amber-950/30 dark:border-amber-800 whitespace-pre-line"
         />
+        {/* Live preview of structured notes */}
+        {notes && notes.includes('💡 คำแนะนำ') && (
+          <div className="rounded-md border border-border bg-muted/30 p-2">
+            <p className="text-[9px] text-muted-foreground mb-1 font-medium uppercase tracking-wide">Preview</p>
+            <StructuredNotes content={notes} />
+          </div>
+        )}
       </div>
 
       {/* Footer: Mark as done + buttons */}
