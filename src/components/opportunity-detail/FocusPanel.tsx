@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { format, parse } from 'date-fns';
 import { Phone, Users, Building2, Target, AlertTriangle, MoreHorizontal, ChevronDown, Pencil, Trash2, X, Check, CalendarIcon } from 'lucide-react';
+import StructuredNotes from './StructuredNotes';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
@@ -121,9 +122,9 @@ function FocusCard({ activity: act, clinicName, onDone, onEdit, onDelete }: {
         </div>
         {clinicName && <p className="text-[10px] text-muted-foreground mt-0.5">{clinicName}</p>}
         {act.notes && (
-          <p className="text-[10px] text-muted-foreground mt-1.5 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded px-2 py-1">
-            {act.notes}
-          </p>
+          <div className="mt-1.5 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded px-2 py-1">
+            <StructuredNotes content={act.notes} />
+          </div>
         )}
       </div>
       <DropdownMenu>
