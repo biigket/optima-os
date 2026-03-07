@@ -491,6 +491,9 @@ export default function OpportunityDetailPage() {
                   onActivityUpdated={handleActivityUpdated}
                   onCancelEdit={() => { setActiveActivityId(null); setFormPreview(null); }}
                   onFormChange={setFormPreview}
+                  clinicName={account?.clinic_name}
+                  currentStage={opp.stage}
+                  interestedProducts={opp.interested_products || undefined}
                 />
               </TabsContent>
 
