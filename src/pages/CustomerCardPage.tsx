@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
@@ -30,7 +30,9 @@ import {
   getConsumablesForAccount, getServiceForAccount,
   getPurchasesForAccount, getDocumentsForAccount, getMarketingForAccount
 } from '@/data/customerCardMockData';
-import type { Opportunity } from '@/types';
+import type { Opportunity, Activity } from '@/types';
+import HistoryTimeline from '@/components/opportunity-detail/HistoryTimeline';
+import { useOpportunityNotes, type OpportunityNote } from '@/hooks/useOpportunityNotes';
 
 interface LocalAccount {
   id: string;
