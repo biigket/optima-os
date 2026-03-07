@@ -174,14 +174,19 @@ export default function ChatSummaryForm({ opportunityId, accountId, clinicName, 
         )}
       </div>
 
-      {/* Summary result */}
+      {/* Editable summary result */}
       {summary && (
-        <div className="rounded-lg border border-primary/30 bg-primary/5 p-3 space-y-1">
-          <div className="flex items-center gap-1.5 mb-2">
+        <div className="rounded-lg border border-primary/30 bg-primary/5 p-3 space-y-2">
+          <div className="flex items-center gap-1.5">
             <Sparkles size={14} className="text-primary" />
             <span className="text-xs font-semibold text-primary">AI สรุปแชท</span>
+            <span className="text-[10px] text-muted-foreground">(แก้ไขได้ก่อนบันทึก)</span>
           </div>
-          <div className="text-xs text-foreground whitespace-pre-wrap leading-relaxed">{summary}</div>
+          <Textarea
+            value={summary}
+            onChange={e => setSummary(e.target.value)}
+            className="text-xs min-h-[100px] bg-background/50 border-primary/20 focus:border-primary/40"
+          />
         </div>
       )}
     </div>
