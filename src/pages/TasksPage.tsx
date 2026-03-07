@@ -528,8 +528,8 @@ export default function TasksPage() {
                   height="auto"
                   slotDuration="00:15:00"
                   snapDuration="00:15:00"
-                  slotMinTime="09:00:00"
-                  slotMaxTime="21:00:00"
+                  slotMinTime="07:00:00"
+                  slotMaxTime="22:00:00"
                   datesSet={(info) => { setSelectedDate(info.start); setMiniMonth(info.start); }}
                   eventContent={(arg) => {
                     const props = arg.event.extendedProps as ActivityRow;
