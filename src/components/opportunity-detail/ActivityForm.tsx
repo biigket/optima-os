@@ -137,6 +137,48 @@ export default function ActivityForm({
     setMarkAsDone(false);
     setShowExtra(false);
     setAssignedTo(currentUser ? [currentUser.name] : []);
+    setAiSuggestion(null);
+    setAiPrompt('');
+    setShowAiPanel(false);
+  };
+
+  const handleAiSuggest = async () => {
+    if (!aiPrompt.trim()) { toast.error('กรุณาเล่าสิ่งที่คุยกับลูกค้า'); return; }
+    setAiLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('suggest-activity', {
+        body: { prompt: aiPrompt.trim(), clinicName, currentStage, interestedProducts },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      setAiSuggestion(data.suggestion);
+    } catch (e: any) {
+      console.error('AI suggest error:', e);
+      toast.error(e.message || 'AI แนะนำไม่สำเร็จ');
+    } finally {
+      setAiLoading(false);
+    }
+  };
+
+  const applyAiSuggestion = () => {
+    if (!aiSuggestion) return;
+    const validTypes: ActivityType[] = ['CALL', 'MEETING', 'TASK', 'DEADLINE', 'DEMO'];
+    const suggestedType = validTypes.includes(aiSuggestion.activity_type as ActivityType) 
+      ? aiSuggestion.activity_type as ActivityType : 'CALL';
+    setSelectedType(suggestedType);
+    setTitle(aiSuggestion.title || '');
+    const suggestedDate = format(addDays(new Date(), aiSuggestion.days_from_now || 1), 'yyyy-MM-dd');
+    setActivityDate(suggestedDate);
+    const validPriorities: ActivityPriority[] = ['LOW', 'NORMAL', 'HIGH'];
+    setPriority(validPriorities.includes(aiSuggestion.priority as ActivityPriority) 
+      ? aiSuggestion.priority as ActivityPriority : 'NORMAL');
+    setDescription(aiSuggestion.description || '');
+    if (aiSuggestion.talking_points?.length) {
+      setNotes('💡 คำแนะนำ:\n' + aiSuggestion.talking_points.map((t, i) => `${i + 1}. ${t}`).join('\n'));
+    }
+    setShowExtra(true);
+    setShowAiPanel(false);
+    toast.success('ใช้คำแนะนำ AI แล้ว — ตรวจสอบและบันทึกได้เลย');
   };
 
   const handleSave = async () => {
