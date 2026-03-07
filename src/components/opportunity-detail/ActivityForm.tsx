@@ -176,7 +176,7 @@ export default function ActivityForm({
       ? aiSuggestion.priority as ActivityPriority : 'NORMAL');
     setDescription(aiSuggestion.description || '');
     if (aiSuggestion.talking_points?.length) {
-      const talkingPointsHtml = `<h3>💡 คำแนะนำ</h3><ol>${aiSuggestion.talking_points.map(t => `<li>${t}</li>`).join('')}</ol>`;
+      const talkingPointsHtml = `<ul>${aiSuggestion.talking_points.map(t => `<li>${t}</li>`).join('')}</ul>`;
       setNotes(prev => {
         const userNotes = prev?.trim() || '';
         const isEmpty = !userNotes || userNotes === '<p></p>';
