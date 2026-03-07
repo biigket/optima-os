@@ -463,19 +463,12 @@ export default function ActivityForm({
       {/* Notes */}
       <div className="space-y-1.5">
         <label className="text-[10px] text-muted-foreground">Notes</label>
-        <Textarea
+        <RichTextEditor
+          content={notes}
+          onChange={setNotes}
           placeholder="บันทึกเพิ่มเติม..."
-          value={notes}
-          onChange={e => setNotes(e.target.value)}
-          className="text-xs min-h-[70px] bg-amber-50 border-amber-200 dark:bg-amber-950/30 dark:border-amber-800 whitespace-pre-line"
+          minHeight="80px"
         />
-        {/* Live preview of structured notes */}
-        {notes && notes.includes('💡 คำแนะนำ') && (
-          <div className="rounded-md border border-border bg-muted/30 p-2">
-            <p className="text-[9px] text-muted-foreground mb-1 font-medium uppercase tracking-wide">Preview</p>
-            <StructuredNotes content={notes} />
-          </div>
-        )}
       </div>
 
       {/* Footer: Mark as done + buttons */}
