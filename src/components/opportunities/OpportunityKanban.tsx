@@ -360,7 +360,7 @@ function KanbanCard({ opp, stage, navigate, pendingActivities, onStageChange, on
       ) : null}
 
       {/* ROW 4: Pinned Notes + Quick Add */}
-      <PinnedNotesRow oppId={opp.id} accountId={opp.account_id} isTerminal={isTerminal} />
+      <PinnedNotesRow oppId={opp.id} accountId={opp.account_id} isTerminal={isTerminal} notesHook={notesHook} />
 
       {/* Stuck reason (days >= 3) */}
       {!isTerminal && daysInStage >= 3 && (
