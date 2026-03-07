@@ -115,7 +115,7 @@ export default function WeeklyPlanPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-foreground">แผนเยี่ยมรายสัปดาห์</h1>
-          <p className="text-sm text-muted-foreground">วางแผนเข้าเยี่ยมลูกค้า: ใหม่ 3 + เก่า 2 คน/วัน</p>
+          <p className="text-sm text-muted-foreground">วางแผนเข้าเยี่ยมลูกค้า</p>
         </div>
       </div>
 
@@ -162,14 +162,6 @@ export default function WeeklyPlanPage() {
         <h2 className="text-lg font-semibold text-foreground">
           {format(selectedDay, 'EEEE d MMMM', { locale: th })}
         </h2>
-        <div className="flex gap-2">
-          <Badge variant={newCount >= 3 ? 'default' : 'outline'} className="gap-1">
-            <UserPlus size={12} /> ใหม่ {newCount}/3
-          </Badge>
-          <Badge variant={existingCount >= 2 ? 'default' : 'outline'} className="gap-1">
-            <Users size={12} /> เก่า {existingCount}/2
-          </Badge>
-        </div>
       </div>
 
       {/* Plans list */}
