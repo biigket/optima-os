@@ -735,6 +735,57 @@ export type Database = {
           },
         ]
       }
+      visit_plans: {
+        Row: {
+          account_id: string
+          created_at: string
+          created_by: string | null
+          id: string
+          notes: string | null
+          plan_date: string
+          status: string
+          visit_report_id: string | null
+          visit_type: string
+        }
+        Insert: {
+          account_id: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          notes?: string | null
+          plan_date: string
+          status?: string
+          visit_report_id?: string | null
+          visit_type?: string
+        }
+        Update: {
+          account_id?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          notes?: string | null
+          plan_date?: string
+          status?: string
+          visit_report_id?: string | null
+          visit_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "visit_plans_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "visit_plans_visit_report_id_fkey"
+            columns: ["visit_report_id"]
+            isOneToOne: false
+            referencedRelation: "visit_reports"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       visit_reports: {
         Row: {
           account_id: string | null
