@@ -489,6 +489,59 @@ export type Database = {
         }
         Relationships: []
       }
+      opportunity_notes: {
+        Row: {
+          account_id: string
+          content: string
+          created_at: string
+          created_by: string | null
+          file_name: string | null
+          file_size: number | null
+          file_type: string | null
+          file_url: string | null
+          id: string
+          is_pinned: boolean
+          opportunity_id: string
+          parent_id: string | null
+        }
+        Insert: {
+          account_id: string
+          content: string
+          created_at?: string
+          created_by?: string | null
+          file_name?: string | null
+          file_size?: number | null
+          file_type?: string | null
+          file_url?: string | null
+          id?: string
+          is_pinned?: boolean
+          opportunity_id: string
+          parent_id?: string | null
+        }
+        Update: {
+          account_id?: string
+          content?: string
+          created_at?: string
+          created_by?: string | null
+          file_name?: string | null
+          file_size?: number | null
+          file_type?: string | null
+          file_url?: string | null
+          id?: string
+          is_pinned?: boolean
+          opportunity_id?: string
+          parent_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "opportunity_notes_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "opportunity_notes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       opportunity_stage_history: {
         Row: {
           changed_by: string | null
