@@ -43,6 +43,19 @@ interface ActivityFormProps {
   onCancelEdit?: () => void;
   onFormChange?: (preview: Partial<Activity>) => void;
   quickScheduleDefaults?: QuickScheduleDefaults | null;
+  clinicName?: string;
+  currentStage?: string;
+  interestedProducts?: string[];
+}
+
+interface AISuggestion {
+  activity_type: ActivityType;
+  title: string;
+  days_from_now: number;
+  priority: string;
+  description: string;
+  talking_points: string[];
+  reason: string;
 }
 
 export default function ActivityForm({
