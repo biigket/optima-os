@@ -190,3 +190,23 @@
     font-size: 0.6rem;
   }
 }
+
+/* Tiptap editor styles */
+.tiptap {
+  outline: none;
+}
+.tiptap p.is-editor-empty:first-child::before {
+  content: attr(data-placeholder);
+  float: left;
+  color: hsl(var(--muted-foreground));
+  pointer-events: none;
+  height: 0;
+}
+.tiptap ul { list-style: disc; padding-left: 1rem; }
+.tiptap ol { list-style: decimal; padding-left: 1rem; }
+.tiptap li { margin: 0.15rem 0; }
+.tiptap h2 { font-size: 0.875rem; font-weight: 700; margin: 0.5rem 0 0.25rem; }
+.tiptap h3 { font-size: 0.8rem; font-weight: 600; margin: 0.375rem 0 0.2rem; }
+.tiptap hr { border-color: hsl(var(--border)); margin: 0.5rem 0; }
+.tiptap mark { padding: 0 2px; border-radius: 2px; }
+.tiptap p { margin: 0.125rem 0; }
