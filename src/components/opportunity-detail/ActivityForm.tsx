@@ -16,9 +16,11 @@ import type { Activity, ActivityType, ActivityPriority } from '@/types';
 import StructuredNotes from './StructuredNotes';
 import RichTextEditor from '@/components/ui/RichTextEditor';
 
-const TIME_OPTIONS = Array.from({ length: 96 }, (_, i) => {
-  const h = Math.floor(i / 4).toString().padStart(2, '0');
-  const m = ((i % 4) * 15).toString().padStart(2, '0');
+// 07:00 - 22:00 (7am - 10pm), 15-min intervals
+const TIME_OPTIONS = Array.from({ length: 61 }, (_, i) => {
+  const totalMinutes = 7 * 60 + i * 15;
+  const h = Math.floor(totalMinutes / 60).toString().padStart(2, '0');
+  const m = (totalMinutes % 60).toString().padStart(2, '0');
   return `${h}:${m}`;
 });
 
@@ -383,7 +385,13 @@ export default function ActivityForm({
         </div>
         <div>
           <label className="text-[10px] text-muted-foreground">เริ่ม</label>
-          <Select value={startTime || undefined} onValueChange={setStartTime}>
+          <Select value={startTime || undefined} onValueChange={(v) => {
+            setStartTime(v);
+            const idx = TIME_OPTIONS.indexOf(v);
+            if (idx >= 0 && idx < TIME_OPTIONS.length - 1) {
+              setEndTime(TIME_OPTIONS[idx + 1]);
+            }
+          }}>
             <SelectTrigger className="h-8 text-xs"><SelectValue placeholder="--:--" /></SelectTrigger>
             <SelectContent className="max-h-48">
               {TIME_OPTIONS.map(t => <SelectItem key={t} value={t} className="text-xs">{t}</SelectItem>)}
@@ -395,7 +403,9 @@ export default function ActivityForm({
           <Select value={endTime || undefined} onValueChange={setEndTime}>
             <SelectTrigger className="h-8 text-xs"><SelectValue placeholder="--:--" /></SelectTrigger>
             <SelectContent className="max-h-48">
-              {TIME_OPTIONS.map(t => <SelectItem key={t} value={t} className="text-xs">{t}</SelectItem>)}
+              {(startTime ? TIME_OPTIONS.filter(t => t > startTime) : TIME_OPTIONS).map(t => (
+                <SelectItem key={t} value={t} className="text-xs">{t}</SelectItem>
+              ))}
             </SelectContent>
           </Select>
         </div>
