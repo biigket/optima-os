@@ -500,7 +500,19 @@ export default function OpportunityDetailPage() {
                   accountId={opp.account_id}
                   clinicName={account?.clinic_name}
                   userName={currentUser?.name || 'Unknown'}
-                  onSummaryCreated={async (summaryText) => {
+                  onSummaryCreated={async (summaryText, imageUrls) => {
+                    // Save images to opportunity_files table linked to account
+                    for (const url of imageUrls) {
+                      const fileName = url.split('/').pop() || 'chat-image.png';
+                      await supabase.from('opportunity_files').insert({
+                        opportunity_id: opp.id,
+                        account_id: opp.account_id,
+                        file_url: url,
+                        file_name: fileName,
+                        file_type: 'chat_screenshot',
+                        uploaded_by: currentUser?.name || 'Unknown',
+                      });
+                    }
                     await addNote({
                       opportunity_id: opp.id,
                       account_id: opp.account_id,
