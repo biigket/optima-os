@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+import RichTextEditor from '@/components/ui/RichTextEditor';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
@@ -529,15 +530,15 @@ export default function OpportunityDetailPage() {
 
               <TabsContent value="notes">
                 <div className="space-y-3">
-                  <Textarea
-                    value={noteInput}
-                    onChange={e => setNoteInput(e.target.value)}
+                  <RichTextEditor
+                    content={noteInput}
+                    onChange={setNoteInput}
                     placeholder="เพิ่มบันทึก..."
-                    className="text-sm min-h-[80px] bg-amber-50 border-amber-200 dark:bg-amber-950/30 dark:border-amber-800"
+                    minHeight="80px"
                   />
                   <div className="flex justify-end gap-2">
                     <Button variant="ghost" size="sm" className="text-xs h-8" onClick={() => setNoteInput('')}>ยกเลิก</Button>
-                    <Button size="sm" className="text-xs h-8 gap-1" onClick={handleAddNote} disabled={!noteInput.trim()}>
+                    <Button size="sm" className="text-xs h-8 gap-1" onClick={handleAddNote} disabled={!noteInput.trim() && noteInput !== '<p></p>'}>
                       <Send size={12} /> บันทึก
                     </Button>
                   </div>

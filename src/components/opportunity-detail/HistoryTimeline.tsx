@@ -457,7 +457,7 @@ function NoteItem({ data, isPinned, onUpdate, onDelete, onPin, onAddComment, onU
                   </div>
                 </div>
               ) : (
-                <p className="text-xs text-foreground pr-16">{data.content}</p>
+                <StructuredNotes content={data.content} className="pr-16" />
               )}
             </>
           )}
