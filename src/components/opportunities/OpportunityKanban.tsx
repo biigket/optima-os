@@ -189,7 +189,7 @@ export default function OpportunityKanban({ opportunities, typeFilter, onStageCh
 
 /* ─── Kanban Card ─── */
 
-function KanbanCard({ opp, stage, navigate, pendingActivities, onStageChange, onUpdateOpportunity, onActivitySaved }: {
+function KanbanCard({ opp, stage, navigate, pendingActivities, onStageChange, onUpdateOpportunity, onActivitySaved, notesHook }: {
   opp: Opportunity;
   stage: OpportunityStage;
   navigate: ReturnType<typeof useNavigate>;
@@ -197,6 +197,7 @@ function KanbanCard({ opp, stage, navigate, pendingActivities, onStageChange, on
   onStageChange: (oppId: string, newStage: OpportunityStage) => void;
   onUpdateOpportunity?: (oppId: string, updates: Partial<Opportunity>) => void;
   onActivitySaved: () => void;
+  notesHook: ReturnType<typeof useMultiOpportunityNotes>;
 }) {
   const [isDragging, setIsDragging] = useState(false);
   const [otherReason, setOtherReason] = useState('');
@@ -484,39 +485,36 @@ function KanbanCard({ opp, stage, navigate, pendingActivities, onStageChange, on
 
 /* ─── Pinned Notes Row ─── */
 
-function PinnedNotesRow({ oppId, accountId, isTerminal }: { oppId: string; accountId: string; isTerminal: boolean }) {
+function PinnedNotesRow({ oppId, accountId, isTerminal, notesHook }: {
+  oppId: string; accountId: string; isTerminal: boolean;
+  notesHook: ReturnType<typeof useMultiOpportunityNotes>;
+}) {
   const [noteInput, setNoteInput] = useState('');
   const [editingNote, setEditingNote] = useState<OpportunityNote | null>(null);
   const [editContent, setEditContent] = useState('');
-  const [, forceUpdate] = useState(0);
 
-  const pinnedIds = getPinnedIdsGlobal();
-  const notes = getNotesForOpportunity(oppId);
+  const pinnedIds = notesHook.getPinnedIds(oppId);
+  const notes = notesHook.getNotesForOpportunity(oppId);
   const pinnedNotes = notes.filter(n => pinnedIds.has(n.id));
 
-  const handleQuickAdd = (e: React.MouseEvent | React.KeyboardEvent) => {
+  const handleQuickAdd = async (e: React.MouseEvent | React.KeyboardEvent) => {
     e.stopPropagation();
     if (!noteInput.trim()) return;
-    const note: OpportunityNote = {
-      id: `note-${Date.now()}`,
+    await notesHook.addNote({
       opportunity_id: oppId,
       account_id: accountId,
       content: noteInput.trim(),
       created_by: 'Me',
-      created_at: new Date().toISOString(),
-    };
-    addNoteGlobal(note);
-    togglePinGlobal(note.id);
+      is_pinned: true,
+    });
     setNoteInput('');
-    forceUpdate(n => n + 1);
   };
 
-  const handleEditSave = (e: React.MouseEvent) => {
+  const handleEditSave = async (e: React.MouseEvent) => {
     e.stopPropagation();
     if (!editingNote || !editContent.trim()) return;
-    updateNoteGlobal(editingNote.id, editContent.trim());
+    await notesHook.updateNote(editingNote.id, editContent.trim(), oppId);
     setEditingNote(null);
-    forceUpdate(n => n + 1);
   };
 
   return (
@@ -545,10 +543,9 @@ function PinnedNotesRow({ oppId, accountId, isTerminal }: { oppId: string; accou
           <button
             className="shrink-0 p-0.5 rounded hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors"
             title="ลบ"
-            onClick={e => {
+            onClick={async e => {
               e.stopPropagation();
-              deleteNoteGlobal(note.id);
-              forceUpdate(n => n + 1);
+              await notesHook.deleteNote(note.id, oppId);
             }}
           >
             <Trash2 size={12} />
