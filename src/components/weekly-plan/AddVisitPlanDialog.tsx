@@ -1,13 +1,19 @@
 import { useState, useEffect, useMemo } from 'react';
-import { Search, Building2 } from 'lucide-react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Search, Building2, Plus, ChevronLeft } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import QuickNoteButtons from '@/components/ui/QuickNoteButtons';
 import { supabase } from '@/integrations/supabase/client';
 import { format } from 'date-fns';
 import { th } from 'date-fns/locale';
+import { toast } from 'sonner';
+import { useMockAuth, MOCK_SALES } from '@/hooks/useMockAuth';
+import { Star } from 'lucide-react';
 
 interface Account {
   id: string;
@@ -26,21 +32,72 @@ interface AddVisitPlanDialogProps {
   onSuccess: () => void;
 }
 
+const ENTITY_TYPES = ['บุคคลธรรมดา', 'นิติบุคคล', 'คลินิก', 'โรงพยาบาล'];
+const BRANCH_TYPES = ['สำนักงานใหญ่', 'สาขา'];
+const LEAD_SOURCE_OPTIONS = ['เพื่อนแนะนำ', 'Social media', 'งานแสดงสินค้า'];
+
+const emptyForm = {
+  clinic_name: '',
+  company_name: '',
+  address: '',
+  tax_id: '',
+  entity_type: '',
+  branch_type: '',
+  phone: '',
+  email: '',
+  customer_status: 'NEW_LEAD',
+  assigned_sale: '',
+  lead_source: '',
+  notes: '',
+  grade: '',
+  single_or_chain: '',
+  current_devices: '',
+  contact_name: '',
+  contact_role: '',
+  contact_phone: '',
+  contact_email: '',
+  custom_lead_source: '',
+};
+
+function StarRating({ value, onChange }: { value: number; onChange: (v: number) => void }) {
+  return (
+    <div className="flex gap-1">
+      {[1, 2, 3].map(star => (
+        <button
+          key={star}
+          type="button"
+          onClick={() => onChange(value === star ? 0 : star)}
+          className="p-0.5 hover:scale-110 transition-transform"
+        >
+          <Star
+            size={20}
+            className={star <= value ? 'fill-yellow-400 text-yellow-400' : 'fill-muted text-muted-foreground/40'}
+          />
+        </button>
+      ))}
+    </div>
+  );
+}
+
 export default function AddVisitPlanDialog({
   open, onOpenChange, selectedDate, startTime, endTime, onSuccess
 }: AddVisitPlanDialogProps) {
+  const { currentUser } = useMockAuth();
   const [search, setSearch] = useState('');
   const [accounts, setAccounts] = useState<Account[]>([]);
   const [loading, setLoading] = useState(false);
   const [selectedAccount, setSelectedAccount] = useState<Account | null>(null);
-  
   const [saving, setSaving] = useState(false);
+  const [showCreateForm, setShowCreateForm] = useState(false);
+  const [form, setForm] = useState(emptyForm);
 
   useEffect(() => {
     if (open) {
       fetchAccounts();
       setSearch('');
       setSelectedAccount(null);
+      setShowCreateForm(false);
+      setForm(emptyForm);
     }
   }, [open]);
 
@@ -64,6 +121,67 @@ export default function AddVisitPlanDialog({
     );
   }, [accounts, search]);
 
+  const updateField = (key: string, value: string) => {
+    setForm(prev => ({ ...prev, [key]: value }));
+  };
+
+  async function handleCreateAccount() {
+    if (!form.clinic_name?.trim()) {
+      toast.error('กรุณากรอกชื่อคลินิก');
+      return;
+    }
+    if (!form.contact_name?.trim()) {
+      toast.error('กรุณากรอกชื่อผู้ติดต่อ');
+      return;
+    }
+
+    setSaving(true);
+    const resolvedLeadSource = form.lead_source === 'OTHER' ? (form.custom_lead_source || null) : (form.lead_source || null);
+
+    const payload = {
+      clinic_name: form.clinic_name.trim(),
+      company_name: form.company_name || null,
+      address: form.address || null,
+      tax_id: form.tax_id || null,
+      entity_type: form.entity_type || null,
+      branch_type: form.branch_type || null,
+      phone: form.phone || null,
+      email: form.email || null,
+      customer_status: form.customer_status || 'NEW_LEAD',
+      assigned_sale: form.assigned_sale || currentUser?.name || null,
+      lead_source: resolvedLeadSource,
+      notes: form.notes || null,
+      grade: form.grade || null,
+      single_or_chain: form.single_or_chain || null,
+      current_devices: form.current_devices.trim() || null,
+    };
+
+    const { data: newAcc, error } = await supabase.from('accounts').insert(payload).select('id, clinic_name, customer_status, address, phone').single();
+    if (error || !newAcc) {
+      toast.error('เพิ่มลูกค้าไม่สำเร็จ');
+      setSaving(false);
+      return;
+    }
+
+    // Insert contact
+    await supabase.from('contacts').insert({
+      account_id: newAcc.id,
+      name: form.contact_name.trim(),
+      role: form.contact_role || null,
+      phone: form.contact_phone || null,
+      email: form.contact_email || null,
+    });
+
+    toast.success('เพิ่มลูกค้าใหม่สำเร็จ');
+
+    // Auto-select the new account and go back to search view
+    setSelectedAccount(newAcc);
+    setAccounts(prev => [newAcc, ...prev]);
+    setShowCreateForm(false);
+    setForm(emptyForm);
+    setSaving(false);
+  }
+
   async function handleSave() {
     if (!selectedAccount) return;
     setSaving(true);
@@ -80,6 +198,139 @@ export default function AddVisitPlanDialog({
     onOpenChange(false);
   }
 
+  // CREATE FORM VIEW
+  if (showCreateForm) {
+    return (
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
+          <DialogHeader>
+            <div className="flex items-center gap-2">
+              <Button variant="ghost" size="icon" className="h-7 w-7 shrink-0" onClick={() => setShowCreateForm(false)}>
+                <ChevronLeft size={16} />
+              </Button>
+              <div>
+                <DialogTitle>เพิ่มลูกค้าใหม่</DialogTitle>
+                <DialogDescription>กรอกข้อมูลลูกค้าใหม่เพื่อลงแผนเยี่ยม</DialogDescription>
+              </div>
+            </div>
+          </DialogHeader>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="space-y-1.5">
+              <Label>ชื่อคลินิก *</Label>
+              <Input value={form.clinic_name} onChange={e => updateField('clinic_name', e.target.value)} />
+            </div>
+            <div className="space-y-1.5">
+              <Label>ชื่อบริษัท</Label>
+              <Input value={form.company_name} onChange={e => updateField('company_name', e.target.value)} />
+            </div>
+
+            {/* ผู้ติดต่อหลัก */}
+            <div className="sm:col-span-2 space-y-3 p-3 rounded-md border border-primary/30 bg-primary/5">
+              <p className="text-sm font-medium text-foreground">ผู้ติดต่อหลัก <span className="text-destructive">*</span></p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="space-y-1.5">
+                  <Label>ชื่อผู้ติดต่อ <span className="text-destructive">*</span></Label>
+                  <Input value={form.contact_name} onChange={e => updateField('contact_name', e.target.value)} placeholder="เช่น นพ. สมชาย" />
+                </div>
+                <div className="space-y-1.5">
+                  <Label>ตำแหน่ง / บทบาท</Label>
+                  <Input value={form.contact_role} onChange={e => updateField('contact_role', e.target.value)} placeholder="เช่น Owner, Doctor" />
+                </div>
+                <div className="space-y-1.5">
+                  <Label>เบอร์โทรผู้ติดต่อ</Label>
+                  <Input value={form.contact_phone} onChange={e => updateField('contact_phone', e.target.value)} placeholder="08x-xxx-xxxx" />
+                </div>
+                <div className="space-y-1.5">
+                  <Label>อีเมลผู้ติดต่อ</Label>
+                  <Input type="email" value={form.contact_email} onChange={e => updateField('contact_email', e.target.value)} placeholder="email@example.com" />
+                </div>
+              </div>
+            </div>
+
+            <div className="space-y-1.5 sm:col-span-2">
+              <Label>ที่อยู่</Label>
+              <Input value={form.address} onChange={e => updateField('address', e.target.value)} />
+            </div>
+            <div className="space-y-1.5">
+              <Label>เลขประจำตัวผู้เสียภาษี</Label>
+              <Input value={form.tax_id} onChange={e => updateField('tax_id', e.target.value)} />
+            </div>
+            <div className="space-y-1.5">
+              <Label>ประเภทนิติบุคคล</Label>
+              <Select value={form.entity_type || ''} onValueChange={v => updateField('entity_type', v)}>
+                <SelectTrigger><SelectValue placeholder="เลือก" /></SelectTrigger>
+                <SelectContent>
+                  {ENTITY_TYPES.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-1.5">
+              <Label>ประเภทสาขา</Label>
+              <Select value={form.branch_type || ''} onValueChange={v => updateField('branch_type', v)}>
+                <SelectTrigger><SelectValue placeholder="เลือก" /></SelectTrigger>
+                <SelectContent>
+                  {BRANCH_TYPES.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-1.5">
+              <Label>โทรศัพท์คลินิก</Label>
+              <Input value={form.phone} onChange={e => updateField('phone', e.target.value)} />
+            </div>
+            <div className="space-y-1.5">
+              <Label>อีเมล</Label>
+              <Input type="email" value={form.email} onChange={e => updateField('email', e.target.value)} />
+            </div>
+            <div className="space-y-1.5">
+              <Label>เซลล์ผู้ดูแล</Label>
+              <Select value={form.assigned_sale || ''} onValueChange={v => updateField('assigned_sale', v)}>
+                <SelectTrigger><SelectValue placeholder="เลือกเซลล์" /></SelectTrigger>
+                <SelectContent>
+                  {MOCK_SALES.map(s => <SelectItem key={s.id} value={s.name}>{s.name}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-1.5">
+              <Label>แหล่งที่มา</Label>
+              <Select value={form.lead_source || ''} onValueChange={v => updateField('lead_source', v)}>
+                <SelectTrigger><SelectValue placeholder="เลือกแหล่งที่มา" /></SelectTrigger>
+                <SelectContent>
+                  {LEAD_SOURCE_OPTIONS.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+                  <SelectItem value="OTHER">อื่นๆ (ระบุเอง)</SelectItem>
+                </SelectContent>
+              </Select>
+              {form.lead_source === 'OTHER' && (
+                <Input className="mt-1.5" value={form.custom_lead_source} onChange={e => updateField('custom_lead_source', e.target.value)} placeholder="ระบุแหล่งที่มา..." />
+              )}
+            </div>
+            <div className="space-y-1.5">
+              <Label>เกรด</Label>
+              <StarRating value={parseInt(form.grade) || 0} onChange={v => updateField('grade', v.toString())} />
+            </div>
+            <div className="space-y-1.5 sm:col-span-2">
+              <Label>เครื่องที่มีอยู่แล้ว</Label>
+              <Textarea value={form.current_devices} onChange={e => updateField('current_devices', e.target.value)} rows={2} placeholder="พิมพ์ชื่อเครื่องที่ลูกค้ามีอยู่..." />
+              <QuickNoteButtons value={form.current_devices} onChange={v => updateField('current_devices', v)} storageKey="quick_notes_devices" defaults={['Doublo Gold', 'Ultraformer III', 'HIFU เก่า', 'Thermage FLX']} />
+            </div>
+            <div className="space-y-1.5 sm:col-span-2">
+              <Label>หมายเหตุ</Label>
+              <Textarea value={form.notes} onChange={e => updateField('notes', e.target.value)} rows={2} />
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowCreateForm(false)}>ยกเลิก</Button>
+            <Button onClick={handleCreateAccount} disabled={saving}>
+              {saving ? 'กำลังบันทึก...' : 'เพิ่มลูกค้า'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    );
+  }
+
+  // SEARCH VIEW (default)
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md max-h-[85vh] flex flex-col">
@@ -146,9 +397,14 @@ export default function AddVisitPlanDialog({
             )}
           </div>
 
-          <Button onClick={handleSave} disabled={!selectedAccount || saving} className="w-full">
-            {saving ? 'กำลังบันทึก...' : 'เพิ่มแผนเยี่ยม'}
-          </Button>
+          <div className="space-y-2">
+            <Button onClick={handleSave} disabled={!selectedAccount || saving} className="w-full">
+              {saving ? 'กำลังบันทึก...' : 'เพิ่มแผนเยี่ยม'}
+            </Button>
+            <Button variant="outline" className="w-full gap-1.5 text-xs" onClick={() => setShowCreateForm(true)}>
+              <Plus size={14} /> สร้างลูกค้าใหม่
+            </Button>
+          </div>
         </div>
       </DialogContent>
     </Dialog>
