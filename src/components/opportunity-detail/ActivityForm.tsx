@@ -77,6 +77,10 @@ export default function ActivityForm({
   const [showExtra, setShowExtra] = useState(false);
   const [saving, setSaving] = useState(false);
   const [assignedTo, setAssignedTo] = useState<string[]>(currentUser ? [currentUser.name] : []);
+  const [aiPrompt, setAiPrompt] = useState('');
+  const [aiLoading, setAiLoading] = useState(false);
+  const [aiSuggestion, setAiSuggestion] = useState<AISuggestion | null>(null);
+  const [showAiPanel, setShowAiPanel] = useState(false);
 
   const isEditing = !!editingActivity;
 
