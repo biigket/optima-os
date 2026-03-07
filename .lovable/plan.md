@@ -1,50 +1,38 @@
 
 
-# Opportunity Module — Add Functional Features
+## Problem Analysis
 
-## Overview
-Add drag-and-drop stage changes, quick stage editing, inline actions, and other interactive functionality to the Opportunity module.
+The current Notes display has these UX issues:
+1. **AI talking points in Notes** are plain text dumped as a single paragraph (e.g., `💡 คำแนะนำ: 1. ... 2. ... 3. ...`) — hard to read
+2. **Notes textarea** in the form is a basic yellow box with no structure
+3. **Notes in History Timeline** render as a single `<p>` tag — no formatting for bullet points or sections
+4. **No rich formatting** — users can't distinguish between their own notes vs AI-generated talking points
 
-## Changes
+## Plan
 
-### 1. Drag & Drop on Kanban (`OpportunityKanban.tsx`)
-- Lift `opportunities` state up: pass `onStageChange(oppId, newStage)` callback from `OpportunitiesPage`
-- Implement native HTML5 drag-and-drop (no library needed):
-  - `draggable` on each `KanbanCard`
-  - `onDragStart` sets `oppId` in dataTransfer
-  - Each column acts as a drop zone with `onDragOver` + `onDrop`
-  - Visual feedback: highlight column border on drag-over, ghost opacity on dragged card
-- On drop: call `onStageChange` → update state + show toast "ย้าย [clinic] → [stage]"
-- Log stage change in a local `stageHistory` array (for future timeline)
+### 1. Improve AI Talking Points storage format
+- When `applyAiSuggestion` fills Notes, use proper line breaks with markdown-like formatting instead of cramming into one block
+- Store talking points separately from user notes using a clear separator (e.g., `---`)
 
-### 2. Quick Actions on Kanban Cards (`OpportunityKanban.tsx`)
-- Add a hover-visible action row at bottom of each card:
-  - **Phone** icon → toast "โทรหา [clinic]"
-  - **Calendar** icon → toast "นัดกิจกรรม"  
-  - **MoreHorizontal** → dropdown with "แก้ไข", "เปลี่ยน Stage", "Mark Won/Lost"
-- Prevent card click navigation when clicking action buttons (`e.stopPropagation()`)
+### 2. Render Notes with structured formatting in History Timeline
+- In `HistoryTimeline.tsx` `ActivityItem`, parse the notes content:
+  - Detect lines starting with numbers (`1.`, `2.`) or bullets (`•`, `-`) and render as a proper `<ul>/<ol>` list
+  - Detect `💡 คำแนะนำ:` header and render it as a styled section header
+  - Preserve line breaks with `whitespace-pre-line`
+- Wrap the notes block in a cleaner card-style container with proper padding and visual hierarchy
 
-### 3. Stage Change on Detail Page (`OpportunityDetailPage.tsx`)
-- Make stage path segments clickable
-- On click → confirm dialog "ย้ายไป [stage]?" → update local state + toast
-- Add "Mark Won" / "Mark Lost" buttons in the header area
+### 3. Improve Notes input UX in ActivityForm
+- Add a label section divider between "user notes" and "AI talking points" when AI content is present
+- Make the Notes textarea taller with `whitespace-pre-line` rendering
+- Add a small toolbar or section header when AI content is populated (e.g., a light purple header saying "💡 AI คำแนะนำ" above the AI portion)
 
-### 4. Inline Edit on Detail Page (`OpportunityDetailPage.tsx`)
-- Add edit button next to Deal Info section
-- Opens a dialog/inline form to edit: expected_value, close_date, notes, next_activity_type, next_activity_date
-- Save updates local state + toast
+### 4. Better visual rendering in the timeline note bubble
+- Replace the single `<p>` with a structured block:
+  - Numbered items render as an ordered list with left border accent
+  - Each point gets its own line with proper spacing
+  - Use subtle background differentiation between user notes and AI-generated content
 
-### 5. Update State Management (`OpportunitiesPage.tsx`)
-- Pass `setOpportunities` updater to Kanban and Detail via props or shared state
-- `onStageChange` handler: finds opportunity by ID, updates stage, re-renders Kanban
-- Wire route params so Detail page can also update the shared opportunities array
-
-### 6. Add "Reason Stuck" dropdown
-- When a deal is stuck (>14 days), show a small dropdown on the card: "รอราคา / รอผู้ตัดสินใจ / รอ finance / รอ training / อื่นๆ"
-- Store as `stuck_reason` on the opportunity object
-
-## Technical Notes
-- Using native HTML5 drag-and-drop keeps bundle size small — no new dependencies
-- All state changes are local (mock data) — ready for database migration later
-- Drop zones use `e.preventDefault()` on `dragOver` to allow drops
+### Files to modify
+- `src/components/opportunity-detail/ActivityForm.tsx` — Notes section UI, AI suggestion apply logic
+- `src/components/opportunity-detail/HistoryTimeline.tsx` — Notes rendering in ActivityItem
 
