@@ -137,6 +137,12 @@ export default function CustomerCardPage() {
           setAccountPinnedIds(new Set(notes.filter(n => n.is_pinned).map(n => n.id)));
         }
       });
+    // Chat screenshot images
+    supabase.from('opportunity_files').select('*').eq('account_id', id).eq('file_type', 'chat_screenshot')
+      .order('created_at', { ascending: false })
+      .then(({ data }) => {
+        if (data) setChatImages(data as any);
+      });
   }, [id, opportunities]);
   const handleSubmit = async () => {
     if (!editForm.clinic_name?.trim()) {
