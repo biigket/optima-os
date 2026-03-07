@@ -20,7 +20,7 @@ import {
   ArrowLeft, Phone, MessageCircle, StickyNote, CalendarPlus, ListPlus, Pencil,
   DollarSign, Monitor, Handshake, MapPin, Building2, Users, Mail,
   ChevronDown, LayoutDashboard, Clock, FileText,
-  ShoppingCart, Wrench, Receipt, FolderOpen, Megaphone,
+  ShoppingCart, Wrench, Receipt, FolderOpen, Megaphone, ImageIcon,
   Eye, Presentation, FileCheck, GraduationCap,
   Phone as PhoneIcon, Star, Trash2
 } from 'lucide-react';
@@ -111,6 +111,7 @@ export default function CustomerCardPage() {
   const [accountStageHistory, setAccountStageHistory] = useState<{ from: string; to: string; date: string }[]>([]);
   const [accountNotes, setAccountNotes] = useState<OpportunityNote[]>([]);
   const [accountPinnedIds, setAccountPinnedIds] = useState<Set<string>>(new Set());
+  const [chatImages, setChatImages] = useState<{ id: string; file_url: string; file_name: string; uploaded_by: string | null; created_at: string; opportunity_id: string }[]>([]);
 
   // Fetch activities, stage history, and notes for this account
   useEffect(() => {
