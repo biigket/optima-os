@@ -738,16 +738,14 @@ function FileUploadZone({ opportunityId, accountId, userName, onFileUploaded }: 
         file_size: file.size, file_type: file.type, uploaded_by: userName,
       });
 
-      // Create a note for history timeline
-      const note: OpportunityNote = {
-        id: `note-${Date.now()}-${Math.random().toString(36).slice(2)}`,
+      // Create a note for history timeline via DB
+      await supabase.from('opportunity_notes').insert({
         opportunity_id: opportunityId, account_id: accountId,
         content: `📎 ${file.name}`,
-        created_by: userName, created_at: new Date().toISOString(),
+        created_by: userName,
         file_url: publicUrl, file_name: file.name,
         file_size: file.size, file_type: file.type,
-      };
-      addNoteGlobal(note);
+      });
       toast.success(`อัพโหลด ${file.name} สำเร็จ`);
     }
     setUploading(false);

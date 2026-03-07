@@ -6,7 +6,8 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSepara
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Input } from '@/components/ui/input';
-import { getCachedAccount, getNotesForOpportunity, addNoteGlobal, updateNoteGlobal, deleteNoteGlobal, getPinnedIdsGlobal, togglePinGlobal, type OpportunityNote } from '@/pages/OpportunitiesPage';
+import { getCachedAccount, type OpportunityNote } from '@/pages/OpportunitiesPage';
+import { useMultiOpportunityNotes } from '@/hooks/useOpportunityNotes';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import QuickActivityForm from './QuickActivityForm';
