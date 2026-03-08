@@ -55,6 +55,7 @@ interface EditDemoDialogProps {
 export default function EditDemoDialog({ demo, clinicName, open, onOpenChange, onSaved, onDeleted }: EditDemoDialogProps) {
   const [demoDate, setDemoDate] = useState<Date | undefined>(undefined);
   const [location, setLocation] = useState('');
+  const [description, setDescription] = useState('');
   const [note, setNote] = useState('');
   const [selectedProducts, setSelectedProducts] = useState<string[]>([]);
   const [visitedBy, setVisitedBy] = useState<string[]>([]);
