@@ -55,6 +55,7 @@ interface EditDemoDialogProps {
 export default function EditDemoDialog({ demo, clinicName, open, onOpenChange, onSaved, onDeleted }: EditDemoDialogProps) {
   const [demoDate, setDemoDate] = useState<Date | undefined>(undefined);
   const [location, setLocation] = useState('');
+  const [description, setDescription] = useState('');
   const [note, setNote] = useState('');
   const [selectedProducts, setSelectedProducts] = useState<string[]>([]);
   const [visitedBy, setVisitedBy] = useState<string[]>([]);
@@ -67,10 +68,10 @@ export default function EditDemoDialog({ demo, clinicName, open, onOpenChange, o
     if (demo && open) {
       setDemoDate(demo.demo_date ? parse(demo.demo_date, 'yyyy-MM-dd', new Date()) : undefined);
       setLocation(demo.location || '');
+      setDescription('');
       setNote(demo.demo_note || '');
       setSelectedProducts(demo.products_demo || []);
       setVisitedBy(demo.visited_by || []);
-      // Try to find start/end time from linked activity
       fetchActivityTimes(demo.id, demo.opportunity_id, demo.demo_date);
     }
   }, [demo, open]);
@@ -88,9 +89,8 @@ export default function EditDemoDialog({ demo, clinicName, open, onOpenChange, o
     if (data) {
       setStartTime(data.start_time || '09:00');
       setEndTime(data.end_time || '10:00');
-      // Fallback: use activity location/description if demo record is missing them
       if (!location && data.location) setLocation(data.location);
-      if (!note && data.description) setNote(data.description);
+      setDescription(data.description || '');
     }
   }
 
@@ -137,28 +137,18 @@ export default function EditDemoDialog({ demo, clinicName, open, onOpenChange, o
 
     // Always sync to linked DEMO activity
     if (demo.opportunity_id) {
-      const descParts: string[] = [];
-      if (location) descParts.push(`📍 สถานที่: ${location}`);
-      if (selectedProducts.length > 0) descParts.push(`🎯 สินค้า: ${selectedProducts.join(', ')}`);
-      const specialists = visitedBy.filter(n => PRODUCT_SPECIALISTS.includes(n));
-      if (specialists.length > 0) descParts.push(`👤 Specialist: ${specialists.join(', ')}`);
-      if (location) descParts.push(`🗺️ Google Map: https://www.google.com/maps/search/${encodeURIComponent(location)}`);
-      if (note) descParts.push(`📝 ${note}`);
-
-      // Find the linked activity by opportunity + type, with or without date
       let activityQuery = supabase.from('activities')
         .update({
           activity_date: dateStr,
           start_time: startTime,
           end_time: endTime,
           location: location.trim() || null,
-          description: descParts.join('\n') || null,
+          description: description.trim() || null,
           assigned_to: visitedBy.length > 0 ? visitedBy : null,
         })
         .eq('opportunity_id', demo.opportunity_id)
         .eq('activity_type', 'DEMO');
 
-      // If original date exists, match by it; otherwise match any DEMO activity for this opportunity
       if (demo.demo_date) {
         activityQuery = activityQuery.eq('activity_date', demo.demo_date);
       }
@@ -280,8 +270,8 @@ export default function EditDemoDialog({ demo, clinicName, open, onOpenChange, o
           <div className="space-y-1.5">
             <Label className="text-xs">Description</Label>
             <Textarea
-              value={note}
-              onChange={e => setNote(e.target.value)}
+              value={description}
+              onChange={e => setDescription(e.target.value)}
               placeholder="ใส่ลิงก์ Google Map หรือรายละเอียดเพิ่มเติม..."
               className="min-h-[60px] text-xs"
             />
