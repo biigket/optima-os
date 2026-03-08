@@ -1,0 +1,1 @@
+ALTER TABLE public.demos ADD COLUMN confirmed boolean NOT NULL DEFAULT false;
