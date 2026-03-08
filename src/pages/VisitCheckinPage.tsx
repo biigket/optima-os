@@ -372,19 +372,29 @@ export default function VisitCheckinPage() {
             <div>
               <label className="text-sm font-medium text-foreground mb-1.5 block">📷 ถ่ายรูปหน้าร้าน</label>
               {!capturedPhoto && !cameraActive && (
-                <Button variant="outline" className="w-full gap-2" onClick={startCamera}>
+                <Button variant="outline" className="w-full gap-2" onClick={() => startCamera()}>
                   <Camera size={16} /> เปิดกล้อง
                 </Button>
               )}
               {cameraActive && (
                 <div className="space-y-2">
-                  <video
-                    ref={videoRef}
-                    className="w-full rounded-lg border bg-black aspect-[4/3] object-cover"
-                    autoPlay
-                    playsInline
-                    muted
-                  />
+                  <div className="relative">
+                    <video
+                      ref={videoRef}
+                      className={`w-full rounded-lg border bg-black aspect-[4/3] object-cover ${facingMode === 'user' ? 'scale-x-[-1]' : ''}`}
+                      autoPlay
+                      playsInline
+                      muted
+                    />
+                    <Button
+                      size="icon"
+                      variant="secondary"
+                      className="absolute top-2 right-2 h-9 w-9 rounded-full opacity-90"
+                      onClick={switchCamera}
+                    >
+                      <SwitchCamera size={18} />
+                    </Button>
+                  </div>
                   <Button className="w-full gap-2" onClick={capturePhoto}>
                     <Camera size={16} /> ถ่ายรูป
                   </Button>
