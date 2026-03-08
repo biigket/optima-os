@@ -519,9 +519,12 @@ export default function CreateQuotationWizard({ open, onOpenChange, onCreated }:
                   <span className="text-muted-foreground">Net Price</span>
                   <span className="font-medium">฿{netPrice.toLocaleString()}</span>
                 </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">VAT 7%</span>
-                  <span className="font-medium">฿{vat.toLocaleString()}</span>
+                <div className="flex justify-between items-center text-sm">
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input type="checkbox" checked={includeVat} onChange={e => setIncludeVat(e.target.checked)} className="rounded border-input" />
+                    <span className="text-muted-foreground">VAT 7%</span>
+                  </label>
+                  <span className="font-medium">{includeVat ? `฿${vat.toLocaleString()}` : '-'}</span>
                 </div>
                 <Separator />
                 <div className="flex justify-between text-base font-bold">
