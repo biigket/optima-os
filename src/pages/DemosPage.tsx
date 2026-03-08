@@ -53,7 +53,7 @@ export default function DemosPage() {
     if (demosRes.data) setDemos(demosRes.data as unknown as DemoRow[]);
     if (accRes.data) {
       const map: Record<string, AccountInfo> = {};
-      (accRes.data as AccountInfo[]).forEach(a => { map[a.id] = a; });
+      (accRes.data as unknown as AccountInfo[]).forEach(a => { map[a.id] = a; });
       setAccounts(map);
       setAllAccounts(accRes.data as AccountInfo[]);
     }
