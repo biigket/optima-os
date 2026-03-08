@@ -67,7 +67,42 @@ export default function VisitCheckinPage() {
       .select('*, accounts(id, clinic_name)')
       .eq('plan_date', today)
       .order('created_at');
-    if (data) setPlans(data as unknown as VisitPlan[]);
+    
+    if (data) {
+      // Fetch primary contacts for each account
+      const accountIds = [...new Set((data as any[]).map(d => d.account_id))];
+      const { data: contacts } = await supabase
+        .from('contacts')
+        .select('account_id, name, phone')
+        .in('account_id', accountIds)
+        .eq('is_decision_maker', true);
+      
+      const contactMap = new Map<string, { name: string; phone: string | null }>();
+      contacts?.forEach(c => {
+        if (!contactMap.has(c.account_id)) {
+          contactMap.set(c.account_id, { name: c.name, phone: c.phone });
+        }
+      });
+
+      // If no decision maker, get any first contact
+      if (accountIds.length > 0) {
+        const { data: allContacts } = await supabase
+          .from('contacts')
+          .select('account_id, name, phone')
+          .in('account_id', accountIds);
+        allContacts?.forEach(c => {
+          if (!contactMap.has(c.account_id)) {
+            contactMap.set(c.account_id, { name: c.name, phone: c.phone });
+          }
+        });
+      }
+
+      setPlans((data as any[]).map(d => ({
+        ...d,
+        contact_name: contactMap.get(d.account_id)?.name || null,
+        contact_phone: contactMap.get(d.account_id)?.phone || null,
+      })) as VisitPlan[]);
+    }
     setLoading(false);
   }
 
