@@ -364,7 +364,7 @@ function PatientCard({
               {patient.afterPhoto && <Badge variant="outline" className="text-[9px] h-4">มีรูป After</Badge>}
             </div>
             <div className="flex items-center gap-1">
-              {canRemove && (
+              {canRemove && !readOnly && (
                 <Button
                   variant="ghost"
                   size="sm"
