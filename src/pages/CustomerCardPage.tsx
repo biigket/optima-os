@@ -153,6 +153,12 @@ export default function CustomerCardPage() {
       .then(({ data }) => {
         if (data) setVisitReports(data);
       });
+    // Demo reports (submitted)
+    supabase.from('demos').select('*').eq('account_id', id).eq('report_submitted', true)
+      .order('created_at', { ascending: false })
+      .then(({ data }) => {
+        if (data) setDemoReports(data);
+      });
   }, [id, opportunities]);
   const handleSubmit = async () => {
     if (!editForm.clinic_name?.trim()) {
