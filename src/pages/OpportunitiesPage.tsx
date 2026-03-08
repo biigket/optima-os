@@ -170,7 +170,7 @@ export default function OpportunitiesPage() {
             )}
           </div>
         </div>
-        <Button size="sm" className="gap-1.5" onClick={() => setSelectModalOpen(true)}>
+        <Button size="sm" className="gap-1.5" onClick={() => setCreateFormOpen(true)}>
           <Plus size={14} /> เพิ่มดีล
         </Button>
       </div>
