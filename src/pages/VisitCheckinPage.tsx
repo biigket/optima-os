@@ -28,6 +28,8 @@ interface VisitPlan {
   start_time?: string | null;
   end_time?: string | null;
   accounts?: { id: string; clinic_name: string } | null;
+  contact_name?: string | null;
+  contact_phone?: string | null;
 }
 
 export default function VisitCheckinPage() {
