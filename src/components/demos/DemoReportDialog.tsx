@@ -403,6 +403,7 @@ function PatientCard({
               onChange={v => onUpdate({ ...patient, parameters: v })}
               quickNoteKey="parameters"
               placeholder="Energy level, จำนวนช็อต, บริเวณที่ทำ..."
+              withSubCategories
             />
 
             {/* Pain Score */}
