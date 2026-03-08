@@ -172,7 +172,8 @@ export default function CreateQuotationWizard({ open, onOpenChange, onCreated }:
     setSelectedContactId(null);
     setCustomerOverride({ clinic_name: '', address: '', tax_id: '', contact_name: '', phone: '', email: '' });
     setProductLines([]);
-    setDiscount(0);
+    setDiscountPercent(0);
+    setDiscountAmount(0);
     setQtNumber(generateQTNumber());
     setQtDate(format(new Date(), 'yyyy-MM-dd'));
     setSalesTerms('');
