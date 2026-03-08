@@ -55,7 +55,7 @@ export default function DemosPage() {
       const map: Record<string, AccountInfo> = {};
       (accRes.data as unknown as AccountInfo[]).forEach(a => { map[a.id] = a; });
       setAccounts(map);
-      setAllAccounts(accRes.data as AccountInfo[]);
+      
     }
     setLoading(false);
   };
