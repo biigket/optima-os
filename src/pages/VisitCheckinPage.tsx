@@ -418,6 +418,7 @@ export default function VisitCheckinPage() {
             )}
           </div>
         </DialogContent>
+      </Dialog>
 
       {/* Reschedule Dialog */}
       <Dialog open={!!reschedulePlan} onOpenChange={open => { if (!open) setReschedulePlan(null); }}>
