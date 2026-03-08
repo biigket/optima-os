@@ -15,6 +15,8 @@ import StatusBadge from '@/components/ui/StatusBadge';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
+import { format } from 'date-fns';
+import { th } from 'date-fns/locale';
 import { MOCK_SALES } from '@/hooks/useMockAuth';
 import {
   ArrowLeft, Phone, MessageCircle, StickyNote, CalendarPlus, ListPlus, Pencil,
