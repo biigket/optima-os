@@ -147,66 +147,98 @@ export default function DemosPage() {
         <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
           {filtered.map(demo => {
             const acc = demo.account_id ? accounts[demo.account_id] : null;
-            const isUpcoming = demo.demo_date && demo.demo_date >= today;
+            const isConfirmed = !!demo.confirmed;
             const isPast = demo.demo_date && demo.demo_date < today;
 
             return (
               <div
                 key={demo.id}
                 className={cn(
-                  "rounded-lg border bg-card p-4 space-y-3 hover:shadow-md transition-shadow cursor-pointer",
+                  "rounded-lg border bg-card p-4 space-y-3 hover:shadow-md transition-shadow",
                   isPast && "opacity-70"
                 )}
-                onClick={() => handleCardClick(demo)}
               >
-                <div className="flex items-start justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className={cn(
-                      "flex h-10 w-10 items-center justify-center rounded-lg",
-                      isUpcoming ? "bg-orange-100 text-orange-600" : "bg-muted text-muted-foreground"
-                    )}>
-                      <Presentation size={20} />
+                <div
+                  className="cursor-pointer"
+                  onClick={() => handleCardClick(demo)}
+                >
+                  <div className="flex items-start justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className={cn(
+                        "flex h-10 w-10 items-center justify-center rounded-lg",
+                        isConfirmed
+                          ? "bg-emerald-100 text-emerald-600"
+                          : isPast
+                            ? "bg-muted text-muted-foreground"
+                            : "bg-orange-100 text-orange-600"
+                      )}>
+                        <Presentation size={20} />
+                      </div>
+                      <div>
+                        <p className="text-sm font-semibold text-foreground">{acc?.clinic_name || 'ไม่ระบุ'}</p>
+                        <Badge
+                          variant={isPast ? 'secondary' : isConfirmed ? 'default' : 'outline'}
+                          className={cn(
+                            "text-[10px] mt-0.5",
+                            isConfirmed && !isPast && "bg-emerald-100 text-emerald-700 border-emerald-200",
+                            !isConfirmed && !isPast && "bg-orange-100 text-orange-700 border-orange-200"
+                          )}
+                        >
+                          {isPast ? 'เสร็จแล้ว' : isConfirmed ? '✓ ได้คิวแล้ว' : 'ขอคิวเดโม'}
+                        </Badge>
+                      </div>
                     </div>
-                    <div>
-                      <p className="text-sm font-semibold text-foreground">{acc?.clinic_name || 'ไม่ระบุ'}</p>
-                      <Badge variant={isUpcoming ? 'default' : 'secondary'} className="text-[10px] mt-0.5">
-                        {isUpcoming ? 'ขอคิวเดโม' : 'เสร็จแล้ว'}
-                      </Badge>
-                    </div>
+                  </div>
+
+                  <div className="space-y-1 text-xs text-muted-foreground mt-3">
+                    {demo.demo_date && (
+                      <div className="flex items-center gap-1.5">
+                        <Calendar size={12} />
+                        <span className="font-medium text-foreground">
+                          {format(new Date(demo.demo_date), 'd MMM yyyy', { locale: th })}
+                        </span>
+                      </div>
+                    )}
+                    {demo.location && (
+                      <div className="flex items-center gap-1.5">
+                        <MapPin size={12} />
+                        <span>{demo.location}</span>
+                      </div>
+                    )}
+                    {demo.visited_by && demo.visited_by.length > 0 && (
+                      <div className="flex items-center gap-1.5">
+                        <Users size={12} />
+                        <span>{demo.visited_by.join(', ')}</span>
+                      </div>
+                    )}
+                    {demo.products_demo && demo.products_demo.length > 0 && (
+                      <div className="flex items-center gap-1.5">
+                        <FileText size={12} />
+                        <span>{demo.products_demo.join(', ')}</span>
+                      </div>
+                    )}
+                    {demo.demo_note && (
+                      <p className="text-muted-foreground mt-1 line-clamp-2">{demo.demo_note}</p>
+                    )}
                   </div>
                 </div>
 
-                <div className="space-y-1 text-xs text-muted-foreground">
-                  {demo.demo_date && (
-                    <div className="flex items-center gap-1.5">
-                      <Calendar size={12} />
-                      <span className="font-medium text-foreground">
-                        {format(new Date(demo.demo_date), 'd MMM yyyy', { locale: th })}
-                      </span>
-                    </div>
-                  )}
-                  {demo.location && (
-                    <div className="flex items-center gap-1.5">
-                      <MapPin size={12} />
-                      <span>{demo.location}</span>
-                    </div>
-                  )}
-                  {demo.visited_by && demo.visited_by.length > 0 && (
-                    <div className="flex items-center gap-1.5">
-                      <Users size={12} />
-                      <span>{demo.visited_by.join(', ')}</span>
-                    </div>
-                  )}
-                  {demo.products_demo && demo.products_demo.length > 0 && (
-                    <div className="flex items-center gap-1.5">
-                      <FileText size={12} />
-                      <span>{demo.products_demo.join(', ')}</span>
-                    </div>
-                  )}
-                  {demo.demo_note && (
-                    <p className="text-muted-foreground mt-1 line-clamp-2">{demo.demo_note}</p>
-                  )}
-                </div>
+                {/* Confirm button - only show for unconfirmed upcoming demos */}
+                {!isConfirmed && !isPast && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="w-full gap-1.5 text-xs border-emerald-200 text-emerald-700 hover:bg-emerald-50 hover:text-emerald-800"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setConfirmDemo(demo);
+                      setConfirmOpen(true);
+                    }}
+                  >
+                    <CheckCircle2 size={14} />
+                    ยืนยันวันเดโม
+                  </Button>
+                )}
               </div>
             );
           })}
