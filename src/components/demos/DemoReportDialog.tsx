@@ -546,6 +546,7 @@ export default function DemoReportDialog({
   // Reset state when dialog opens with new data
   useEffect(() => {
     if (open) {
+      setIsEditing(false);
       if (existingReport) {
         setSelectedDevices(Object.keys(existingReport) as DeviceKey[]);
         setReports(existingReport);
