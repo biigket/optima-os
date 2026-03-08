@@ -293,6 +293,16 @@ export default function DemosPage() {
         onOpenChange={setConfirmOpen}
         onConfirmed={fetchData}
       />
+
+      <DemoReportDialog
+        demoId={reportDemo?.id || ''}
+        clinicName={reportDemo?.account_id ? (accounts[reportDemo.account_id]?.clinic_name || 'ไม่ระบุ') : 'ไม่ระบุ'}
+        productsDemoed={reportDemo?.products_demo || []}
+        existingReport={reportDemo?.report_data || null}
+        open={reportOpen}
+        onOpenChange={setReportOpen}
+        onSaved={fetchData}
+      />
     </div>
   );
 }
