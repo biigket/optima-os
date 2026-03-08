@@ -144,6 +144,12 @@ export default function CustomerCardPage() {
       .then(({ data }) => {
         if (data) setChatImages(data as any);
       });
+    // Visit reports
+    supabase.from('visit_reports').select('*').eq('account_id', id)
+      .order('created_at', { ascending: false })
+      .then(({ data }) => {
+        if (data) setVisitReports(data);
+      });
   }, [id, opportunities]);
   const handleSubmit = async () => {
     if (!editForm.clinic_name?.trim()) {
