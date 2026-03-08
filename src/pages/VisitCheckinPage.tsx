@@ -418,6 +418,51 @@ export default function VisitCheckinPage() {
             )}
           </div>
         </DialogContent>
+
+      {/* Reschedule Dialog */}
+      <Dialog open={!!reschedulePlan} onOpenChange={open => { if (!open) setReschedulePlan(null); }}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <CalendarClock size={18} /> เปลี่ยนแผนเยี่ยม
+            </DialogTitle>
+            <DialogDescription>
+              {reschedulePlan?.accounts?.clinic_name} — เลือกวันเวลาใหม่และระบุเหตุผล
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label>วันที่ใหม่</Label>
+              <Input type="date" value={rescheduleDate} onChange={e => setRescheduleDate(e.target.value)} />
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <Label>เวลาเริ่ม</Label>
+                <Input type="time" value={rescheduleStart} onChange={e => setRescheduleStart(e.target.value)} />
+              </div>
+              <div>
+                <Label>เวลาสิ้นสุด</Label>
+                <Input type="time" value={rescheduleEnd} onChange={e => setRescheduleEnd(e.target.value)} />
+              </div>
+            </div>
+            <div>
+              <Label>เหตุผลที่เปลี่ยนแผน <span className="text-destructive">*</span></Label>
+              <Textarea
+                placeholder="เช่น ลูกค้าติดธุระ, เปลี่ยนวันนัด..."
+                value={rescheduleReason}
+                onChange={e => setRescheduleReason(e.target.value)}
+                rows={3}
+              />
+            </div>
+            <Button
+              className="w-full gap-2"
+              disabled={!rescheduleDate || !rescheduleReason.trim() || rescheduleSubmitting}
+              onClick={handleReschedule}
+            >
+              {rescheduleSubmitting ? 'กำลังบันทึก...' : '📅 ยืนยันเปลี่ยนแผน'}
+            </Button>
+          </div>
+        </DialogContent>
       </Dialog>
     </div>
   );
