@@ -355,10 +355,10 @@ export default function CreateOpportunityForm({ open, onOpenChange, onSave, cust
 
         <StepIndicator currentStep={step} />
 
-        <div className="flex-1 overflow-y-auto overflow-x-hidden flex flex-col min-h-0">
+        <div className="flex-1 overflow-y-auto overflow-x-y-auto overflow-x-hidden flex flex-col min-h-0">
           {/* STEP 0: Select Customer */}
           {step === 0 && (
-            <div className="space-y-3 flex-1 overflow-hidden flex flex-col">
+            <div className=flex flex-col overflow-x-hiddendden flex flex-col">
               <div className="relative px-1">
                 <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground" />
                 <Input
