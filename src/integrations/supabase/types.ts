@@ -689,6 +689,8 @@ export type Database = {
         Row: {
           account_id: string | null
           approval_status: string | null
+          approved_at: string | null
+          approved_by: string | null
           created_at: string
           id: string
           invoice_sent: boolean | null
@@ -700,11 +702,15 @@ export type Database = {
           qt_attachment: string | null
           qt_date: string | null
           qt_number: string | null
+          reject_reason: string | null
           sale_assigned: string | null
+          submitted_at: string | null
         }
         Insert: {
           account_id?: string | null
           approval_status?: string | null
+          approved_at?: string | null
+          approved_by?: string | null
           created_at?: string
           id?: string
           invoice_sent?: boolean | null
@@ -716,11 +722,15 @@ export type Database = {
           qt_attachment?: string | null
           qt_date?: string | null
           qt_number?: string | null
+          reject_reason?: string | null
           sale_assigned?: string | null
+          submitted_at?: string | null
         }
         Update: {
           account_id?: string | null
           approval_status?: string | null
+          approved_at?: string | null
+          approved_by?: string | null
           created_at?: string
           id?: string
           invoice_sent?: boolean | null
@@ -732,7 +742,9 @@ export type Database = {
           qt_attachment?: string | null
           qt_date?: string | null
           qt_number?: string | null
+          reject_reason?: string | null
           sale_assigned?: string | null
+          submitted_at?: string | null
         }
         Relationships: [
           {
