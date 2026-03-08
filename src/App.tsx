@@ -21,6 +21,7 @@ import MaintenancePage from "@/pages/MaintenancePage";
 import ForecastPage from "@/pages/ForecastPage";
 import AnalyticsPage from "@/pages/AnalyticsPage";
 import QuotationsPage from "@/pages/QuotationsPage";
+import QuotationDetailPage from "@/pages/QuotationDetailPage";
 import SalesOrdersPage from "@/pages/SalesOrdersPage";
 import InventoryPage from "@/pages/InventoryPage";
 import InvoicesPage from "@/pages/InvoicesPage";
