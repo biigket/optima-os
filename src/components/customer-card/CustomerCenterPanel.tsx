@@ -76,6 +76,7 @@ export default function CustomerCenterPanel({ accountId, opportunities }: Props)
   const tasks = mockWorkItems.filter((w: WorkItem) => w.linkedAccountId === accountId);
   const [internalNotes, setInternalNotes] = useState<OpportunityNote[]>([]);
   const [visitReports, setVisitReports] = useState<VisitReportRow[]>([]);
+  const [demoReports, setDemoReports] = useState<any[]>([]);
 
   useEffect(() => {
     supabase.from('opportunity_notes').select('*').eq('account_id', accountId).order('created_at', { ascending: false })
@@ -83,6 +84,9 @@ export default function CustomerCenterPanel({ accountId, opportunities }: Props)
 
     supabase.from('visit_reports').select('*').eq('account_id', accountId).order('created_at', { ascending: false })
       .then(({ data }) => { if (data) setVisitReports(data as unknown as VisitReportRow[]); });
+
+    supabase.from('demos').select('*, accounts(clinic_name)').eq('account_id', accountId).eq('report_submitted', true).order('created_at', { ascending: false })
+      .then(({ data }) => { if (data) setDemoReports(data); });
   }, [accountId]);
 
   const lastVisit = visits.length > 0 ? visits[0].date : '-';
