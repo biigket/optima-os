@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -539,6 +539,33 @@ export default function DemoReportDialog({
   });
 
   const [saving, setSaving] = useState(false);
+
+  // Reset state when dialog opens with new data
+  useEffect(() => {
+    if (open) {
+      if (existingReport) {
+        setSelectedDevices(Object.keys(existingReport) as DeviceKey[]);
+        setReports(existingReport);
+      } else {
+        const mapped: DeviceKey[] = [];
+        productsDemoed.forEach(p => {
+          const lower = p.toLowerCase();
+          if (lower.includes('doublo')) mapped.push('doublo');
+          else if (lower.includes('quattro')) mapped.push('quattro');
+          else if (lower.includes('pico')) mapped.push('picohi');
+          else if (lower.includes('trica')) mapped.push('trica3d');
+        });
+        setSelectedDevices([...new Set(mapped)]);
+        const init: Record<string, DeviceReport> = {};
+        DEVICES.forEach(d => {
+          init[d.key] = d.hasPatients
+            ? { patients: [createPatient()] }
+            : { presentationNotes: '', patients: [] };
+        });
+        setReports(init);
+      }
+    }
+  }, [open, existingReport, productsDemoed]);
 
   const toggleDevice = (key: DeviceKey) => {
     setSelectedDevices(prev =>
