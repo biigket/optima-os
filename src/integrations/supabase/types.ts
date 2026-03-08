@@ -743,7 +743,9 @@ export type Database = {
           end_time: string | null
           id: string
           notes: string | null
+          objective: string | null
           plan_date: string
+          products_presented: string | null
           start_time: string | null
           status: string
           visit_report_id: string | null
@@ -756,7 +758,9 @@ export type Database = {
           end_time?: string | null
           id?: string
           notes?: string | null
+          objective?: string | null
           plan_date: string
+          products_presented?: string | null
           start_time?: string | null
           status?: string
           visit_report_id?: string | null
@@ -769,7 +773,9 @@ export type Database = {
           end_time?: string | null
           id?: string
           notes?: string | null
+          objective?: string | null
           plan_date?: string
+          products_presented?: string | null
           start_time?: string | null
           status?: string
           visit_report_id?: string | null
