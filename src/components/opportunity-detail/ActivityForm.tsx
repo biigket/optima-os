@@ -434,18 +434,48 @@ export default function ActivityForm({
         </div>
       </div>
 
-      {/* Priority */}
+      {/* Priority - locked to HIGH for DEMO */}
       <div>
         <label className="text-[10px] text-muted-foreground">ความสำคัญ</label>
-        <Select value={priority} onValueChange={v => setPriority(v as ActivityPriority)}>
-          <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
-          <SelectContent>
-            <SelectItem value="LOW" className="text-xs">Low</SelectItem>
-            <SelectItem value="NORMAL" className="text-xs">Normal</SelectItem>
-            <SelectItem value="HIGH" className="text-xs">High</SelectItem>
-          </SelectContent>
-        </Select>
+        {selectedType === 'DEMO' ? (
+          <div className="mt-1 px-2 py-1.5 rounded-md bg-destructive/10 border border-destructive/20 text-xs font-medium text-destructive">
+            HIGH
+          </div>
+        ) : (
+          <Select value={priority} onValueChange={v => setPriority(v as ActivityPriority)}>
+            <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="LOW" className="text-xs">Low</SelectItem>
+              <SelectItem value="NORMAL" className="text-xs">Normal</SelectItem>
+              <SelectItem value="HIGH" className="text-xs">High</SelectItem>
+            </SelectContent>
+          </Select>
+        )}
       </div>
+
+      {/* Product Specialist - DEMO only */}
+      {selectedType === 'DEMO' && (
+        <div>
+          <label className="text-[10px] text-muted-foreground">Assign to Product Specialist</label>
+          <div className="flex gap-3 mt-1">
+            {PRODUCT_SPECIALISTS.map(name => (
+              <label key={name} className="flex items-center gap-1.5 cursor-pointer">
+                <Checkbox
+                  checked={assignedTo.includes(name)}
+                  onCheckedChange={(checked) => {
+                    if (checked) {
+                      setAssignedTo(prev => prev.includes(name) ? prev : [...prev, name]);
+                    } else {
+                      setAssignedTo(prev => prev.filter(n => n !== name));
+                    }
+                  }}
+                />
+                <span className="text-xs">{name}</span>
+              </label>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Assignees */}
       <div>
