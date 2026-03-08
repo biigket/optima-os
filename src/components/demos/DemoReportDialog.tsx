@@ -512,6 +512,9 @@ export default function DemoReportDialog({
   onOpenChange,
   onSaved,
 }: DemoReportDialogProps) {
+  const isSubmitted = !!existingReport;
+  const [isEditing, setIsEditing] = useState(false);
+  const readOnly = isSubmitted && !isEditing;
   // Selected devices
   const [selectedDevices, setSelectedDevices] = useState<DeviceKey[]>(() => {
     if (existingReport) return Object.keys(existingReport) as DeviceKey[];
