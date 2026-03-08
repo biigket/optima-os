@@ -79,7 +79,7 @@ export default function EditDemoDialog({ demo, clinicName, open, onOpenChange, o
     if (!oppId || !demoDate) return;
     const { data } = await supabase
       .from('activities')
-      .select('start_time, end_time')
+      .select('start_time, end_time, location, description')
       .eq('opportunity_id', oppId)
       .eq('activity_type', 'DEMO')
       .eq('activity_date', demoDate)
@@ -88,6 +88,9 @@ export default function EditDemoDialog({ demo, clinicName, open, onOpenChange, o
     if (data) {
       setStartTime(data.start_time || '09:00');
       setEndTime(data.end_time || '10:00');
+      // Fallback: use activity location/description if demo record is missing them
+      if (!location && data.location) setLocation(data.location);
+      if (!note && data.description) setNote(data.description);
     }
   }
 
@@ -132,8 +135,8 @@ export default function EditDemoDialog({ demo, clinicName, open, onOpenChange, o
       return;
     }
 
-    // Also update linked DEMO activity if exists
-    if (demo.opportunity_id && demo.demo_date) {
+    // Always sync to linked DEMO activity
+    if (demo.opportunity_id) {
       const descParts: string[] = [];
       if (location) descParts.push(`📍 สถานที่: ${location}`);
       if (selectedProducts.length > 0) descParts.push(`🎯 สินค้า: ${selectedProducts.join(', ')}`);
@@ -142,7 +145,8 @@ export default function EditDemoDialog({ demo, clinicName, open, onOpenChange, o
       if (location) descParts.push(`🗺️ Google Map: https://www.google.com/maps/search/${encodeURIComponent(location)}`);
       if (note) descParts.push(`📝 ${note}`);
 
-      await supabase.from('activities')
+      // Find the linked activity by opportunity + type, with or without date
+      let activityQuery = supabase.from('activities')
         .update({
           activity_date: dateStr,
           start_time: startTime,
@@ -152,8 +156,14 @@ export default function EditDemoDialog({ demo, clinicName, open, onOpenChange, o
           assigned_to: visitedBy.length > 0 ? visitedBy : null,
         })
         .eq('opportunity_id', demo.opportunity_id)
-        .eq('activity_type', 'DEMO')
-        .eq('activity_date', demo.demo_date);
+        .eq('activity_type', 'DEMO');
+
+      // If original date exists, match by it; otherwise match any DEMO activity for this opportunity
+      if (demo.demo_date) {
+        activityQuery = activityQuery.eq('activity_date', demo.demo_date);
+      }
+
+      await activityQuery;
     }
 
     setSaving(false);
