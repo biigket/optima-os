@@ -321,7 +321,13 @@ export default function VisitCheckinPage() {
                       <Building2 size={14} className="text-muted-foreground" />
                       <p className="text-sm font-semibold text-foreground">{plan.accounts?.clinic_name}</p>
                     </div>
-                    <Badge variant="outline" className="text-[10px] mt-1">{plan.visit_type === 'NEW' ? 'ลูกค้าใหม่' : 'ลูกค้าเก่า'}</Badge>
+                    {plan.contact_name && (
+                      <div className="flex items-center gap-1.5 text-xs text-muted-foreground mt-1">
+                        <User size={12} />
+                        <span>{plan.contact_name}</span>
+                        {plan.contact_phone && <span>· {plan.contact_phone}</span>}
+                      </div>
+                    )}
                   </div>
                   <div className="flex gap-1.5 shrink-0">
                     <Button
