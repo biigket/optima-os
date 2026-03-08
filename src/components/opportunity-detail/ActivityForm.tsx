@@ -195,6 +195,16 @@ export default function ActivityForm({
 
   const handleSave = async () => {
     if (!title.trim()) { toast.error('กรุณากรอกชื่อกิจกรรม'); return; }
+    if (selectedType === 'DEMO' && !location.trim()) { toast.error('กรุณากรอกสถานที่สาธิต'); return; }
+
+    // Build enriched description for DEMO with Google Map link
+    let finalDescription = description || '';
+    if (selectedType === 'DEMO' && location.trim()) {
+      const mapUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(location.trim())}`;
+      const locationBlock = `📍 สถานที่: ${location.trim()}\n🗺️ Google Map: ${mapUrl}`;
+      finalDescription = finalDescription ? `${locationBlock}\n\n${finalDescription}` : locationBlock;
+    }
+
     setSaving(true);
     const payload = {
       opportunity_id: opportunityId,
@@ -204,9 +214,9 @@ export default function ActivityForm({
       activity_date: activityDate,
       start_time: startTime || null,
       end_time: endTime || null,
-      priority,
+      priority: selectedType === 'DEMO' ? 'HIGH' : priority,
       location: location || null,
-      description: description || null,
+      description: finalDescription || null,
       notes: notes || null,
       is_done: markAsDone,
       assigned_to: assignedTo.length > 0 ? assignedTo : null,
