@@ -570,8 +570,8 @@ export default function CreateOpportunityForm({ open, onOpenChange, onSave, cust
           )}
 
           {/* STEP 2: Confirm */}
-          {step === 2 && selectedCustomer overflow-x-hidden && (
-            <div className="flex-1 overflow-y-auto px-1 min-h-0">
+          {step === 2 && selectedCustomer && (
+            <div className="flex-1 overflow-y-auto overflow-x-hidden px-1 min-h-0">
               <div className="space-y-3">
                 <div className="p-4 rounded-lg border bg-muted/30 space-y-3">
                   <h3 className="text-sm font-bold text-foreground">สรุปข้อมูลดีล</h3>
