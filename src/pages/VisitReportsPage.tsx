@@ -137,6 +137,13 @@ export default function VisitReportsPage() {
 
     if (error) { toast.error('บันทึกไม่สำเร็จ'); return; }
 
+    // Sync devices_in_use back to account's current_devices
+    if (editingReport.account_id && devicesInUse.trim()) {
+      await supabase.from('accounts').update({
+        current_devices: devicesInUse.trim(),
+      }).eq('id', editingReport.account_id);
+    }
+
     // Update plan status
     await supabase.from('visit_plans')
       .update({ status: 'REPORTED' })
@@ -153,11 +160,12 @@ export default function VisitReportsPage() {
     }
   }
 
-  function openReport(report: VisitReport) {
+  async function openReport(report: VisitReport) {
+    const accountDevices = report.account_id ? await fetchAccountDevices(report.account_id) : '';
     setEditingReport(report);
     setAction(report.action || '');
     setMetWho(report.met_who || '');
-    setDevicesInUse(report.devices_in_use || '');
+    setDevicesInUse(report.devices_in_use || accountDevices);
     setIssues(report.issues || '');
     setNextPlan(report.next_plan || '');
     setCustomerType(report.customer_type || '');
