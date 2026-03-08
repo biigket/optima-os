@@ -99,9 +99,14 @@ export default function DemosPage() {
   const pastCount = demos.filter(d => isDone(d)).length;
 
   function handleCardClick(demo: DemoRow) {
-    const acc = demo.account_id ? accounts[demo.account_id] : null;
-    setEditDemo(demo);
-    setEditOpen(true);
+    if (isDone(demo) && demo.report_submitted) {
+      // For completed demos with report, open report dialog (view/edit mode)
+      setReportDemo(demo);
+      setReportOpen(true);
+    } else {
+      setEditDemo(demo);
+      setEditOpen(true);
+    }
   }
 
   return (
