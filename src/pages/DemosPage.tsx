@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Presentation, Calendar, MapPin, Building2, Plus, Users, FileText, Search, CheckCircle2 } from 'lucide-react';
+import { Presentation, Calendar, MapPin, Building2, Plus, Users, FileText, Search, CheckCircle2, ClipboardList } from 'lucide-react';
 import { format } from 'date-fns';
 import { th } from 'date-fns/locale';
 import { Button } from '@/components/ui/button';
@@ -12,6 +12,7 @@ import { useMockAuth } from '@/hooks/useMockAuth';
 import CreateDemoWizard from '@/components/demos/CreateDemoWizard';
 import EditDemoDialog from '@/components/demos/EditDemoDialog';
 import ConfirmDemoDialog from '@/components/demos/ConfirmDemoDialog';
+import DemoReportDialog from '@/components/demos/DemoReportDialog';
 
 interface DemoRow {
   id: string;
@@ -24,6 +25,8 @@ interface DemoRow {
   visited_by: string[] | null;
   reminded: boolean | null;
   confirmed: boolean | null;
+  report_data: any;
+  report_submitted: boolean | null;
   created_at: string;
 }
 
@@ -53,6 +56,10 @@ export default function DemosPage() {
   const [confirmDemo, setConfirmDemo] = useState<DemoRow | null>(null);
   const [confirmOpen, setConfirmOpen] = useState(false);
 
+  // Report dialog state
+  const [reportDemo, setReportDemo] = useState<DemoRow | null>(null);
+  const [reportOpen, setReportOpen] = useState(false);
+
   const fetchData = async () => {
     setLoading(true);
     const [demosRes, accRes] = await Promise.all([
@@ -78,17 +85,18 @@ export default function DemosPage() {
       const acc = d.account_id ? accounts[d.account_id] : null;
       const matchSearch = !search || acc?.clinic_name.toLowerCase().includes(search.toLowerCase());
       const isConfirmed = !!d.confirmed;
-      const isPast = d.demo_date && d.demo_date < today;
-      if (statusFilter === 'ALL') return matchSearch && !isConfirmed && !isPast; // ขอคิวเดโม
-      if (statusFilter === 'UPCOMING') return matchSearch && isConfirmed && !isPast; // ได้คิวแล้ว
-      if (statusFilter === 'PAST') return matchSearch && isPast; // เสร็จแล้ว
+      const isDone = !!d.report_submitted || (d.demo_date != null && d.demo_date < today);
+      if (statusFilter === 'ALL') return matchSearch && !isConfirmed && !isDone; // ขอคิวเดโม
+      if (statusFilter === 'UPCOMING') return matchSearch && isConfirmed && !isDone; // ได้คิวแล้ว
+      if (statusFilter === 'PAST') return matchSearch && isDone; // เสร็จแล้ว
       return matchSearch;
     });
   }, [demos, accounts, search, statusFilter, today]);
 
-  const pendingCount = demos.filter(d => !d.confirmed && !(d.demo_date && d.demo_date < today)).length;
-  const confirmedCount = demos.filter(d => d.confirmed && !(d.demo_date && d.demo_date < today)).length;
-  const pastCount = demos.filter(d => d.demo_date && d.demo_date < today).length;
+  const isDone = (d: DemoRow) => !!d.report_submitted || (d.demo_date != null && d.demo_date < today);
+  const pendingCount = demos.filter(d => !d.confirmed && !isDone(d)).length;
+  const confirmedCount = demos.filter(d => !!d.confirmed && !isDone(d)).length;
+  const pastCount = demos.filter(d => isDone(d)).length;
 
   function handleCardClick(demo: DemoRow) {
     const acc = demo.account_id ? accounts[demo.account_id] : null;
@@ -239,6 +247,23 @@ export default function DemosPage() {
                     ยืนยันวันเดโม
                   </Button>
                 )}
+
+                {/* Report button - only show for confirmed, not yet reported */}
+                {isConfirmed && !isPast && !demo.report_submitted && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="w-full gap-1.5 text-xs border-blue-200 text-blue-700 hover:bg-blue-50 hover:text-blue-800"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setReportDemo(demo);
+                      setReportOpen(true);
+                    }}
+                  >
+                    <ClipboardList size={14} />
+                    รายงาน DEMO
+                  </Button>
+                )}
               </div>
             );
           })}
@@ -267,6 +292,16 @@ export default function DemosPage() {
         open={confirmOpen}
         onOpenChange={setConfirmOpen}
         onConfirmed={fetchData}
+      />
+
+      <DemoReportDialog
+        demoId={reportDemo?.id || ''}
+        clinicName={reportDemo?.account_id ? (accounts[reportDemo.account_id]?.clinic_name || 'ไม่ระบุ') : 'ไม่ระบุ'}
+        productsDemoed={reportDemo?.products_demo || []}
+        existingReport={reportDemo?.report_data || null}
+        open={reportOpen}
+        onOpenChange={setReportOpen}
+        onSaved={fetchData}
       />
     </div>
   );
