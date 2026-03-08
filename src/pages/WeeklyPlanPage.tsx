@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import FullCalendar from '@fullcalendar/react';
 import timeGridPlugin from '@fullcalendar/timegrid';
+import { Plus } from 'lucide-react';
 import interactionPlugin from '@fullcalendar/interaction';
 import { supabase } from '@/integrations/supabase/client';
 import { format, startOfWeek, endOfWeek } from 'date-fns';
@@ -137,7 +138,9 @@ export default function WeeklyPlanPage() {
     <div className="space-y-4 animate-fade-in">
       <div>
         <h1 className="text-2xl font-bold text-foreground">แผนเยี่ยมรายสัปดาห์</h1>
-        <p className="text-sm text-muted-foreground">คลิกหรือลากบนปฏิทินเพื่อเพิ่มแผนเยี่ยม · กดที่แผนเพื่อดู/แก้ไขรายละเอียด</p>
+        <p className="text-sm text-muted-foreground">
+          {isMobile ? 'กดค้างเพื่อลาก · กดที่แผนเพื่อดู/แก้ไข' : 'คลิกหรือลากบนปฏิทินเพื่อเพิ่มแผนเยี่ยม · กดที่แผนเพื่อดู/แก้ไขรายละเอียด'}
+        </p>
       </div>
 
       <div className="bg-card rounded-lg border p-2 sm:p-4 weekly-plan-calendar">
@@ -158,11 +161,11 @@ export default function WeeklyPlanPage() {
           slotLabelInterval="01:00:00"
           snapDuration="00:15:00"
           allDaySlot={false}
-          selectable={!isMobile}
-          editable={!isMobile}
-          eventDurationEditable={!isMobile}
-          selectMirror={!isMobile}
-          longPressDelay={500}
+          selectable
+          editable
+          eventDurationEditable
+          selectMirror
+          longPressDelay={isMobile ? 500 : 0}
           height="auto"
           contentHeight={650}
           events={events}
@@ -208,6 +211,21 @@ export default function WeeklyPlanPage() {
         plan={selectedPlan}
         onSuccess={() => fetchPlans()}
       />
+
+      {/* Mobile FAB */}
+      {isMobile && (
+        <button
+          onClick={() => {
+            setSelectedDate(new Date());
+            setSelectedStart('09:00');
+            setSelectedEnd('10:00');
+            setDialogOpen(true);
+          }}
+          className="fixed bottom-6 right-6 z-50 h-14 w-14 rounded-full bg-primary text-primary-foreground shadow-lg flex items-center justify-center active:scale-95 transition-transform"
+        >
+          <Plus size={24} />
+        </button>
+      )}
     </div>
   );
 }
