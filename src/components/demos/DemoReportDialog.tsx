@@ -77,26 +77,71 @@ function QuickNoteField({
   quickNoteKey: string;
   placeholder?: string;
 }) {
-  const notes = QUICK_NOTES[quickNoteKey] || [];
+  const [tags, setTags] = useState<string[]>(() => [...(QUICK_NOTES[quickNoteKey] || [])]);
+  const [adding, setAdding] = useState(false);
+  const [newTag, setNewTag] = useState('');
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  const handleAddTag = () => {
+    const trimmed = newTag.trim();
+    if (trimmed && !tags.includes(trimmed)) {
+      setTags(prev => [...prev, trimmed]);
+    }
+    setNewTag('');
+    setAdding(false);
+  };
+
   return (
     <div className="space-y-1.5">
       <Label className="text-xs font-medium">{label}</Label>
-      {notes.length > 0 && (
+      {tags.length > 0 && (
         <div className="flex flex-wrap gap-1">
-          {notes.map(n => (
-            <button
+          {tags.map(n => (
+            <span
               key={n}
-              type="button"
-              className="px-2 py-0.5 text-[10px] rounded-full border bg-muted/50 hover:bg-primary/10 hover:border-primary/30 transition-colors"
-              onClick={() => {
-                const current = value.trim();
-                if (current.includes(n)) return;
-                onChange(current ? `${current}\n${n}` : n);
-              }}
+              className="inline-flex items-center gap-0.5 px-2 py-0.5 text-[10px] rounded-full border bg-muted/50 hover:bg-primary/10 hover:border-primary/30 transition-colors group"
             >
-              + {n}
-            </button>
+              <button
+                type="button"
+                className="hover:text-primary"
+                onClick={() => {
+                  const current = value.trim();
+                  onChange(current ? `${current}, ${n}` : n);
+                }}
+              >
+                + {n}
+              </button>
+              <button
+                type="button"
+                onClick={() => setTags(prev => prev.filter(t => t !== n))}
+                className="ml-0.5 text-destructive/60 hover:text-destructive opacity-0 group-hover:opacity-100 transition-opacity"
+              >
+                <X size={10} />
+              </button>
+            </span>
           ))}
+          {adding ? (
+            <span className="inline-flex items-center gap-1">
+              <input
+                ref={inputRef}
+                autoFocus
+                value={newTag}
+                onChange={e => setNewTag(e.target.value)}
+                onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); handleAddTag(); } if (e.key === 'Escape') setAdding(false); }}
+                onBlur={handleAddTag}
+                className="w-20 px-1.5 py-0.5 text-[10px] rounded-full border bg-background focus:outline-none focus:ring-1 focus:ring-primary"
+                placeholder="พิมพ์..."
+              />
+            </span>
+          ) : (
+            <button
+              type="button"
+              onClick={() => setAdding(true)}
+              className="px-2 py-0.5 text-[10px] rounded-full border border-dashed border-muted-foreground/40 text-muted-foreground hover:border-primary hover:text-primary transition-colors"
+            >
+              <Plus size={10} className="inline -mt-0.5" /> เพิ่ม
+            </button>
+          )}
         </div>
       )}
       <Textarea
