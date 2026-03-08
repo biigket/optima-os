@@ -359,6 +359,7 @@ export default function CreateOpportunityForm({ open, onOpenChange, onSave, cust
           {/* STEP 0: Select Customer */}
           {step === 0 && (
             <div className="space-y-3 flex-1 flex flex-col overflow-x-hidden">
+              <div className="relative px-1">
                 <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground" />
                 <Input
                   placeholder="ค้นหาชื่อ, ที่อยู่, เบอร์โทร..."
