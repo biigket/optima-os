@@ -174,37 +174,23 @@ export default function VisitReportsPage() {
 
       {loading ? (
         <div className="text-center py-8 text-muted-foreground">กำลังโหลด...</div>
-      ) : reports.length === 0 ? (
-        <div className="text-center py-12 text-muted-foreground">
-          <FileText size={40} className="mx-auto mb-2 opacity-40" />
-          <p>ยังไม่มีรายงาน</p>
-        </div>
       ) : (
-        <div className="space-y-3">
-          {reports.map(report => (
-            <div
-              key={report.id}
-              className="rounded-lg border bg-card p-4 space-y-2 hover:shadow-sm transition-shadow cursor-pointer"
-              onClick={() => openReport(report)}
-            >
-              <div className="flex items-start justify-between">
-                <div>
-                  <p className="text-sm font-semibold text-foreground">{report.clinic_name || report.accounts?.clinic_name || '-'}</p>
-                  <div className="flex items-center gap-3 text-xs text-muted-foreground mt-1">
-                    {report.met_who && <span className="flex items-center gap-1"><User size={12} /> {report.met_who}</span>}
-                    {report.check_in_at && (
-                      <span className="flex items-center gap-1">
-                        <Clock size={12} /> {format(new Date(report.check_in_at), 'd MMM HH:mm', { locale: th })}
-                      </span>
-                    )}
-                  </div>
-                </div>
-                <Badge className={statusColor(report.status)}>{statusLabel(report.status)}</Badge>
-              </div>
-              {report.action && <p className="text-sm text-muted-foreground">{report.action}</p>}
-            </div>
-          ))}
-        </div>
+        <Tabs defaultValue="pending">
+          <TabsList className="w-full">
+            <TabsTrigger value="pending" className="flex-1">
+              ยังไม่ได้บันทึก ({reports.filter(r => r.status !== 'REPORTED').length})
+            </TabsTrigger>
+            <TabsTrigger value="reported" className="flex-1">
+              บันทึกแล้ว ({reports.filter(r => r.status === 'REPORTED').length})
+            </TabsTrigger>
+          </TabsList>
+          <TabsContent value="pending">
+            {renderReportList(reports.filter(r => r.status !== 'REPORTED'))}
+          </TabsContent>
+          <TabsContent value="reported">
+            {renderReportList(reports.filter(r => r.status === 'REPORTED'))}
+          </TabsContent>
+        </Tabs>
       )}
 
       {/* Report Form Dialog */}
