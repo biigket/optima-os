@@ -28,6 +28,7 @@ interface VisitReport {
   customer_type: string | null;
   new_contact_name: string | null;
   new_contact_phone: string | null;
+  photo: string | null;
   created_at: string;
   accounts?: { id: string; clinic_name: string } | null;
 }
