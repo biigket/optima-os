@@ -270,6 +270,8 @@ export default function CreateQuotationWizard({ open, onOpenChange, onCreated }:
 
   // Calculations
   const subtotal = productLines.reduce((sum, p) => sum + p.qty * p.unitPrice, 0);
+  const discountFromPercent = Math.round(subtotal * discountPercent / 100);
+  const discount = discountFromPercent + discountAmount;
   const netPrice = subtotal - discount;
   const vat = includeVat ? Math.round(netPrice * 0.07) : 0;
   const grandTotal = netPrice + vat;
