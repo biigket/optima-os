@@ -89,6 +89,7 @@ export default function ActivityForm({
   const [aiLoading, setAiLoading] = useState(false);
   const [aiSuggestion, setAiSuggestion] = useState<AISuggestion | null>(null);
   const [showAiPanel, setShowAiPanel] = useState(false);
+  const [selectedDemoProducts, setSelectedDemoProducts] = useState<string[]>([]);
 
   const isEditing = !!editingActivity;
 
