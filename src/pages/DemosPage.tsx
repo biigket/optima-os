@@ -1,22 +1,15 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Presentation, Calendar, MapPin, Building2, Plus, Users, Clock, FileText, Search, Filter } from 'lucide-react';
+import { Presentation, Calendar, MapPin, Building2, Plus, Users, FileText, Search } from 'lucide-react';
 import { format } from 'date-fns';
 import { th } from 'date-fns/locale';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Calendar as CalendarPicker } from '@/components/ui/calendar';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
-import { toast } from 'sonner';
-import { useMockAuth, MOCK_SALES } from '@/hooks/useMockAuth';
-import { ensureOpportunityForDemo } from '@/lib/demoSync';
+import { useMockAuth } from '@/hooks/useMockAuth';
+import CreateDemoWizard from '@/components/demos/CreateDemoWizard';
 
 interface DemoRow {
   id: string;
@@ -49,14 +42,6 @@ export default function DemosPage() {
   const [createOpen, setCreateOpen] = useState(false);
   const [loading, setLoading] = useState(true);
 
-  // Create form state
-  const [selectedAccountId, setSelectedAccountId] = useState('');
-  const [demoDate, setDemoDate] = useState<Date | undefined>(undefined);
-  const [demoLocation, setDemoLocation] = useState('');
-  const [demoNote, setDemoNote] = useState('');
-  const [allAccounts, setAllAccounts] = useState<AccountInfo[]>([]);
-  const [accountSearch, setAccountSearch] = useState('');
-  const [saving, setSaving] = useState(false);
 
   const fetchData = async () => {
     setLoading(true);
@@ -68,9 +53,9 @@ export default function DemosPage() {
     if (demosRes.data) setDemos(demosRes.data as unknown as DemoRow[]);
     if (accRes.data) {
       const map: Record<string, AccountInfo> = {};
-      (accRes.data as AccountInfo[]).forEach(a => { map[a.id] = a; });
+      (accRes.data as unknown as AccountInfo[]).forEach(a => { map[a.id] = a; });
       setAccounts(map);
-      setAllAccounts(accRes.data as AccountInfo[]);
+      
     }
     setLoading(false);
   };
@@ -92,50 +77,6 @@ export default function DemosPage() {
   const upcomingCount = demos.filter(d => d.demo_date && d.demo_date >= today).length;
   const pastCount = demos.filter(d => d.demo_date && d.demo_date < today).length;
 
-  const filteredAccounts = allAccounts.filter(a =>
-    a.clinic_name.toLowerCase().includes(accountSearch.toLowerCase())
-  );
-
-  const handleCreateDemo = async () => {
-    if (!selectedAccountId || !demoDate) {
-      toast.error('กรุณาเลือกลูกค้าและวันที่');
-      return;
-    }
-
-    setSaving(true);
-    const acc = accounts[selectedAccountId];
-
-    // Ensure opportunity exists at DEMO_SCHEDULED
-    const oppId = await ensureOpportunityForDemo({
-      accountId: selectedAccountId,
-      assignedSale: acc?.assigned_sale || currentUser?.name,
-    });
-
-    // Create demo record
-    const { error } = await supabase.from('demos').insert({
-      account_id: selectedAccountId,
-      opportunity_id: oppId,
-      demo_date: format(demoDate, 'yyyy-MM-dd'),
-      location: demoLocation || null,
-      demo_note: demoNote || null,
-      visited_by: currentUser ? [currentUser.name] : null,
-    });
-
-    setSaving(false);
-    if (error) {
-      toast.error('สร้างใบงานไม่สำเร็จ');
-      return;
-    }
-
-    toast.success('สร้างใบงานสาธิต + เลื่อน Pipeline เป็น Demo Schedule แล้ว');
-    setCreateOpen(false);
-    setSelectedAccountId('');
-    setDemoDate(undefined);
-    setDemoLocation('');
-    setDemoNote('');
-    setAccountSearch('');
-    fetchData();
-  };
 
   return (
     <div className="space-y-4 animate-fade-in">
@@ -252,96 +193,11 @@ export default function DemosPage() {
         </div>
       )}
 
-      {/* Create Demo Dialog */}
-      <Dialog open={createOpen} onOpenChange={setCreateOpen}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle className="text-base flex items-center gap-2">
-              <Presentation size={18} /> สร้างใบงานสาธิตสินค้า
-            </DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4">
-            {/* Account Search & Select */}
-            <div>
-              <Label className="text-xs">คลินิก / ลูกค้า</Label>
-              <Input
-                placeholder="ค้นหาลูกค้า..."
-                value={accountSearch}
-                onChange={e => setAccountSearch(e.target.value)}
-                className="h-8 text-xs mt-1"
-              />
-              {accountSearch && (
-                <div className="mt-1 max-h-32 overflow-y-auto border rounded-md">
-                  {filteredAccounts.slice(0, 8).map(a => (
-                    <button
-                      key={a.id}
-                      onClick={() => {
-                        setSelectedAccountId(a.id);
-                        setAccountSearch(a.clinic_name);
-                      }}
-                      className={cn(
-                        "w-full text-left px-3 py-1.5 text-xs hover:bg-muted transition-colors flex items-center gap-2",
-                        selectedAccountId === a.id && "bg-primary/10 text-primary"
-                      )}
-                    >
-                      <Building2 size={12} />
-                      {a.clinic_name}
-                    </button>
-                  ))}
-                </div>
-              )}
-              {selectedAccountId && (
-                <p className="text-[11px] text-primary mt-1">✓ เลือก: {accounts[selectedAccountId]?.clinic_name || allAccounts.find(a => a.id === selectedAccountId)?.clinic_name}</p>
-              )}
-            </div>
-
-            {/* Date */}
-            <div>
-              <Label className="text-xs">วันที่สาธิต</Label>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button variant="outline" className={cn("w-full h-8 text-xs justify-start mt-1", !demoDate && "text-muted-foreground")}>
-                    <Calendar className="mr-1.5 h-3 w-3" />
-                    {demoDate ? format(demoDate, 'd MMM yyyy', { locale: th }) : 'เลือกวันที่'}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
-                  <CalendarPicker mode="single" selected={demoDate} onSelect={setDemoDate} initialFocus className="p-3 pointer-events-auto" />
-                </PopoverContent>
-              </Popover>
-            </div>
-
-            {/* Location */}
-            <div>
-              <Label className="text-xs">สถานที่</Label>
-              <Input
-                placeholder="เช่น คลินิก, โรงพยาบาล..."
-                value={demoLocation}
-                onChange={e => setDemoLocation(e.target.value)}
-                className="h-8 text-xs mt-1"
-              />
-            </div>
-
-            {/* Note */}
-            <div>
-              <Label className="text-xs">หมายเหตุ</Label>
-              <Textarea
-                placeholder="รายละเอียดเพิ่มเติม..."
-                value={demoNote}
-                onChange={e => setDemoNote(e.target.value)}
-                className="text-xs min-h-[60px] mt-1"
-              />
-            </div>
-
-            <div className="flex justify-end gap-2">
-              <Button variant="outline" size="sm" onClick={() => setCreateOpen(false)}>ยกเลิก</Button>
-              <Button size="sm" onClick={handleCreateDemo} disabled={saving}>
-                {saving ? 'กำลังสร้าง...' : 'สร้างใบงาน'}
-              </Button>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
+      <CreateDemoWizard
+        open={createOpen}
+        onOpenChange={setCreateOpen}
+        onSuccess={fetchData}
+      />
     </div>
   );
 }
