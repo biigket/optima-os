@@ -165,6 +165,44 @@ export default function VisitReportsPage() {
     return s || '-';
   };
 
+  function renderReportList(list: VisitReport[]) {
+    if (list.length === 0) {
+      return (
+        <div className="text-center py-12 text-muted-foreground">
+          <FileText size={40} className="mx-auto mb-2 opacity-40" />
+          <p>ไม่มีรายงาน</p>
+        </div>
+      );
+    }
+    return (
+      <div className="space-y-3">
+        {list.map(report => (
+          <div
+            key={report.id}
+            className="rounded-lg border bg-card p-4 space-y-2 hover:shadow-sm transition-shadow cursor-pointer"
+            onClick={() => openReport(report)}
+          >
+            <div className="flex items-start justify-between">
+              <div>
+                <p className="text-sm font-semibold text-foreground">{report.clinic_name || report.accounts?.clinic_name || '-'}</p>
+                <div className="flex items-center gap-3 text-xs text-muted-foreground mt-1">
+                  {report.met_who && <span className="flex items-center gap-1"><User size={12} /> {report.met_who}</span>}
+                  {report.check_in_at && (
+                    <span className="flex items-center gap-1">
+                      <Clock size={12} /> {format(new Date(report.check_in_at), 'd MMM HH:mm', { locale: th })}
+                    </span>
+                  )}
+                </div>
+              </div>
+              <Badge className={statusColor(report.status)}>{statusLabel(report.status)}</Badge>
+            </div>
+            {report.action && <p className="text-sm text-muted-foreground">{report.action}</p>}
+          </div>
+        ))}
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6 animate-fade-in">
       <div>
