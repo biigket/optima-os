@@ -170,18 +170,19 @@ export default function WeeklyPlanPage() {
           datesSet={handleDatesSet}
           eventContent={(arg) => {
             const plan = arg.event.extendedProps.plan as VisitPlan;
+            const opacity = arg.event.extendedProps.opacity as number;
             const statusIcon = plan?.status === 'PLANNED' ? '📋' : plan?.status === 'CHECKED_IN' ? '✅' : '📝';
             return (
-              <div className="p-1 text-xs leading-tight overflow-hidden h-full">
+              <div className="p-1 text-xs leading-tight overflow-hidden h-full" style={{ opacity }}>
                 <div className="font-semibold truncate">{arg.event.title}</div>
                 {plan?.objective && (
-                  <div className="opacity-80 text-[10px] truncate">{statusIcon} {plan.objective}</div>
+                  <div className="text-[10px] truncate font-medium">{statusIcon} {plan.objective}</div>
                 )}
                 {plan?.products_presented && (
-                  <div className="opacity-60 text-[10px] truncate mt-0.5">🔧 {plan.products_presented}</div>
+                  <div className="opacity-70 text-[10px] truncate mt-0.5">🔧 {plan.products_presented}</div>
                 )}
                 {plan?.notes && (
-                  <div className="opacity-50 text-[10px] truncate mt-0.5">📝 {plan.notes}</div>
+                  <div className="opacity-60 text-[10px] truncate mt-0.5">📝 {plan.notes}</div>
                 )}
               </div>
             );
