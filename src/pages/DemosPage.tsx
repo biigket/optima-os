@@ -95,7 +95,7 @@ export default function DemosPage() {
           <div className="flex items-center gap-3 text-sm text-muted-foreground">
             <span>{demos.length} รายการ</span>
             <span className="text-muted-foreground/40">·</span>
-            <span className="text-emerald-600 font-medium">{upcomingCount} กำลังจะมา</span>
+            <span className="text-emerald-600 font-medium">{upcomingCount} ขอคิวเดโม</span>
             <span className="text-muted-foreground/40">·</span>
             <span>{pastCount} เสร็จแล้ว</span>
           </div>
@@ -158,7 +158,7 @@ export default function DemosPage() {
                     <div>
                       <p className="text-sm font-semibold text-foreground">{acc?.clinic_name || 'ไม่ระบุ'}</p>
                       <Badge variant={isUpcoming ? 'default' : 'secondary'} className="text-[10px] mt-0.5">
-                        {isUpcoming ? 'กำลังจะมา' : 'เสร็จแล้ว'}
+                        {isUpcoming ? 'ขอคิวเดโม' : 'เสร็จแล้ว'}
                       </Badge>
                     </div>
                   </div>

@@ -25,7 +25,7 @@ export default function Dashboard() {
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <KpiCard label="ลีดใหม่" value={newLeads} icon={Users} variant="accent" />
         <KpiCard label="โอกาสขายที่เปิดอยู่" value={activeOpps} icon={Target} variant="default" />
-        <KpiCard label="สาธิตที่กำลังจะมาถึง" value={upcomingDemos} icon={Presentation} variant="warning" />
+        <KpiCard label="ขอคิวเดโม" value={upcomingDemos} icon={Presentation} variant="warning" />
         <KpiCard label="ใบแจ้งซ่อมเปิดอยู่" value={openTickets} icon={Wrench} variant="destructive" />
       </div>
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
