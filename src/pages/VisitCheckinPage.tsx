@@ -204,6 +204,30 @@ export default function VisitCheckinPage() {
     navigate(`/visit-reports?plan=${plan.id}&account=${plan.account_id}`);
   }
 
+  function openRescheduleDialog(plan: VisitPlan) {
+    setReschedulePlan(plan);
+    setRescheduleDate(format(new Date(new Date().getTime() + 86400000), 'yyyy-MM-dd'));
+    setRescheduleStart('09:00');
+    setRescheduleEnd('10:00');
+    setRescheduleReason('');
+  }
+
+  async function handleReschedule() {
+    if (!reschedulePlan || !rescheduleDate || !rescheduleReason.trim()) return;
+    setRescheduleSubmitting(true);
+    const { error } = await supabase.from('visit_plans').update({
+      plan_date: rescheduleDate,
+      start_time: rescheduleStart,
+      end_time: rescheduleEnd,
+      notes: `[เปลี่ยนแผน] ${rescheduleReason}${reschedulePlan.notes ? `\n${reschedulePlan.notes}` : ''}`,
+    }).eq('id', reschedulePlan.id);
+    setRescheduleSubmitting(false);
+    if (error) { toast.error('เปลี่ยนแผนไม่สำเร็จ'); return; }
+    toast.success('เปลี่ยนแผนเยี่ยมแล้ว');
+    setReschedulePlan(null);
+    fetchPlans();
+  }
+
   const planned = plans.filter(p => p.status === 'PLANNED');
   const checkedIn = plans.filter(p => p.status === 'CHECKED_IN');
   const reported = plans.filter(p => p.status === 'REPORTED');
