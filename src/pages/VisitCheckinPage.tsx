@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { MapPin, Clock, Building2, CheckCircle2, ArrowRight, Camera, Navigation, CalendarClock, SwitchCamera } from 'lucide-react';
+import { MapPin, Clock, Building2, CheckCircle2, ArrowRight, Camera, Navigation, CalendarClock, SwitchCamera, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
@@ -28,6 +28,8 @@ interface VisitPlan {
   start_time?: string | null;
   end_time?: string | null;
   accounts?: { id: string; clinic_name: string } | null;
+  contact_name?: string | null;
+  contact_phone?: string | null;
 }
 
 export default function VisitCheckinPage() {
@@ -65,7 +67,42 @@ export default function VisitCheckinPage() {
       .select('*, accounts(id, clinic_name)')
       .eq('plan_date', today)
       .order('created_at');
-    if (data) setPlans(data as unknown as VisitPlan[]);
+    
+    if (data) {
+      // Fetch primary contacts for each account
+      const accountIds = [...new Set((data as any[]).map(d => d.account_id))];
+      const { data: contacts } = await supabase
+        .from('contacts')
+        .select('account_id, name, phone')
+        .in('account_id', accountIds)
+        .eq('is_decision_maker', true);
+      
+      const contactMap = new Map<string, { name: string; phone: string | null }>();
+      contacts?.forEach(c => {
+        if (!contactMap.has(c.account_id)) {
+          contactMap.set(c.account_id, { name: c.name, phone: c.phone });
+        }
+      });
+
+      // If no decision maker, get any first contact
+      if (accountIds.length > 0) {
+        const { data: allContacts } = await supabase
+          .from('contacts')
+          .select('account_id, name, phone')
+          .in('account_id', accountIds);
+        allContacts?.forEach(c => {
+          if (!contactMap.has(c.account_id)) {
+            contactMap.set(c.account_id, { name: c.name, phone: c.phone });
+          }
+        });
+      }
+
+      setPlans((data as any[]).map(d => ({
+        ...d,
+        contact_name: contactMap.get(d.account_id)?.name || null,
+        contact_phone: contactMap.get(d.account_id)?.phone || null,
+      })) as VisitPlan[]);
+    }
     setLoading(false);
   }
 
@@ -284,7 +321,13 @@ export default function VisitCheckinPage() {
                       <Building2 size={14} className="text-muted-foreground" />
                       <p className="text-sm font-semibold text-foreground">{plan.accounts?.clinic_name}</p>
                     </div>
-                    <Badge variant="outline" className="text-[10px] mt-1">{plan.visit_type === 'NEW' ? 'ลูกค้าใหม่' : 'ลูกค้าเก่า'}</Badge>
+                    {plan.contact_name && (
+                      <div className="flex items-center gap-1.5 text-xs text-muted-foreground mt-1">
+                        <User size={12} />
+                        <span>{plan.contact_name}</span>
+                        {plan.contact_phone && <span>· {plan.contact_phone}</span>}
+                      </div>
+                    )}
                   </div>
                   <div className="flex gap-1.5 shrink-0">
                     <Button
