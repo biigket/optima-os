@@ -472,7 +472,7 @@ export default function CreateOpportunityForm({ open, onOpenChange, onSave, cust
                     })}
                   </div>
                 )}
-                <div className="border rounded-md max-h-[120px] overflow-y-auto p-2 space-y-1">
+                <div className="border rounded-md p-2 space-y-1">
                   {products.length === 0 && <p className="text-xs text-muted-foreground py-2 text-center">ไม่พบสินค้า</p>}
                   {products.map(p => (
                     <label key={p.id} className="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-muted/50 cursor-pointer">
