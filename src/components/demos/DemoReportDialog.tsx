@@ -78,6 +78,7 @@ function QuickNoteField({
   onChange,
   quickNoteKey,
   placeholder,
+  withSubCategories,
 }: {
   label: string;
   value: string;
