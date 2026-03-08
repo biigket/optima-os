@@ -34,6 +34,7 @@ const ACTIVITY_TYPES: { type: ActivityType; label: string; icon: React.ElementTy
 ];
 
 const PRODUCT_SPECIALISTS = ['Not', 'Ohm', 'Por'];
+const DEMO_PRODUCTS = ['Doublo', 'Trica3D', 'Quattro', 'PicoHi'];
 
 interface QuickScheduleDefaults {
   start_time: string;
@@ -88,6 +89,7 @@ export default function ActivityForm({
   const [aiLoading, setAiLoading] = useState(false);
   const [aiSuggestion, setAiSuggestion] = useState<AISuggestion | null>(null);
   const [showAiPanel, setShowAiPanel] = useState(false);
+  const [selectedDemoProducts, setSelectedDemoProducts] = useState<string[]>([]);
 
   const isEditing = !!editingActivity;
 
@@ -147,6 +149,7 @@ export default function ActivityForm({
     setAiSuggestion(null);
     setAiPrompt('');
     setShowAiPanel(false);
+    setSelectedDemoProducts([]);
   };
 
   const handleAiSuggest = async () => {
@@ -202,7 +205,8 @@ export default function ActivityForm({
     if (selectedType === 'DEMO' && location.trim()) {
       const mapUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(location.trim())}`;
       const locationBlock = `📍 สถานที่: ${location.trim()}\n🗺️ Google Map: ${mapUrl}`;
-      finalDescription = finalDescription ? `${locationBlock}\n\n${finalDescription}` : locationBlock;
+      const productsBlock = selectedDemoProducts.length > 0 ? `\n🎯 สินค้าที่เดโม: ${selectedDemoProducts.join(', ')}` : '';
+      finalDescription = finalDescription ? `${locationBlock}${productsBlock}\n\n${finalDescription}` : `${locationBlock}${productsBlock}`;
     }
 
     setSaving(true);
@@ -250,6 +254,7 @@ export default function ActivityForm({
           location: location || undefined,
           visitedBy: assignedTo.length > 0 ? assignedTo : undefined,
           demoNote: description || undefined,
+          productsDemo: selectedDemoProducts.length > 0 ? selectedDemoProducts : undefined,
         });
         toast.success('สร้างกิจกรรม + ใบงาน Demo แล้ว');
       } else {
@@ -483,9 +488,43 @@ export default function ActivityForm({
                 <span className="text-xs">{name}</span>
               </label>
             ))}
-          </div>
         </div>
-      )}
+
+        {/* Demo Products */}
+        <div>
+          <label className="text-[10px] text-muted-foreground">สินค้าที่จะเดโม</label>
+          <div className="flex flex-wrap gap-2 mt-1">
+            {DEMO_PRODUCTS.map(product => (
+              <label key={product} className="flex items-center gap-1.5 cursor-pointer">
+                <Checkbox
+                  checked={selectedDemoProducts.includes(product)}
+                  onCheckedChange={(checked) => {
+                    if (checked) {
+                      setSelectedDemoProducts(prev => [...prev, product]);
+                    } else {
+                      setSelectedDemoProducts(prev => prev.filter(p => p !== product));
+                    }
+                  }}
+                />
+                <span className="text-xs">{product}</span>
+              </label>
+            ))}
+          </div>
+          {selectedDemoProducts.length > 0 && (
+            <div className="flex flex-wrap gap-1 mt-1.5">
+              {selectedDemoProducts.map(p => (
+                <span key={p} className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-orange-100 text-orange-700 text-[11px] font-medium">
+                  {p}
+                  <button onClick={() => setSelectedDemoProducts(prev => prev.filter(x => x !== p))} className="hover:text-destructive">
+                    <X size={10} />
+                  </button>
+                </span>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+    )}
 
       {/* Assignees */}
       <div>
