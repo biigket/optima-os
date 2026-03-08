@@ -33,6 +33,8 @@ const ACTIVITY_TYPES: { type: ActivityType; label: string; icon: React.ElementTy
   { type: 'DEMO', label: 'Demo', icon: Presentation, color: 'text-orange-600 bg-orange-100', defaultTitle: 'นัดเดโม' },
 ];
 
+const PRODUCT_SPECIALISTS = ['Not', 'Ohm', 'Por'];
+
 interface QuickScheduleDefaults {
   start_time: string;
   end_time: string;
