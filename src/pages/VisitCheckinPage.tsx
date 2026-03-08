@@ -251,7 +251,7 @@ export default function VisitCheckinPage() {
       account_id: checkinPlan.account_id,
       clinic_name: checkinPlan.accounts?.clinic_name || '',
       check_in_at: new Date().toISOString(),
-      status: 'CHECKED_IN',
+      status: 'VISIT_FORM',
       photo: photoUrl,
       location: locationStr,
     }).select('id').maybeSingle();
