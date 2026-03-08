@@ -269,19 +269,22 @@ export default function EditDemoDialog({ demo, clinicName, open, onOpenChange, o
 
           {/* Location */}
           <div className="space-y-1.5">
-            <Label className="text-xs">สถานที่ *</Label>
-            <Input value={location} onChange={e => setLocation(e.target.value)} placeholder="สถานที่สาธิต" />
-            {location.trim() && (
-              <a
-                href={`https://www.google.com/maps/search/${encodeURIComponent(location.trim())}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-1 text-xs text-primary hover:underline"
-              >
-                <MapPin size={12} />
-                เปิด Google Map
-              </a>
-            )}
+            <Label className="text-xs flex items-center gap-1">
+              <MapPin size={12} className="text-muted-foreground" />
+              Location <span className="text-destructive">*</span>
+            </Label>
+            <Input value={location} onChange={e => setLocation(e.target.value)} placeholder="เช่น คลินิก ABC, กรุงเทพ..." />
+          </div>
+
+          {/* Description */}
+          <div className="space-y-1.5">
+            <Label className="text-xs">Description</Label>
+            <Textarea
+              value={note}
+              onChange={e => setNote(e.target.value)}
+              placeholder="ใส่ลิงก์ Google Map หรือรายละเอียดเพิ่มเติม..."
+              className="min-h-[60px] text-xs"
+            />
           </div>
 
           {/* Demo Products */}
