@@ -487,9 +487,43 @@ export default function ActivityForm({
                 <span className="text-xs">{name}</span>
               </label>
             ))}
-          </div>
         </div>
-      )}
+
+        {/* Demo Products */}
+        <div>
+          <label className="text-[10px] text-muted-foreground">สินค้าที่จะเดโม</label>
+          <div className="flex flex-wrap gap-2 mt-1">
+            {DEMO_PRODUCTS.map(product => (
+              <label key={product} className="flex items-center gap-1.5 cursor-pointer">
+                <Checkbox
+                  checked={selectedDemoProducts.includes(product)}
+                  onCheckedChange={(checked) => {
+                    if (checked) {
+                      setSelectedDemoProducts(prev => [...prev, product]);
+                    } else {
+                      setSelectedDemoProducts(prev => prev.filter(p => p !== product));
+                    }
+                  }}
+                />
+                <span className="text-xs">{product}</span>
+              </label>
+            ))}
+          </div>
+          {selectedDemoProducts.length > 0 && (
+            <div className="flex flex-wrap gap-1 mt-1.5">
+              {selectedDemoProducts.map(p => (
+                <span key={p} className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-orange-100 text-orange-700 text-[11px] font-medium">
+                  {p}
+                  <button onClick={() => setSelectedDemoProducts(prev => prev.filter(x => x !== p))} className="hover:text-destructive">
+                    <X size={10} />
+                  </button>
+                </span>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+    )}
 
       {/* Assignees */}
       <div>
