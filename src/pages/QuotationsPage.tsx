@@ -116,7 +116,7 @@ export default function QuotationsPage() {
         </Table>
       </div>
 
-      <CreateQuotationDialog open={showCreate} onOpenChange={setShowCreate} onCreated={refetch} />
+      <CreateQuotationWizard open={showCreate} onOpenChange={setShowCreate} onCreated={refetch} />
     </div>
   );
 }
