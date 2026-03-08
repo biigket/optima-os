@@ -542,7 +542,11 @@ export default function CreateDemoWizard({ open, onOpenChange, onSuccess }: Crea
 
                   <div className="flex items-center gap-2">
                     <Calendar size={14} className="text-muted-foreground shrink-0" />
-                    <span className="font-medium">{demoDate ? format(demoDate, 'd MMMM yyyy', { locale: th }) : '-'}</span>
+                    <span className="font-medium">
+                      {demoDate ? format(demoDate, 'd MMMM yyyy', { locale: th }) : '-'}
+                      {' '}
+                      <span className="text-muted-foreground font-normal">{startTime} - {endTime}</span>
+                    </span>
                   </div>
                   {demoLocation && (
                     <div className="flex items-center gap-2">
