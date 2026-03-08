@@ -5,6 +5,7 @@ import interactionPlugin from '@fullcalendar/interaction';
 import { supabase } from '@/integrations/supabase/client';
 import { format, startOfWeek, endOfWeek } from 'date-fns';
 import { toast } from 'sonner';
+import { useIsMobile } from '@/hooks/use-mobile';
 import AddVisitPlanDialog from '@/components/weekly-plan/AddVisitPlanDialog';
 import EditVisitPlanDialog from '@/components/weekly-plan/EditVisitPlanDialog';
 
@@ -23,6 +24,7 @@ interface VisitPlan {
 }
 
 export default function WeeklyPlanPage() {
+  const isMobile = useIsMobile();
   const [plans, setPlans] = useState<VisitPlan[]>([]);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [selectedDate, setSelectedDate] = useState(new Date());
@@ -156,10 +158,11 @@ export default function WeeklyPlanPage() {
           slotLabelInterval="01:00:00"
           snapDuration="00:15:00"
           allDaySlot={false}
-          selectable
-          editable
-          eventDurationEditable
-          selectMirror
+          selectable={!isMobile}
+          editable={!isMobile}
+          eventDurationEditable={!isMobile}
+          selectMirror={!isMobile}
+          longPressDelay={500}
           height="auto"
           contentHeight={650}
           events={events}
