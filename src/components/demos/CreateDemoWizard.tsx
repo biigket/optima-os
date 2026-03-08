@@ -460,7 +460,29 @@ export default function CreateDemoWizard({ open, onOpenChange, onSuccess }: Crea
                 </Popover>
               </div>
 
-              {/* Location */}
+              {/* Start / End Time */}
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1.5">
+                  <Label className="text-xs">เวลาเริ่ม</Label>
+                  <Select value={startTime} onValueChange={v => { setStartTime(v); if (v >= endTime) { const idx = TIME_OPTIONS.indexOf(v); if (idx < TIME_OPTIONS.length - 1) setEndTime(TIME_OPTIONS[idx + 1]); } }}>
+                    <SelectTrigger className="h-9 text-xs"><Clock size={12} className="mr-1.5 text-muted-foreground" /><SelectValue /></SelectTrigger>
+                    <SelectContent className="max-h-48">
+                      {TIME_OPTIONS.map(t => <SelectItem key={t} value={t} className="text-xs">{t}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="text-xs">เวลาสิ้นสุด</Label>
+                  <Select value={endTime} onValueChange={setEndTime}>
+                    <SelectTrigger className="h-9 text-xs"><Clock size={12} className="mr-1.5 text-muted-foreground" /><SelectValue /></SelectTrigger>
+                    <SelectContent className="max-h-48">
+                      {TIME_OPTIONS.filter(t => t > startTime).map(t => <SelectItem key={t} value={t} className="text-xs">{t}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+
               <div className="space-y-1.5">
                 <Label className="text-xs">สถานที่ <span className="text-destructive">*</span></Label>
                 <Input
