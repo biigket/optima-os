@@ -77,13 +77,17 @@ export default function DemosPage() {
     return demos.filter(d => {
       const acc = d.account_id ? accounts[d.account_id] : null;
       const matchSearch = !search || acc?.clinic_name.toLowerCase().includes(search.toLowerCase());
-      if (statusFilter === 'UPCOMING') return matchSearch && d.demo_date && d.demo_date >= today;
-      if (statusFilter === 'PAST') return matchSearch && d.demo_date && d.demo_date < today;
+      const isConfirmed = !!d.confirmed;
+      const isPast = d.demo_date && d.demo_date < today;
+      if (statusFilter === 'ALL') return matchSearch && !isConfirmed && !isPast; // ขอคิวเดโม
+      if (statusFilter === 'UPCOMING') return matchSearch && isConfirmed && !isPast; // ได้คิวแล้ว
+      if (statusFilter === 'PAST') return matchSearch && isPast; // เสร็จแล้ว
       return matchSearch;
     });
   }, [demos, accounts, search, statusFilter, today]);
 
-  const upcomingCount = demos.filter(d => d.demo_date && d.demo_date >= today).length;
+  const pendingCount = demos.filter(d => !d.confirmed && !(d.demo_date && d.demo_date < today)).length;
+  const confirmedCount = demos.filter(d => d.confirmed && !(d.demo_date && d.demo_date < today)).length;
   const pastCount = demos.filter(d => d.demo_date && d.demo_date < today).length;
 
   function handleCardClick(demo: DemoRow) {
