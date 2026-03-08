@@ -40,7 +40,31 @@ interface FocusPanelProps {
 export default function FocusPanel({ activities, onMarkDone, onEdit, onDelete, onActivityUpdated, clinicName }: FocusPanelProps) {
   const [expandAll, setExpandAll] = useState(true);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [demoConfirmed, setDemoConfirmed] = useState<Record<string, boolean>>({});
   const pending = activities.filter(a => !a.is_done).sort((a, b) => a.activity_date.localeCompare(b.activity_date));
+
+  // Fetch confirmed status for DEMO activities
+  useEffect(() => {
+    const demoActivities = pending.filter(a => a.activity_type === 'DEMO');
+    if (demoActivities.length === 0) return;
+
+    const fetchConfirmed = async () => {
+      const oppIds = [...new Set(demoActivities.map(a => a.opportunity_id))];
+      const { data } = await supabase
+        .from('demos')
+        .select('opportunity_id, confirmed')
+        .in('opportunity_id', oppIds);
+      if (data) {
+        const map: Record<string, boolean> = {};
+        // Map by opportunity_id — use the first demo found
+        data.forEach((d: any) => {
+          if (d.opportunity_id) map[d.opportunity_id] = !!d.confirmed;
+        });
+        setDemoConfirmed(map);
+      }
+    };
+    fetchConfirmed();
+  }, [activities]);
 
   if (pending.length === 0) return null;
 
