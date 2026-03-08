@@ -113,7 +113,10 @@ export default function CustomerCenterPanel({ accountId, opportunities }: Props)
                 )}
               </TabsTrigger>
               <TabsTrigger value="reports" className="text-xs gap-1.5 rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none px-3 py-2.5">
-                <FileText size={13} /> รายงาน
+                <FileText size={13} /> บันทึกการเยี่ยม
+                {visitReports.length > 0 && (
+                  <span className="ml-1 text-[10px] bg-primary/10 text-primary rounded-full px-1.5 py-0.5 font-semibold">{visitReports.length}</span>
+                )}
               </TabsTrigger>
               <TabsTrigger value="tasks" className="text-xs gap-1.5 rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none px-3 py-2.5">
                 <CheckSquare size={13} /> งาน
