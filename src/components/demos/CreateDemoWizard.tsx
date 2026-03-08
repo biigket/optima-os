@@ -964,16 +964,6 @@ export default function CreateDemoWizard({ open, onOpenChange, onSuccess }: Crea
                 </div>
               </div>
 
-              {/* Note */}
-              <div className="space-y-1.5">
-                <Label className="text-xs">หมายเหตุ</Label>
-                <Textarea
-                  placeholder="รายละเอียดเพิ่มเติม..."
-                  value={demoNote}
-                  onChange={e => setDemoNote(e.target.value)}
-                  className="min-h-[60px]"
-                />
-              </div>
             </div>
           )}
 
