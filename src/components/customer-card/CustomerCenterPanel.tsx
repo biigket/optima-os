@@ -7,15 +7,34 @@ import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import StatusBadge from '@/components/ui/StatusBadge';
 import {
   LayoutDashboard, Clock, Handshake, MapPin, FileText, CheckSquare,
-  Eye, Phone as PhoneIcon, Presentation, Users, FileCheck, Wrench, GraduationCap, MessageSquare
+  Eye, Phone as PhoneIcon, Presentation, Users, FileCheck, Wrench, GraduationCap, MessageSquare, Camera
 } from 'lucide-react';
 import {
-  getTimelineForAccount, getVisitsForAccount, getReportsForAccount,
+  getTimelineForAccount, getVisitsForAccount,
   getLifetimeRevenue, getDevicesForAccount
 } from '@/data/customerCardMockData';
 import { mockWorkItems, type WorkItem } from '@/data/mockData';
 import { supabase } from '@/integrations/supabase/client';
 import type { OpportunityNote } from '@/hooks/useOpportunityNotes';
+import { format } from 'date-fns';
+import { th } from 'date-fns/locale';
+
+interface VisitReportRow {
+  id: string;
+  account_id: string | null;
+  clinic_name: string | null;
+  check_in_at: string | null;
+  check_out_at: string | null;
+  status: string | null;
+  action: string | null;
+  met_who: string | null;
+  devices_in_use: string | null;
+  issues: string | null;
+  next_plan: string | null;
+  customer_type: string | null;
+  photo: string | null;
+  created_at: string;
+}
 
 interface Opportunity {
   id: string;
@@ -52,14 +71,18 @@ function formatCurrency(val?: number) {
 export default function CustomerCenterPanel({ accountId, opportunities }: Props) {
   const timeline = getTimelineForAccount(accountId);
   const visits = getVisitsForAccount(accountId);
-  const reports = getReportsForAccount(accountId);
   const devices = getDevicesForAccount(accountId);
   const revenue = getLifetimeRevenue(accountId);
   const tasks = mockWorkItems.filter((w: WorkItem) => w.linkedAccountId === accountId);
   const [internalNotes, setInternalNotes] = useState<OpportunityNote[]>([]);
+  const [visitReports, setVisitReports] = useState<VisitReportRow[]>([]);
+
   useEffect(() => {
     supabase.from('opportunity_notes').select('*').eq('account_id', accountId).order('created_at', { ascending: false })
       .then(({ data }) => { if (data) setInternalNotes(data as unknown as OpportunityNote[]); });
+
+    supabase.from('visit_reports').select('*').eq('account_id', accountId).order('created_at', { ascending: false })
+      .then(({ data }) => { if (data) setVisitReports(data as unknown as VisitReportRow[]); });
   }, [accountId]);
 
   const lastVisit = visits.length > 0 ? visits[0].date : '-';
