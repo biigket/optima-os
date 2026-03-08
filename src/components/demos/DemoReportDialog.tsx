@@ -339,6 +339,7 @@ function PatientCard({
   onUpdate,
   onRemove,
   canRemove,
+  readOnly,
 }: {
   patient: PatientEntry;
   index: number;
@@ -347,6 +348,7 @@ function PatientCard({
   onUpdate: (p: PatientEntry) => void;
   onRemove: () => void;
   canRemove: boolean;
+  readOnly?: boolean;
 }) {
   const [open, setOpen] = useState(index === 0);
 
