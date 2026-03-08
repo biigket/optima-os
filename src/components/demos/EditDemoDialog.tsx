@@ -40,6 +40,7 @@ interface DemoRow {
   demo_note: string | null;
   visited_by: string[] | null;
   reminded: boolean | null;
+  confirmed: boolean | null;
   created_at: string;
 }
 
