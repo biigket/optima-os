@@ -85,17 +85,22 @@ export default function VisitCheckinPage() {
     setLocation(null);
   }
 
-  async function startCamera() {
+  async function startCamera(mode: 'environment' | 'user' = facingMode) {
+    // Stop any existing stream first
+    streamRef.current?.getTracks().forEach(t => t.stop());
+    streamRef.current = null;
+
     try {
       const stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 960 } },
+        video: { facingMode: mode, width: { ideal: 1280 }, height: { ideal: 960 } },
         audio: false,
       });
       streamRef.current = stream;
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
-        videoRef.current.play();
+        await videoRef.current.play();
       }
+      setFacingMode(mode);
       setCameraActive(true);
     } catch {
       toast.error('ไม่สามารถเปิดกล้องได้ กรุณาอนุญาตการเข้าถึงกล้อง');
@@ -108,6 +113,11 @@ export default function VisitCheckinPage() {
     setCameraActive(false);
   }
 
+  async function switchCamera() {
+    const newMode = facingMode === 'environment' ? 'user' : 'environment';
+    await startCamera(newMode);
+  }
+
   function capturePhoto() {
     const video = videoRef.current;
     const canvas = canvasRef.current;
@@ -117,6 +127,12 @@ export default function VisitCheckinPage() {
     canvas.height = video.videoHeight;
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
+
+    // Mirror front camera
+    if (facingMode === 'user') {
+      ctx.translate(canvas.width, 0);
+      ctx.scale(-1, 1);
+    }
     ctx.drawImage(video, 0, 0);
 
     const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
