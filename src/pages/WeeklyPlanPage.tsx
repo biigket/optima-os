@@ -24,6 +24,7 @@ interface VisitPlan {
 }
 
 export default function WeeklyPlanPage() {
+  const isMobile = useIsMobile();
   const [plans, setPlans] = useState<VisitPlan[]>([]);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [selectedDate, setSelectedDate] = useState(new Date());
