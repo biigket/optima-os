@@ -10,6 +10,7 @@ import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
 import { useMockAuth } from '@/hooks/useMockAuth';
 import CreateDemoWizard from '@/components/demos/CreateDemoWizard';
+import EditDemoDialog from '@/components/demos/EditDemoDialog';
 
 interface DemoRow {
   id: string;
@@ -42,6 +43,9 @@ export default function DemosPage() {
   const [createOpen, setCreateOpen] = useState(false);
   const [loading, setLoading] = useState(true);
 
+  // Edit dialog state
+  const [editDemo, setEditDemo] = useState<DemoRow | null>(null);
+  const [editOpen, setEditOpen] = useState(false);
 
   const fetchData = async () => {
     setLoading(true);
@@ -55,7 +59,6 @@ export default function DemosPage() {
       const map: Record<string, AccountInfo> = {};
       (accRes.data as unknown as AccountInfo[]).forEach(a => { map[a.id] = a; });
       setAccounts(map);
-      
     }
     setLoading(false);
   };
@@ -77,6 +80,11 @@ export default function DemosPage() {
   const upcomingCount = demos.filter(d => d.demo_date && d.demo_date >= today).length;
   const pastCount = demos.filter(d => d.demo_date && d.demo_date < today).length;
 
+  function handleCardClick(demo: DemoRow) {
+    const acc = demo.account_id ? accounts[demo.account_id] : null;
+    setEditDemo(demo);
+    setEditOpen(true);
+  }
 
   return (
     <div className="space-y-4 animate-fade-in">
@@ -137,7 +145,7 @@ export default function DemosPage() {
                   "rounded-lg border bg-card p-4 space-y-3 hover:shadow-md transition-shadow cursor-pointer",
                   isPast && "opacity-70"
                 )}
-                onClick={() => demo.opportunity_id && navigate(`/opportunities/${demo.opportunity_id}`)}
+                onClick={() => handleCardClick(demo)}
               >
                 <div className="flex items-start justify-between">
                   <div className="flex items-center gap-3">
@@ -197,6 +205,15 @@ export default function DemosPage() {
         open={createOpen}
         onOpenChange={setCreateOpen}
         onSuccess={fetchData}
+      />
+
+      <EditDemoDialog
+        demo={editDemo}
+        clinicName={editDemo?.account_id ? (accounts[editDemo.account_id]?.clinic_name || 'ไม่ระบุ') : 'ไม่ระบุ'}
+        open={editOpen}
+        onOpenChange={setEditOpen}
+        onSaved={fetchData}
+        onDeleted={fetchData}
       />
     </div>
   );
