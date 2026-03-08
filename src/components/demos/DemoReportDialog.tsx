@@ -709,18 +709,20 @@ export default function DemoReportDialog({
 
         {/* Device selector */}
         <div className="space-y-2">
-          <Label className="text-xs font-medium">เลือกเครื่องที่ Demo (เลือกได้หลายรายการ)</Label>
+          <Label className="text-xs font-medium">{readOnly ? 'เครื่องที่ Demo' : 'เลือกเครื่องที่ Demo (เลือกได้หลายรายการ)'}</Label>
           <div className="flex flex-wrap gap-2">
-            {DEVICES.map(d => (
+            {(readOnly ? DEVICES.filter(d => selectedDevices.includes(d.key)) : DEVICES).map(d => (
               <button
                 key={d.key}
                 type="button"
-                onClick={() => toggleDevice(d.key)}
+                onClick={() => !readOnly && toggleDevice(d.key)}
+                disabled={readOnly}
                 className={cn(
                   "px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors",
                   selectedDevices.includes(d.key)
                     ? "bg-primary text-primary-foreground border-primary"
-                    : "bg-muted/50 text-muted-foreground hover:bg-muted border-border"
+                    : "bg-muted/50 text-muted-foreground hover:bg-muted border-border",
+                  readOnly && "cursor-default"
                 )}
               >
                 {d.label}
