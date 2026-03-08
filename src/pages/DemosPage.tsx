@@ -77,50 +77,6 @@ export default function DemosPage() {
   const upcomingCount = demos.filter(d => d.demo_date && d.demo_date >= today).length;
   const pastCount = demos.filter(d => d.demo_date && d.demo_date < today).length;
 
-  const filteredAccounts = allAccounts.filter(a =>
-    a.clinic_name.toLowerCase().includes(accountSearch.toLowerCase())
-  );
-
-  const handleCreateDemo = async () => {
-    if (!selectedAccountId || !demoDate) {
-      toast.error('กรุณาเลือกลูกค้าและวันที่');
-      return;
-    }
-
-    setSaving(true);
-    const acc = accounts[selectedAccountId];
-
-    // Ensure opportunity exists at DEMO_SCHEDULED
-    const oppId = await ensureOpportunityForDemo({
-      accountId: selectedAccountId,
-      assignedSale: acc?.assigned_sale || currentUser?.name,
-    });
-
-    // Create demo record
-    const { error } = await supabase.from('demos').insert({
-      account_id: selectedAccountId,
-      opportunity_id: oppId,
-      demo_date: format(demoDate, 'yyyy-MM-dd'),
-      location: demoLocation || null,
-      demo_note: demoNote || null,
-      visited_by: currentUser ? [currentUser.name] : null,
-    });
-
-    setSaving(false);
-    if (error) {
-      toast.error('สร้างใบงานไม่สำเร็จ');
-      return;
-    }
-
-    toast.success('สร้างใบงานสาธิต + เลื่อน Pipeline เป็น Demo Schedule แล้ว');
-    setCreateOpen(false);
-    setSelectedAccountId('');
-    setDemoDate(undefined);
-    setDemoLocation('');
-    setDemoNote('');
-    setAccountSearch('');
-    fetchData();
-  };
 
   return (
     <div className="space-y-4 animate-fade-in">
