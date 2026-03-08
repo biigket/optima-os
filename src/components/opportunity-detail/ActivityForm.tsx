@@ -34,6 +34,7 @@ const ACTIVITY_TYPES: { type: ActivityType; label: string; icon: React.ElementTy
 ];
 
 const PRODUCT_SPECIALISTS = ['Not', 'Ohm', 'Por'];
+const DEMO_PRODUCTS = ['Doublo', 'Trica3D', 'Quattro', 'PicoHi'];
 
 interface QuickScheduleDefaults {
   start_time: string;
