@@ -245,25 +245,37 @@ export default function CustomerCenterPanel({ accountId, opportunities }: Props)
             </div>
           </TabsContent>
 
-          {/* Reports */}
+          {/* Reports - Visit Reports */}
           <TabsContent value="reports" className="mt-0">
             <div className="space-y-3">
-              {reports.map(r => (
+              {visitReports.map(r => (
                 <div key={r.id} className="p-3 rounded-md bg-muted/30 border space-y-2">
+                  {r.photo && (
+                    <img src={r.photo} alt="check-in" className="w-full rounded-md aspect-[16/9] object-cover" />
+                  )}
                   <div className="flex justify-between items-center">
-                    <span className="text-xs text-muted-foreground">{r.date}</span>
-                    <Badge variant={r.interestLevel === 'HIGH' ? 'default' : 'secondary'} className="text-[10px] h-5">
-                      สนใจ: {r.interestLevel}
+                    <span className="text-xs text-muted-foreground">
+                      {r.check_in_at ? format(new Date(r.check_in_at), 'd MMM yyyy HH:mm', { locale: th }) : '-'}
+                    </span>
+                    <Badge variant={r.status === 'REPORTED' ? 'default' : 'secondary'} className="text-[10px] h-5">
+                      {r.status === 'REPORTED' ? 'รายงานแล้ว' : 'รอกรอกรายงาน'}
                     </Badge>
                   </div>
                   <div className="space-y-1 text-xs">
-                    <p><span className="text-muted-foreground">Feedback:</span> <span className="text-foreground">{r.doctorFeedback}</span></p>
-                    <p><span className="text-muted-foreground">คู่แข่ง:</span> <span className="text-foreground">{r.competitorMentioned}</span></p>
-                    <p><span className="text-muted-foreground">ข้อโต้แย้ง:</span> <span className="text-foreground">{r.objections}</span></p>
+                    {r.met_who && <p><span className="text-muted-foreground">พบ:</span> <span className="text-foreground">{r.met_who}</span></p>}
+                    {r.action && <p><span className="text-muted-foreground">สิ่งที่ทำ:</span> <span className="text-foreground">{r.action}</span></p>}
+                    {r.devices_in_use && <p><span className="text-muted-foreground">เครื่องมือ:</span> <span className="text-foreground">{r.devices_in_use}</span></p>}
+                    {r.issues && <p><span className="text-muted-foreground">ปัญหา:</span> <span className="text-foreground">{r.issues}</span></p>}
+                    {r.next_plan && <p className="text-primary">ถัดไป: {r.next_plan}</p>}
+                    {r.customer_type && (
+                      <p><span className="text-muted-foreground">ผลเยี่ยม:</span> <span className="text-foreground">
+                        {r.customer_type === 'INTERESTED' ? 'สนใจ' : r.customer_type === 'NOT_INTERESTED' ? 'ไม่สนใจ' : 'ลูกค้าเก่า'}
+                      </span></p>
+                    )}
                   </div>
                 </div>
               ))}
-              {reports.length === 0 && <Empty text="ยังไม่มีรายงาน" />}
+              {visitReports.length === 0 && <Empty text="ยังไม่มีบันทึกการเยี่ยม" />}
             </div>
           </TabsContent>
 
