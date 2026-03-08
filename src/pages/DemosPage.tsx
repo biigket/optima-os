@@ -193,96 +193,11 @@ export default function DemosPage() {
         </div>
       )}
 
-      {/* Create Demo Dialog */}
-      <Dialog open={createOpen} onOpenChange={setCreateOpen}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle className="text-base flex items-center gap-2">
-              <Presentation size={18} /> สร้างใบงานสาธิตสินค้า
-            </DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4">
-            {/* Account Search & Select */}
-            <div>
-              <Label className="text-xs">คลินิก / ลูกค้า</Label>
-              <Input
-                placeholder="ค้นหาลูกค้า..."
-                value={accountSearch}
-                onChange={e => setAccountSearch(e.target.value)}
-                className="h-8 text-xs mt-1"
-              />
-              {accountSearch && (
-                <div className="mt-1 max-h-32 overflow-y-auto border rounded-md">
-                  {filteredAccounts.slice(0, 8).map(a => (
-                    <button
-                      key={a.id}
-                      onClick={() => {
-                        setSelectedAccountId(a.id);
-                        setAccountSearch(a.clinic_name);
-                      }}
-                      className={cn(
-                        "w-full text-left px-3 py-1.5 text-xs hover:bg-muted transition-colors flex items-center gap-2",
-                        selectedAccountId === a.id && "bg-primary/10 text-primary"
-                      )}
-                    >
-                      <Building2 size={12} />
-                      {a.clinic_name}
-                    </button>
-                  ))}
-                </div>
-              )}
-              {selectedAccountId && (
-                <p className="text-[11px] text-primary mt-1">✓ เลือก: {accounts[selectedAccountId]?.clinic_name || allAccounts.find(a => a.id === selectedAccountId)?.clinic_name}</p>
-              )}
-            </div>
-
-            {/* Date */}
-            <div>
-              <Label className="text-xs">วันที่สาธิต</Label>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button variant="outline" className={cn("w-full h-8 text-xs justify-start mt-1", !demoDate && "text-muted-foreground")}>
-                    <Calendar className="mr-1.5 h-3 w-3" />
-                    {demoDate ? format(demoDate, 'd MMM yyyy', { locale: th }) : 'เลือกวันที่'}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
-                  <CalendarPicker mode="single" selected={demoDate} onSelect={setDemoDate} initialFocus className="p-3 pointer-events-auto" />
-                </PopoverContent>
-              </Popover>
-            </div>
-
-            {/* Location */}
-            <div>
-              <Label className="text-xs">สถานที่</Label>
-              <Input
-                placeholder="เช่น คลินิก, โรงพยาบาล..."
-                value={demoLocation}
-                onChange={e => setDemoLocation(e.target.value)}
-                className="h-8 text-xs mt-1"
-              />
-            </div>
-
-            {/* Note */}
-            <div>
-              <Label className="text-xs">หมายเหตุ</Label>
-              <Textarea
-                placeholder="รายละเอียดเพิ่มเติม..."
-                value={demoNote}
-                onChange={e => setDemoNote(e.target.value)}
-                className="text-xs min-h-[60px] mt-1"
-              />
-            </div>
-
-            <div className="flex justify-end gap-2">
-              <Button variant="outline" size="sm" onClick={() => setCreateOpen(false)}>ยกเลิก</Button>
-              <Button size="sm" onClick={handleCreateDemo} disabled={saving}>
-                {saving ? 'กำลังสร้าง...' : 'สร้างใบงาน'}
-              </Button>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
+      <CreateDemoWizard
+        open={createOpen}
+        onOpenChange={setCreateOpen}
+        onSuccess={fetchData}
+      />
     </div>
   );
 }
