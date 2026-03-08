@@ -193,6 +193,8 @@ export type Database = {
           opportunity_id: string | null
           products_demo: string[] | null
           reminded: boolean | null
+          report_data: Json | null
+          report_submitted: boolean
           rm_i49_tips: number | null
           rm_n49_tips: number | null
           sd15_shots: number | null
@@ -214,6 +216,8 @@ export type Database = {
           opportunity_id?: string | null
           products_demo?: string[] | null
           reminded?: boolean | null
+          report_data?: Json | null
+          report_submitted?: boolean
           rm_i49_tips?: number | null
           rm_n49_tips?: number | null
           sd15_shots?: number | null
@@ -235,6 +239,8 @@ export type Database = {
           opportunity_id?: string | null
           products_demo?: string[] | null
           reminded?: boolean | null
+          report_data?: Json | null
+          report_submitted?: boolean
           rm_i49_tips?: number | null
           rm_n49_tips?: number | null
           sd15_shots?: number | null
