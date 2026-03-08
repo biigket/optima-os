@@ -280,8 +280,8 @@ export default function EditDemoDialog({ demo, clinicName, open, onOpenChange, o
           <div className="space-y-1.5">
             <Label className="text-xs">Description</Label>
             <Textarea
-              value={note}
-              onChange={e => setNote(e.target.value)}
+              value={description}
+              onChange={e => setDescription(e.target.value)}
               placeholder="ใส่ลิงก์ Google Map หรือรายละเอียดเพิ่มเติม..."
               className="min-h-[60px] text-xs"
             />
