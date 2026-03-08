@@ -5,6 +5,7 @@ import interactionPlugin from '@fullcalendar/interaction';
 import { supabase } from '@/integrations/supabase/client';
 import { format, startOfWeek, endOfWeek } from 'date-fns';
 import { toast } from 'sonner';
+import { useIsMobile } from '@/hooks/use-mobile';
 import AddVisitPlanDialog from '@/components/weekly-plan/AddVisitPlanDialog';
 import EditVisitPlanDialog from '@/components/weekly-plan/EditVisitPlanDialog';
 
