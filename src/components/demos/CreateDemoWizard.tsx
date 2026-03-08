@@ -113,7 +113,8 @@ export default function CreateDemoWizard({ open, onOpenChange, onSuccess }: Crea
   const [demoNote, setDemoNote] = useState('');
   const [selectedDemoProducts, setSelectedDemoProducts] = useState<string[]>([]);
   const [selectedSpecialists, setSelectedSpecialists] = useState<string[]>([]);
-
+  const [startTime, setStartTime] = useState('09:00');
+  const [endTime, setEndTime] = useState('10:00');
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
