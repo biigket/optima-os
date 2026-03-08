@@ -509,13 +509,24 @@ export default function CreateQuotationWizard({ open, onOpenChange, onCreated }:
                   <span className="text-muted-foreground">Subtotal</span>
                   <span className="font-medium">฿{subtotal.toLocaleString()}</span>
                 </div>
-                <div className="flex justify-between items-center text-sm">
-                  <span className="text-muted-foreground">Discount</span>
+                <div className="flex justify-between items-center text-sm gap-2">
+                  <span className="text-muted-foreground shrink-0">ส่วนลด</span>
+                  <div className="flex items-center gap-1.5">
+                    <Input
+                      type="number"
+                      min={0}
+                      max={100}
+                      value={discountPercent}
+                      onChange={e => setDiscountPercent(Math.max(0, Math.min(100, Number(e.target.value))))}
+                      className="h-8 text-sm text-right w-20"
+                    />
+                    <span className="text-xs text-muted-foreground">%</span>
+                  </div>
                   <Input
                     type="number"
                     min={0}
-                    value={discount}
-                    onChange={e => setDiscount(Math.max(0, Number(e.target.value)))}
+                    value={discountAmount}
+                    onChange={e => setDiscountAmount(Math.max(0, Number(e.target.value)))}
                     className="h-8 text-sm text-right w-32"
                   />
                 </div>
