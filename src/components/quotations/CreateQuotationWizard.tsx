@@ -145,7 +145,8 @@ export default function CreateQuotationWizard({ open, onOpenChange, onCreated }:
 
   // Step 1: Products
   const [productLines, setProductLines] = useState<ProductLine[]>([]);
-  const [discount, setDiscount] = useState(0);
+  const [discountPercent, setDiscountPercent] = useState(0);
+  const [discountAmount, setDiscountAmount] = useState(0);
   const [includeVat, setIncludeVat] = useState(true);
 
   // Step 2: Details
@@ -171,7 +172,8 @@ export default function CreateQuotationWizard({ open, onOpenChange, onCreated }:
     setSelectedContactId(null);
     setCustomerOverride({ clinic_name: '', address: '', tax_id: '', contact_name: '', phone: '', email: '' });
     setProductLines([]);
-    setDiscount(0);
+    setDiscountPercent(0);
+    setDiscountAmount(0);
     setQtNumber(generateQTNumber());
     setQtDate(format(new Date(), 'yyyy-MM-dd'));
     setSalesTerms('');
@@ -268,6 +270,8 @@ export default function CreateQuotationWizard({ open, onOpenChange, onCreated }:
 
   // Calculations
   const subtotal = productLines.reduce((sum, p) => sum + p.qty * p.unitPrice, 0);
+  const discountFromPercent = Math.round(subtotal * discountPercent / 100);
+  const discount = discountFromPercent + discountAmount;
   const netPrice = subtotal - discount;
   const vat = includeVat ? Math.round(netPrice * 0.07) : 0;
   const grandTotal = netPrice + vat;
@@ -505,13 +509,24 @@ export default function CreateQuotationWizard({ open, onOpenChange, onCreated }:
                   <span className="text-muted-foreground">Subtotal</span>
                   <span className="font-medium">฿{subtotal.toLocaleString()}</span>
                 </div>
-                <div className="flex justify-between items-center text-sm">
-                  <span className="text-muted-foreground">Discount</span>
+                <div className="flex justify-between items-center text-sm gap-2">
+                  <span className="text-muted-foreground shrink-0">ส่วนลด</span>
+                  <div className="flex items-center gap-1.5">
+                    <Input
+                      type="number"
+                      min={0}
+                      max={100}
+                      value={discountPercent}
+                      onChange={e => setDiscountPercent(Math.max(0, Math.min(100, Number(e.target.value))))}
+                      className="h-8 text-sm text-right w-20"
+                    />
+                    <span className="text-xs text-muted-foreground">%</span>
+                  </div>
                   <Input
                     type="number"
                     min={0}
-                    value={discount}
-                    onChange={e => setDiscount(Math.max(0, Number(e.target.value)))}
+                    value={discountAmount}
+                    onChange={e => setDiscountAmount(Math.max(0, Number(e.target.value)))}
                     className="h-8 text-sm text-right w-32"
                   />
                 </div>
@@ -662,7 +677,7 @@ export default function CreateQuotationWizard({ open, onOpenChange, onCreated }:
             {/* Summary */}
             <div className="space-y-1.5 bg-muted/30 rounded-lg p-3">
               <div className="flex justify-between"><span className="text-muted-foreground">Subtotal</span><span>฿{subtotal.toLocaleString()}</span></div>
-              {discount > 0 && <div className="flex justify-between text-destructive"><span>Discount</span><span>-฿{discount.toLocaleString()}</span></div>}
+              {discount > 0 && <div className="flex justify-between text-destructive"><span>Discount {discountPercent > 0 ? `(${discountPercent}%)` : ''}</span><span>-฿{discount.toLocaleString()}</span></div>}
               <div className="flex justify-between"><span className="text-muted-foreground">Net Price</span><span>฿{netPrice.toLocaleString()}</span></div>
               {includeVat && <div className="flex justify-between"><span className="text-muted-foreground">VAT 7%</span><span>฿{vat.toLocaleString()}</span></div>}
               <Separator />
