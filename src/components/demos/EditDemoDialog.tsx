@@ -68,10 +68,10 @@ export default function EditDemoDialog({ demo, clinicName, open, onOpenChange, o
     if (demo && open) {
       setDemoDate(demo.demo_date ? parse(demo.demo_date, 'yyyy-MM-dd', new Date()) : undefined);
       setLocation(demo.location || '');
+      setDescription('');
       setNote(demo.demo_note || '');
       setSelectedProducts(demo.products_demo || []);
       setVisitedBy(demo.visited_by || []);
-      // Try to find start/end time from linked activity
       fetchActivityTimes(demo.id, demo.opportunity_id, demo.demo_date);
     }
   }, [demo, open]);
