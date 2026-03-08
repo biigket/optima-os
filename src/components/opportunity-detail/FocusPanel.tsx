@@ -25,6 +25,7 @@ const TYPE_CONFIG: Record<string, { icon: React.ElementType; color: string; bord
   MEETING: { icon: Users, label: 'Meeting', color: 'text-violet-600', borderColor: 'border-violet-400' },
   TASK: { icon: Building2, label: 'Task', color: 'text-emerald-600', borderColor: 'border-emerald-400' },
   DEADLINE: { icon: Target, label: 'Deadline', color: 'text-red-600', borderColor: 'border-red-400' },
+  DEMO: { icon: Presentation, label: 'Demo', color: 'text-orange-600', borderColor: 'border-orange-400' },
 };
 
 interface FocusPanelProps {
