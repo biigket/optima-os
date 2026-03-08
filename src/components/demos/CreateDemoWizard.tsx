@@ -235,7 +235,7 @@ export default function CreateDemoWizard({ open, onOpenChange, onSuccess }: Crea
   const [dealForm, setDealForm] = useState({
     selectedProductIds: [] as string[],
     deal_value: '',
-    stage: 'DEMO_SCHEDULED' as string,
+    stage: 'CONTACTED' as string,
     close_date: '',
     notes: '',
     budget_range: '',
