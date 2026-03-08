@@ -916,6 +916,17 @@ export default function CreateDemoWizard({ open, onOpenChange, onSuccess }: Crea
                   value={demoLocation}
                   onChange={e => setDemoLocation(e.target.value)}
                 />
+                {demoLocation.trim() && (
+                  <a
+                    href={`https://www.google.com/maps/search/${encodeURIComponent(demoLocation.trim())}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1 text-xs text-primary hover:underline"
+                  >
+                    <MapPin size={12} />
+                    เปิด Google Map
+                  </a>
+                )}
               </div>
 
               {/* Demo Products */}
