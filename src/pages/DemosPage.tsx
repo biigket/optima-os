@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Presentation, Calendar, MapPin, Building2, Plus, Users, FileText, Search, CheckCircle2 } from 'lucide-react';
+import { Presentation, Calendar, MapPin, Building2, Plus, Users, FileText, Search, CheckCircle2, ClipboardList } from 'lucide-react';
 import { format } from 'date-fns';
 import { th } from 'date-fns/locale';
 import { Button } from '@/components/ui/button';
