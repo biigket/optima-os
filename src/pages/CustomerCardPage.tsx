@@ -115,6 +115,7 @@ export default function CustomerCardPage() {
   const [accountPinnedIds, setAccountPinnedIds] = useState<Set<string>>(new Set());
   const [chatImages, setChatImages] = useState<{ id: string; file_url: string; file_name: string; uploaded_by: string | null; created_at: string; opportunity_id: string }[]>([]);
   const [visitReports, setVisitReports] = useState<any[]>([]);
+  const [demoReports, setDemoReports] = useState<any[]>([]);
 
   // Fetch activities, stage history, and notes for this account
   useEffect(() => {
