@@ -8,7 +8,7 @@ import StatusBadge from '@/components/ui/StatusBadge';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { supabase } from '@/integrations/supabase/client';
-import CreateQuotationDialog from '@/components/quotations/CreateQuotationDialog';
+import CreateQuotationWizard from '@/components/quotations/CreateQuotationWizard';
 
 type ApprovalFilter = 'ALL' | 'DRAFT' | 'SUBMITTED' | 'APPROVED' | 'REJECTED';
 
@@ -116,7 +116,7 @@ export default function QuotationsPage() {
         </Table>
       </div>
 
-      <CreateQuotationDialog open={showCreate} onOpenChange={setShowCreate} onCreated={refetch} />
+      <CreateQuotationWizard open={showCreate} onOpenChange={setShowCreate} onCreated={refetch} />
     </div>
   );
 }
