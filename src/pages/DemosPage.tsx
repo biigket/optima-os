@@ -105,7 +105,9 @@ export default function DemosPage() {
           <div className="flex items-center gap-3 text-sm text-muted-foreground">
             <span>{demos.length} รายการ</span>
             <span className="text-muted-foreground/40">·</span>
-            <span className="text-emerald-600 font-medium">{upcomingCount} ขอคิวเดโม</span>
+            <span className="text-orange-600 font-medium">{pendingCount} ขอคิวเดโม</span>
+            <span className="text-muted-foreground/40">·</span>
+            <span className="text-emerald-600 font-medium">{confirmedCount} ได้คิวแล้ว</span>
             <span className="text-muted-foreground/40">·</span>
             <span>{pastCount} เสร็จแล้ว</span>
           </div>
