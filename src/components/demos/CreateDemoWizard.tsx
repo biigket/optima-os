@@ -135,6 +135,8 @@ export default function CreateDemoWizard({ open, onOpenChange, onSuccess }: Crea
     setDemoNote('');
     setSelectedDemoProducts([]);
     setSelectedSpecialists([]);
+    setStartTime('09:00');
+    setEndTime('10:00');
   }
 
   async function fetchAccounts() {
