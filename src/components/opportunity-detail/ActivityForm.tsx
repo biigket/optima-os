@@ -509,15 +509,35 @@ export default function ActivityForm({
         </div>
       </div>
 
-      {/* Toggle extra fields */}
-      <button onClick={() => setShowExtra(!showExtra)} className="text-[11px] text-primary flex items-center gap-1 hover:underline">
-        {showExtra ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
-        {showExtra ? 'ซ่อนรายละเอียดเพิ่มเติม' : 'เพิ่ม Location, Description'}
-      </button>
+      {/* Toggle extra fields - always show for DEMO */}
+      {selectedType !== 'DEMO' && (
+        <button onClick={() => setShowExtra(!showExtra)} className="text-[11px] text-primary flex items-center gap-1 hover:underline">
+          {showExtra ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
+          {showExtra ? 'ซ่อนรายละเอียดเพิ่มเติม' : 'เพิ่ม Location, Description'}
+        </button>
+      )}
 
-      {showExtra && (
+      {(showExtra || selectedType === 'DEMO') && (
         <div className="space-y-2">
-          <Input placeholder="Location" value={location} onChange={e => setLocation(e.target.value)} className="h-8 text-xs" />
+          <div>
+            <div className="flex items-center gap-1">
+              <MapPin size={12} className="text-muted-foreground" />
+              <label className="text-[10px] text-muted-foreground">
+                Location {selectedType === 'DEMO' && <span className="text-destructive">*</span>}
+              </label>
+            </div>
+            <Input placeholder="เช่น คลินิก ABC, กรุงเทพ..." value={location} onChange={e => setLocation(e.target.value)} className="h-8 text-xs mt-0.5" />
+            {location.trim() && (
+              <a
+                href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(location.trim())}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1 text-[10px] text-primary hover:underline mt-1"
+              >
+                <ExternalLink size={10} /> เปิด Google Map
+              </a>
+            )}
+          </div>
           <Textarea placeholder="Description" value={description} onChange={e => setDescription(e.target.value)} className="text-xs min-h-[50px]" />
         </div>
       )}
