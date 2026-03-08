@@ -149,6 +149,7 @@ export default function ActivityForm({
     setAiSuggestion(null);
     setAiPrompt('');
     setShowAiPanel(false);
+    setSelectedDemoProducts([]);
   };
 
   const handleAiSuggest = async () => {
