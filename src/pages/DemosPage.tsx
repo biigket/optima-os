@@ -259,6 +259,15 @@ export default function DemosPage() {
         onSaved={fetchData}
         onDeleted={fetchData}
       />
+
+      <ConfirmDemoDialog
+        demoId={confirmDemo?.id || ''}
+        currentDate={confirmDemo?.demo_date || null}
+        opportunityId={confirmDemo?.opportunity_id || null}
+        open={confirmOpen}
+        onOpenChange={setConfirmOpen}
+        onConfirmed={fetchData}
+      />
     </div>
   );
 }
