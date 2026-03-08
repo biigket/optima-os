@@ -400,7 +400,8 @@ export default function CreateDemoWizard({ open, onOpenChange, onSuccess }: Crea
       .from('opportunities')
       .insert({
         account_id: selectedAccount.id,
-        stage: dealForm.stage || 'DEMO_SCHEDCONTACT   opportunity_type: 'DEVICE',
+        stage: dealForm.stage || 'CONTACTED',
+        opportunity_type: 'DEVICE',
         interested_products: selectedProds.map(p => p.product_name),
         expected_value: Number(dealForm.deal_value),
         assigned_sale: selectedAccount.assigned_sale || currentUser?.name || null,
