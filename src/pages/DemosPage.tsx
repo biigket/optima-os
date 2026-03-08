@@ -25,6 +25,8 @@ interface DemoRow {
   visited_by: string[] | null;
   reminded: boolean | null;
   confirmed: boolean | null;
+  report_data: any;
+  report_submitted: boolean | null;
   created_at: string;
 }
 
