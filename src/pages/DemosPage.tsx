@@ -269,6 +269,37 @@ export default function DemosPage() {
                     รายงาน DEMO
                   </Button>
                 )}
+
+                {/* Done cards: show report + edit buttons */}
+                {isDone(demo) && demo.report_submitted && (
+                  <div className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="flex-1 gap-1.5 text-xs border-blue-200 text-blue-700 hover:bg-blue-50 hover:text-blue-800"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setReportDemo(demo);
+                        setReportOpen(true);
+                      }}
+                    >
+                      <ClipboardList size={14} />
+                      รายงาน DEMO
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="gap-1.5 text-xs"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setEditDemo(demo);
+                        setEditOpen(true);
+                      }}
+                    >
+                      แก้ไข
+                    </Button>
+                  </div>
+                )}
               </div>
             );
           })}
