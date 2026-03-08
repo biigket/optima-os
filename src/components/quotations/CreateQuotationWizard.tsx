@@ -677,7 +677,7 @@ export default function CreateQuotationWizard({ open, onOpenChange, onCreated }:
             {/* Summary */}
             <div className="space-y-1.5 bg-muted/30 rounded-lg p-3">
               <div className="flex justify-between"><span className="text-muted-foreground">Subtotal</span><span>฿{subtotal.toLocaleString()}</span></div>
-              {discount > 0 && <div className="flex justify-between text-destructive"><span>Discount</span><span>-฿{discount.toLocaleString()}</span></div>}
+              {discount > 0 && <div className="flex justify-between text-destructive"><span>Discount {discountPercent > 0 ? `(${discountPercent}%)` : ''}</span><span>-฿{discount.toLocaleString()}</span></div>}
               <div className="flex justify-between"><span className="text-muted-foreground">Net Price</span><span>฿{netPrice.toLocaleString()}</span></div>
               {includeVat && <div className="flex justify-between"><span className="text-muted-foreground">VAT 7%</span><span>฿{vat.toLocaleString()}</span></div>}
               <Separator />
