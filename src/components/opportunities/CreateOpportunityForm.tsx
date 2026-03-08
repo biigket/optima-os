@@ -367,8 +367,8 @@ export default function CreateOpportunityForm({ open, onOpenChange, onSave, cust
                   className="pl-9"
                   autoFocus
                 />
-              overflow-x-hidden </div>
-             overflow-x-hidden  <div className="fleoverflow-x-hidden x-1 overflow-y-auto space-y-1.5 px-1 min-h-0">
+              </div>
+              <div className="flex-1 overflow-y-auto overflow-x-hidden space-y-1.5 px-1 min-h-0">
                 {loadingAccounts ? (
                   <p className="text-center text-xs text-muted-foreground py-8">กำลังโหลด...</p>
                 ) : (
