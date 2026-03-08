@@ -1,11 +1,12 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search, Building2, Plus, ChevronLeft, ChevronRight, User, ClipboardList, CheckCircle2, MapPin, Calendar, Presentation, Users, Loader2, Briefcase, AlertCircle } from 'lucide-react';
+import { Search, Building2, Plus, ChevronLeft, ChevronRight, User, ClipboardList, CheckCircle2, MapPin, Calendar, Presentation, Users, Loader2, Briefcase, AlertCircle, Clock } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Calendar as CalendarPicker } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -34,6 +35,12 @@ interface OpportunityInfo {
 
 const DEMO_PRODUCTS = ['Doublo', 'Trica3D', 'Quattro', 'PicoHi'];
 const PRODUCT_SPECIALISTS = ['Not', 'Ohm', 'Por'];
+
+const TIME_OPTIONS = Array.from({ length: 4 * 24 }, (_, i) => {
+  const h = String(Math.floor(i / 4)).padStart(2, '0');
+  const m = String((i % 4) * 15).padStart(2, '0');
+  return `${h}:${m}`;
+});
 
 const STAGE_LABELS: Record<string, string> = {
   NEW_LEAD: 'นัดพบ/Need',
@@ -106,7 +113,8 @@ export default function CreateDemoWizard({ open, onOpenChange, onSuccess }: Crea
   const [demoNote, setDemoNote] = useState('');
   const [selectedDemoProducts, setSelectedDemoProducts] = useState<string[]>([]);
   const [selectedSpecialists, setSelectedSpecialists] = useState<string[]>([]);
-
+  const [startTime, setStartTime] = useState('09:00');
+  const [endTime, setEndTime] = useState('10:00');
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
@@ -127,6 +135,8 @@ export default function CreateDemoWizard({ open, onOpenChange, onSuccess }: Crea
     setDemoNote('');
     setSelectedDemoProducts([]);
     setSelectedSpecialists([]);
+    setStartTime('09:00');
+    setEndTime('10:00');
   }
 
   async function fetchAccounts() {
@@ -450,7 +460,29 @@ export default function CreateDemoWizard({ open, onOpenChange, onSuccess }: Crea
                 </Popover>
               </div>
 
-              {/* Location */}
+              {/* Start / End Time */}
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1.5">
+                  <Label className="text-xs">เวลาเริ่ม</Label>
+                  <Select value={startTime} onValueChange={v => { setStartTime(v); if (v >= endTime) { const idx = TIME_OPTIONS.indexOf(v); if (idx < TIME_OPTIONS.length - 1) setEndTime(TIME_OPTIONS[idx + 1]); } }}>
+                    <SelectTrigger className="h-9 text-xs"><Clock size={12} className="mr-1.5 text-muted-foreground" /><SelectValue /></SelectTrigger>
+                    <SelectContent className="max-h-48">
+                      {TIME_OPTIONS.map(t => <SelectItem key={t} value={t} className="text-xs">{t}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="text-xs">เวลาสิ้นสุด</Label>
+                  <Select value={endTime} onValueChange={setEndTime}>
+                    <SelectTrigger className="h-9 text-xs"><Clock size={12} className="mr-1.5 text-muted-foreground" /><SelectValue /></SelectTrigger>
+                    <SelectContent className="max-h-48">
+                      {TIME_OPTIONS.filter(t => t > startTime).map(t => <SelectItem key={t} value={t} className="text-xs">{t}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+
               <div className="space-y-1.5">
                 <Label className="text-xs">สถานที่ <span className="text-destructive">*</span></Label>
                 <Input
@@ -532,7 +564,11 @@ export default function CreateDemoWizard({ open, onOpenChange, onSuccess }: Crea
 
                   <div className="flex items-center gap-2">
                     <Calendar size={14} className="text-muted-foreground shrink-0" />
-                    <span className="font-medium">{demoDate ? format(demoDate, 'd MMMM yyyy', { locale: th }) : '-'}</span>
+                    <span className="font-medium">
+                      {demoDate ? format(demoDate, 'd MMMM yyyy', { locale: th }) : '-'}
+                      {' '}
+                      <span className="text-muted-foreground font-normal">{startTime} - {endTime}</span>
+                    </span>
                   </div>
                   {demoLocation && (
                     <div className="flex items-center gap-2">
