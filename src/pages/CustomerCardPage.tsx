@@ -115,6 +115,7 @@ export default function CustomerCardPage() {
   const [accountPinnedIds, setAccountPinnedIds] = useState<Set<string>>(new Set());
   const [chatImages, setChatImages] = useState<{ id: string; file_url: string; file_name: string; uploaded_by: string | null; created_at: string; opportunity_id: string }[]>([]);
   const [visitReports, setVisitReports] = useState<any[]>([]);
+  const [demoReports, setDemoReports] = useState<any[]>([]);
 
   // Fetch activities, stage history, and notes for this account
   useEffect(() => {
@@ -151,6 +152,12 @@ export default function CustomerCardPage() {
       .order('created_at', { ascending: false })
       .then(({ data }) => {
         if (data) setVisitReports(data);
+      });
+    // Demo reports (submitted)
+    supabase.from('demos').select('*').eq('account_id', id).eq('report_submitted', true)
+      .order('created_at', { ascending: false })
+      .then(({ data }) => {
+        if (data) setDemoReports(data);
       });
   }, [id, opportunities]);
   const handleSubmit = async () => {
@@ -427,6 +434,7 @@ export default function CustomerCardPage() {
                   { value: 'overview', icon: LayoutDashboard, label: 'ภาพรวม' },
                   { value: 'deals', icon: Handshake, label: 'โอกาสขาย' },
                   { value: 'visits', icon: MapPin, label: 'การเยี่ยม / รายงาน' },
+                  { value: 'demo-reports', icon: Presentation, label: `รายงานเคส DEMO${demoReports.length > 0 ? ` (${demoReports.length})` : ''}` },
                   { value: 'devices', icon: Monitor, label: 'เครื่องที่ติดตั้งแล้ว' },
                   { value: 'consumables', icon: ShoppingCart, label: 'Consumable' },
                   { value: 'service', icon: Wrench, label: 'เซอร์วิส' },
@@ -593,6 +601,100 @@ export default function CustomerCardPage() {
                   {visitReports.length === 0 && <Empty text="ยังไม่มีบันทึกการเยี่ยม" />}
                 </div>
               </div>
+            </TabsContent>
+
+
+            {/* ===== DEMO REPORTS (รายงานเคส DEMO) ===== */}
+            <TabsContent value="demo-reports" className="mt-0 space-y-4">
+              {demoReports.map(demo => {
+                const report = demo.report_data as Record<string, any> | null;
+                const deviceNames = Object.keys(report || {});
+                return (
+                  <div key={demo.id} className="p-4 rounded-md bg-muted/30 border space-y-3">
+                    <div className="flex justify-between items-center">
+                      <div className="flex items-center gap-2">
+                        <Presentation size={14} className="text-primary" />
+                        <span className="text-sm font-semibold text-foreground">
+                          {demo.demo_date ? format(new Date(demo.demo_date), 'd MMM yyyy', { locale: th }) : '-'}
+                        </span>
+                      </div>
+                      <Badge variant="default" className="text-[10px] h-5">เสร็จแล้ว</Badge>
+                    </div>
+                    {demo.location && (
+                      <p className="text-xs text-muted-foreground flex items-center gap-1"><MapPin size={11} />{demo.location}</p>
+                    )}
+                    {demo.products_demo && demo.products_demo.length > 0 && (
+                      <div className="flex gap-1.5 flex-wrap">
+                        {demo.products_demo.map((p: string) => (
+                          <Badge key={p} variant="outline" className="text-[10px]">{p}</Badge>
+                        ))}
+                      </div>
+                    )}
+                    {deviceNames.length > 0 ? deviceNames.map(deviceName => {
+                      const devData = report![deviceName];
+                      const patients = devData?.patients || (Array.isArray(devData) ? devData : []);
+                      return (
+                        <div key={deviceName} className="space-y-2 border-t pt-2">
+                          <h4 className="text-xs font-bold text-primary flex items-center gap-1.5">
+                            <Monitor size={12} /> {deviceName}
+                            <span className="text-muted-foreground font-normal">({patients.length} คนไข้)</span>
+                          </h4>
+                          {patients.map((pt: any, idx: number) => (
+                            <div key={idx} className="ml-3 p-3 rounded bg-background border space-y-1.5">
+                              <p className="text-xs font-semibold text-foreground flex items-center gap-1">
+                                <Users size={11} /> คนไข้ #{idx + 1}
+                              </p>
+                              {pt.parameters && (
+                                <p className="text-xs"><span className="text-muted-foreground">Parameters:</span> <span className="text-foreground">{pt.parameters}</span></p>
+                              )}
+                              {pt.feeling && (
+                                <p className="text-xs"><span className="text-muted-foreground">Feeling:</span> <span className="text-foreground">{pt.feeling}</span></p>
+                              )}
+                              {pt.painScore !== undefined && pt.painScore !== null && (
+                                <div className="text-xs flex items-center gap-1.5">
+                                  <span className="text-muted-foreground">Pain Score:</span>
+                                  <div className="flex items-center gap-1">
+                                    <div className="w-16 h-1.5 bg-muted rounded-full overflow-hidden">
+                                      <div className="h-full rounded-full" style={{
+                                        width: `${(pt.painScore / 10) * 100}%`,
+                                        backgroundColor: pt.painScore <= 3 ? 'hsl(var(--primary))' : pt.painScore <= 6 ? 'hsl(40,90%,50%)' : 'hsl(0,70%,50%)'
+                                      }} />
+                                    </div>
+                                    <span className="font-semibold text-foreground">{pt.painScore}/10</span>
+                                  </div>
+                                </div>
+                              )}
+                              {pt.satisfaction && (
+                                <p className="text-xs"><span className="text-muted-foreground">Satisfaction:</span> <span className="text-foreground">{pt.satisfaction}</span></p>
+                              )}
+                              {pt.sideEffects && pt.sideEffects.length > 0 && (
+                                <div className="text-xs flex items-center gap-1 flex-wrap">
+                                  <span className="text-muted-foreground">ผลข้างเคียง:</span>
+                                  {(Array.isArray(pt.sideEffects) ? pt.sideEffects : [pt.sideEffects]).map((se: string, i: number) => (
+                                    <Badge key={i} variant="secondary" className="text-[10px]">{se}</Badge>
+                                  ))}
+                                </div>
+                              )}
+                              {pt.presentationNotes && (
+                                <p className="text-xs"><span className="text-muted-foreground">สิ่งที่นำเสนอ:</span> <span className="text-foreground">{pt.presentationNotes}</span></p>
+                              )}
+                              {pt.presentation && (
+                                <p className="text-xs"><span className="text-muted-foreground">สิ่งที่นำเสนอ:</span> <span className="text-foreground">{pt.presentation}</span></p>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      );
+                    }) : (
+                      <p className="text-xs text-muted-foreground">ไม่มีข้อมูลรายงาน</p>
+                    )}
+                    {demo.demo_note && (
+                      <p className="text-xs text-muted-foreground border-t pt-2">หมายเหตุ: {demo.demo_note}</p>
+                    )}
+                  </div>
+                );
+              })}
+              {demoReports.length === 0 && <Empty text="ยังไม่มีรายงานเคส DEMO" />}
             </TabsContent>
 
             {/* ===== DEVICES ===== */}
