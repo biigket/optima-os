@@ -40,6 +40,7 @@ interface DemoRow {
   demo_note: string | null;
   visited_by: string[] | null;
   reminded: boolean | null;
+  confirmed: boolean | null;
   created_at: string;
 }
 
@@ -201,7 +202,19 @@ export default function EditDemoDialog({ demo, clinicName, open, onOpenChange, o
             แก้ไขใบงาน Demo
           </DialogTitle>
           <DialogDescription className="sr-only">แก้ไขข้อมูลใบงานสาธิตสินค้า</DialogDescription>
-          <p className="text-sm text-muted-foreground font-medium">{clinicName}</p>
+          <div className="flex items-center gap-2">
+            <p className="text-sm text-muted-foreground font-medium">{clinicName}</p>
+            {demo?.confirmed && (
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 text-[10px] font-medium">
+                ✓ ได้คิวแล้ว
+              </span>
+            )}
+            {demo && !demo.confirmed && (
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-orange-100 text-orange-700 text-[10px] font-medium">
+                ขอคิวเดโม
+              </span>
+            )}
+          </div>
         </DialogHeader>
 
         <div className="flex-1 overflow-y-auto space-y-4 py-2">

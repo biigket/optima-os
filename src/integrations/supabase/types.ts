@@ -181,6 +181,7 @@ export type Database = {
       demos: {
         Row: {
           account_id: string | null
+          confirmed: boolean
           created_at: string
           demo_date: string | null
           demo_note: string | null
@@ -201,6 +202,7 @@ export type Database = {
         }
         Insert: {
           account_id?: string | null
+          confirmed?: boolean
           created_at?: string
           demo_date?: string | null
           demo_note?: string | null
@@ -221,6 +223,7 @@ export type Database = {
         }
         Update: {
           account_id?: string | null
+          confirmed?: boolean
           created_at?: string
           demo_date?: string | null
           demo_note?: string | null

@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Presentation, Calendar, MapPin, Building2, Plus, Users, FileText, Search } from 'lucide-react';
+import { Presentation, Calendar, MapPin, Building2, Plus, Users, FileText, Search, CheckCircle2 } from 'lucide-react';
 import { format } from 'date-fns';
 import { th } from 'date-fns/locale';
 import { Button } from '@/components/ui/button';
@@ -11,6 +11,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useMockAuth } from '@/hooks/useMockAuth';
 import CreateDemoWizard from '@/components/demos/CreateDemoWizard';
 import EditDemoDialog from '@/components/demos/EditDemoDialog';
+import ConfirmDemoDialog from '@/components/demos/ConfirmDemoDialog';
 
 interface DemoRow {
   id: string;
@@ -22,6 +23,7 @@ interface DemoRow {
   demo_note: string | null;
   visited_by: string[] | null;
   reminded: boolean | null;
+  confirmed: boolean | null;
   created_at: string;
 }
 
@@ -47,6 +49,10 @@ export default function DemosPage() {
   const [editDemo, setEditDemo] = useState<DemoRow | null>(null);
   const [editOpen, setEditOpen] = useState(false);
 
+  // Confirm dialog state
+  const [confirmDemo, setConfirmDemo] = useState<DemoRow | null>(null);
+  const [confirmOpen, setConfirmOpen] = useState(false);
+
   const fetchData = async () => {
     setLoading(true);
     const [demosRes, accRes] = await Promise.all([
@@ -71,13 +77,17 @@ export default function DemosPage() {
     return demos.filter(d => {
       const acc = d.account_id ? accounts[d.account_id] : null;
       const matchSearch = !search || acc?.clinic_name.toLowerCase().includes(search.toLowerCase());
-      if (statusFilter === 'UPCOMING') return matchSearch && d.demo_date && d.demo_date >= today;
-      if (statusFilter === 'PAST') return matchSearch && d.demo_date && d.demo_date < today;
+      const isConfirmed = !!d.confirmed;
+      const isPast = d.demo_date && d.demo_date < today;
+      if (statusFilter === 'ALL') return matchSearch && !isConfirmed && !isPast; // ขอคิวเดโม
+      if (statusFilter === 'UPCOMING') return matchSearch && isConfirmed && !isPast; // ได้คิวแล้ว
+      if (statusFilter === 'PAST') return matchSearch && isPast; // เสร็จแล้ว
       return matchSearch;
     });
   }, [demos, accounts, search, statusFilter, today]);
 
-  const upcomingCount = demos.filter(d => d.demo_date && d.demo_date >= today).length;
+  const pendingCount = demos.filter(d => !d.confirmed && !(d.demo_date && d.demo_date < today)).length;
+  const confirmedCount = demos.filter(d => d.confirmed && !(d.demo_date && d.demo_date < today)).length;
   const pastCount = demos.filter(d => d.demo_date && d.demo_date < today).length;
 
   function handleCardClick(demo: DemoRow) {
@@ -95,7 +105,9 @@ export default function DemosPage() {
           <div className="flex items-center gap-3 text-sm text-muted-foreground">
             <span>{demos.length} รายการ</span>
             <span className="text-muted-foreground/40">·</span>
-            <span className="text-emerald-600 font-medium">{upcomingCount} ขอคิวเดโม</span>
+            <span className="text-orange-600 font-medium">{pendingCount} ขอคิวเดโม</span>
+            <span className="text-muted-foreground/40">·</span>
+            <span className="text-emerald-600 font-medium">{confirmedCount} ได้คิวแล้ว</span>
             <span className="text-muted-foreground/40">·</span>
             <span>{pastCount} เสร็จแล้ว</span>
           </div>
@@ -135,66 +147,98 @@ export default function DemosPage() {
         <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
           {filtered.map(demo => {
             const acc = demo.account_id ? accounts[demo.account_id] : null;
-            const isUpcoming = demo.demo_date && demo.demo_date >= today;
+            const isConfirmed = !!demo.confirmed;
             const isPast = demo.demo_date && demo.demo_date < today;
 
             return (
               <div
                 key={demo.id}
                 className={cn(
-                  "rounded-lg border bg-card p-4 space-y-3 hover:shadow-md transition-shadow cursor-pointer",
+                  "rounded-lg border bg-card p-4 space-y-3 hover:shadow-md transition-shadow",
                   isPast && "opacity-70"
                 )}
-                onClick={() => handleCardClick(demo)}
               >
-                <div className="flex items-start justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className={cn(
-                      "flex h-10 w-10 items-center justify-center rounded-lg",
-                      isUpcoming ? "bg-orange-100 text-orange-600" : "bg-muted text-muted-foreground"
-                    )}>
-                      <Presentation size={20} />
+                <div
+                  className="cursor-pointer"
+                  onClick={() => handleCardClick(demo)}
+                >
+                  <div className="flex items-start justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className={cn(
+                        "flex h-10 w-10 items-center justify-center rounded-lg",
+                        isConfirmed
+                          ? "bg-emerald-100 text-emerald-600"
+                          : isPast
+                            ? "bg-muted text-muted-foreground"
+                            : "bg-orange-100 text-orange-600"
+                      )}>
+                        <Presentation size={20} />
+                      </div>
+                      <div>
+                        <p className="text-sm font-semibold text-foreground">{acc?.clinic_name || 'ไม่ระบุ'}</p>
+                        <Badge
+                          variant={isPast ? 'secondary' : isConfirmed ? 'default' : 'outline'}
+                          className={cn(
+                            "text-[10px] mt-0.5",
+                            isConfirmed && !isPast && "bg-emerald-100 text-emerald-700 border-emerald-200",
+                            !isConfirmed && !isPast && "bg-orange-100 text-orange-700 border-orange-200"
+                          )}
+                        >
+                          {isPast ? 'เสร็จแล้ว' : isConfirmed ? '✓ ได้คิวแล้ว' : 'ขอคิวเดโม'}
+                        </Badge>
+                      </div>
                     </div>
-                    <div>
-                      <p className="text-sm font-semibold text-foreground">{acc?.clinic_name || 'ไม่ระบุ'}</p>
-                      <Badge variant={isUpcoming ? 'default' : 'secondary'} className="text-[10px] mt-0.5">
-                        {isUpcoming ? 'ขอคิวเดโม' : 'เสร็จแล้ว'}
-                      </Badge>
-                    </div>
+                  </div>
+
+                  <div className="space-y-1 text-xs text-muted-foreground mt-3">
+                    {demo.demo_date && (
+                      <div className="flex items-center gap-1.5">
+                        <Calendar size={12} />
+                        <span className="font-medium text-foreground">
+                          {format(new Date(demo.demo_date), 'd MMM yyyy', { locale: th })}
+                        </span>
+                      </div>
+                    )}
+                    {demo.location && (
+                      <div className="flex items-center gap-1.5">
+                        <MapPin size={12} />
+                        <span>{demo.location}</span>
+                      </div>
+                    )}
+                    {demo.visited_by && demo.visited_by.length > 0 && (
+                      <div className="flex items-center gap-1.5">
+                        <Users size={12} />
+                        <span>{demo.visited_by.join(', ')}</span>
+                      </div>
+                    )}
+                    {demo.products_demo && demo.products_demo.length > 0 && (
+                      <div className="flex items-center gap-1.5">
+                        <FileText size={12} />
+                        <span>{demo.products_demo.join(', ')}</span>
+                      </div>
+                    )}
+                    {demo.demo_note && (
+                      <p className="text-muted-foreground mt-1 line-clamp-2">{demo.demo_note}</p>
+                    )}
                   </div>
                 </div>
 
-                <div className="space-y-1 text-xs text-muted-foreground">
-                  {demo.demo_date && (
-                    <div className="flex items-center gap-1.5">
-                      <Calendar size={12} />
-                      <span className="font-medium text-foreground">
-                        {format(new Date(demo.demo_date), 'd MMM yyyy', { locale: th })}
-                      </span>
-                    </div>
-                  )}
-                  {demo.location && (
-                    <div className="flex items-center gap-1.5">
-                      <MapPin size={12} />
-                      <span>{demo.location}</span>
-                    </div>
-                  )}
-                  {demo.visited_by && demo.visited_by.length > 0 && (
-                    <div className="flex items-center gap-1.5">
-                      <Users size={12} />
-                      <span>{demo.visited_by.join(', ')}</span>
-                    </div>
-                  )}
-                  {demo.products_demo && demo.products_demo.length > 0 && (
-                    <div className="flex items-center gap-1.5">
-                      <FileText size={12} />
-                      <span>{demo.products_demo.join(', ')}</span>
-                    </div>
-                  )}
-                  {demo.demo_note && (
-                    <p className="text-muted-foreground mt-1 line-clamp-2">{demo.demo_note}</p>
-                  )}
-                </div>
+                {/* Confirm button - only show for unconfirmed upcoming demos */}
+                {!isConfirmed && !isPast && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="w-full gap-1.5 text-xs border-emerald-200 text-emerald-700 hover:bg-emerald-50 hover:text-emerald-800"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setConfirmDemo(demo);
+                      setConfirmOpen(true);
+                    }}
+                  >
+                    <CheckCircle2 size={14} />
+                    ยืนยันวันเดโม
+                  </Button>
+                )}
               </div>
             );
           })}
@@ -214,6 +258,15 @@ export default function DemosPage() {
         onOpenChange={setEditOpen}
         onSaved={fetchData}
         onDeleted={fetchData}
+      />
+
+      <ConfirmDemoDialog
+        demoId={confirmDemo?.id || ''}
+        currentDate={confirmDemo?.demo_date || null}
+        opportunityId={confirmDemo?.opportunity_id || null}
+        open={confirmOpen}
+        onOpenChange={setConfirmOpen}
+        onConfirmed={fetchData}
       />
     </div>
   );
