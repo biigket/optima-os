@@ -355,10 +355,10 @@ export default function CreateOpportunityForm({ open, onOpenChange, onSave, cust
 
         <StepIndicator currentStep={step} />
 
-        <div className="flex-1 overflow-y-auto overflow-x-y-auto overflow-x-hidden flex flex-col min-h-0">
+        <div className="flex-1 overflow-y-auto overflow-x-y-auto overflow-x-y-auto overflow-x-hidden flex flex-col min-h-0">
           {/* STEP 0: Select Customer */}
           {step === 0 && (
-            <div className=flex flex-col overflow-x-hiddendden flex flex-col">
+         flex flex-col overflow-x-hiddenol overflow-x-hiddendden flex flex-col">
               <div className="relative px-1">
                 <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground" />
                 <Input
@@ -369,7 +369,7 @@ export default function CreateOpportunityForm({ open, onOpenChange, onSave, cust
                   autoFocus
                 />
               </div>
-              <div className="flex-1 overflow-y-auto space-y-1.5 px-1 min-h-0">
+              <div className="fleoverflow-x-hidden x-1 overflow-y-auto space-y-1.5 px-1 min-h-0">
                 {loadingAccounts ? (
                   <p className="text-center text-xs text-muted-foreground py-8">กำลังโหลด...</p>
                 ) : (
