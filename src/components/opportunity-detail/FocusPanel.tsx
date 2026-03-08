@@ -115,8 +115,8 @@ export default function FocusPanel({ activities, onMarkDone, onEdit, onDelete, o
   );
 }
 
-function FocusCard({ activity: act, clinicName, onDone, onEdit, onDelete }: {
-  activity: Activity; clinicName?: string; onDone: () => void; onEdit: () => void; onDelete: () => void;
+function FocusCard({ activity: act, clinicName, isConfirmed, onDone, onEdit, onDelete }: {
+  activity: Activity; clinicName?: string; isConfirmed?: boolean; onDone: () => void; onEdit: () => void; onDelete: () => void;
 }) {
   const cfg = TYPE_CONFIG[act.activity_type] || TYPE_CONFIG.TASK;
   const Icon = cfg.icon;
@@ -130,7 +130,7 @@ function FocusCard({ activity: act, clinicName, onDone, onEdit, onDelete }: {
         title="Mark as done"
       />
       <div className="flex-1 min-w-0">
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
           <Icon size={13} className={cfg.color} />
           <span className="text-xs font-medium text-foreground">{act.title}</span>
           {act.priority === 'HIGH' && (
@@ -140,6 +140,17 @@ function FocusCard({ activity: act, clinicName, onDone, onEdit, onDelete }: {
             <span className="px-1.5 py-0.5 rounded text-[9px] font-semibold bg-red-100 text-red-700 dark:bg-red-900/50 dark:text-red-400 flex items-center gap-0.5">
               <AlertTriangle size={9} /> OVERDUE
             </span>
+          )}
+          {act.activity_type === 'DEMO' && isConfirmed !== undefined && (
+            isConfirmed ? (
+              <span className="px-1.5 py-0.5 rounded text-[9px] font-semibold bg-emerald-100 text-emerald-700 dark:bg-emerald-900/50 dark:text-emerald-400">
+                ✓ ได้คิวแล้ว
+              </span>
+            ) : (
+              <span className="px-1.5 py-0.5 rounded text-[9px] font-semibold bg-orange-100 text-orange-700 dark:bg-orange-900/50 dark:text-orange-400">
+                ขอคิวเดโม
+              </span>
+            )
           )}
         </div>
         <div className="flex items-center gap-2 text-[10px] text-muted-foreground mt-1">
