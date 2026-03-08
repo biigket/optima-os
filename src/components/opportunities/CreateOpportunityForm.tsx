@@ -143,7 +143,7 @@ function MultiSelectWithCustom({ label, options: defaultOptions, selected, onCha
           ))}
         </div>
       )}
-      <div className="border rounded-md max-h-[120px] overflow-y-auto p-2 space-y-1">
+      <div className="border rounded-md p-2 space-y-1">
         {allOptions.map(opt => (
           <label key={opt} className="flex items-center gap-2 px-2 py-1 rounded hover:bg-muted/50 cursor-pointer">
             <Checkbox checked={selected.includes(opt)} onCheckedChange={() => toggle(opt)} />
@@ -340,7 +340,7 @@ export default function CreateOpportunityForm({ open, onOpenChange, onSave, cust
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md max-h-[85vh] flex flex-col">
+      <DialogContent className="max-w-md max-h-[85vh] flex flex-col overflow-x-hidden">
         <DialogHeader>
           <DialogTitle>เพิ่มดีลใหม่</DialogTitle>
           <DialogDescription className="sr-only">สร้างโอกาสขายใหม่</DialogDescription>
@@ -472,7 +472,7 @@ export default function CreateOpportunityForm({ open, onOpenChange, onSave, cust
                     })}
                   </div>
                 )}
-                <div className="border rounded-md max-h-[120px] overflow-y-auto p-2 space-y-1">
+                <div className="border rounded-md p-2 space-y-1">
                   {products.length === 0 && <p className="text-xs text-muted-foreground py-2 text-center">ไม่พบสินค้า</p>}
                   {products.map(p => (
                     <label key={p.id} className="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-muted/50 cursor-pointer">
