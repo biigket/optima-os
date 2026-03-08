@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { MapPin, Clock, Building2, CheckCircle2, ArrowRight, Camera, Navigation, CalendarClock } from 'lucide-react';
+import { MapPin, Clock, Building2, CheckCircle2, ArrowRight, Camera, Navigation, CalendarClock, SwitchCamera } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
