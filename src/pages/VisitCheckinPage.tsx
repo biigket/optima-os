@@ -1,7 +1,10 @@
 import { useState, useEffect, useRef } from 'react';
-import { MapPin, Clock, Building2, CheckCircle2, ArrowRight, Camera, Navigation } from 'lucide-react';
+import { MapPin, Clock, Building2, CheckCircle2, ArrowRight, Camera, Navigation, CalendarClock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
 import { supabase } from '@/integrations/supabase/client';
 import { format } from 'date-fns';
 import { th } from 'date-fns/locale';
@@ -21,6 +24,9 @@ interface VisitPlan {
   account_id: string;
   visit_type: string;
   status: string;
+  notes?: string | null;
+  start_time?: string | null;
+  end_time?: string | null;
   accounts?: { id: string; clinic_name: string } | null;
 }
 
@@ -38,6 +44,14 @@ export default function VisitCheckinPage() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const navigate = useNavigate();
+
+  // Reschedule state
+  const [reschedulePlan, setReschedulePlan] = useState<VisitPlan | null>(null);
+  const [rescheduleDate, setRescheduleDate] = useState('');
+  const [rescheduleStart, setRescheduleStart] = useState('09:00');
+  const [rescheduleEnd, setRescheduleEnd] = useState('10:00');
+  const [rescheduleReason, setRescheduleReason] = useState('');
+  const [rescheduleSubmitting, setRescheduleSubmitting] = useState(false);
 
   const today = format(new Date(), 'yyyy-MM-dd');
 
@@ -193,6 +207,30 @@ export default function VisitCheckinPage() {
     navigate(`/visit-reports?plan=${plan.id}&account=${plan.account_id}`);
   }
 
+  function openRescheduleDialog(plan: VisitPlan) {
+    setReschedulePlan(plan);
+    setRescheduleDate(format(new Date(new Date().getTime() + 86400000), 'yyyy-MM-dd'));
+    setRescheduleStart('09:00');
+    setRescheduleEnd('10:00');
+    setRescheduleReason('');
+  }
+
+  async function handleReschedule() {
+    if (!reschedulePlan || !rescheduleDate || !rescheduleReason.trim()) return;
+    setRescheduleSubmitting(true);
+    const { error } = await supabase.from('visit_plans').update({
+      plan_date: rescheduleDate,
+      start_time: rescheduleStart,
+      end_time: rescheduleEnd,
+      notes: `[เปลี่ยนแผน] ${rescheduleReason}${reschedulePlan.notes ? `\n${reschedulePlan.notes}` : ''}`,
+    }).eq('id', reschedulePlan.id);
+    setRescheduleSubmitting(false);
+    if (error) { toast.error('เปลี่ยนแผนไม่สำเร็จ'); return; }
+    toast.success('เปลี่ยนแผนเยี่ยมแล้ว');
+    setReschedulePlan(null);
+    fetchPlans();
+  }
+
   const planned = plans.filter(p => p.status === 'PLANNED');
   const checkedIn = plans.filter(p => p.status === 'CHECKED_IN');
   const reported = plans.filter(p => p.status === 'REPORTED');
@@ -231,13 +269,23 @@ export default function VisitCheckinPage() {
                     </div>
                     <Badge variant="outline" className="text-[10px] mt-1">{plan.visit_type === 'NEW' ? 'ลูกค้าใหม่' : 'ลูกค้าเก่า'}</Badge>
                   </div>
-                  <Button
-                    size="sm"
-                    className="gap-1.5 shrink-0"
-                    onClick={() => openCheckinDialog(plan)}
-                  >
-                    <Camera size={14} /> เช็คอิน
-                  </Button>
+                  <div className="flex gap-1.5 shrink-0">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="gap-1 text-xs"
+                      onClick={() => openRescheduleDialog(plan)}
+                    >
+                      <CalendarClock size={14} /> เปลี่ยนแผน
+                    </Button>
+                    <Button
+                      size="sm"
+                      className="gap-1.5"
+                      onClick={() => openCheckinDialog(plan)}
+                    >
+                      <Camera size={14} /> เช็คอิน
+                    </Button>
+                  </div>
                 </div>
               ))}
             </div>
@@ -368,6 +416,52 @@ export default function VisitCheckinPage() {
             {!capturedPhoto && !location && (
               <p className="text-xs text-muted-foreground text-center">ต้องถ่ายรูปและดึงตำแหน่ง GPS ก่อนเช็คอิน</p>
             )}
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Reschedule Dialog */}
+      <Dialog open={!!reschedulePlan} onOpenChange={open => { if (!open) setReschedulePlan(null); }}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <CalendarClock size={18} /> เปลี่ยนแผนเยี่ยม
+            </DialogTitle>
+            <DialogDescription>
+              {reschedulePlan?.accounts?.clinic_name} — เลือกวันเวลาใหม่และระบุเหตุผล
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label>วันที่ใหม่</Label>
+              <Input type="date" value={rescheduleDate} onChange={e => setRescheduleDate(e.target.value)} />
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <Label>เวลาเริ่ม</Label>
+                <Input type="time" value={rescheduleStart} onChange={e => setRescheduleStart(e.target.value)} />
+              </div>
+              <div>
+                <Label>เวลาสิ้นสุด</Label>
+                <Input type="time" value={rescheduleEnd} onChange={e => setRescheduleEnd(e.target.value)} />
+              </div>
+            </div>
+            <div>
+              <Label>เหตุผลที่เปลี่ยนแผน <span className="text-destructive">*</span></Label>
+              <Textarea
+                placeholder="เช่น ลูกค้าติดธุระ, เปลี่ยนวันนัด..."
+                value={rescheduleReason}
+                onChange={e => setRescheduleReason(e.target.value)}
+                rows={3}
+              />
+            </div>
+            <Button
+              className="w-full gap-2"
+              disabled={!rescheduleDate || !rescheduleReason.trim() || rescheduleSubmitting}
+              onClick={handleReschedule}
+            >
+              {rescheduleSubmitting ? 'กำลังบันทึก...' : '📅 ยืนยันเปลี่ยนแผน'}
+            </Button>
           </div>
         </DialogContent>
       </Dialog>
