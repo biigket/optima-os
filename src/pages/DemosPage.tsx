@@ -44,7 +44,7 @@ export default function DemosPage() {
   const [demos, setDemos] = useState<DemoRow[]>([]);
   const [accounts, setAccounts] = useState<Record<string, AccountInfo>>({});
   const [search, setSearch] = useState('');
-  const [statusFilter, setStatusFilter] = useState<'ALL' | 'UPCOMING' | 'PAST'>('ALL');
+  const [statusFilter, setStatusFilter] = useState<'SHOW_ALL' | 'ALL' | 'UPCOMING' | 'PAST'>('ALL');
   const [createOpen, setCreateOpen] = useState(false);
   const [loading, setLoading] = useState(true);
 
@@ -86,9 +86,10 @@ export default function DemosPage() {
       const matchSearch = !search || acc?.clinic_name.toLowerCase().includes(search.toLowerCase());
       const isConfirmed = !!d.confirmed;
       const isDone = !!d.report_submitted || (d.demo_date != null && d.demo_date < today);
-      if (statusFilter === 'ALL') return matchSearch && !isConfirmed && !isDone; // ขอคิวเดโม
-      if (statusFilter === 'UPCOMING') return matchSearch && isConfirmed && !isDone; // ได้คิวแล้ว
-      if (statusFilter === 'PAST') return matchSearch && isDone; // เสร็จแล้ว
+      if (statusFilter === 'SHOW_ALL') return matchSearch;
+      if (statusFilter === 'ALL') return matchSearch && !isConfirmed && !isDone;
+      if (statusFilter === 'UPCOMING') return matchSearch && isConfirmed && !isDone;
+      if (statusFilter === 'PAST') return matchSearch && isDone;
       return matchSearch;
     });
   }, [demos, accounts, search, statusFilter, today]);
@@ -138,13 +139,13 @@ export default function DemosPage() {
           <Input placeholder="ค้นหาคลินิก..." value={search} onChange={e => setSearch(e.target.value)} className="pl-9 h-9" />
         </div>
         <div className="flex gap-1">
-          {(['ALL', 'UPCOMING', 'PAST'] as const).map(s => (
+          {(['SHOW_ALL', 'ALL', 'UPCOMING', 'PAST'] as const).map(s => (
             <button
               key={s}
               onClick={() => setStatusFilter(s)}
               className={`px-2.5 py-1 rounded-md text-xs font-medium transition-colors ${statusFilter === s ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground hover:bg-muted/80'}`}
             >
-              {s === 'ALL' ? 'ขอคิวเดโม' : s === 'UPCOMING' ? 'ได้คิวแล้ว' : 'เสร็จแล้ว'}
+              {s === 'SHOW_ALL' ? 'ทั้งหมด' : s === 'ALL' ? 'ขอคิวเดโม' : s === 'UPCOMING' ? 'ได้คิวแล้ว' : 'เสร็จแล้ว'}
             </button>
           ))}
         </div>
