@@ -235,7 +235,7 @@ export default function CreateDemoWizard({ open, onOpenChange, onSuccess }: Crea
   const [dealForm, setDealForm] = useState({
     selectedProductIds: [] as string[],
     deal_value: '',
-    stage: 'DEMO_SCHEDULED' as string,
+    stage: 'CONTACTED' as string,
     close_date: '',
     notes: '',
     budget_range: '',
@@ -271,7 +271,7 @@ export default function CreateDemoWizard({ open, onOpenChange, onSuccess }: Crea
     setSelectedDealId(null);
     setShowNewDealForm(false);
     setDealForm({
-      selectedProductIds: [], deal_value: '', stage: 'DEMO_SCHEDULED', close_date: '', notes: '',
+      selectedProductIds: [], deal_value: '', stage: 'CONTACTED', close_date: '', notes: '',
       budget_range: '', payment_method: '', credit_card_option: '', competitors: [],
       authority_contact_id: '',
     });
@@ -400,7 +400,7 @@ export default function CreateDemoWizard({ open, onOpenChange, onSuccess }: Crea
       .from('opportunities')
       .insert({
         account_id: selectedAccount.id,
-        stage: dealForm.stage || 'DEMO_SCHEDULED',
+        stage: dealForm.stage || 'CONTACTED',
         opportunity_type: 'DEVICE',
         interested_products: selectedProds.map(p => p.product_name),
         expected_value: Number(dealForm.deal_value),
@@ -467,19 +467,19 @@ export default function CreateDemoWizard({ open, onOpenChange, onSuccess }: Crea
 
     const deal = existingDeals.find(d => d.id === selectedDealId);
 
-    // Move opportunity to DEMO_SCHEDULED if in earlier stage
+    // Move opportunity to CONTACTED (Demo Schedule) if in earlier stage
     if (deal) {
-      const earlyStages = ['NEW_LEAD', 'CONTACTED'];
+      const earlyStages = ['NEW_LEAD'];
       if (earlyStages.includes(deal.stage)) {
         await supabase
           .from('opportunities')
-          .update({ stage: 'DEMO_SCHEDULED' })
+          .update({ stage: 'CONTACTED' })
           .eq('id', selectedDealId);
 
         await supabase.from('opportunity_stage_history').insert({
           opportunity_id: selectedDealId,
           from_stage: deal.stage,
-          to_stage: 'DEMO_SCHEDULED',
+          to_stage: 'CONTACTED',
           changed_by: 'system (demo wizard)',
         });
       }

@@ -31,8 +31,8 @@ export async function syncDemoFromActivity(params: {
     console.error('Failed to create demo record:', demoErr);
   }
 
-  // 2. Move opportunity to DEMO_SCHEDULED if it's in an earlier stage
-  const earlyStages = ['NEW_LEAD', 'CONTACTED'];
+  // 2. Move opportunity to CONTACTED (Demo Schedule) if it's in an earlier stage
+  const earlyStages = ['NEW_LEAD'];
   const { data: opp } = await supabase
     .from('opportunities')
     .select('stage')
@@ -42,14 +42,14 @@ export async function syncDemoFromActivity(params: {
   if (opp && earlyStages.includes(opp.stage)) {
     await supabase
       .from('opportunities')
-      .update({ stage: 'DEMO_SCHEDULED' })
+      .update({ stage: 'CONTACTED' })
       .eq('id', opportunityId);
 
     // Record stage history
     await supabase.from('opportunity_stage_history').insert({
       opportunity_id: opportunityId,
       from_stage: opp.stage,
-      to_stage: 'DEMO_SCHEDULED',
+      to_stage: 'CONTACTED',
       changed_by: 'system (demo sync)',
     });
   }
@@ -79,17 +79,17 @@ export async function ensureOpportunityForDemo(params: {
 
   if (existingOpps && existingOpps.length > 0) {
     const opp = existingOpps[0];
-    const earlyStages = ['NEW_LEAD', 'CONTACTED'];
+    const earlyStages = ['NEW_LEAD'];
     if (earlyStages.includes(opp.stage)) {
       await supabase
         .from('opportunities')
-        .update({ stage: 'DEMO_SCHEDULED' })
+        .update({ stage: 'CONTACTED' })
         .eq('id', opp.id);
 
       await supabase.from('opportunity_stage_history').insert({
         opportunity_id: opp.id,
         from_stage: opp.stage,
-        to_stage: 'DEMO_SCHEDULED',
+        to_stage: 'CONTACTED',
         changed_by: 'system (demo sync)',
       });
     }
@@ -101,7 +101,7 @@ export async function ensureOpportunityForDemo(params: {
     .from('opportunities')
     .insert({
       account_id: accountId,
-      stage: 'DEMO_SCHEDULED',
+      stage: 'CONTACTED',
       opportunity_type: 'DEVICE',
       assigned_sale: assignedSale || null,
     })
