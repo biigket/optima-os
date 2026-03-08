@@ -233,10 +233,11 @@ export default function VisitCheckinPage() {
     const fileName = `checkin_${checkinPlan.id}_${Date.now()}.jpg`;
     const { error: uploadErr } = await supabase.storage
       .from('checkin-photos')
-      .upload(fileName, capturedBlob, { contentType: 'image/jpeg' });
+      .upload(fileName, capturedBlob, { contentType: 'image/jpeg', upsert: true });
 
     if (uploadErr) {
-      toast.error('อัพโหลดรูปไม่สำเร็จ');
+      console.error('Upload error:', uploadErr);
+      toast.error(`อัพโหลดรูปไม่สำเร็จ: ${uploadErr.message}`);
       setSubmitting(false);
       return;
     }
@@ -253,10 +254,11 @@ export default function VisitCheckinPage() {
       status: 'CHECKED_IN',
       photo: photoUrl,
       location: locationStr,
-    }).select('id').single();
+    }).select('id').maybeSingle();
 
-    if (error) {
-      toast.error('เช็คอินไม่สำเร็จ');
+    if (error || !report) {
+      console.error('Visit report insert error:', error);
+      toast.error(`เช็คอินไม่สำเร็จ: ${error?.message || 'ไม่สามารถสร้างรายงานได้'}`);
       setSubmitting(false);
       return;
     }
