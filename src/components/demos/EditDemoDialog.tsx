@@ -79,7 +79,7 @@ export default function EditDemoDialog({ demo, clinicName, open, onOpenChange, o
     if (!oppId || !demoDate) return;
     const { data } = await supabase
       .from('activities')
-      .select('start_time, end_time')
+      .select('start_time, end_time, location, description')
       .eq('opportunity_id', oppId)
       .eq('activity_type', 'DEMO')
       .eq('activity_date', demoDate)
@@ -88,6 +88,9 @@ export default function EditDemoDialog({ demo, clinicName, open, onOpenChange, o
     if (data) {
       setStartTime(data.start_time || '09:00');
       setEndTime(data.end_time || '10:00');
+      // Fallback: use activity location/description if demo record is missing them
+      if (!location && data.location) setLocation(data.location);
+      if (!note && data.description) setNote(data.description);
     }
   }
 
