@@ -434,6 +434,7 @@ export default function CustomerCardPage() {
                   { value: 'overview', icon: LayoutDashboard, label: 'ภาพรวม' },
                   { value: 'deals', icon: Handshake, label: 'โอกาสขาย' },
                   { value: 'visits', icon: MapPin, label: 'การเยี่ยม / รายงาน' },
+                  { value: 'demo-reports', icon: Presentation, label: `รายงานเคส DEMO${demoReports.length > 0 ? ` (${demoReports.length})` : ''}` },
                   { value: 'devices', icon: Monitor, label: 'เครื่องที่ติดตั้งแล้ว' },
                   { value: 'consumables', icon: ShoppingCart, label: 'Consumable' },
                   { value: 'service', icon: Wrench, label: 'เซอร์วิส' },
