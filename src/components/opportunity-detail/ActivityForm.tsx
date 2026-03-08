@@ -449,14 +449,10 @@ export default function ActivityForm({
         </div>
       </div>
 
-      {/* Priority - locked to HIGH for DEMO */}
-      <div>
-        <label className="text-[10px] text-muted-foreground">ความสำคัญ</label>
-        {selectedType === 'DEMO' ? (
-          <div className="mt-1 px-2 py-1.5 rounded-md bg-destructive/10 border border-destructive/20 text-xs font-medium text-destructive">
-            HIGH
-          </div>
-        ) : (
+      {/* Priority - hidden for DEMO (auto HIGH) */}
+      {selectedType !== 'DEMO' && (
+        <div>
+          <label className="text-[10px] text-muted-foreground">ความสำคัญ</label>
           <Select value={priority} onValueChange={v => setPriority(v as ActivityPriority)}>
             <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
             <SelectContent>
@@ -465,8 +461,8 @@ export default function ActivityForm({
               <SelectItem value="HIGH" className="text-xs">High</SelectItem>
             </SelectContent>
           </Select>
-        )}
-      </div>
+        </div>
+      )}
 
       {/* Product Specialist - DEMO only */}
       {selectedType === 'DEMO' && (
