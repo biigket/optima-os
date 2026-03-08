@@ -158,7 +158,7 @@ export default function DemosPage() {
                     <div>
                       <p className="text-sm font-semibold text-foreground">{acc?.clinic_name || 'ไม่ระบุ'}</p>
                       <Badge variant={isUpcoming ? 'default' : 'secondary'} className="text-[10px] mt-0.5">
-                        {isUpcoming ? 'กำลังจะมา' : 'เสร็จแล้ว'}
+                        {isUpcoming ? 'ขอคิวเดโม' : 'เสร็จแล้ว'}
                       </Badge>
                     </div>
                   </div>
