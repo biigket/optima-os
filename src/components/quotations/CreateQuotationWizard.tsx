@@ -146,6 +146,7 @@ export default function CreateQuotationWizard({ open, onOpenChange, onCreated }:
   // Step 1: Products
   const [productLines, setProductLines] = useState<ProductLine[]>([]);
   const [discount, setDiscount] = useState(0);
+  const [includeVat, setIncludeVat] = useState(true);
 
   // Step 2: Details
   const [qtNumber, setQtNumber] = useState('');
