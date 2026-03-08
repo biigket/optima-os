@@ -269,7 +269,7 @@ export default function CreateQuotationWizard({ open, onOpenChange, onCreated }:
   // Calculations
   const subtotal = productLines.reduce((sum, p) => sum + p.qty * p.unitPrice, 0);
   const netPrice = subtotal - discount;
-  const vat = Math.round(netPrice * 0.07);
+  const vat = includeVat ? Math.round(netPrice * 0.07) : 0;
   const grandTotal = netPrice + vat;
 
   const expiryDate = qtDate ? format(addDays(new Date(qtDate), validityDays), 'yyyy-MM-dd') : '';
