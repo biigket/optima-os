@@ -10,6 +10,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { syncDemoFromActivity } from '@/lib/demoSync';
 
 const TITLE_MAP: Record<string, string> = {
   CALL: 'โทร',

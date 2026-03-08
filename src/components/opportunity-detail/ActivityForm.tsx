@@ -228,9 +228,24 @@ export default function ActivityForm({
       const { data, error } = await supabase.from('activities').insert(payload).select().single();
       setSaving(false);
       if (error) { toast.error('บันทึกไม่สำเร็จ'); console.error(error); return; }
+
+      // Auto-create demo record + move pipeline when activity is DEMO
+      if (selectedType === 'DEMO') {
+        await syncDemoFromActivity({
+          accountId,
+          opportunityId,
+          demoDate: activityDate,
+          location: location || undefined,
+          visitedBy: assignedTo.length > 0 ? assignedTo : undefined,
+          demoNote: description || undefined,
+        });
+        toast.success('สร้างกิจกรรม + ใบงาน Demo แล้ว');
+      } else {
+        toast.success('สร้างกิจกรรมแล้ว');
+      }
+
       onActivityCreated(data as unknown as Activity);
       reset();
-      toast.success('สร้างกิจกรรมแล้ว');
     }
   };
 
