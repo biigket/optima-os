@@ -79,6 +79,15 @@ export default function VisitReportsPage() {
     setLoading(false);
   }
 
+  async function fetchAccountDevices(accountId: string): Promise<string> {
+    const { data } = await supabase
+      .from('accounts')
+      .select('current_devices')
+      .eq('id', accountId)
+      .single();
+    return data?.current_devices || '';
+  }
+
   async function openFormForAccount(accountId: string, planId: string) {
     // Find the report linked to this plan
     const { data: plans } = await supabase
@@ -94,15 +103,17 @@ export default function VisitReportsPage() {
         .eq('id', plans.visit_report_id)
         .single();
       if (report) {
-        setEditingReport(report as unknown as VisitReport);
-        setAction(report.action || '');
-        setMetWho(report.met_who || '');
-        setDevicesInUse(report.devices_in_use || '');
-        setIssues(report.issues || '');
-        setNextPlan(report.next_plan || '');
-        setCustomerType(report.customer_type || '');
-        setNewContactName(report.new_contact_name || '');
-        setNewContactPhone(report.new_contact_phone || '');
+        const r = report as unknown as VisitReport;
+        const accountDevices = r.account_id ? await fetchAccountDevices(r.account_id) : '';
+        setEditingReport(r);
+        setAction(r.action || '');
+        setMetWho(r.met_who || '');
+        setDevicesInUse(r.devices_in_use || accountDevices);
+        setIssues(r.issues || '');
+        setNextPlan(r.next_plan || '');
+        setCustomerType(r.customer_type || '');
+        setNewContactName(r.new_contact_name || '');
+        setNewContactPhone(r.new_contact_phone || '');
         setFormOpen(true);
       }
     }
