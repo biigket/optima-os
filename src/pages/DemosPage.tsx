@@ -118,7 +118,7 @@ export default function DemosPage() {
               onClick={() => setStatusFilter(s)}
               className={`px-2.5 py-1 rounded-md text-xs font-medium transition-colors ${statusFilter === s ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground hover:bg-muted/80'}`}
             >
-              {s === 'ALL' ? 'ทั้งหมด' : s === 'UPCOMING' ? 'กำลังจะมา' : 'เสร็จแล้ว'}
+              {s === 'ALL' ? 'ขอคิวเดโม' : s === 'UPCOMING' ? 'ได้คิวแล้ว' : 'เสร็จแล้ว'}
             </button>
           ))}
         </div>
