@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { MapPin, Clock, Building2, CheckCircle2, ArrowRight, Camera, Navigation, CalendarClock } from 'lucide-react';
+import { MapPin, Clock, Building2, CheckCircle2, ArrowRight, Camera, Navigation, CalendarClock, SwitchCamera } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
@@ -40,6 +40,7 @@ export default function VisitCheckinPage() {
   const [locating, setLocating] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [cameraActive, setCameraActive] = useState(false);
+  const [facingMode, setFacingMode] = useState<'environment' | 'user'>('environment');
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
@@ -84,17 +85,22 @@ export default function VisitCheckinPage() {
     setLocation(null);
   }
 
-  async function startCamera() {
+  async function startCamera(mode: 'environment' | 'user' = facingMode) {
+    // Stop any existing stream first
+    streamRef.current?.getTracks().forEach(t => t.stop());
+    streamRef.current = null;
+
     try {
       const stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 960 } },
+        video: { facingMode: mode, width: { ideal: 1280 }, height: { ideal: 960 } },
         audio: false,
       });
       streamRef.current = stream;
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
-        videoRef.current.play();
+        await videoRef.current.play();
       }
+      setFacingMode(mode);
       setCameraActive(true);
     } catch {
       toast.error('ไม่สามารถเปิดกล้องได้ กรุณาอนุญาตการเข้าถึงกล้อง');
@@ -107,6 +113,11 @@ export default function VisitCheckinPage() {
     setCameraActive(false);
   }
 
+  async function switchCamera() {
+    const newMode = facingMode === 'environment' ? 'user' : 'environment';
+    await startCamera(newMode);
+  }
+
   function capturePhoto() {
     const video = videoRef.current;
     const canvas = canvasRef.current;
@@ -116,6 +127,12 @@ export default function VisitCheckinPage() {
     canvas.height = video.videoHeight;
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
+
+    // Mirror front camera
+    if (facingMode === 'user') {
+      ctx.translate(canvas.width, 0);
+      ctx.scale(-1, 1);
+    }
     ctx.drawImage(video, 0, 0);
 
     const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
@@ -355,19 +372,29 @@ export default function VisitCheckinPage() {
             <div>
               <label className="text-sm font-medium text-foreground mb-1.5 block">📷 ถ่ายรูปหน้าร้าน</label>
               {!capturedPhoto && !cameraActive && (
-                <Button variant="outline" className="w-full gap-2" onClick={startCamera}>
+                <Button variant="outline" className="w-full gap-2" onClick={() => startCamera()}>
                   <Camera size={16} /> เปิดกล้อง
                 </Button>
               )}
               {cameraActive && (
                 <div className="space-y-2">
-                  <video
-                    ref={videoRef}
-                    className="w-full rounded-lg border bg-black aspect-[4/3] object-cover"
-                    autoPlay
-                    playsInline
-                    muted
-                  />
+                  <div className="relative">
+                    <video
+                      ref={videoRef}
+                      className={`w-full rounded-lg border bg-black aspect-[4/3] object-cover ${facingMode === 'user' ? 'scale-x-[-1]' : ''}`}
+                      autoPlay
+                      playsInline
+                      muted
+                    />
+                    <Button
+                      size="icon"
+                      variant="secondary"
+                      className="absolute top-2 right-2 h-9 w-9 rounded-full opacity-90"
+                      onClick={switchCamera}
+                    >
+                      <SwitchCamera size={18} />
+                    </Button>
+                  </div>
                   <Button className="w-full gap-2" onClick={capturePhoto}>
                     <Camera size={16} /> ถ่ายรูป
                   </Button>
