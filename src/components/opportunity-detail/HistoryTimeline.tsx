@@ -70,7 +70,7 @@ export default function HistoryTimeline({ activities, stageHistory, notes, onUpd
   const items: TimelineItem[] = [];
 
   if (filter === 'all' || filter === 'activities') {
-    doneActivities.forEach(a => items.push({ type: 'activity', date: a.created_at, data: a }));
+    timelineActivities.forEach(a => items.push({ type: 'activity', date: a.created_at, data: a }));
   }
   if (filter === 'all' || filter === 'changelog') {
     stageHistory.forEach(s => items.push({ type: 'stage', date: s.date, data: s }));
