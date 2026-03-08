@@ -15,6 +15,8 @@ import StatusBadge from '@/components/ui/StatusBadge';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
+import { format } from 'date-fns';
+import { th } from 'date-fns/locale';
 import { MOCK_SALES } from '@/hooks/useMockAuth';
 import {
   ArrowLeft, Phone, MessageCircle, StickyNote, CalendarPlus, ListPlus, Pencil,
@@ -112,6 +114,7 @@ export default function CustomerCardPage() {
   const [accountNotes, setAccountNotes] = useState<OpportunityNote[]>([]);
   const [accountPinnedIds, setAccountPinnedIds] = useState<Set<string>>(new Set());
   const [chatImages, setChatImages] = useState<{ id: string; file_url: string; file_name: string; uploaded_by: string | null; created_at: string; opportunity_id: string }[]>([]);
+  const [visitReports, setVisitReports] = useState<any[]>([]);
 
   // Fetch activities, stage history, and notes for this account
   useEffect(() => {
@@ -142,6 +145,12 @@ export default function CustomerCardPage() {
       .order('created_at', { ascending: false })
       .then(({ data }) => {
         if (data) setChatImages(data as any);
+      });
+    // Visit reports
+    supabase.from('visit_reports').select('*').eq('account_id', id)
+      .order('created_at', { ascending: false })
+      .then(({ data }) => {
+        if (data) setVisitReports(data);
       });
   }, [id, opportunities]);
   const handleSubmit = async () => {
@@ -547,42 +556,37 @@ export default function CustomerCardPage() {
 
             {/* ===== VISITS + REPORTS (การเยี่ยม / รายงาน) ===== */}
             <TabsContent value="visits" className="mt-0 space-y-5">
-              {/* Visits */}
               <div>
-                <p className="text-xs font-medium text-muted-foreground flex items-center gap-1 mb-3"><MapPin size={12} /> บันทึกการเยี่ยม</p>
+                <p className="text-xs font-medium text-muted-foreground flex items-center gap-1 mb-3"><MapPin size={12} /> บันทึกการเยี่ยม ({visitReports.length})</p>
                 <div className="space-y-3">
-                  {visits.map(v => (
-                    <div key={v.id} className="p-3 rounded-md bg-muted/30 border space-y-1.5">
-                      <div className="flex justify-between items-center">
-                        <span className="text-xs text-muted-foreground">{v.date}</span>
-                        <Badge variant="outline" className="text-[10px] h-5">{v.salesPerson}</Badge>
-                      </div>
-                      <p className="text-sm font-medium text-foreground">{v.purpose}</p>
-                      <p className="text-xs text-muted-foreground">{v.summary}</p>
-                      <p className="text-xs text-primary">ถัดไป: {v.nextStep}</p>
-                    </div>
-                  ))}
-                  {visits.length === 0 && <Empty text="ยังไม่มีบันทึกการเยี่ยม" />}
-                </div>
-              </div>
-              {/* Reports */}
-              <div>
-                <p className="text-xs font-medium text-muted-foreground flex items-center gap-1 mb-3"><FileText size={12} /> รายงาน / Market Intelligence</p>
-                <div className="space-y-3">
-                  {reports.map(r => (
+                  {visitReports.map(r => (
                     <div key={r.id} className="p-3 rounded-md bg-muted/30 border space-y-2">
+                      {r.photo && (
+                        <img src={r.photo} alt="check-in" className="w-full rounded-md aspect-[16/9] object-cover" />
+                      )}
                       <div className="flex justify-between items-center">
-                        <span className="text-xs text-muted-foreground">{r.date}</span>
-                        <Badge variant={r.interestLevel === 'HIGH' ? 'default' : 'secondary'} className="text-[10px] h-5">สนใจ: {r.interestLevel}</Badge>
+                        <span className="text-xs text-muted-foreground">
+                          {r.check_in_at ? format(new Date(r.check_in_at), 'd MMM yyyy HH:mm', { locale: th }) : '-'}
+                        </span>
+                        <Badge variant={r.status === 'REPORTED' ? 'default' : 'secondary'} className="text-[10px] h-5">
+                          {r.status === 'REPORTED' ? 'รายงานแล้ว' : 'รอกรอกรายงาน'}
+                        </Badge>
                       </div>
                       <div className="space-y-1 text-xs">
-                        <p><span className="text-muted-foreground">Feedback:</span> <span className="text-foreground">{r.doctorFeedback}</span></p>
-                        <p><span className="text-muted-foreground">คู่แข่ง:</span> <span className="text-foreground">{r.competitorMentioned}</span></p>
-                        <p><span className="text-muted-foreground">ข้อโต้แย้ง:</span> <span className="text-foreground">{r.objections}</span></p>
+                        {r.met_who && <p><span className="text-muted-foreground">พบ:</span> <span className="text-foreground">{r.met_who}</span></p>}
+                        {r.action && <p><span className="text-muted-foreground">สิ่งที่ทำ:</span> <span className="text-foreground">{r.action}</span></p>}
+                        {r.devices_in_use && <p><span className="text-muted-foreground">เครื่องมือ:</span> <span className="text-foreground">{r.devices_in_use}</span></p>}
+                        {r.issues && <p><span className="text-muted-foreground">ปัญหา:</span> <span className="text-foreground">{r.issues}</span></p>}
+                        {r.next_plan && <p className="text-primary">ถัดไป: {r.next_plan}</p>}
+                        {r.customer_type && (
+                          <p><span className="text-muted-foreground">ผลเยี่ยม:</span> <span className="text-foreground">
+                            {r.customer_type === 'INTERESTED' ? 'สนใจ' : r.customer_type === 'NOT_INTERESTED' ? 'ไม่สนใจ' : 'ลูกค้าเก่า'}
+                          </span></p>
+                        )}
                       </div>
                     </div>
                   ))}
-                  {reports.length === 0 && <Empty text="ยังไม่มีรายงาน" />}
+                  {visitReports.length === 0 && <Empty text="ยังไม่มีบันทึกการเยี่ยม" />}
                 </div>
               </div>
             </TabsContent>
