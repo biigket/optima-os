@@ -86,9 +86,10 @@ export default function DemosPage() {
       const matchSearch = !search || acc?.clinic_name.toLowerCase().includes(search.toLowerCase());
       const isConfirmed = !!d.confirmed;
       const isDone = !!d.report_submitted || (d.demo_date != null && d.demo_date < today);
-      if (statusFilter === 'ALL') return matchSearch && !isConfirmed && !isDone; // ขอคิวเดโม
-      if (statusFilter === 'UPCOMING') return matchSearch && isConfirmed && !isDone; // ได้คิวแล้ว
-      if (statusFilter === 'PAST') return matchSearch && isDone; // เสร็จแล้ว
+      if (statusFilter === 'SHOW_ALL') return matchSearch;
+      if (statusFilter === 'ALL') return matchSearch && !isConfirmed && !isDone;
+      if (statusFilter === 'UPCOMING') return matchSearch && isConfirmed && !isDone;
+      if (statusFilter === 'PAST') return matchSearch && isDone;
       return matchSearch;
     });
   }, [demos, accounts, search, statusFilter, today]);
