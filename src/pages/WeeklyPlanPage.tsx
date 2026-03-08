@@ -49,15 +49,27 @@ export default function WeeklyPlanPage() {
 
   useEffect(() => { fetchPlans(); }, [fetchPlans]);
 
+  const objectiveColors: Record<string, { bg: string; border: string; text: string }> = {
+    'New visit':    { bg: '#dbeafe', border: '#3b82f6', text: '#1e40af' },
+    'Demo':         { bg: '#fce7f3', border: '#ec4899', text: '#9d174d' },
+    'Follow up':    { bg: '#dcfce7', border: '#22c55e', text: '#15803d' },
+    'Training':     { bg: '#fef3c7', border: '#f59e0b', text: '#92400e' },
+    'เซนต์สัญญา':   { bg: '#e0e7ff', border: '#6366f1', text: '#3730a3' },
+    'รับเช็ค':      { bg: '#fef9c3', border: '#eab308', text: '#854d0e' },
+  };
+  const defaultColor = { bg: '#f3f4f6', border: '#9ca3af', text: '#6b7280' };
+
+  const statusOverlay: Record<string, number> = {
+    PLANNED: 1,
+    CHECKED_IN: 0.85,
+    REPORTED: 0.6,
+  };
+
   const events = plans.map(p => {
     const st = p.start_time || '09:00';
     const et = p.end_time || '10:00';
-    const statusColors: Record<string, { bg: string; border: string; text: string }> = {
-      PLANNED: { bg: '#dcfce7', border: '#22c55e', text: '#15803d' },
-      CHECKED_IN: { bg: '#fef3c7', border: '#f59e0b', text: '#92400e' },
-      REPORTED: { bg: '#f3f4f6', border: '#9ca3af', text: '#6b7280' },
-    };
-    const c = statusColors[p.status] || statusColors.PLANNED;
+    const c = (p.objective && objectiveColors[p.objective]) || defaultColor;
+    const opacity = statusOverlay[p.status] ?? 1;
     return {
       id: p.id,
       title: p.accounts?.clinic_name || 'ลูกค้า',
@@ -66,7 +78,7 @@ export default function WeeklyPlanPage() {
       backgroundColor: c.bg,
       borderColor: c.border,
       textColor: c.text,
-      extendedProps: { plan: p },
+      extendedProps: { plan: p, opacity },
     };
   });
 
