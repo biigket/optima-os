@@ -7,15 +7,34 @@ import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import StatusBadge from '@/components/ui/StatusBadge';
 import {
   LayoutDashboard, Clock, Handshake, MapPin, FileText, CheckSquare,
-  Eye, Phone as PhoneIcon, Presentation, Users, FileCheck, Wrench, GraduationCap, MessageSquare
+  Eye, Phone as PhoneIcon, Presentation, Users, FileCheck, Wrench, GraduationCap, MessageSquare, Camera
 } from 'lucide-react';
 import {
-  getTimelineForAccount, getVisitsForAccount, getReportsForAccount,
+  getTimelineForAccount, getVisitsForAccount,
   getLifetimeRevenue, getDevicesForAccount
 } from '@/data/customerCardMockData';
 import { mockWorkItems, type WorkItem } from '@/data/mockData';
 import { supabase } from '@/integrations/supabase/client';
 import type { OpportunityNote } from '@/hooks/useOpportunityNotes';
+import { format } from 'date-fns';
+import { th } from 'date-fns/locale';
+
+interface VisitReportRow {
+  id: string;
+  account_id: string | null;
+  clinic_name: string | null;
+  check_in_at: string | null;
+  check_out_at: string | null;
+  status: string | null;
+  action: string | null;
+  met_who: string | null;
+  devices_in_use: string | null;
+  issues: string | null;
+  next_plan: string | null;
+  customer_type: string | null;
+  photo: string | null;
+  created_at: string;
+}
 
 interface Opportunity {
   id: string;
@@ -52,14 +71,18 @@ function formatCurrency(val?: number) {
 export default function CustomerCenterPanel({ accountId, opportunities }: Props) {
   const timeline = getTimelineForAccount(accountId);
   const visits = getVisitsForAccount(accountId);
-  const reports = getReportsForAccount(accountId);
   const devices = getDevicesForAccount(accountId);
   const revenue = getLifetimeRevenue(accountId);
   const tasks = mockWorkItems.filter((w: WorkItem) => w.linkedAccountId === accountId);
   const [internalNotes, setInternalNotes] = useState<OpportunityNote[]>([]);
+  const [visitReports, setVisitReports] = useState<VisitReportRow[]>([]);
+
   useEffect(() => {
     supabase.from('opportunity_notes').select('*').eq('account_id', accountId).order('created_at', { ascending: false })
       .then(({ data }) => { if (data) setInternalNotes(data as unknown as OpportunityNote[]); });
+
+    supabase.from('visit_reports').select('*').eq('account_id', accountId).order('created_at', { ascending: false })
+      .then(({ data }) => { if (data) setVisitReports(data as unknown as VisitReportRow[]); });
   }, [accountId]);
 
   const lastVisit = visits.length > 0 ? visits[0].date : '-';
@@ -90,7 +113,10 @@ export default function CustomerCenterPanel({ accountId, opportunities }: Props)
                 )}
               </TabsTrigger>
               <TabsTrigger value="reports" className="text-xs gap-1.5 rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none px-3 py-2.5">
-                <FileText size={13} /> รายงาน
+                <FileText size={13} /> บันทึกการเยี่ยม
+                {visitReports.length > 0 && (
+                  <span className="ml-1 text-[10px] bg-primary/10 text-primary rounded-full px-1.5 py-0.5 font-semibold">{visitReports.length}</span>
+                )}
               </TabsTrigger>
               <TabsTrigger value="tasks" className="text-xs gap-1.5 rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none px-3 py-2.5">
                 <CheckSquare size={13} /> งาน
@@ -219,25 +245,37 @@ export default function CustomerCenterPanel({ accountId, opportunities }: Props)
             </div>
           </TabsContent>
 
-          {/* Reports */}
+          {/* Reports - Visit Reports */}
           <TabsContent value="reports" className="mt-0">
             <div className="space-y-3">
-              {reports.map(r => (
+              {visitReports.map(r => (
                 <div key={r.id} className="p-3 rounded-md bg-muted/30 border space-y-2">
+                  {r.photo && (
+                    <img src={r.photo} alt="check-in" className="w-full rounded-md aspect-[16/9] object-cover" />
+                  )}
                   <div className="flex justify-between items-center">
-                    <span className="text-xs text-muted-foreground">{r.date}</span>
-                    <Badge variant={r.interestLevel === 'HIGH' ? 'default' : 'secondary'} className="text-[10px] h-5">
-                      สนใจ: {r.interestLevel}
+                    <span className="text-xs text-muted-foreground">
+                      {r.check_in_at ? format(new Date(r.check_in_at), 'd MMM yyyy HH:mm', { locale: th }) : '-'}
+                    </span>
+                    <Badge variant={r.status === 'REPORTED' ? 'default' : 'secondary'} className="text-[10px] h-5">
+                      {r.status === 'REPORTED' ? 'รายงานแล้ว' : 'รอกรอกรายงาน'}
                     </Badge>
                   </div>
                   <div className="space-y-1 text-xs">
-                    <p><span className="text-muted-foreground">Feedback:</span> <span className="text-foreground">{r.doctorFeedback}</span></p>
-                    <p><span className="text-muted-foreground">คู่แข่ง:</span> <span className="text-foreground">{r.competitorMentioned}</span></p>
-                    <p><span className="text-muted-foreground">ข้อโต้แย้ง:</span> <span className="text-foreground">{r.objections}</span></p>
+                    {r.met_who && <p><span className="text-muted-foreground">พบ:</span> <span className="text-foreground">{r.met_who}</span></p>}
+                    {r.action && <p><span className="text-muted-foreground">สิ่งที่ทำ:</span> <span className="text-foreground">{r.action}</span></p>}
+                    {r.devices_in_use && <p><span className="text-muted-foreground">เครื่องมือ:</span> <span className="text-foreground">{r.devices_in_use}</span></p>}
+                    {r.issues && <p><span className="text-muted-foreground">ปัญหา:</span> <span className="text-foreground">{r.issues}</span></p>}
+                    {r.next_plan && <p className="text-primary">ถัดไป: {r.next_plan}</p>}
+                    {r.customer_type && (
+                      <p><span className="text-muted-foreground">ผลเยี่ยม:</span> <span className="text-foreground">
+                        {r.customer_type === 'INTERESTED' ? 'สนใจ' : r.customer_type === 'NOT_INTERESTED' ? 'ไม่สนใจ' : 'ลูกค้าเก่า'}
+                      </span></p>
+                    )}
                   </div>
                 </div>
               ))}
-              {reports.length === 0 && <Empty text="ยังไม่มีรายงาน" />}
+              {visitReports.length === 0 && <Empty text="ยังไม่มีบันทึกการเยี่ยม" />}
             </div>
           </TabsContent>
 
