@@ -28,6 +28,7 @@ interface VisitReport {
   customer_type: string | null;
   new_contact_name: string | null;
   new_contact_phone: string | null;
+  photo: string | null;
   created_at: string;
   accounts?: { id: string; clinic_name: string } | null;
 }
@@ -78,6 +79,15 @@ export default function VisitReportsPage() {
     setLoading(false);
   }
 
+  async function fetchAccountDevices(accountId: string): Promise<string> {
+    const { data } = await supabase
+      .from('accounts')
+      .select('current_devices')
+      .eq('id', accountId)
+      .single();
+    return data?.current_devices || '';
+  }
+
   async function openFormForAccount(accountId: string, planId: string) {
     // Find the report linked to this plan
     const { data: plans } = await supabase
@@ -93,15 +103,17 @@ export default function VisitReportsPage() {
         .eq('id', plans.visit_report_id)
         .single();
       if (report) {
-        setEditingReport(report as unknown as VisitReport);
-        setAction(report.action || '');
-        setMetWho(report.met_who || '');
-        setDevicesInUse(report.devices_in_use || '');
-        setIssues(report.issues || '');
-        setNextPlan(report.next_plan || '');
-        setCustomerType(report.customer_type || '');
-        setNewContactName(report.new_contact_name || '');
-        setNewContactPhone(report.new_contact_phone || '');
+        const r = report as unknown as VisitReport;
+        const accountDevices = r.account_id ? await fetchAccountDevices(r.account_id) : '';
+        setEditingReport(r);
+        setAction(r.action || '');
+        setMetWho(r.met_who || '');
+        setDevicesInUse(r.devices_in_use || accountDevices);
+        setIssues(r.issues || '');
+        setNextPlan(r.next_plan || '');
+        setCustomerType(r.customer_type || '');
+        setNewContactName(r.new_contact_name || '');
+        setNewContactPhone(r.new_contact_phone || '');
         setFormOpen(true);
       }
     }
@@ -125,6 +137,13 @@ export default function VisitReportsPage() {
 
     if (error) { toast.error('บันทึกไม่สำเร็จ'); return; }
 
+    // Sync devices_in_use back to account's current_devices
+    if (editingReport.account_id && devicesInUse.trim()) {
+      await supabase.from('accounts').update({
+        current_devices: devicesInUse.trim(),
+      }).eq('id', editingReport.account_id);
+    }
+
     // Update plan status
     await supabase.from('visit_plans')
       .update({ status: 'REPORTED' })
@@ -141,11 +160,12 @@ export default function VisitReportsPage() {
     }
   }
 
-  function openReport(report: VisitReport) {
+  async function openReport(report: VisitReport) {
+    const accountDevices = report.account_id ? await fetchAccountDevices(report.account_id) : '';
     setEditingReport(report);
     setAction(report.action || '');
     setMetWho(report.met_who || '');
-    setDevicesInUse(report.devices_in_use || '');
+    setDevicesInUse(report.devices_in_use || accountDevices);
     setIssues(report.issues || '');
     setNextPlan(report.next_plan || '');
     setCustomerType(report.customer_type || '');
@@ -238,6 +258,22 @@ export default function VisitReportsPage() {
             <DialogTitle>รายงานเยี่ยมลูกค้า: {editingReport?.clinic_name || editingReport?.accounts?.clinic_name}</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
+            {/* Check-in Photo */}
+            {editingReport?.photo && (
+              <div>
+                <label className="text-sm font-medium text-foreground">📷 รูปเช็คอิน</label>
+                <img
+                  src={editingReport.photo}
+                  alt="Check-in photo"
+                  className="w-full rounded-lg border mt-1.5 aspect-[4/3] object-cover"
+                />
+                {editingReport.check_in_at && (
+                  <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
+                    <Clock size={12} /> เช็คอินเมื่อ {format(new Date(editingReport.check_in_at), 'd MMM yyyy HH:mm', { locale: th })}
+                  </p>
+                )}
+              </div>
+            )}
             <div>
               <label className="text-sm font-medium text-foreground">พบใคร</label>
               <Input value={metWho} onChange={e => setMetWho(e.target.value)} placeholder="ชื่อคนที่พบ" />
