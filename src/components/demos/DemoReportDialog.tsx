@@ -762,30 +762,37 @@ export default function DemoReportDialog({
                         onUpdate={p => updatePatient(deviceKey, patient.id, p)}
                         onRemove={() => removePatient(deviceKey, patient.id)}
                         canRemove={deviceReport.patients.length > 1}
+                        readOnly={readOnly}
                       />
                     ))}
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="w-full gap-1.5 text-xs"
-                      onClick={() => addPatient(deviceKey)}
-                    >
-                      <Plus size={12} />
-                      เพิ่มคนไข้
-                    </Button>
+                    {!readOnly && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="w-full gap-1.5 text-xs"
+                        onClick={() => addPatient(deviceKey)}
+                      >
+                        <Plus size={12} />
+                        เพิ่มคนไข้
+                      </Button>
+                    )}
                   </div>
                 ) : (
                   /* Trica3D - presentation notes only */
-                  <QuickNoteField
-                    label="บันทึกสิ่งที่นำเสนอ"
-                    value={deviceReport.presentationNotes || ''}
-                    onChange={v => setReports(prev => ({
-                      ...prev,
-                      [deviceKey]: { ...prev[deviceKey], presentationNotes: v },
-                    }))}
-                    quickNoteKey="presentation"
-                    placeholder="บันทึกสิ่งที่นำเสนอ Trica3D..."
-                  />
+                  readOnly ? (
+                    <div><Label className="text-xs font-medium">บันทึกสิ่งที่นำเสนอ</Label><p className="text-xs text-muted-foreground mt-1 whitespace-pre-wrap">{deviceReport.presentationNotes || '-'}</p></div>
+                  ) : (
+                    <QuickNoteField
+                      label="บันทึกสิ่งที่นำเสนอ"
+                      value={deviceReport.presentationNotes || ''}
+                      onChange={v => setReports(prev => ({
+                        ...prev,
+                        [deviceKey]: { ...prev[deviceKey], presentationNotes: v },
+                      }))}
+                      quickNoteKey="presentation"
+                      placeholder="บันทึกสิ่งที่นำเสนอ Trica3D..."
+                    />
+                  )
                 )}
               </div>
             );
@@ -793,10 +800,26 @@ export default function DemoReportDialog({
         </div>
 
         <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>ยกเลิก</Button>
-          <Button onClick={handleSave} disabled={saving}>
-            {saving ? 'กำลังบันทึก...' : 'บันทึกและปิดเคส'}
-          </Button>
+          {readOnly ? (
+            <>
+              <Button variant="outline" onClick={() => onOpenChange(false)}>ปิด</Button>
+              <Button onClick={() => setIsEditing(true)}>แก้ไข</Button>
+            </>
+          ) : isSubmitted ? (
+            <>
+              <Button variant="outline" onClick={() => setIsEditing(false)}>ยกเลิก</Button>
+              <Button onClick={handleSave} disabled={saving}>
+                {saving ? 'กำลังบันทึก...' : 'บันทึก'}
+              </Button>
+            </>
+          ) : (
+            <>
+              <Button variant="outline" onClick={() => onOpenChange(false)}>ยกเลิก</Button>
+              <Button onClick={handleSave} disabled={saving}>
+                {saving ? 'กำลังบันทึก...' : 'บันทึกและปิดเคส'}
+              </Button>
+            </>
+          )}
         </DialogFooter>
       </DialogContent>
     </Dialog>
