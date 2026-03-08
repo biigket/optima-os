@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import FullCalendar from '@fullcalendar/react';
 import timeGridPlugin from '@fullcalendar/timegrid';
+import { Plus } from 'lucide-react';
 import interactionPlugin from '@fullcalendar/interaction';
 import { supabase } from '@/integrations/supabase/client';
 import { format, startOfWeek, endOfWeek } from 'date-fns';
