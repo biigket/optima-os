@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Presentation, Calendar, MapPin, Building2, Plus, Users, FileText, Search } from 'lucide-react';
+import { Presentation, Calendar, MapPin, Building2, Plus, Users, FileText, Search, CheckCircle2 } from 'lucide-react';
 import { format } from 'date-fns';
 import { th } from 'date-fns/locale';
 import { Button } from '@/components/ui/button';
@@ -11,6 +11,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useMockAuth } from '@/hooks/useMockAuth';
 import CreateDemoWizard from '@/components/demos/CreateDemoWizard';
 import EditDemoDialog from '@/components/demos/EditDemoDialog';
+import ConfirmDemoDialog from '@/components/demos/ConfirmDemoDialog';
 
 interface DemoRow {
   id: string;
@@ -22,6 +23,7 @@ interface DemoRow {
   demo_note: string | null;
   visited_by: string[] | null;
   reminded: boolean | null;
+  confirmed: boolean | null;
   created_at: string;
 }
 
