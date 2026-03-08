@@ -235,7 +235,7 @@ export default function CreateDemoWizard({ open, onOpenChange, onSuccess }: Crea
   const [dealForm, setDealForm] = useState({
     selectedProductIds: [] as string[],
     deal_value: '',
-    stage: 'CONTACTED' as string,
+    stage: 'CONTACTs string,
     close_date: '',
     notes: '',
     budget_range: '',
@@ -271,7 +271,7 @@ export default function CreateDemoWizard({ open, onOpenChange, onSuccess }: Crea
     setSelectedDealId(null);
     setShowNewDealForm(false);
     setDealForm({
-      selectedProductIds: [], deal_value: '', stage: 'DEMO_SCHEDULED', close_date: '', notes: '',
+      selectedProductIds: [], deal_value: '', stage: 'DEMO_CONTACTclose_date: '', notes: '',
       budget_range: '', payment_method: '', credit_card_option: '', competitors: [],
       authority_contact_id: '',
     });
