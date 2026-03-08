@@ -466,19 +466,19 @@ export default function CreateDemoWizard({ open, onOpenChange, onSuccess }: Crea
 
     const deal = existingDeals.find(d => d.id === selectedDealId);
 
-    // Move opportunity to DEMO_SCHEDULED if in earlier stage
+    // Move opportunity to CONTACTED (Demo Schedule) if in earlier stage
     if (deal) {
-      const earlyStages = ['NEW_LEAD', 'CONTACTED'];
+      const earlyStages = ['NEW_LEAD'];
       if (earlyStages.includes(deal.stage)) {
         await supabase
           .from('opportunities')
-          .update({ stage: 'DEMO_SCHEDULED' })
+          .update({ stage: 'CONTACTED' })
           .eq('id', selectedDealId);
 
         await supabase.from('opportunity_stage_history').insert({
           opportunity_id: selectedDealId,
           from_stage: deal.stage,
-          to_stage: 'DEMO_SCHEDULED',
+          to_stage: 'CONTACTED',
           changed_by: 'system (demo wizard)',
         });
       }
