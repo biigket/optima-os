@@ -205,7 +205,8 @@ export default function ActivityForm({
     if (selectedType === 'DEMO' && location.trim()) {
       const mapUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(location.trim())}`;
       const locationBlock = `📍 สถานที่: ${location.trim()}\n🗺️ Google Map: ${mapUrl}`;
-      finalDescription = finalDescription ? `${locationBlock}\n\n${finalDescription}` : locationBlock;
+      const productsBlock = selectedDemoProducts.length > 0 ? `\n🎯 สินค้าที่เดโม: ${selectedDemoProducts.join(', ')}` : '';
+      finalDescription = finalDescription ? `${locationBlock}${productsBlock}\n\n${finalDescription}` : `${locationBlock}${productsBlock}`;
     }
 
     setSaving(true);
