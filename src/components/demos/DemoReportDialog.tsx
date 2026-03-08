@@ -84,11 +84,19 @@ function QuickNoteField({
   onChange: (v: string) => void;
   quickNoteKey: string;
   placeholder?: string;
+  withSubCategories?: boolean;
 }) {
   const [tags, setTags] = useState<string[]>(() => [...(QUICK_NOTES[quickNoteKey] || [])]);
   const [adding, setAdding] = useState(false);
   const [newTag, setNewTag] = useState('');
-  const inputRef = useRef<HTMLInputElement>(null);
+
+  // Sub-category state
+  const [categories, setCategories] = useState<Record<string, string[]>>(() => ({ ...PARAM_CATEGORIES_INIT }));
+  const [activeCategory, setActiveCategory] = useState<string | null>(null);
+  const [addingCategory, setAddingCategory] = useState(false);
+  const [newCategoryName, setNewCategoryName] = useState('');
+  const [addingSubTag, setAddingSubTag] = useState(false);
+  const [newSubTag, setNewSubTag] = useState('');
 
   const handleAddTag = () => {
     const trimmed = newTag.trim();
@@ -99,59 +107,154 @@ function QuickNoteField({
     setAdding(false);
   };
 
+  const handleAddCategory = () => {
+    const trimmed = newCategoryName.trim();
+    if (trimmed && !categories[trimmed]) {
+      setCategories(prev => ({ ...prev, [trimmed]: [] }));
+      setActiveCategory(trimmed);
+    }
+    setNewCategoryName('');
+    setAddingCategory(false);
+  };
+
+  const handleAddSubTag = () => {
+    const trimmed = newSubTag.trim();
+    if (trimmed && activeCategory && !categories[activeCategory].includes(trimmed)) {
+      setCategories(prev => ({
+        ...prev,
+        [activeCategory]: [...prev[activeCategory], trimmed],
+      }));
+    }
+    setNewSubTag('');
+    setAddingSubTag(false);
+  };
+
+  const appendValue = (note: string) => {
+    const current = value.trim();
+    onChange(current ? `${current}, ${note}` : note);
+  };
+
+  const renderTagRow = (tagList: string[], setTagList: (updater: (prev: string[]) => string[]) => void, isAdding: boolean, setIsAdding: (v: boolean) => void, addingValue: string, setAddingValue: (v: string) => void, onConfirmAdd: () => void) => (
+    <div className="flex flex-wrap gap-1">
+      {tagList.map(n => (
+        <span
+          key={n}
+          className="inline-flex items-center gap-0.5 px-2 py-0.5 text-[10px] rounded-full border bg-muted/50 hover:bg-primary/10 hover:border-primary/30 transition-colors group"
+        >
+          <button type="button" className="hover:text-primary" onClick={() => appendValue(n)}>
+            + {n}
+          </button>
+          <button
+            type="button"
+            onClick={() => setTagList(prev => prev.filter(t => t !== n))}
+            className="ml-0.5 text-destructive/60 hover:text-destructive opacity-0 group-hover:opacity-100 transition-opacity"
+          >
+            <X size={10} />
+          </button>
+        </span>
+      ))}
+      {isAdding ? (
+        <input
+          autoFocus
+          value={addingValue}
+          onChange={e => setAddingValue(e.target.value)}
+          onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); onConfirmAdd(); } if (e.key === 'Escape') setIsAdding(false); }}
+          onBlur={onConfirmAdd}
+          className="w-24 px-1.5 py-0.5 text-[10px] rounded-full border bg-background focus:outline-none focus:ring-1 focus:ring-primary"
+          placeholder="พิมพ์..."
+        />
+      ) : (
+        <button
+          type="button"
+          onClick={() => setIsAdding(true)}
+          className="px-2 py-0.5 text-[10px] rounded-full border border-dashed border-muted-foreground/40 text-muted-foreground hover:border-primary hover:text-primary transition-colors"
+        >
+          <Plus size={10} className="inline -mt-0.5" /> เพิ่ม
+        </button>
+      )}
+    </div>
+  );
+
   return (
     <div className="space-y-1.5">
       <Label className="text-xs font-medium">{label}</Label>
-      {tags.length > 0 && (
-        <div className="flex flex-wrap gap-1">
-          {tags.map(n => (
-            <span
-              key={n}
-              className="inline-flex items-center gap-0.5 px-2 py-0.5 text-[10px] rounded-full border bg-muted/50 hover:bg-primary/10 hover:border-primary/30 transition-colors group"
-            >
-              <button
-                type="button"
-                className="hover:text-primary"
-                onClick={() => {
-                  const current = value.trim();
-                  onChange(current ? `${current}, ${n}` : n);
-                }}
-              >
-                + {n}
-              </button>
-              <button
-                type="button"
-                onClick={() => setTags(prev => prev.filter(t => t !== n))}
-                className="ml-0.5 text-destructive/60 hover:text-destructive opacity-0 group-hover:opacity-100 transition-opacity"
-              >
-                <X size={10} />
-              </button>
-            </span>
-          ))}
-          {adding ? (
-            <span className="inline-flex items-center gap-1">
+
+      {/* Main tags row */}
+      {renderTagRow(tags, setTags, adding, setAdding, newTag, setNewTag, handleAddTag)}
+
+      {/* Sub-category section (for parameters) */}
+      {withSubCategories && (
+        <div className="space-y-1.5 pt-1">
+          {/* Category tabs */}
+          <div className="flex flex-wrap gap-1">
+            {Object.keys(categories).map(cat => (
+              <span key={cat} className="inline-flex items-center gap-0.5 group">
+                <button
+                  type="button"
+                  onClick={() => setActiveCategory(prev => prev === cat ? null : cat)}
+                  className={cn(
+                    "px-2.5 py-1 text-[10px] rounded-full font-medium border transition-colors",
+                    activeCategory === cat
+                      ? "bg-primary text-primary-foreground border-primary"
+                      : "bg-muted/50 text-muted-foreground hover:bg-muted border-border"
+                  )}
+                >
+                  {cat}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setCategories(prev => {
+                      const next = { ...prev };
+                      delete next[cat];
+                      return next;
+                    });
+                    if (activeCategory === cat) setActiveCategory(null);
+                  }}
+                  className="text-destructive/60 hover:text-destructive opacity-0 group-hover:opacity-100 transition-opacity -ml-1"
+                >
+                  <X size={10} />
+                </button>
+              </span>
+            ))}
+            {addingCategory ? (
               <input
-                ref={inputRef}
                 autoFocus
-                value={newTag}
-                onChange={e => setNewTag(e.target.value)}
-                onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); handleAddTag(); } if (e.key === 'Escape') setAdding(false); }}
-                onBlur={handleAddTag}
-                className="w-20 px-1.5 py-0.5 text-[10px] rounded-full border bg-background focus:outline-none focus:ring-1 focus:ring-primary"
-                placeholder="พิมพ์..."
+                value={newCategoryName}
+                onChange={e => setNewCategoryName(e.target.value)}
+                onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); handleAddCategory(); } if (e.key === 'Escape') setAddingCategory(false); }}
+                onBlur={handleAddCategory}
+                className="w-20 px-1.5 py-1 text-[10px] rounded-full border bg-background focus:outline-none focus:ring-1 focus:ring-primary"
+                placeholder="หมวด..."
               />
-            </span>
-          ) : (
-            <button
-              type="button"
-              onClick={() => setAdding(true)}
-              className="px-2 py-0.5 text-[10px] rounded-full border border-dashed border-muted-foreground/40 text-muted-foreground hover:border-primary hover:text-primary transition-colors"
-            >
-              <Plus size={10} className="inline -mt-0.5" /> เพิ่ม
-            </button>
+            ) : (
+              <button
+                type="button"
+                onClick={() => setAddingCategory(true)}
+                className="px-2 py-1 text-[10px] rounded-full border border-dashed border-muted-foreground/40 text-muted-foreground hover:border-primary hover:text-primary transition-colors"
+              >
+                <Plus size={10} className="inline -mt-0.5" />
+              </button>
+            )}
+          </div>
+
+          {/* Sub-notes for selected category */}
+          {activeCategory && categories[activeCategory] && (
+            <div className="pl-1">
+              {renderTagRow(
+                categories[activeCategory],
+                (updater) => setCategories(prev => ({ ...prev, [activeCategory]: updater(prev[activeCategory]) })),
+                addingSubTag,
+                setAddingSubTag,
+                newSubTag,
+                setNewSubTag,
+                handleAddSubTag
+              )}
+            </div>
           )}
         </div>
       )}
+
       <Textarea
         value={value}
         onChange={e => onChange(e.target.value)}
