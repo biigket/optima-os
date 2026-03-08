@@ -137,28 +137,18 @@ export default function EditDemoDialog({ demo, clinicName, open, onOpenChange, o
 
     // Always sync to linked DEMO activity
     if (demo.opportunity_id) {
-      const descParts: string[] = [];
-      if (location) descParts.push(`📍 สถานที่: ${location}`);
-      if (selectedProducts.length > 0) descParts.push(`🎯 สินค้า: ${selectedProducts.join(', ')}`);
-      const specialists = visitedBy.filter(n => PRODUCT_SPECIALISTS.includes(n));
-      if (specialists.length > 0) descParts.push(`👤 Specialist: ${specialists.join(', ')}`);
-      if (location) descParts.push(`🗺️ Google Map: https://www.google.com/maps/search/${encodeURIComponent(location)}`);
-      if (note) descParts.push(`📝 ${note}`);
-
-      // Find the linked activity by opportunity + type, with or without date
       let activityQuery = supabase.from('activities')
         .update({
           activity_date: dateStr,
           start_time: startTime,
           end_time: endTime,
           location: location.trim() || null,
-          description: descParts.join('\n') || null,
+          description: description.trim() || null,
           assigned_to: visitedBy.length > 0 ? visitedBy : null,
         })
         .eq('opportunity_id', demo.opportunity_id)
         .eq('activity_type', 'DEMO');
 
-      // If original date exists, match by it; otherwise match any DEMO activity for this opportunity
       if (demo.demo_date) {
         activityQuery = activityQuery.eq('activity_date', demo.demo_date);
       }
