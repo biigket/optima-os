@@ -269,13 +269,23 @@ export default function VisitCheckinPage() {
                     </div>
                     <Badge variant="outline" className="text-[10px] mt-1">{plan.visit_type === 'NEW' ? 'ลูกค้าใหม่' : 'ลูกค้าเก่า'}</Badge>
                   </div>
-                  <Button
-                    size="sm"
-                    className="gap-1.5 shrink-0"
-                    onClick={() => openCheckinDialog(plan)}
-                  >
-                    <Camera size={14} /> เช็คอิน
-                  </Button>
+                  <div className="flex gap-1.5 shrink-0">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="gap-1 text-xs"
+                      onClick={() => openRescheduleDialog(plan)}
+                    >
+                      <CalendarClock size={14} /> เปลี่ยนแผน
+                    </Button>
+                    <Button
+                      size="sm"
+                      className="gap-1.5"
+                      onClick={() => openCheckinDialog(plan)}
+                    >
+                      <Camera size={14} /> เช็คอิน
+                    </Button>
+                  </div>
                 </div>
               ))}
             </div>
