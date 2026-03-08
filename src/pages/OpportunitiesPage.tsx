@@ -337,29 +337,7 @@ export default function OpportunitiesPage() {
         </div>
       )}
 
-      <CustomerSelectModal open={selectModalOpen} onOpenChange={setSelectModalOpen} onSelect={handleCustomerSelect} />
-
-      {selectedCustomer && (
-        <CreateOpportunityForm open={createFormOpen} onOpenChange={setCreateFormOpen} customer={selectedCustomer} onSave={handleSave} />
-      )}
-
-      <Dialog open={noContactWarning} onOpenChange={setNoContactWarning}>
-        <DialogContent className="max-w-sm">
-          <DialogHeader>
-            <DialogTitle className="text-sm">⚠️ กรุณาเพิ่มผู้ติดต่อ</DialogTitle>
-            <DialogDescription className="text-xs">
-              ลูกค้า "{selectedCustomer?.clinic_name}" ยังไม่มีผู้ติดต่อในระบบ กรุณาเพิ่มผู้ติดต่อก่อนสร้างโอกาสขาย
-            </DialogDescription>
-          </DialogHeader>
-          <div className="flex justify-end gap-2">
-            <Button variant="outline" size="sm" onClick={() => setNoContactWarning(false)}>ปิด</Button>
-            <Button size="sm" onClick={() => {
-              setNoContactWarning(false);
-              if (selectedCustomer) navigate(`/leads/${selectedCustomer.id}`);
-            }}>ไปหน้าลูกค้า</Button>
-          </div>
-        </DialogContent>
-      </Dialog>
+      <CreateOpportunityForm open={createFormOpen} onOpenChange={setCreateFormOpen} onSave={handleSave} />
     </div>
   );
 }
