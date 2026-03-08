@@ -6,6 +6,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import StatusBadge from '@/components/ui/StatusBadge';
 import { supabase } from '@/integrations/supabase/client';
 import { Separator } from '@/components/ui/separator';
+import { toast } from 'sonner';
+import { useState } from 'react';
 
 export default function QuotationDetailPage() {
   const { id } = useParams();
