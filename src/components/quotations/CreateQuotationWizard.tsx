@@ -146,6 +146,7 @@ export default function CreateQuotationWizard({ open, onOpenChange, onCreated }:
   // Step 1: Products
   const [productLines, setProductLines] = useState<ProductLine[]>([]);
   const [discount, setDiscount] = useState(0);
+  const [includeVat, setIncludeVat] = useState(true);
 
   // Step 2: Details
   const [qtNumber, setQtNumber] = useState('');
@@ -268,7 +269,7 @@ export default function CreateQuotationWizard({ open, onOpenChange, onCreated }:
   // Calculations
   const subtotal = productLines.reduce((sum, p) => sum + p.qty * p.unitPrice, 0);
   const netPrice = subtotal - discount;
-  const vat = Math.round(netPrice * 0.07);
+  const vat = includeVat ? Math.round(netPrice * 0.07) : 0;
   const grandTotal = netPrice + vat;
 
   const expiryDate = qtDate ? format(addDays(new Date(qtDate), validityDays), 'yyyy-MM-dd') : '';
@@ -518,9 +519,12 @@ export default function CreateQuotationWizard({ open, onOpenChange, onCreated }:
                   <span className="text-muted-foreground">Net Price</span>
                   <span className="font-medium">฿{netPrice.toLocaleString()}</span>
                 </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">VAT 7%</span>
-                  <span className="font-medium">฿{vat.toLocaleString()}</span>
+                <div className="flex justify-between items-center text-sm">
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input type="checkbox" checked={includeVat} onChange={e => setIncludeVat(e.target.checked)} className="rounded border-input" />
+                    <span className="text-muted-foreground">VAT 7%</span>
+                  </label>
+                  <span className="font-medium">{includeVat ? `฿${vat.toLocaleString()}` : '-'}</span>
                 </div>
                 <Separator />
                 <div className="flex justify-between text-base font-bold">
@@ -660,7 +664,7 @@ export default function CreateQuotationWizard({ open, onOpenChange, onCreated }:
               <div className="flex justify-between"><span className="text-muted-foreground">Subtotal</span><span>฿{subtotal.toLocaleString()}</span></div>
               {discount > 0 && <div className="flex justify-between text-destructive"><span>Discount</span><span>-฿{discount.toLocaleString()}</span></div>}
               <div className="flex justify-between"><span className="text-muted-foreground">Net Price</span><span>฿{netPrice.toLocaleString()}</span></div>
-              <div className="flex justify-between"><span className="text-muted-foreground">VAT 7%</span><span>฿{vat.toLocaleString()}</span></div>
+              {includeVat && <div className="flex justify-between"><span className="text-muted-foreground">VAT 7%</span><span>฿{vat.toLocaleString()}</span></div>}
               <Separator />
               <div className="flex justify-between font-bold text-base"><span>Grand Total</span><span className="text-primary">฿{grandTotal.toLocaleString()}</span></div>
             </div>
