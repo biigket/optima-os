@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
-import { Search, Building2, Plus, ChevronLeft, ChevronRight, User, ClipboardList, CheckCircle2, MapPin, Calendar, Presentation, Users } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { Search, Building2, Plus, ChevronLeft, ChevronRight, User, ClipboardList, CheckCircle2, MapPin, Calendar, Presentation, Users, Loader2, Briefcase, AlertCircle } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -13,7 +14,6 @@ import { format } from 'date-fns';
 import { th } from 'date-fns/locale';
 import { toast } from 'sonner';
 import { useMockAuth } from '@/hooks/useMockAuth';
-import { ensureOpportunityForDemo } from '@/lib/demoSync';
 import { cn } from '@/lib/utils';
 
 interface AccountInfo {
@@ -24,14 +24,28 @@ interface AccountInfo {
   assigned_sale: string | null;
 }
 
-interface Product {
+interface OpportunityInfo {
   id: string;
-  product_name: string;
-  category: string;
+  stage: string;
+  interested_products: string[] | null;
+  expected_value: number | null;
+  created_at: string;
 }
+
+const DEMO_PRODUCTS = ['Doublo', 'Trica3D', 'Quattro', 'PicoHi'];
+const PRODUCT_SPECIALISTS = ['Not', 'Ohm', 'Por'];
+
+const STAGE_LABELS: Record<string, string> = {
+  NEW_LEAD: 'นัดพบ/Need',
+  CONTACTED: 'Demo Schedule',
+  DEMO_SCHEDULED: 'Demo/Workshop',
+  DEMO_DONE: 'Proposal Sent',
+  NEGOTIATION: 'Negotiation',
+};
 
 const STEPS = [
   { key: 'customer', label: 'ลูกค้า', icon: User },
+  { key: 'deal', label: 'ดีล', icon: Briefcase },
   { key: 'plan', label: 'รายละเอียด', icon: ClipboardList },
   { key: 'confirm', label: 'ยืนยัน', icon: CheckCircle2 },
 ] as const;
@@ -70,6 +84,7 @@ interface CreateDemoWizardProps {
 }
 
 export default function CreateDemoWizard({ open, onOpenChange, onSuccess }: CreateDemoWizardProps) {
+  const navigate = useNavigate();
   const { currentUser } = useMockAuth();
   const [step, setStep] = useState(0);
 
@@ -79,12 +94,18 @@ export default function CreateDemoWizard({ open, onOpenChange, onSuccess }: Crea
   const [loadingAccounts, setLoadingAccounts] = useState(false);
   const [selectedAccount, setSelectedAccount] = useState<AccountInfo | null>(null);
 
-  // Step 1: details
+  // Step 1: deal check
+  const [existingDeals, setExistingDeals] = useState<OpportunityInfo[]>([]);
+  const [loadingDeals, setLoadingDeals] = useState(false);
+  const [selectedDealId, setSelectedDealId] = useState<string | null>(null);
+  const [creatingDeal, setCreatingDeal] = useState(false);
+
+  // Step 2: demo details
   const [demoDate, setDemoDate] = useState<Date | undefined>(undefined);
   const [demoLocation, setDemoLocation] = useState('');
   const [demoNote, setDemoNote] = useState('');
-  const [products, setProducts] = useState<Product[]>([]);
-  const [selectedProductIds, setSelectedProductIds] = useState<string[]>([]);
+  const [selectedDemoProducts, setSelectedDemoProducts] = useState<string[]>([]);
+  const [selectedSpecialists, setSelectedSpecialists] = useState<string[]>([]);
 
   const [saving, setSaving] = useState(false);
 
@@ -99,10 +120,13 @@ export default function CreateDemoWizard({ open, onOpenChange, onSuccess }: Crea
     setStep(0);
     setSearch('');
     setSelectedAccount(null);
+    setExistingDeals([]);
+    setSelectedDealId(null);
     setDemoDate(undefined);
     setDemoLocation('');
     setDemoNote('');
-    setSelectedProductIds([]);
+    setSelectedDemoProducts([]);
+    setSelectedSpecialists([]);
   }
 
   async function fetchAccounts() {
@@ -115,11 +139,6 @@ export default function CreateDemoWizard({ open, onOpenChange, onSuccess }: Crea
     setLoadingAccounts(false);
   }
 
-  async function fetchProducts() {
-    const { data } = await supabase.from('products').select('id, product_name, category');
-    if (data) setProducts(data);
-  }
-
   const filtered = useMemo(() => {
     if (!search.trim()) return accounts;
     const q = search.toLowerCase();
@@ -130,47 +149,125 @@ export default function CreateDemoWizard({ open, onOpenChange, onSuccess }: Crea
     );
   }, [accounts, search]);
 
+  async function checkDealsForAccount(accountId: string) {
+    setLoadingDeals(true);
+    const { data } = await supabase
+      .from('opportunities')
+      .select('id, stage, interested_products, expected_value, created_at')
+      .eq('account_id', accountId)
+      .not('stage', 'in', '("WON","LOST")')
+      .order('created_at', { ascending: false });
+
+    const deals = (data || []) as OpportunityInfo[];
+    setExistingDeals(deals);
+    setLoadingDeals(false);
+
+    if (deals.length === 0) {
+      // No open deals — auto-create one
+      await createNewDeal(accountId);
+    } else if (deals.length === 1) {
+      // Single deal — auto-select
+      setSelectedDealId(deals[0].id);
+    }
+  }
+
+  async function createNewDeal(accountId: string) {
+    setCreatingDeal(true);
+    const { data: newOpp, error } = await supabase
+      .from('opportunities')
+      .insert({
+        account_id: accountId,
+        stage: 'DEMO_SCHEDULED',
+        opportunity_type: 'DEVICE',
+        assigned_sale: selectedAccount?.assigned_sale || currentUser?.name || null,
+      })
+      .select('id, stage, interested_products, expected_value, created_at')
+      .single();
+
+    if (error) {
+      toast.error('สร้างดีลอัตโนมัติไม่สำเร็จ');
+      setCreatingDeal(false);
+      return;
+    }
+
+    if (newOpp) {
+      const deal = newOpp as OpportunityInfo;
+      setExistingDeals([deal]);
+      setSelectedDealId(deal.id);
+      toast.success('สร้างดีลใหม่แล้ว → Demo Schedule');
+    }
+    setCreatingDeal(false);
+  }
+
   function handleSelectCustomer(acc: AccountInfo) {
     setSelectedAccount(acc);
-    fetchProducts();
+    setSelectedDealId(null);
+    setExistingDeals([]);
+    checkDealsForAccount(acc.id);
     setStep(1);
   }
 
-  function toggleProduct(id: string) {
-    setSelectedProductIds(prev =>
-      prev.includes(id) ? prev.filter(p => p !== id) : [...prev, id]
+  function handleCreateNewCustomer() {
+    onOpenChange(false);
+    navigate('/leads?action=create');
+  }
+
+  function toggleDemoProduct(name: string) {
+    setSelectedDemoProducts(prev =>
+      prev.includes(name) ? prev.filter(p => p !== name) : [...prev, name]
+    );
+  }
+
+  function toggleSpecialist(name: string) {
+    setSelectedSpecialists(prev =>
+      prev.includes(name) ? prev.filter(p => p !== name) : [...prev, name]
     );
   }
 
   function goNext() {
     if (step === 0 && !selectedAccount) { toast.error('กรุณาเลือกลูกค้า'); return; }
-    if (step === 1 && !demoDate) { toast.error('กรุณาเลือกวันที่สาธิต'); return; }
-    setStep(s => Math.min(s + 1, 2));
+    if (step === 1 && !selectedDealId) { toast.error('กรุณาเลือกดีล'); return; }
+    if (step === 2 && !demoDate) { toast.error('กรุณาเลือกวันที่สาธิต'); return; }
+    setStep(s => Math.min(s + 1, 3));
   }
 
   function goBack() {
     setStep(s => Math.max(s - 1, 0));
   }
 
-  const selectedProducts = products.filter(p => selectedProductIds.includes(p.id));
-
   async function handleSave() {
-    if (!selectedAccount || !demoDate) return;
+    if (!selectedAccount || !demoDate || !selectedDealId) return;
     setSaving(true);
 
-    const oppId = await ensureOpportunityForDemo({
-      accountId: selectedAccount.id,
-      assignedSale: selectedAccount.assigned_sale || currentUser?.name,
-    });
+    // Move opportunity to DEMO_SCHEDULED if in earlier stage
+    const deal = existingDeals.find(d => d.id === selectedDealId);
+    if (deal) {
+      const earlyStages = ['NEW_LEAD', 'CONTACTED'];
+      if (earlyStages.includes(deal.stage)) {
+        await supabase
+          .from('opportunities')
+          .update({ stage: 'DEMO_SCHEDULED' })
+          .eq('id', selectedDealId);
+
+        await supabase.from('opportunity_stage_history').insert({
+          opportunity_id: selectedDealId,
+          from_stage: deal.stage,
+          to_stage: 'DEMO_SCHEDULED',
+          changed_by: 'system (demo wizard)',
+        });
+      }
+    }
 
     const { error } = await supabase.from('demos').insert({
       account_id: selectedAccount.id,
-      opportunity_id: oppId,
+      opportunity_id: selectedDealId,
       demo_date: format(demoDate, 'yyyy-MM-dd'),
       location: demoLocation || null,
       demo_note: demoNote || null,
-      products_demo: selectedProducts.length > 0 ? selectedProducts.map(p => p.product_name) : null,
-      visited_by: currentUser ? [currentUser.name] : null,
+      products_demo: selectedDemoProducts.length > 0 ? selectedDemoProducts : null,
+      visited_by: selectedSpecialists.length > 0
+        ? [...(currentUser ? [currentUser.name] : []), ...selectedSpecialists]
+        : currentUser ? [currentUser.name] : null,
     });
 
     setSaving(false);
@@ -216,7 +313,9 @@ export default function CreateDemoWizard({ open, onOpenChange, onSuccess }: Crea
               </div>
               <div className="flex-1 overflow-y-auto overflow-x-hidden space-y-1.5 px-1 min-h-0">
                 {loadingAccounts ? (
-                  <p className="text-center text-xs text-muted-foreground py-8">กำลังโหลด...</p>
+                  <div className="flex items-center justify-center py-8">
+                    <Loader2 className="animate-spin text-muted-foreground" size={20} />
+                  </div>
                 ) : (
                   <>
                     {filtered.map(acc => (
@@ -248,11 +347,92 @@ export default function CreateDemoWizard({ open, onOpenChange, onSuccess }: Crea
                   </>
                 )}
               </div>
+              {/* Create new customer */}
+              <div className="px-1">
+                <button
+                  onClick={handleCreateNewCustomer}
+                  className="w-full flex items-center justify-center gap-1.5 p-3 rounded-lg border border-dashed border-border hover:bg-muted/50 transition-colors text-sm text-muted-foreground"
+                >
+                  <Plus size={14} /> สร้างลูกค้าใหม่
+                </button>
+              </div>
             </div>
           )}
 
-          {/* STEP 1: Demo Details */}
+          {/* STEP 1: Deal Check */}
           {step === 1 && (
+            <div className="space-y-3 px-1">
+              {loadingDeals || creatingDeal ? (
+                <div className="flex flex-col items-center justify-center py-12 gap-2">
+                  <Loader2 className="animate-spin text-primary" size={24} />
+                  <p className="text-xs text-muted-foreground">
+                    {creatingDeal ? 'กำลังสร้างดีลใหม่...' : 'กำลังตรวจสอบดีล...'}
+                  </p>
+                </div>
+              ) : existingDeals.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-12 gap-3">
+                  <AlertCircle size={32} className="text-muted-foreground" />
+                  <p className="text-sm text-muted-foreground">ไม่พบดีลที่เปิดอยู่</p>
+                  <Button size="sm" onClick={() => selectedAccount && createNewDeal(selectedAccount.id)} className="gap-1.5">
+                    <Plus size={14} /> สร้างดีลใหม่
+                  </Button>
+                </div>
+              ) : (
+                <>
+                  <p className="text-xs text-muted-foreground">
+                    พบ {existingDeals.length} ดีลที่เปิดอยู่ — เลือกดีลที่ต้องการผูกใบงาน Demo
+                  </p>
+                  <div className="space-y-2">
+                    {existingDeals.map(deal => (
+                      <button
+                        key={deal.id}
+                        onClick={() => setSelectedDealId(deal.id)}
+                        className={cn(
+                          'w-full p-3 rounded-lg border text-left transition-colors',
+                          selectedDealId === deal.id
+                            ? 'border-primary bg-primary/5'
+                            : 'border-border hover:bg-muted/50'
+                        )}
+                      >
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <Briefcase size={14} className="text-muted-foreground" />
+                            <span className="text-sm font-medium">
+                              {STAGE_LABELS[deal.stage] || deal.stage}
+                            </span>
+                          </div>
+                          {deal.expected_value && (
+                            <span className="text-xs text-muted-foreground">
+                              ฿{deal.expected_value.toLocaleString()}
+                            </span>
+                          )}
+                        </div>
+                        <div className="mt-1 flex items-center gap-2 text-xs text-muted-foreground">
+                          <span>สร้างเมื่อ {format(new Date(deal.created_at), 'd MMM yy', { locale: th })}</span>
+                          {deal.interested_products && deal.interested_products.length > 0 && (
+                            <>
+                              <span>·</span>
+                              <span>{deal.interested_products.join(', ')}</span>
+                            </>
+                          )}
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+
+                  <button
+                    onClick={() => selectedAccount && createNewDeal(selectedAccount.id)}
+                    className="w-full flex items-center justify-center gap-1.5 p-3 rounded-lg border border-dashed border-border hover:bg-muted/50 transition-colors text-sm text-muted-foreground"
+                  >
+                    <Plus size={14} /> สร้างดีลใหม่แทน
+                  </button>
+                </>
+              )}
+            </div>
+          )}
+
+          {/* STEP 2: Demo Details */}
+          {step === 2 && (
             <div className="space-y-4 px-1">
               {/* Date */}
               <div className="space-y-1.5">
@@ -272,7 +452,7 @@ export default function CreateDemoWizard({ open, onOpenChange, onSuccess }: Crea
 
               {/* Location */}
               <div className="space-y-1.5">
-                <Label className="text-xs">สถานที่</Label>
+                <Label className="text-xs">สถานที่ <span className="text-destructive">*</span></Label>
                 <Input
                   placeholder="เช่น คลินิก, โรงพยาบาล..."
                   value={demoLocation}
@@ -280,30 +460,37 @@ export default function CreateDemoWizard({ open, onOpenChange, onSuccess }: Crea
                 />
               </div>
 
-              {/* Products */}
-              {products.length > 0 && (
-                <div className="space-y-1.5">
-                  <Label className="text-xs">สินค้าที่สาธิต</Label>
-                  {selectedProductIds.length > 0 && (
-                    <div className="flex flex-wrap gap-1.5 mb-1">
-                      {selectedProducts.map(p => (
-                        <span key={p.id} className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-primary/10 text-primary text-xs font-medium">
-                          {p.product_name}
-                          <button onClick={() => toggleProduct(p.id)} className="hover:text-destructive">×</button>
-                        </span>
-                      ))}
-                    </div>
-                  )}
-                  <div className="border rounded-md p-2 space-y-1">
-                    {products.map(p => (
-                      <label key={p.id} className="flex items-center gap-2 px-2 py-1 rounded hover:bg-muted/50 cursor-pointer">
-                        <Checkbox checked={selectedProductIds.includes(p.id)} onCheckedChange={() => toggleProduct(p.id)} />
-                        <span className="text-xs">{p.product_name}</span>
-                      </label>
-                    ))}
-                  </div>
+              {/* Demo Products */}
+              <div className="space-y-1.5">
+                <Label className="text-xs">สินค้าที่สาธิต</Label>
+                <div className="flex flex-wrap gap-2">
+                  {DEMO_PRODUCTS.map(name => (
+                    <label key={name} className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-md border cursor-pointer hover:bg-muted/50 transition-colors">
+                      <Checkbox
+                        checked={selectedDemoProducts.includes(name)}
+                        onCheckedChange={() => toggleDemoProduct(name)}
+                      />
+                      <span className="text-xs">{name}</span>
+                    </label>
+                  ))}
                 </div>
-              )}
+              </div>
+
+              {/* Specialists */}
+              <div className="space-y-1.5">
+                <Label className="text-xs">Product Specialist</Label>
+                <div className="flex flex-wrap gap-2">
+                  {PRODUCT_SPECIALISTS.map(name => (
+                    <label key={name} className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-md border cursor-pointer hover:bg-muted/50 transition-colors">
+                      <Checkbox
+                        checked={selectedSpecialists.includes(name)}
+                        onCheckedChange={() => toggleSpecialist(name)}
+                      />
+                      <span className="text-xs">{name}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
 
               {/* Note */}
               <div className="space-y-1.5">
@@ -318,8 +505,8 @@ export default function CreateDemoWizard({ open, onOpenChange, onSuccess }: Crea
             </div>
           )}
 
-          {/* STEP 2: Confirm */}
-          {step === 2 && (
+          {/* STEP 3: Confirm */}
+          {step === 3 && (
             <div className="space-y-4 px-1">
               <div className="rounded-lg border bg-muted/30 p-4 space-y-3">
                 <div className="flex items-center gap-3">
@@ -333,6 +520,16 @@ export default function CreateDemoWizard({ open, onOpenChange, onSuccess }: Crea
                 </div>
 
                 <div className="border-t pt-3 space-y-2 text-sm">
+                  {/* Deal info */}
+                  {selectedDealId && (
+                    <div className="flex items-center gap-2">
+                      <Briefcase size={14} className="text-muted-foreground shrink-0" />
+                      <span className="text-xs">
+                        ดีล: {STAGE_LABELS[existingDeals.find(d => d.id === selectedDealId)?.stage || ''] || 'ใหม่'}
+                      </span>
+                    </div>
+                  )}
+
                   <div className="flex items-center gap-2">
                     <Calendar size={14} className="text-muted-foreground shrink-0" />
                     <span className="font-medium">{demoDate ? format(demoDate, 'd MMMM yyyy', { locale: th }) : '-'}</span>
@@ -343,18 +540,18 @@ export default function CreateDemoWizard({ open, onOpenChange, onSuccess }: Crea
                       <span>{demoLocation}</span>
                     </div>
                   )}
-                  {currentUser && (
+                  {(selectedSpecialists.length > 0 || currentUser) && (
                     <div className="flex items-center gap-2">
                       <Users size={14} className="text-muted-foreground shrink-0" />
-                      <span>{currentUser.name}</span>
+                      <span>{[currentUser?.name, ...selectedSpecialists].filter(Boolean).join(', ')}</span>
                     </div>
                   )}
-                  {selectedProducts.length > 0 && (
+                  {selectedDemoProducts.length > 0 && (
                     <div className="flex items-start gap-2">
                       <Presentation size={14} className="text-muted-foreground shrink-0 mt-0.5" />
                       <div className="flex flex-wrap gap-1">
-                        {selectedProducts.map(p => (
-                          <span key={p.id} className="px-2 py-0.5 rounded-full bg-primary/10 text-primary text-xs">{p.product_name}</span>
+                        {selectedDemoProducts.map(p => (
+                          <span key={p} className="px-2 py-0.5 rounded-full bg-primary/10 text-primary text-xs">{p}</span>
                         ))}
                       </div>
                     </div>
@@ -380,8 +577,15 @@ export default function CreateDemoWizard({ open, onOpenChange, onSuccess }: Crea
             </Button>
           ) : <div />}
 
-          {step < 2 ? (
-            <Button size="sm" onClick={goNext} className="gap-1">
+          {step < 3 ? (
+            <Button
+              size="sm"
+              onClick={goNext}
+              className="gap-1"
+              disabled={
+                (step === 1 && (!selectedDealId || loadingDeals || creatingDeal))
+              }
+            >
               ถัดไป <ChevronRight size={14} />
             </Button>
           ) : (
