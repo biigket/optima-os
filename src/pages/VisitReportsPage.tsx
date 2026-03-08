@@ -275,6 +275,10 @@ export default function VisitReportsPage() {
               </div>
             )}
             <div>
+              <label className="text-sm font-medium text-foreground">พบใคร</label>
+              <Input value={metWho} onChange={e => setMetWho(e.target.value)} placeholder="ชื่อคนที่พบ" />
+            </div>
+            <div>
               <label className="text-sm font-medium text-foreground">สิ่งที่ทำ</label>
               <Textarea value={action} onChange={e => setAction(e.target.value)} placeholder="อธิบายสิ่งที่ทำระหว่างเยี่ยม" rows={3} />
             </div>
