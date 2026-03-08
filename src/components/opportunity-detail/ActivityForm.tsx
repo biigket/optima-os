@@ -254,6 +254,7 @@ export default function ActivityForm({
           location: location || undefined,
           visitedBy: assignedTo.length > 0 ? assignedTo : undefined,
           demoNote: description || undefined,
+          productsDemo: selectedDemoProducts.length > 0 ? selectedDemoProducts : undefined,
         });
         toast.success('สร้างกิจกรรม + ใบงาน Demo แล้ว');
       } else {

@@ -13,8 +13,9 @@ export async function syncDemoFromActivity(params: {
   location?: string;
   visitedBy?: string[];
   demoNote?: string;
+  productsDemo?: string[];
 }) {
-  const { accountId, opportunityId, demoDate, location, visitedBy, demoNote } = params;
+  const { accountId, opportunityId, demoDate, location, visitedBy, demoNote, productsDemo } = params;
 
   // 1. Create demo record
   const { error: demoErr } = await supabase.from('demos').insert({
@@ -24,6 +25,7 @@ export async function syncDemoFromActivity(params: {
     location: location || null,
     visited_by: visitedBy || null,
     demo_note: demoNote || null,
+    products_demo: productsDemo && productsDemo.length > 0 ? productsDemo : null,
   });
   if (demoErr) {
     console.error('Failed to create demo record:', demoErr);
