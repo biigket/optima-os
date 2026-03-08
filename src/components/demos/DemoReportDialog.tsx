@@ -382,110 +382,155 @@ function PatientCard({
           <div className="px-3 pb-3 space-y-3 border-t">
             {/* Photos */}
             <div className="flex gap-3 pt-3">
-              <PhotoUpload
-                label="Before"
-                value={patient.beforePhoto}
-                onChange={url => onUpdate({ ...patient, beforePhoto: url })}
-                demoId={demoId}
-                photoType={`${deviceKey}-p${index}-before`}
-              />
-              <PhotoUpload
-                label="After"
-                value={patient.afterPhoto}
-                onChange={url => onUpdate({ ...patient, afterPhoto: url })}
-                demoId={demoId}
-                photoType={`${deviceKey}-p${index}-after`}
-              />
+              {readOnly ? (
+                <>
+                  {patient.beforePhoto && <img src={patient.beforePhoto} alt="Before" className="h-20 w-20 rounded-lg object-cover" />}
+                  {patient.afterPhoto && <img src={patient.afterPhoto} alt="After" className="h-20 w-20 rounded-lg object-cover" />}
+                  {!patient.beforePhoto && !patient.afterPhoto && <span className="text-xs text-muted-foreground">ไม่มีรูปถ่าย</span>}
+                </>
+              ) : (
+                <>
+                  <PhotoUpload
+                    label="Before"
+                    value={patient.beforePhoto}
+                    onChange={url => onUpdate({ ...patient, beforePhoto: url })}
+                    demoId={demoId}
+                    photoType={`${deviceKey}-p${index}-before`}
+                  />
+                  <PhotoUpload
+                    label="After"
+                    value={patient.afterPhoto}
+                    onChange={url => onUpdate({ ...patient, afterPhoto: url })}
+                    demoId={demoId}
+                    photoType={`${deviceKey}-p${index}-after`}
+                  />
+                </>
+              )}
             </div>
 
             {/* Parameters */}
-            <QuickNoteField
-              label="Parameter / บริเวณที่ทำ"
-              value={patient.parameters}
-              onChange={v => onUpdate({ ...patient, parameters: v })}
-              quickNoteKey="parameters"
-              placeholder="Energy level, จำนวนช็อต, บริเวณที่ทำ..."
-              withSubCategories
-            />
+            {readOnly ? (
+              <div><Label className="text-xs font-medium">Parameter / บริเวณที่ทำ</Label><p className="text-xs text-muted-foreground mt-1 whitespace-pre-wrap">{patient.parameters || '-'}</p></div>
+            ) : (
+              <QuickNoteField
+                label="Parameter / บริเวณที่ทำ"
+                value={patient.parameters}
+                onChange={v => onUpdate({ ...patient, parameters: v })}
+                quickNoteKey="parameters"
+                placeholder="Energy level, จำนวนช็อต, บริเวณที่ทำ..."
+                withSubCategories
+              />
+            )}
 
             {/* Pain Score */}
             <div className="space-y-1.5">
               <Label className="text-xs font-medium">Pain Score: {patient.painScore}/10</Label>
-              <Slider
-                value={[patient.painScore]}
-                onValueChange={([v]) => onUpdate({ ...patient, painScore: v })}
-                min={0}
-                max={10}
-                step={1}
-                className="w-full"
-              />
-              <div className="flex justify-between text-[9px] text-muted-foreground">
-                <span>ไม่เจ็บ</span>
-                <span>เจ็บมาก</span>
-              </div>
+              {readOnly ? (
+                <div className="w-full h-2 bg-muted rounded-full overflow-hidden">
+                  <div className="h-full rounded-full" style={{
+                    width: `${(patient.painScore / 10) * 100}%`,
+                    backgroundColor: patient.painScore <= 3 ? 'hsl(var(--primary))' : patient.painScore <= 6 ? 'hsl(40,90%,50%)' : 'hsl(0,70%,50%)'
+                  }} />
+                </div>
+              ) : (
+                <>
+                  <Slider
+                    value={[patient.painScore]}
+                    onValueChange={([v]) => onUpdate({ ...patient, painScore: v })}
+                    min={0}
+                    max={10}
+                    step={1}
+                    className="w-full"
+                  />
+                  <div className="flex justify-between text-[9px] text-muted-foreground">
+                    <span>ไม่เจ็บ</span>
+                    <span>เจ็บมาก</span>
+                  </div>
+                </>
+              )}
             </div>
 
             {/* Satisfaction */}
             <div className="space-y-1.5">
               <Label className="text-xs font-medium">ความพึงพอใจคนไข้</Label>
-              <div className="flex gap-1.5 flex-wrap">
-                {SATISFACTION_OPTIONS.map(opt => (
-                  <button
-                    key={opt}
-                    type="button"
-                    onClick={() => onUpdate({ ...patient, satisfaction: opt })}
-                    className={cn(
-                      "px-2.5 py-1 text-[10px] rounded-full border transition-colors",
-                      patient.satisfaction === opt
-                        ? "bg-primary text-primary-foreground border-primary"
-                        : "bg-muted/50 hover:bg-muted"
-                    )}
-                  >
-                    {opt}
-                  </button>
-                ))}
-              </div>
+              {readOnly ? (
+                <Badge variant="outline" className="text-xs">{patient.satisfaction || '-'}</Badge>
+              ) : (
+                <div className="flex gap-1.5 flex-wrap">
+                  {SATISFACTION_OPTIONS.map(opt => (
+                    <button
+                      key={opt}
+                      type="button"
+                      onClick={() => onUpdate({ ...patient, satisfaction: opt })}
+                      className={cn(
+                        "px-2.5 py-1 text-[10px] rounded-full border transition-colors",
+                        patient.satisfaction === opt
+                          ? "bg-primary text-primary-foreground border-primary"
+                          : "bg-muted/50 hover:bg-muted"
+                      )}
+                    >
+                      {opt}
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
 
             {/* Side Effects */}
             <div className="space-y-1.5">
               <Label className="text-xs font-medium">ผลข้างเคียง</Label>
-              <div className="flex gap-2 flex-wrap">
-                {SIDE_EFFECTS.map(se => (
-                  <label key={se} className="flex items-center gap-1 text-[10px]">
-                    <Checkbox
-                      checked={patient.sideEffects.includes(se)}
-                      onCheckedChange={(checked) => {
-                        const updated = checked
-                          ? [...patient.sideEffects, se]
-                          : patient.sideEffects.filter(s => s !== se);
-                        onUpdate({ ...patient, sideEffects: updated });
-                      }}
-                      className="h-3.5 w-3.5"
-                    />
-                    {se}
-                  </label>
-                ))}
-              </div>
+              {readOnly ? (
+                <div className="flex gap-1 flex-wrap">
+                  {patient.sideEffects.length > 0
+                    ? patient.sideEffects.map(se => <Badge key={se} variant="outline" className="text-[10px]">{se}</Badge>)
+                    : <span className="text-xs text-muted-foreground">-</span>}
+                </div>
+              ) : (
+                <div className="flex gap-2 flex-wrap">
+                  {SIDE_EFFECTS.map(se => (
+                    <label key={se} className="flex items-center gap-1 text-[10px]">
+                      <Checkbox
+                        checked={patient.sideEffects.includes(se)}
+                        onCheckedChange={(checked) => {
+                          const updated = checked
+                            ? [...patient.sideEffects, se]
+                            : patient.sideEffects.filter(s => s !== se);
+                          onUpdate({ ...patient, sideEffects: updated });
+                        }}
+                        className="h-3.5 w-3.5"
+                      />
+                      {se}
+                    </label>
+                  ))}
+                </div>
+              )}
             </div>
 
             {/* Feeling */}
-            <QuickNoteField
-              label="Feeling / ความรู้สึกคนไข้"
-              value={patient.feeling}
-              onChange={v => onUpdate({ ...patient, feeling: v })}
-              quickNoteKey="feeling"
-              placeholder="บันทึกความรู้สึกของคนไข้..."
-            />
+            {readOnly ? (
+              <div><Label className="text-xs font-medium">Feeling / ความรู้สึกคนไข้</Label><p className="text-xs text-muted-foreground mt-1 whitespace-pre-wrap">{patient.feeling || '-'}</p></div>
+            ) : (
+              <QuickNoteField
+                label="Feeling / ความรู้สึกคนไข้"
+                value={patient.feeling}
+                onChange={v => onUpdate({ ...patient, feeling: v })}
+                quickNoteKey="feeling"
+                placeholder="บันทึกความรู้สึกของคนไข้..."
+              />
+            )}
 
             {/* Presentation notes */}
-            <QuickNoteField
-              label="บันทึกสิ่งที่นำเสนอ"
-              value={patient.presentationNotes}
-              onChange={v => onUpdate({ ...patient, presentationNotes: v })}
-              quickNoteKey="presentation"
-              placeholder="สิ่งที่นำเสนอคนไข้และหมอ..."
-            />
+            {readOnly ? (
+              <div><Label className="text-xs font-medium">บันทึกสิ่งที่นำเสนอ</Label><p className="text-xs text-muted-foreground mt-1 whitespace-pre-wrap">{patient.presentationNotes || '-'}</p></div>
+            ) : (
+              <QuickNoteField
+                label="บันทึกสิ่งที่นำเสนอ"
+                value={patient.presentationNotes}
+                onChange={v => onUpdate({ ...patient, presentationNotes: v })}
+                quickNoteKey="presentation"
+                placeholder="สิ่งที่นำเสนอคนไข้และหมอ..."
+              />
+            )}
           </div>
         </CollapsibleContent>
       </div>
