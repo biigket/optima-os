@@ -496,6 +496,7 @@ interface DemoReportDialogProps {
   clinicName: string;
   productsDemoed: string[];
   existingReport: Record<string, DeviceReport> | null;
+  opportunityId?: string | null;
   open: boolean;
   onOpenChange: (o: boolean) => void;
   onSaved: () => void;
@@ -506,6 +507,7 @@ export default function DemoReportDialog({
   clinicName,
   productsDemoed,
   existingReport,
+  opportunityId,
   open,
   onOpenChange,
   onSaved,
