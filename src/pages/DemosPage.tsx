@@ -85,17 +85,18 @@ export default function DemosPage() {
       const acc = d.account_id ? accounts[d.account_id] : null;
       const matchSearch = !search || acc?.clinic_name.toLowerCase().includes(search.toLowerCase());
       const isConfirmed = !!d.confirmed;
-      const isPast = d.demo_date && d.demo_date < today;
-      if (statusFilter === 'ALL') return matchSearch && !isConfirmed && !isPast; // ขอคิวเดโม
-      if (statusFilter === 'UPCOMING') return matchSearch && isConfirmed && !isPast; // ได้คิวแล้ว
-      if (statusFilter === 'PAST') return matchSearch && isPast; // เสร็จแล้ว
+      const isDone = !!d.report_submitted || (d.demo_date != null && d.demo_date < today);
+      if (statusFilter === 'ALL') return matchSearch && !isConfirmed && !isDone; // ขอคิวเดโม
+      if (statusFilter === 'UPCOMING') return matchSearch && isConfirmed && !isDone; // ได้คิวแล้ว
+      if (statusFilter === 'PAST') return matchSearch && isDone; // เสร็จแล้ว
       return matchSearch;
     });
   }, [demos, accounts, search, statusFilter, today]);
 
-  const pendingCount = demos.filter(d => !d.confirmed && !(d.demo_date && d.demo_date < today)).length;
-  const confirmedCount = demos.filter(d => d.confirmed && !(d.demo_date && d.demo_date < today)).length;
-  const pastCount = demos.filter(d => d.demo_date && d.demo_date < today).length;
+  const isDone = (d: DemoRow) => !!d.report_submitted || (d.demo_date != null && d.demo_date < today);
+  const pendingCount = demos.filter(d => !d.confirmed && !isDone(d)).length;
+  const confirmedCount = demos.filter(d => !!d.confirmed && !isDone(d)).length;
+  const pastCount = demos.filter(d => isDone(d)).length;
 
   function handleCardClick(demo: DemoRow) {
     const acc = demo.account_id ? accounts[demo.account_id] : null;
