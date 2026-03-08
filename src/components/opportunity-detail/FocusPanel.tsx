@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { format, parse } from 'date-fns';
-import { Phone, Users, Building2, Target, AlertTriangle, MoreHorizontal, ChevronDown, Pencil, Trash2, X, Check, CalendarIcon } from 'lucide-react';
+import { Phone, Users, Building2, Target, AlertTriangle, MoreHorizontal, ChevronDown, Pencil, Trash2, X, Check, CalendarIcon, Presentation } from 'lucide-react';
 import StructuredNotes from './StructuredNotes';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -25,6 +25,7 @@ const TYPE_CONFIG: Record<string, { icon: React.ElementType; color: string; bord
   MEETING: { icon: Users, label: 'Meeting', color: 'text-violet-600', borderColor: 'border-violet-400' },
   TASK: { icon: Building2, label: 'Task', color: 'text-emerald-600', borderColor: 'border-emerald-400' },
   DEADLINE: { icon: Target, label: 'Deadline', color: 'text-red-600', borderColor: 'border-red-400' },
+  DEMO: { icon: Presentation, label: 'Demo', color: 'text-orange-600', borderColor: 'border-orange-400' },
 };
 
 interface FocusPanelProps {
@@ -39,7 +40,31 @@ interface FocusPanelProps {
 export default function FocusPanel({ activities, onMarkDone, onEdit, onDelete, onActivityUpdated, clinicName }: FocusPanelProps) {
   const [expandAll, setExpandAll] = useState(true);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [demoConfirmed, setDemoConfirmed] = useState<Record<string, boolean>>({});
   const pending = activities.filter(a => !a.is_done).sort((a, b) => a.activity_date.localeCompare(b.activity_date));
+
+  // Fetch confirmed status for DEMO activities
+  useEffect(() => {
+    const demoActivities = pending.filter(a => a.activity_type === 'DEMO');
+    if (demoActivities.length === 0) return;
+
+    const fetchConfirmed = async () => {
+      const oppIds = [...new Set(demoActivities.map(a => a.opportunity_id))];
+      const { data } = await supabase
+        .from('demos')
+        .select('opportunity_id, confirmed')
+        .in('opportunity_id', oppIds);
+      if (data) {
+        const map: Record<string, boolean> = {};
+        // Map by opportunity_id — use the first demo found
+        data.forEach((d: any) => {
+          if (d.opportunity_id) map[d.opportunity_id] = !!d.confirmed;
+        });
+        setDemoConfirmed(map);
+      }
+    };
+    fetchConfirmed();
+  }, [activities]);
 
   if (pending.length === 0) return null;
 
@@ -79,6 +104,7 @@ export default function FocusPanel({ activities, onMarkDone, onEdit, onDelete, o
             key={act.id}
             activity={act}
             clinicName={clinicName}
+            isConfirmed={act.activity_type === 'DEMO' ? demoConfirmed[act.opportunity_id] : undefined}
             onDone={() => handleDone(act.id)}
             onEdit={() => setEditingId(act.id)}
             onDelete={() => onDelete?.(act.id)}
@@ -89,8 +115,8 @@ export default function FocusPanel({ activities, onMarkDone, onEdit, onDelete, o
   );
 }
 
-function FocusCard({ activity: act, clinicName, onDone, onEdit, onDelete }: {
-  activity: Activity; clinicName?: string; onDone: () => void; onEdit: () => void; onDelete: () => void;
+function FocusCard({ activity: act, clinicName, isConfirmed, onDone, onEdit, onDelete }: {
+  activity: Activity; clinicName?: string; isConfirmed?: boolean; onDone: () => void; onEdit: () => void; onDelete: () => void;
 }) {
   const cfg = TYPE_CONFIG[act.activity_type] || TYPE_CONFIG.TASK;
   const Icon = cfg.icon;
@@ -104,7 +130,7 @@ function FocusCard({ activity: act, clinicName, onDone, onEdit, onDelete }: {
         title="Mark as done"
       />
       <div className="flex-1 min-w-0">
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
           <Icon size={13} className={cfg.color} />
           <span className="text-xs font-medium text-foreground">{act.title}</span>
           {act.priority === 'HIGH' && (
@@ -114,6 +140,17 @@ function FocusCard({ activity: act, clinicName, onDone, onEdit, onDelete }: {
             <span className="px-1.5 py-0.5 rounded text-[9px] font-semibold bg-red-100 text-red-700 dark:bg-red-900/50 dark:text-red-400 flex items-center gap-0.5">
               <AlertTriangle size={9} /> OVERDUE
             </span>
+          )}
+          {act.activity_type === 'DEMO' && isConfirmed !== undefined && (
+            isConfirmed ? (
+              <span className="px-1.5 py-0.5 rounded text-[9px] font-semibold bg-emerald-100 text-emerald-700 dark:bg-emerald-900/50 dark:text-emerald-400">
+                ✓ ได้คิวแล้ว
+              </span>
+            ) : (
+              <span className="px-1.5 py-0.5 rounded text-[9px] font-semibold bg-orange-100 text-orange-700 dark:bg-orange-900/50 dark:text-orange-400">
+                ขอคิวเดโม
+              </span>
+            )
           )}
         </div>
         <div className="flex items-center gap-2 text-[10px] text-muted-foreground mt-1">
