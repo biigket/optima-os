@@ -236,10 +236,10 @@ export default function VisitReportsPage() {
         <Tabs defaultValue="pending">
           <TabsList className="w-full">
             <TabsTrigger value="pending" className="flex-1">
-              ยังไม่ได้บันทึก ({reports.filter(r => r.status !== 'REPORTED').length})
+              ยังไม่รายงาน ({reports.filter(r => r.status !== 'REPORTED').length})
             </TabsTrigger>
             <TabsTrigger value="reported" className="flex-1">
-              บันทึกแล้ว ({reports.filter(r => r.status === 'REPORTED').length})
+              รายงานแล้ว ({reports.filter(r => r.status === 'REPORTED').length})
             </TabsTrigger>
           </TabsList>
           <TabsContent value="pending">
