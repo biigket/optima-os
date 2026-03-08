@@ -6,13 +6,12 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import StatusBadge from '@/components/ui/StatusBadge';
 import OpportunityKanban from '@/components/opportunities/OpportunityKanban';
-import CustomerSelectModal from '@/components/opportunities/CustomerSelectModal';
 import CreateOpportunityForm from '@/components/opportunities/CreateOpportunityForm';
 import { supabase } from '@/integrations/supabase/client';
 import { useMockAuth, MOCK_SALES } from '@/hooks/useMockAuth';
 import { toast } from 'sonner';
 import type { Account, Opportunity, OpportunityStage } from '@/types';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+
 
 const stages: (OpportunityStage | 'ALL')[] = ['ALL', 'NEW_LEAD', 'CONTACTED', 'DEMO_SCHEDULED', 'DEMO_DONE', 'NEGOTIATION', 'WON', 'LOST'];
 const stageLabels: Record<string, string> = {
@@ -46,10 +45,7 @@ export default function OpportunitiesPage() {
   const [viewMode, setViewMode] = useState<'kanban' | 'table'>('kanban');
   const [sortKey, setSortKey] = useState<SortKey>('next_activity');
 
-  const [selectModalOpen, setSelectModalOpen] = useState(false);
-  const [selectedCustomer, setSelectedCustomer] = useState<Account | null>(null);
   const [createFormOpen, setCreateFormOpen] = useState(false);
-  const [noContactWarning, setNoContactWarning] = useState(false);
   const [opportunities, setOpportunities] = useState<Opportunity[]>([]);
   const [, forceUpdate] = useState(0);
 
@@ -113,18 +109,6 @@ export default function OpportunitiesPage() {
     return sum + Math.round((o.expected_value || 0) * prob / 100);
   }, 0);
 
-  const handleCustomerSelect = (account: Account, hasContacts: boolean) => {
-    setSelectModalOpen(false);
-    setSelectedCustomer(account);
-    // Cache account for display
-    accountCache[account.id] = { clinic_name: account.clinic_name, customer_status: account.customer_status, assigned_sale: account.assigned_sale || undefined };
-    if (!hasContacts) {
-      setNoContactWarning(true);
-    } else {
-      setCreateFormOpen(true);
-    }
-  };
-
   const handleSave = async (data: Opportunity) => {
     const { id, quantity, stuck_reason, ...rest } = data;
     const insertPayload = {
@@ -185,7 +169,7 @@ export default function OpportunitiesPage() {
             )}
           </div>
         </div>
-        <Button size="sm" className="gap-1.5" onClick={() => setSelectModalOpen(true)}>
+        <Button size="sm" className="gap-1.5" onClick={() => setCreateFormOpen(true)}>
           <Plus size={14} /> เพิ่มดีล
         </Button>
       </div>
@@ -352,29 +336,7 @@ export default function OpportunitiesPage() {
         </div>
       )}
 
-      <CustomerSelectModal open={selectModalOpen} onOpenChange={setSelectModalOpen} onSelect={handleCustomerSelect} />
-
-      {selectedCustomer && (
-        <CreateOpportunityForm open={createFormOpen} onOpenChange={setCreateFormOpen} customer={selectedCustomer} onSave={handleSave} />
-      )}
-
-      <Dialog open={noContactWarning} onOpenChange={setNoContactWarning}>
-        <DialogContent className="max-w-sm">
-          <DialogHeader>
-            <DialogTitle className="text-sm">⚠️ กรุณาเพิ่มผู้ติดต่อ</DialogTitle>
-            <DialogDescription className="text-xs">
-              ลูกค้า "{selectedCustomer?.clinic_name}" ยังไม่มีผู้ติดต่อในระบบ กรุณาเพิ่มผู้ติดต่อก่อนสร้างโอกาสขาย
-            </DialogDescription>
-          </DialogHeader>
-          <div className="flex justify-end gap-2">
-            <Button variant="outline" size="sm" onClick={() => setNoContactWarning(false)}>ปิด</Button>
-            <Button size="sm" onClick={() => {
-              setNoContactWarning(false);
-              if (selectedCustomer) navigate(`/leads/${selectedCustomer.id}`);
-            }}>ไปหน้าลูกค้า</Button>
-          </div>
-        </DialogContent>
-      </Dialog>
+      <CreateOpportunityForm open={createFormOpen} onOpenChange={setCreateFormOpen} onSave={handleSave} />
     </div>
   );
 }
