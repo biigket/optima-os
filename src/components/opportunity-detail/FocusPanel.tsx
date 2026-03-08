@@ -104,6 +104,7 @@ export default function FocusPanel({ activities, onMarkDone, onEdit, onDelete, o
             key={act.id}
             activity={act}
             clinicName={clinicName}
+            isConfirmed={act.activity_type === 'DEMO' ? demoConfirmed[act.opportunity_id] : undefined}
             onDone={() => handleDone(act.id)}
             onEdit={() => setEditingId(act.id)}
             onDelete={() => onDelete?.(act.id)}
