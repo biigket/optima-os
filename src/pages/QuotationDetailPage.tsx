@@ -1,15 +1,41 @@
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { ArrowLeft, FileText, Building2, Package, CreditCard, User, Calendar } from 'lucide-react';
+import { ArrowLeft, FileText, Building2, Package, CreditCard, User, Calendar, Printer } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import StatusBadge from '@/components/ui/StatusBadge';
 import { supabase } from '@/integrations/supabase/client';
 import { Separator } from '@/components/ui/separator';
+import { toast } from 'sonner';
+import { useState } from 'react';
 
 export default function QuotationDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const [printingPDF, setPrintingPDF] = useState(false);
+
+  async function handlePrintPDF() {
+    if (!id) return;
+    setPrintingPDF(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('generate-quotation-pdf', {
+        body: { quotation_id: id },
+      });
+      if (error) throw error;
+      // data is HTML text
+      const html = typeof data === 'string' ? data : await data.text?.() || JSON.stringify(data);
+      const win = window.open('', '_blank');
+      if (win) {
+        win.document.write(html);
+        win.document.close();
+      } else {
+        toast.error('กรุณาอนุญาต popup เพื่อเปิดใบเสนอราคา');
+      }
+    } catch (err: any) {
+      toast.error('สร้าง PDF ไม่สำเร็จ: ' + (err.message || 'Unknown error'));
+    }
+    setPrintingPDF(false);
+  }
 
   const { data: qt, isLoading } = useQuery({
     queryKey: ['quotation', id],
@@ -59,6 +85,9 @@ export default function QuotationDetailPage() {
           <p className="text-sm text-muted-foreground">สร้างเมื่อ {qt.created_at ? new Date(qt.created_at).toLocaleDateString('th-TH') : '-'}</p>
         </div>
         <div className="flex items-center gap-2">
+          <Button variant="outline" size="sm" className="gap-1.5" onClick={handlePrintPDF} disabled={printingPDF}>
+            <Printer size={14} /> {printingPDF ? 'กำลังสร้าง...' : 'พิมพ์ PDF'}
+          </Button>
           <StatusBadge status={qt.approval_status || 'DRAFT'} />
           <StatusBadge status={qt.payment_status || 'UNPAID'} />
         </div>
