@@ -12,6 +12,30 @@ import { useState } from 'react';
 export default function QuotationDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const [printingPDF, setPrintingPDF] = useState(false);
+
+  async function handlePrintPDF() {
+    if (!id) return;
+    setPrintingPDF(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('generate-quotation-pdf', {
+        body: { quotation_id: id },
+      });
+      if (error) throw error;
+      // data is HTML text
+      const html = typeof data === 'string' ? data : await data.text?.() || JSON.stringify(data);
+      const win = window.open('', '_blank');
+      if (win) {
+        win.document.write(html);
+        win.document.close();
+      } else {
+        toast.error('กรุณาอนุญาต popup เพื่อเปิดใบเสนอราคา');
+      }
+    } catch (err: any) {
+      toast.error('สร้าง PDF ไม่สำเร็จ: ' + (err.message || 'Unknown error'));
+    }
+    setPrintingPDF(false);
+  }
 
   const { data: qt, isLoading } = useQuery({
     queryKey: ['quotation', id],
