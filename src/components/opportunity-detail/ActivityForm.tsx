@@ -361,6 +361,11 @@ export default function ActivityForm({
                 if (!title.trim() || title === currentDefault) {
                   setTitle(at.defaultTitle);
                 }
+                // Auto-set HIGH priority for DEMO
+                if (at.type === 'DEMO') {
+                  setPriority('HIGH');
+                  setShowExtra(true); // auto-expand location/description
+                }
               }}
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all
                 ${active ? at.color + ' ring-1 ring-offset-1 ring-current' : 'bg-muted text-muted-foreground hover:bg-muted/80'}`}
