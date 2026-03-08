@@ -412,8 +412,8 @@ export default function CreateOpportunityForm({ open, onOpenChange, onSave, cust
           )}
 
           {/* STEP 1: Deal Details */}
-  overflow-x-hidden         {step === 1 && (
-            <overflow-x-hidden div className="flex-1 overflow-y-auto space-y-4 px-1 min-h-0">
+          {step === 1 && (
+            <div className="flex-1 overflow-y-auto overflow-x-hidden space-y-4 px-1 min-h-0">
               {/* Authority */}
               <div className="space-y-1.5">
                 <Label className="text-xs">ผู้มีอำนาจตัดสินใจ</Label>
