@@ -211,6 +211,21 @@ export default function WeeklyPlanPage() {
         plan={selectedPlan}
         onSuccess={() => fetchPlans()}
       />
+
+      {/* Mobile FAB */}
+      {isMobile && (
+        <button
+          onClick={() => {
+            setSelectedDate(new Date());
+            setSelectedStart('09:00');
+            setSelectedEnd('10:00');
+            setDialogOpen(true);
+          }}
+          className="fixed bottom-6 right-6 z-50 h-14 w-14 rounded-full bg-primary text-primary-foreground shadow-lg flex items-center justify-center active:scale-95 transition-transform"
+        >
+          <Plus size={24} />
+        </button>
+      )}
     </div>
   );
 }
