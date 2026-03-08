@@ -55,8 +55,7 @@ type TimelineItem = {
 export default function HistoryTimeline({ activities, stageHistory, notes, onUpdateNote, onDeleteNote, onPinNote, onDeleteActivity, onUpdateActivity, onAddComment, pinnedIds, clinicName }: HistoryTimelineProps) {
   const [filter, setFilter] = useState('all');
 
-  // Show done activities + all DEMO activities (even pending) in timeline
-  const timelineActivities = activities.filter(a => a.is_done || a.activity_type === 'DEMO');
+  const timelineActivities = activities.filter(a => a.is_done);
 
   // Separate top-level notes from comments (notes with parent_id)
   const topLevelNotes = notes.filter(n => !n.parent_id);
