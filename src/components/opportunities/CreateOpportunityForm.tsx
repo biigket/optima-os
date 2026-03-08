@@ -340,7 +340,7 @@ export default function CreateOpportunityForm({ open, onOpenChange, onSave, cust
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md max-h-[85vh] flex flex-col">
+      <DialogContent className="max-w-md max-h-[85vh] flex flex-col overflow-x-hidden">
         <DialogHeader>
           <DialogTitle>เพิ่มดีลใหม่</DialogTitle>
           <DialogDescription className="sr-only">สร้างโอกาสขายใหม่</DialogDescription>
