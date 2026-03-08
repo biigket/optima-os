@@ -63,7 +63,7 @@ function createPatient(): PatientEntry {
   };
 }
 
-// Quick note buttons component
+// Quick note buttons component - toggle add/remove
 function QuickNoteField({
   label,
   value,
@@ -78,25 +78,46 @@ function QuickNoteField({
   placeholder?: string;
 }) {
   const notes = QUICK_NOTES[quickNoteKey] || [];
+
+  const isActive = (note: string) => {
+    return value.split('\n').some(line => line.trim() === note);
+  };
+
+  const toggleNote = (note: string) => {
+    if (isActive(note)) {
+      // Remove
+      const lines = value.split('\n').filter(line => line.trim() !== note);
+      onChange(lines.join('\n').trim());
+    } else {
+      // Add
+      const current = value.trim();
+      onChange(current ? `${current}\n${note}` : note);
+    }
+  };
+
   return (
     <div className="space-y-1.5">
       <Label className="text-xs font-medium">{label}</Label>
       {notes.length > 0 && (
         <div className="flex flex-wrap gap-1">
-          {notes.map(n => (
-            <button
-              key={n}
-              type="button"
-              className="px-2 py-0.5 text-[10px] rounded-full border bg-muted/50 hover:bg-primary/10 hover:border-primary/30 transition-colors"
-              onClick={() => {
-                const current = value.trim();
-                if (current.includes(n)) return;
-                onChange(current ? `${current}\n${n}` : n);
-              }}
-            >
-              + {n}
-            </button>
-          ))}
+          {notes.map(n => {
+            const active = isActive(n);
+            return (
+              <button
+                key={n}
+                type="button"
+                className={cn(
+                  "px-2 py-0.5 text-[10px] rounded-full border transition-colors",
+                  active
+                    ? "bg-primary text-primary-foreground border-primary"
+                    : "bg-muted/50 hover:bg-primary/10 hover:border-primary/30"
+                )}
+                onClick={() => toggleNote(n)}
+              >
+                {active ? '✕ ' : '+ '}{n}
+              </button>
+            );
+          })}
         </div>
       )}
       <Textarea
