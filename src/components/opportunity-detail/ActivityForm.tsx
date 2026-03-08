@@ -15,6 +15,7 @@ import { useMockAuth, MOCK_SALES } from '@/hooks/useMockAuth';
 import type { Activity, ActivityType, ActivityPriority } from '@/types';
 import StructuredNotes from './StructuredNotes';
 import RichTextEditor from '@/components/ui/RichTextEditor';
+import { syncDemoFromActivity } from '@/lib/demoSync';
 
 // 07:00 - 22:00 (7am - 10pm), 15-min intervals
 const TIME_OPTIONS = Array.from({ length: 61 }, (_, i) => {
