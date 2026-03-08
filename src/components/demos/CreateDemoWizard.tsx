@@ -910,23 +910,26 @@ export default function CreateDemoWizard({ open, onOpenChange, onSuccess }: Crea
 
               {/* Location */}
               <div className="space-y-1.5">
-                <Label className="text-xs">สถานที่ <span className="text-destructive">*</span></Label>
+                <Label className="text-xs flex items-center gap-1">
+                  <MapPin size={12} className="text-muted-foreground" />
+                  Location <span className="text-destructive">*</span>
+                </Label>
                 <Input
-                  placeholder="เช่น คลินิก, โรงพยาบาล..."
+                  placeholder="เช่น คลินิก ABC, กรุงเทพ..."
                   value={demoLocation}
                   onChange={e => setDemoLocation(e.target.value)}
                 />
-                {demoLocation.trim() && (
-                  <a
-                    href={`https://www.google.com/maps/search/${encodeURIComponent(demoLocation.trim())}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1 text-xs text-primary hover:underline"
-                  >
-                    <MapPin size={12} />
-                    เปิด Google Map
-                  </a>
-                )}
+              </div>
+
+              {/* Description */}
+              <div className="space-y-1.5">
+                <Label className="text-xs">Description</Label>
+                <Textarea
+                  placeholder="ใส่ลิงก์ Google Map หรือรายละเอียดเพิ่มเติม..."
+                  value={demoNote}
+                  onChange={e => setDemoNote(e.target.value)}
+                  className="min-h-[60px]"
+                />
               </div>
 
               {/* Demo Products */}
@@ -961,16 +964,6 @@ export default function CreateDemoWizard({ open, onOpenChange, onSuccess }: Crea
                 </div>
               </div>
 
-              {/* Note */}
-              <div className="space-y-1.5">
-                <Label className="text-xs">หมายเหตุ</Label>
-                <Textarea
-                  placeholder="รายละเอียดเพิ่มเติม..."
-                  value={demoNote}
-                  onChange={e => setDemoNote(e.target.value)}
-                  className="min-h-[60px]"
-                />
-              </div>
             </div>
           )}
 
