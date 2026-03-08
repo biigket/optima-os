@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search, Building2, Plus, ChevronLeft, ChevronRight, User, ClipboardList, CheckCircle2, MapPin, Calendar, Presentation, Users, Loader2, Briefcase, AlertCircle } from 'lucide-react';
+import { Search, Building2, Plus, ChevronLeft, ChevronRight, User, ClipboardList, CheckCircle2, MapPin, Calendar, Presentation, Users, Loader2, Briefcase, AlertCircle, Clock } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
