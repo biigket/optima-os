@@ -258,10 +258,22 @@ export default function VisitReportsPage() {
             <DialogTitle>รายงานเยี่ยมลูกค้า: {editingReport?.clinic_name || editingReport?.accounts?.clinic_name}</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
-            <div>
-              <label className="text-sm font-medium text-foreground">พบใคร</label>
-              <Input value={metWho} onChange={e => setMetWho(e.target.value)} placeholder="ชื่อคนที่พบ" />
-            </div>
+            {/* Check-in Photo */}
+            {editingReport?.photo && (
+              <div>
+                <label className="text-sm font-medium text-foreground">📷 รูปเช็คอิน</label>
+                <img
+                  src={editingReport.photo}
+                  alt="Check-in photo"
+                  className="w-full rounded-lg border mt-1.5 aspect-[4/3] object-cover"
+                />
+                {editingReport.check_in_at && (
+                  <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
+                    <Clock size={12} /> เช็คอินเมื่อ {format(new Date(editingReport.check_in_at), 'd MMM yyyy HH:mm', { locale: th })}
+                  </p>
+                )}
+              </div>
+            )}
             <div>
               <label className="text-sm font-medium text-foreground">สิ่งที่ทำ</label>
               <Textarea value={action} onChange={e => setAction(e.target.value)} placeholder="อธิบายสิ่งที่ทำระหว่างเยี่ยม" rows={3} />
