@@ -560,29 +560,33 @@ export default function CustomerCardPage() {
                 <p className="text-xs font-medium text-muted-foreground flex items-center gap-1 mb-3"><MapPin size={12} /> บันทึกการเยี่ยม ({visitReports.length})</p>
                 <div className="space-y-3">
                   {visitReports.map(r => (
-                    <div key={r.id} className="p-3 rounded-md bg-muted/30 border space-y-2">
+                    <div key={r.id} className="rounded-md bg-muted/30 border overflow-hidden flex flex-col md:flex-row">
                       {r.photo && (
-                        <img src={r.photo} alt="check-in" className="w-full rounded-md aspect-[16/9] object-cover" />
+                        <div className="md:w-1/3 shrink-0">
+                          <img src={r.photo} alt="check-in" className="w-full h-full aspect-square object-cover" />
+                        </div>
                       )}
-                      <div className="flex justify-between items-center">
-                        <span className="text-xs text-muted-foreground">
-                          {r.check_in_at ? format(new Date(r.check_in_at), 'd MMM yyyy HH:mm', { locale: th }) : '-'}
-                        </span>
-                        <Badge variant={r.status === 'REPORTED' ? 'default' : 'secondary'} className="text-[10px] h-5">
-                          {r.status === 'REPORTED' ? 'รายงานแล้ว' : 'รอกรอกรายงาน'}
-                        </Badge>
-                      </div>
-                      <div className="space-y-1 text-xs">
-                        {r.met_who && <p><span className="text-muted-foreground">พบ:</span> <span className="text-foreground">{r.met_who}</span></p>}
-                        {r.action && <p><span className="text-muted-foreground">สิ่งที่ทำ:</span> <span className="text-foreground">{r.action}</span></p>}
-                        {r.devices_in_use && <p><span className="text-muted-foreground">เครื่องมือ:</span> <span className="text-foreground">{r.devices_in_use}</span></p>}
-                        {r.issues && <p><span className="text-muted-foreground">ปัญหา:</span> <span className="text-foreground">{r.issues}</span></p>}
-                        {r.next_plan && <p className="text-primary">ถัดไป: {r.next_plan}</p>}
-                        {r.customer_type && (
-                          <p><span className="text-muted-foreground">ผลเยี่ยม:</span> <span className="text-foreground">
-                            {r.customer_type === 'INTERESTED' ? 'สนใจ' : r.customer_type === 'NOT_INTERESTED' ? 'ไม่สนใจ' : 'ลูกค้าเก่า'}
-                          </span></p>
-                        )}
+                      <div className="flex-1 p-3 space-y-2">
+                        <div className="flex justify-between items-center">
+                          <span className="text-xs text-muted-foreground">
+                            {r.check_in_at ? format(new Date(r.check_in_at), 'd MMM yyyy HH:mm', { locale: th }) : '-'}
+                          </span>
+                          <Badge variant={r.status === 'REPORTED' ? 'default' : 'secondary'} className="text-[10px] h-5">
+                            {r.status === 'REPORTED' ? 'รายงานแล้ว' : 'รอกรอกรายงาน'}
+                          </Badge>
+                        </div>
+                        <div className="space-y-1.5 text-xs">
+                          {r.met_who && <p><span className="text-muted-foreground">พบ:</span> <span className="text-foreground">{r.met_who}</span></p>}
+                          {r.action && <p><span className="text-muted-foreground">สิ่งที่ทำ:</span> <span className="text-foreground">{r.action}</span></p>}
+                          {r.devices_in_use && <p><span className="text-muted-foreground">เครื่องมือ:</span> <span className="text-foreground">{r.devices_in_use}</span></p>}
+                          {r.issues && <p><span className="text-muted-foreground">ปัญหา:</span> <span className="text-foreground">{r.issues}</span></p>}
+                          {r.next_plan && <p className="text-primary">ถัดไป: {r.next_plan}</p>}
+                          {r.customer_type && (
+                            <p><span className="text-muted-foreground">ผลเยี่ยม:</span> <span className="text-foreground">
+                              {r.customer_type === 'INTERESTED' ? 'สนใจ' : r.customer_type === 'NOT_INTERESTED' ? 'ไม่สนใจ' : 'ลูกค้าเก่า'}
+                            </span></p>
+                          )}
+                        </div>
                       </div>
                     </div>
                   ))}
