@@ -156,7 +156,7 @@ export default function DemosPage() {
           {filtered.map(demo => {
             const acc = demo.account_id ? accounts[demo.account_id] : null;
             const isConfirmed = !!demo.confirmed;
-            const isPast = demo.demo_date && demo.demo_date < today;
+            const isPast = !!demo.report_submitted || (demo.demo_date != null && demo.demo_date < today);
 
             return (
               <div
