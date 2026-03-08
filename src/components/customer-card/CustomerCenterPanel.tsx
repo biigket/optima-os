@@ -122,6 +122,12 @@ export default function CustomerCenterPanel({ accountId, opportunities }: Props)
                   <span className="ml-1 text-[10px] bg-primary/10 text-primary rounded-full px-1.5 py-0.5 font-semibold">{visitReports.length}</span>
                 )}
               </TabsTrigger>
+              <TabsTrigger value="demo-reports" className="text-xs gap-1.5 rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none px-3 py-2.5">
+                <FlaskConical size={13} /> รายงานเคส DEMO
+                {demoReports.length > 0 && (
+                  <span className="ml-1 text-[10px] bg-primary/10 text-primary rounded-full px-1.5 py-0.5 font-semibold">{demoReports.length}</span>
+                )}
+              </TabsTrigger>
               <TabsTrigger value="tasks" className="text-xs gap-1.5 rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none px-3 py-2.5">
                 <CheckSquare size={13} /> งาน
               </TabsTrigger>
