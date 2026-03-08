@@ -89,9 +89,8 @@ export default function EditDemoDialog({ demo, clinicName, open, onOpenChange, o
     if (data) {
       setStartTime(data.start_time || '09:00');
       setEndTime(data.end_time || '10:00');
-      // Fallback: use activity location/description if demo record is missing them
       if (!location && data.location) setLocation(data.location);
-      if (!note && data.description) setNote(data.description);
+      setDescription(data.description || '');
     }
   }
 
