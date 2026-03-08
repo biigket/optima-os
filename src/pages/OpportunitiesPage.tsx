@@ -110,18 +110,6 @@ export default function OpportunitiesPage() {
     return sum + Math.round((o.expected_value || 0) * prob / 100);
   }, 0);
 
-  const handleCustomerSelect = (account: Account, hasContacts: boolean) => {
-    setSelectModalOpen(false);
-    setSelectedCustomer(account);
-    // Cache account for display
-    accountCache[account.id] = { clinic_name: account.clinic_name, customer_status: account.customer_status, assigned_sale: account.assigned_sale || undefined };
-    if (!hasContacts) {
-      setNoContactWarning(true);
-    } else {
-      setCreateFormOpen(true);
-    }
-  };
-
   const handleSave = async (data: Opportunity) => {
     const { id, quantity, stuck_reason, ...rest } = data;
     const insertPayload = {
