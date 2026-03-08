@@ -129,16 +129,20 @@ export default function VisitCheckinPage() {
 
     try {
       const stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: mode, width: { ideal: 1280 }, height: { ideal: 960 } },
+        video: { facingMode: { ideal: mode }, width: { ideal: 1280 }, height: { ideal: 960 } },
         audio: false,
       });
       streamRef.current = stream;
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream;
-        await videoRef.current.play();
-      }
       setFacingMode(mode);
       setCameraActive(true);
+
+      // Wait for next render so videoRef is mounted, then attach stream
+      setTimeout(() => {
+        if (videoRef.current && streamRef.current) {
+          videoRef.current.srcObject = streamRef.current;
+          videoRef.current.play().catch(() => {});
+        }
+      }, 100);
     } catch {
       toast.error('ไม่สามารถเปิดกล้องได้ กรุณาอนุญาตการเข้าถึงกล้อง');
     }
@@ -160,8 +164,17 @@ export default function VisitCheckinPage() {
     const canvas = canvasRef.current;
     if (!video || !canvas) return;
 
-    canvas.width = video.videoWidth;
-    canvas.height = video.videoHeight;
+    // Ensure video has valid dimensions
+    const vw = video.videoWidth || video.clientWidth || 640;
+    const vh = video.videoHeight || video.clientHeight || 480;
+
+    if (vw === 0 || vh === 0) {
+      toast.error('กล้องยังไม่พร้อม กรุณารอสักครู่แล้วลองอีกครั้ง');
+      return;
+    }
+
+    canvas.width = vw;
+    canvas.height = vh;
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
@@ -170,16 +183,20 @@ export default function VisitCheckinPage() {
       ctx.translate(canvas.width, 0);
       ctx.scale(-1, 1);
     }
-    ctx.drawImage(video, 0, 0);
+    ctx.drawImage(video, 0, 0, vw, vh);
+
+    // Stop camera first so stream doesn't interfere
+    stopCamera();
 
     const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
-    setCapturedPhoto(dataUrl);
-
-    canvas.toBlob(blob => {
-      if (blob) setCapturedBlob(blob);
-    }, 'image/jpeg', 0.85);
-
-    stopCamera();
+    if (dataUrl && dataUrl.length > 100) {
+      setCapturedPhoto(dataUrl);
+      canvas.toBlob(blob => {
+        if (blob) setCapturedBlob(blob);
+      }, 'image/jpeg', 0.85);
+    } else {
+      toast.error('ถ่ายรูปไม่สำเร็จ กรุณาลองใหม่');
+    }
   }
 
   function retakePhoto() {
