@@ -45,10 +45,8 @@ export default function OpportunitiesPage() {
   const [viewMode, setViewMode] = useState<'kanban' | 'table'>('kanban');
   const [sortKey, setSortKey] = useState<SortKey>('next_activity');
 
-  const [selectModalOpen, setSelectModalOpen] = useState(false);
-  const [selectedCustomer, setSelectedCustomer] = useState<Account | null>(null);
   const [createFormOpen, setCreateFormOpen] = useState(false);
-  const [noContactWarning, setNoContactWarning] = useState(false);
+  const [selectedCustomer, setSelectedCustomer] = useState<Account | null>(null);
   const [opportunities, setOpportunities] = useState<Opportunity[]>([]);
   const [, forceUpdate] = useState(0);
 
