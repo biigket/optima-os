@@ -496,6 +496,7 @@ interface DemoReportDialogProps {
   clinicName: string;
   productsDemoed: string[];
   existingReport: Record<string, DeviceReport> | null;
+  opportunityId?: string | null;
   open: boolean;
   onOpenChange: (o: boolean) => void;
   onSaved: () => void;
@@ -506,6 +507,7 @@ export default function DemoReportDialog({
   clinicName,
   productsDemoed,
   existingReport,
+  opportunityId,
   open,
   onOpenChange,
   onSaved,
@@ -599,7 +601,19 @@ export default function DemoReportDialog({
       toast.error('บันทึกไม่สำเร็จ');
       console.error(error);
     } else {
-      toast.success('บันทึกรายงาน DEMO สำเร็จ');
+      // Move opportunity stage to DEMO_DONE if linked
+      if (opportunityId) {
+        const { data: opp } = await supabase.from('opportunities').select('stage').eq('id', opportunityId).single();
+        if (opp) {
+          await supabase.from('opportunity_stage_history').insert({
+            opportunity_id: opportunityId,
+            from_stage: opp.stage,
+            to_stage: 'DEMO_DONE',
+          });
+          await supabase.from('opportunities').update({ stage: 'DEMO_DONE' }).eq('id', opportunityId);
+        }
+      }
+      toast.success('บันทึกรายงาน DEMO สำเร็จ — ปิดเคสแล้ว');
       onSaved();
       onOpenChange(false);
     }
