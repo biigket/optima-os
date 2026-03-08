@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Checkbox } from '@/components/ui/checkbox';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Phone, Users, Building2, Target, Presentation, ChevronDown, ChevronUp, CalendarIcon, X, Sparkles, Loader2, MessageSquare } from 'lucide-react';
+import { Phone, Users, Building2, Target, Presentation, ChevronDown, ChevronUp, CalendarIcon, X, Sparkles, Loader2, MessageSquare, MapPin, ExternalLink } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
@@ -32,6 +32,8 @@ const ACTIVITY_TYPES: { type: ActivityType; label: string; icon: React.ElementTy
   { type: 'DEADLINE', label: 'Deadline', icon: Target, color: 'text-red-600 bg-red-100', defaultTitle: 'เส้นตาย' },
   { type: 'DEMO', label: 'Demo', icon: Presentation, color: 'text-orange-600 bg-orange-100', defaultTitle: 'นัดเดโม' },
 ];
+
+const PRODUCT_SPECIALISTS = ['Not', 'Ohm', 'Por'];
 
 interface QuickScheduleDefaults {
   start_time: string;
@@ -193,6 +195,16 @@ export default function ActivityForm({
 
   const handleSave = async () => {
     if (!title.trim()) { toast.error('กรุณากรอกชื่อกิจกรรม'); return; }
+    if (selectedType === 'DEMO' && !location.trim()) { toast.error('กรุณากรอกสถานที่สาธิต'); return; }
+
+    // Build enriched description for DEMO with Google Map link
+    let finalDescription = description || '';
+    if (selectedType === 'DEMO' && location.trim()) {
+      const mapUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(location.trim())}`;
+      const locationBlock = `📍 สถานที่: ${location.trim()}\n🗺️ Google Map: ${mapUrl}`;
+      finalDescription = finalDescription ? `${locationBlock}\n\n${finalDescription}` : locationBlock;
+    }
+
     setSaving(true);
     const payload = {
       opportunity_id: opportunityId,
@@ -202,9 +214,9 @@ export default function ActivityForm({
       activity_date: activityDate,
       start_time: startTime || null,
       end_time: endTime || null,
-      priority,
+      priority: selectedType === 'DEMO' ? 'HIGH' : priority,
       location: location || null,
-      description: description || null,
+      description: finalDescription || null,
       notes: notes || null,
       is_done: markAsDone,
       assigned_to: assignedTo.length > 0 ? assignedTo : null,
@@ -359,6 +371,11 @@ export default function ActivityForm({
                 if (!title.trim() || title === currentDefault) {
                   setTitle(at.defaultTitle);
                 }
+                // Auto-set HIGH priority for DEMO
+                if (at.type === 'DEMO') {
+                  setPriority('HIGH');
+                  setShowExtra(true); // auto-expand location/description
+                }
               }}
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all
                 ${active ? at.color + ' ring-1 ring-offset-1 ring-current' : 'bg-muted text-muted-foreground hover:bg-muted/80'}`}
@@ -427,18 +444,48 @@ export default function ActivityForm({
         </div>
       </div>
 
-      {/* Priority */}
+      {/* Priority - locked to HIGH for DEMO */}
       <div>
         <label className="text-[10px] text-muted-foreground">ความสำคัญ</label>
-        <Select value={priority} onValueChange={v => setPriority(v as ActivityPriority)}>
-          <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
-          <SelectContent>
-            <SelectItem value="LOW" className="text-xs">Low</SelectItem>
-            <SelectItem value="NORMAL" className="text-xs">Normal</SelectItem>
-            <SelectItem value="HIGH" className="text-xs">High</SelectItem>
-          </SelectContent>
-        </Select>
+        {selectedType === 'DEMO' ? (
+          <div className="mt-1 px-2 py-1.5 rounded-md bg-destructive/10 border border-destructive/20 text-xs font-medium text-destructive">
+            HIGH
+          </div>
+        ) : (
+          <Select value={priority} onValueChange={v => setPriority(v as ActivityPriority)}>
+            <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="LOW" className="text-xs">Low</SelectItem>
+              <SelectItem value="NORMAL" className="text-xs">Normal</SelectItem>
+              <SelectItem value="HIGH" className="text-xs">High</SelectItem>
+            </SelectContent>
+          </Select>
+        )}
       </div>
+
+      {/* Product Specialist - DEMO only */}
+      {selectedType === 'DEMO' && (
+        <div>
+          <label className="text-[10px] text-muted-foreground">Assign to Product Specialist</label>
+          <div className="flex gap-3 mt-1">
+            {PRODUCT_SPECIALISTS.map(name => (
+              <label key={name} className="flex items-center gap-1.5 cursor-pointer">
+                <Checkbox
+                  checked={assignedTo.includes(name)}
+                  onCheckedChange={(checked) => {
+                    if (checked) {
+                      setAssignedTo(prev => prev.includes(name) ? prev : [...prev, name]);
+                    } else {
+                      setAssignedTo(prev => prev.filter(n => n !== name));
+                    }
+                  }}
+                />
+                <span className="text-xs">{name}</span>
+              </label>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Assignees */}
       <div>
@@ -472,15 +519,35 @@ export default function ActivityForm({
         </div>
       </div>
 
-      {/* Toggle extra fields */}
-      <button onClick={() => setShowExtra(!showExtra)} className="text-[11px] text-primary flex items-center gap-1 hover:underline">
-        {showExtra ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
-        {showExtra ? 'ซ่อนรายละเอียดเพิ่มเติม' : 'เพิ่ม Location, Description'}
-      </button>
+      {/* Toggle extra fields - always show for DEMO */}
+      {selectedType !== 'DEMO' && (
+        <button onClick={() => setShowExtra(!showExtra)} className="text-[11px] text-primary flex items-center gap-1 hover:underline">
+          {showExtra ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
+          {showExtra ? 'ซ่อนรายละเอียดเพิ่มเติม' : 'เพิ่ม Location, Description'}
+        </button>
+      )}
 
-      {showExtra && (
+      {(showExtra || selectedType === 'DEMO') && (
         <div className="space-y-2">
-          <Input placeholder="Location" value={location} onChange={e => setLocation(e.target.value)} className="h-8 text-xs" />
+          <div>
+            <div className="flex items-center gap-1">
+              <MapPin size={12} className="text-muted-foreground" />
+              <label className="text-[10px] text-muted-foreground">
+                Location {selectedType === 'DEMO' && <span className="text-destructive">*</span>}
+              </label>
+            </div>
+            <Input placeholder="เช่น คลินิก ABC, กรุงเทพ..." value={location} onChange={e => setLocation(e.target.value)} className="h-8 text-xs mt-0.5" />
+            {location.trim() && (
+              <a
+                href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(location.trim())}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1 text-[10px] text-primary hover:underline mt-1"
+              >
+                <ExternalLink size={10} /> เปิด Google Map
+              </a>
+            )}
+          </div>
           <Textarea placeholder="Description" value={description} onChange={e => setDescription(e.target.value)} className="text-xs min-h-[50px]" />
         </div>
       )}
