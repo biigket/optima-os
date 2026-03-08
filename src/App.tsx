@@ -61,6 +61,7 @@ function AppRoutes() {
         <Route path="/forecast" element={<ForecastPage />} />
         <Route path="/analytics" element={<AnalyticsPage />} />
         <Route path="/quotations" element={<QuotationsPage />} />
+        <Route path="/quotations/:id" element={<QuotationDetailPage />} />
         <Route path="/sales-orders" element={<SalesOrdersPage />} />
         <Route path="/inventory" element={<InventoryPage />} />
         <Route path="/invoices" element={<InvoicesPage />} />
