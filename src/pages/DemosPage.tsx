@@ -44,7 +44,7 @@ export default function DemosPage() {
   const [demos, setDemos] = useState<DemoRow[]>([]);
   const [accounts, setAccounts] = useState<Record<string, AccountInfo>>({});
   const [search, setSearch] = useState('');
-  const [statusFilter, setStatusFilter] = useState<'ALL' | 'UPCOMING' | 'PAST'>('ALL');
+  const [statusFilter, setStatusFilter] = useState<'SHOW_ALL' | 'ALL' | 'UPCOMING' | 'PAST'>('ALL');
   const [createOpen, setCreateOpen] = useState(false);
   const [loading, setLoading] = useState(true);
 
