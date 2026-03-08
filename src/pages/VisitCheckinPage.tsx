@@ -42,6 +42,14 @@ export default function VisitCheckinPage() {
   const streamRef = useRef<MediaStream | null>(null);
   const navigate = useNavigate();
 
+  // Reschedule state
+  const [reschedulePlan, setReschedulePlan] = useState<VisitPlan | null>(null);
+  const [rescheduleDate, setRescheduleDate] = useState('');
+  const [rescheduleStart, setRescheduleStart] = useState('09:00');
+  const [rescheduleEnd, setRescheduleEnd] = useState('10:00');
+  const [rescheduleReason, setRescheduleReason] = useState('');
+  const [rescheduleSubmitting, setRescheduleSubmitting] = useState(false);
+
   const today = format(new Date(), 'yyyy-MM-dd');
 
   useEffect(() => { fetchPlans(); }, []);
