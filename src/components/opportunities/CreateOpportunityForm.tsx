@@ -143,7 +143,7 @@ function MultiSelectWithCustom({ label, options: defaultOptions, selected, onCha
           ))}
         </div>
       )}
-      <div className="border rounded-md max-h-[120px] overflow-y-auto p-2 space-y-1">
+      <div className="border rounded-md p-2 space-y-1">
         {allOptions.map(opt => (
           <label key={opt} className="flex items-center gap-2 px-2 py-1 rounded hover:bg-muted/50 cursor-pointer">
             <Checkbox checked={selected.includes(opt)} onCheckedChange={() => toggle(opt)} />
