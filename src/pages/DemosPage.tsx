@@ -49,6 +49,10 @@ export default function DemosPage() {
   const [editDemo, setEditDemo] = useState<DemoRow | null>(null);
   const [editOpen, setEditOpen] = useState(false);
 
+  // Confirm dialog state
+  const [confirmDemo, setConfirmDemo] = useState<DemoRow | null>(null);
+  const [confirmOpen, setConfirmOpen] = useState(false);
+
   const fetchData = async () => {
     setLoading(true);
     const [demosRes, accRes] = await Promise.all([
