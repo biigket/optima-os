@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
-import { Search, Building2, Plus, ChevronLeft } from 'lucide-react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
+import { Search, Building2, Plus, ChevronLeft, ChevronRight, CalendarDays, CheckCircle2, ClipboardList, User } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -14,6 +14,7 @@ import { th } from 'date-fns/locale';
 import { toast } from 'sonner';
 import { useMockAuth, MOCK_SALES } from '@/hooks/useMockAuth';
 import { Star } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 interface Account {
   id: string;
@@ -35,6 +36,8 @@ interface AddVisitPlanDialogProps {
 const ENTITY_TYPES = ['บุคคลธรรมดา', 'นิติบุคคล', 'คลินิก', 'โรงพยาบาล'];
 const BRANCH_TYPES = ['สำนักงานใหญ่', 'สาขา'];
 const LEAD_SOURCE_OPTIONS = ['เพื่อนแนะนำ', 'Social media', 'งานแสดงสินค้า'];
+
+const DEFAULT_OBJECTIVES = ['New visit', 'Demo', 'Follow up', 'Training', 'เซนต์สัญญา', 'รับเช็ค'];
 
 const emptyForm = {
   clinic_name: '',
@@ -59,22 +62,47 @@ const emptyForm = {
   custom_lead_source: '',
 };
 
+const STEPS = [
+  { key: 'customer', label: 'ลูกค้า', icon: User },
+  { key: 'plan', label: 'วางแผน', icon: ClipboardList },
+  { key: 'confirm', label: 'ยืนยัน', icon: CheckCircle2 },
+] as const;
+
 function StarRating({ value, onChange }: { value: number; onChange: (v: number) => void }) {
   return (
     <div className="flex gap-1">
       {[1, 2, 3].map(star => (
-        <button
-          key={star}
-          type="button"
-          onClick={() => onChange(value === star ? 0 : star)}
-          className="p-0.5 hover:scale-110 transition-transform"
-        >
-          <Star
-            size={20}
-            className={star <= value ? 'fill-yellow-400 text-yellow-400' : 'fill-muted text-muted-foreground/40'}
-          />
+        <button key={star} type="button" onClick={() => onChange(value === star ? 0 : star)} className="p-0.5 hover:scale-110 transition-transform">
+          <Star size={20} className={star <= value ? 'fill-yellow-400 text-yellow-400' : 'fill-muted text-muted-foreground/40'} />
         </button>
       ))}
+    </div>
+  );
+}
+
+function StepIndicator({ currentStep }: { currentStep: number }) {
+  return (
+    <div className="flex items-center justify-center gap-6 py-3">
+      {STEPS.map((step, i) => {
+        const Icon = step.icon;
+        const isActive = i === currentStep;
+        const isDone = i < currentStep;
+        return (
+          <div key={step.key} className="flex flex-col items-center gap-1.5">
+            <div className={cn(
+              'w-10 h-10 rounded-full flex items-center justify-center transition-colors',
+              isActive ? 'bg-primary text-primary-foreground' :
+              isDone ? 'bg-primary/20 text-primary' :
+              'bg-muted text-muted-foreground'
+            )}>
+              <Icon size={20} />
+            </div>
+            <span className={cn('text-xs font-medium', isActive ? 'text-primary' : 'text-muted-foreground')}>
+              {step.label}
+            </span>
+          </div>
+        );
+      })}
     </div>
   );
 }
@@ -83,6 +111,7 @@ export default function AddVisitPlanDialog({
   open, onOpenChange, selectedDate, startTime, endTime, onSuccess
 }: AddVisitPlanDialogProps) {
   const { currentUser } = useMockAuth();
+  const [step, setStep] = useState(0);
   const [search, setSearch] = useState('');
   const [accounts, setAccounts] = useState<Account[]>([]);
   const [loading, setLoading] = useState(false);
@@ -91,13 +120,36 @@ export default function AddVisitPlanDialog({
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [form, setForm] = useState(emptyForm);
 
+  // Plan fields
+  const [objective, setObjective] = useState('');
+  const [customObjective, setCustomObjective] = useState('');
+  const [productsPresented, setProductsPresented] = useState('');
+  const [planNotes, setPlanNotes] = useState('');
+
+  // Objective options from localStorage
+  const [objectiveOptions, setObjectiveOptions] = useState<string[]>(() => {
+    try {
+      const stored = localStorage.getItem('visit_objective_options');
+      return stored ? JSON.parse(stored) : DEFAULT_OBJECTIVES;
+    } catch { return DEFAULT_OBJECTIVES; }
+  });
+
+  useEffect(() => {
+    localStorage.setItem('visit_objective_options', JSON.stringify(objectiveOptions));
+  }, [objectiveOptions]);
+
   useEffect(() => {
     if (open) {
       fetchAccounts();
+      setStep(0);
       setSearch('');
       setSelectedAccount(null);
       setShowCreateForm(false);
       setForm(emptyForm);
+      setObjective('');
+      setCustomObjective('');
+      setProductsPresented('');
+      setPlanNotes('');
     }
   }, [open]);
 
@@ -126,18 +178,11 @@ export default function AddVisitPlanDialog({
   };
 
   async function handleCreateAccount() {
-    if (!form.clinic_name?.trim()) {
-      toast.error('กรุณากรอกชื่อคลินิก');
-      return;
-    }
-    if (!form.contact_name?.trim()) {
-      toast.error('กรุณากรอกชื่อผู้ติดต่อ');
-      return;
-    }
+    if (!form.clinic_name?.trim()) { toast.error('กรุณากรอกชื่อคลินิก'); return; }
+    if (!form.contact_name?.trim()) { toast.error('กรุณากรอกชื่อผู้ติดต่อ'); return; }
 
     setSaving(true);
     const resolvedLeadSource = form.lead_source === 'OTHER' ? (form.custom_lead_source || null) : (form.lead_source || null);
-
     const payload = {
       clinic_name: form.clinic_name.trim(),
       company_name: form.company_name || null,
@@ -157,13 +202,8 @@ export default function AddVisitPlanDialog({
     };
 
     const { data: newAcc, error } = await supabase.from('accounts').insert(payload).select('id, clinic_name, customer_status, address, phone').single();
-    if (error || !newAcc) {
-      toast.error('เพิ่มลูกค้าไม่สำเร็จ');
-      setSaving(false);
-      return;
-    }
+    if (error || !newAcc) { toast.error('เพิ่มลูกค้าไม่สำเร็จ'); setSaving(false); return; }
 
-    // Insert contact
     await supabase.from('contacts').insert({
       account_id: newAcc.id,
       name: form.contact_name.trim(),
@@ -173,14 +213,14 @@ export default function AddVisitPlanDialog({
     });
 
     toast.success('เพิ่มลูกค้าใหม่สำเร็จ');
-
-    // Auto-select the new account and go back to search view
     setSelectedAccount(newAcc);
     setAccounts(prev => [newAcc, ...prev]);
     setShowCreateForm(false);
     setForm(emptyForm);
     setSaving(false);
   }
+
+  const resolvedObjective = objective === '__CUSTOM__' ? customObjective.trim() : objective;
 
   async function handleSave() {
     if (!selectedAccount) return;
@@ -191,11 +231,26 @@ export default function AddVisitPlanDialog({
       visit_type: 'EXISTING',
       start_time: startTime,
       end_time: endTime,
+      objective: resolvedObjective || null,
+      products_presented: productsPresented.trim() || null,
+      notes: planNotes.trim() || null,
     });
+
+    // If custom objective, add to saved options
+    if (objective === '__CUSTOM__' && customObjective.trim() && !objectiveOptions.includes(customObjective.trim())) {
+      setObjectiveOptions(prev => [...prev, customObjective.trim()]);
+    }
+
     setSaving(false);
-    if (error) return;
+    if (error) { toast.error('บันทึกไม่สำเร็จ'); return; }
+    toast.success('เพิ่มแผนเยี่ยมสำเร็จ');
     onSuccess();
     onOpenChange(false);
+  }
+
+  function goNext() {
+    if (step === 0 && !selectedAccount) { toast.error('กรุณาเลือกลูกค้า'); return; }
+    setStep(s => Math.min(s + 1, 2));
   }
 
   // CREATE FORM VIEW
@@ -224,8 +279,6 @@ export default function AddVisitPlanDialog({
               <Label>ชื่อบริษัท</Label>
               <Input value={form.company_name} onChange={e => updateField('company_name', e.target.value)} />
             </div>
-
-            {/* ผู้ติดต่อหลัก */}
             <div className="sm:col-span-2 space-y-3 p-3 rounded-md border border-primary/30 bg-primary/5">
               <p className="text-sm font-medium text-foreground">ผู้ติดต่อหลัก <span className="text-destructive">*</span></p>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -247,7 +300,6 @@ export default function AddVisitPlanDialog({
                 </div>
               </div>
             </div>
-
             <div className="space-y-1.5 sm:col-span-2">
               <Label>ที่อยู่</Label>
               <Input value={form.address} onChange={e => updateField('address', e.target.value)} />
@@ -319,18 +371,18 @@ export default function AddVisitPlanDialog({
             </div>
           </div>
 
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowCreateForm(false)}>ยกเลิก</Button>
-            <Button onClick={handleCreateAccount} disabled={saving}>
+          <div className="flex gap-2 pt-2">
+            <Button variant="outline" className="flex-1" onClick={() => setShowCreateForm(false)}>ยกเลิก</Button>
+            <Button className="flex-1" onClick={handleCreateAccount} disabled={saving}>
               {saving ? 'กำลังบันทึก...' : 'เพิ่มลูกค้า'}
             </Button>
-          </DialogFooter>
+          </div>
         </DialogContent>
       </Dialog>
     );
   }
 
-  // SEARCH VIEW (default)
+  // MAIN WIZARD
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md max-h-[85vh] flex flex-col">
@@ -341,70 +393,175 @@ export default function AddVisitPlanDialog({
           </p>
         </DialogHeader>
 
-        <div className="space-y-4 flex-1 overflow-hidden flex flex-col">
-          {/* Search */}
-          <div className="relative">
-            <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
-            <Input
-              placeholder="ค้นหาลูกค้า..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="pl-9"
-              autoFocus
-            />
-          </div>
+        <StepIndicator currentStep={step} />
 
-          {/* Selected */}
-          {selectedAccount && (
-            <div className="rounded-lg border-2 border-primary bg-primary/5 p-3 flex items-center gap-3">
-              <Building2 size={18} className="text-primary shrink-0" />
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-semibold text-foreground truncate">{selectedAccount.clinic_name}</p>
-                {selectedAccount.address && (
-                  <p className="text-xs text-muted-foreground truncate">{selectedAccount.address}</p>
+        <div className="flex-1 overflow-hidden flex flex-col min-h-0">
+          {/* STEP 0: Select Customer */}
+          {step === 0 && (
+            <div className="space-y-3 flex-1 overflow-hidden flex flex-col">
+              <div className="relative">
+                <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  placeholder="ค้นหาชื่อ, ที่อยู่, เบอร์โทร..."
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  className="pl-9"
+                  autoFocus
+                />
+              </div>
+
+              <div className="flex-1 overflow-y-auto space-y-1.5 min-h-0 max-h-[300px]">
+                {loading ? (
+                  <p className="text-sm text-muted-foreground text-center py-4">กำลังโหลด...</p>
+                ) : filtered.length === 0 ? (
+                  <p className="text-sm text-muted-foreground text-center py-4">ไม่พบลูกค้า</p>
+                ) : (
+                  filtered.map(account => {
+                    const isSelected = selectedAccount?.id === account.id;
+                    return (
+                      <button
+                        key={account.id}
+                        onClick={() => setSelectedAccount(account)}
+                        className={cn(
+                          'w-full text-left rounded-lg border p-3 flex items-center gap-3 transition-colors',
+                          isSelected
+                            ? 'border-primary bg-primary/5'
+                            : 'border-border bg-card hover:bg-muted'
+                        )}
+                      >
+                        <div className={cn(
+                          'w-9 h-9 rounded-full flex items-center justify-center shrink-0',
+                          isSelected ? 'bg-primary/20 text-primary' : 'bg-muted text-muted-foreground'
+                        )}>
+                          <Building2 size={16} />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-semibold text-foreground truncate">{account.clinic_name}</p>
+                          <p className="text-xs text-muted-foreground truncate">
+                            {[account.address, account.phone].filter(Boolean).join(' • ') || '—'}
+                          </p>
+                        </div>
+                        {isSelected && <CheckCircle2 size={20} className="text-primary shrink-0" />}
+                      </button>
+                    );
+                  })
                 )}
               </div>
-              <Badge variant="outline" className="text-[10px] shrink-0">{selectedAccount.customer_status}</Badge>
+
+              <Button variant="outline" className="w-full gap-1.5 text-xs" onClick={() => setShowCreateForm(true)}>
+                <Plus size={14} /> สร้างลูกค้าใหม่
+              </Button>
             </div>
           )}
 
-          {/* Account list */}
-          <div className="flex-1 overflow-y-auto space-y-1 min-h-0 max-h-[300px]">
-            {loading ? (
-              <p className="text-sm text-muted-foreground text-center py-4">กำลังโหลด...</p>
-            ) : filtered.length === 0 ? (
-              <p className="text-sm text-muted-foreground text-center py-4">ไม่พบลูกค้า</p>
-            ) : (
-              filtered.map(account => (
-                <button
-                  key={account.id}
-                  onClick={() => setSelectedAccount(account)}
-                  className={`w-full text-left rounded-lg border p-3 flex items-center gap-3 transition-colors ${
-                    selectedAccount?.id === account.id
-                      ? 'border-primary bg-primary/5'
-                      : 'border-border bg-card hover:bg-muted'
-                  }`}
-                >
-                  <Building2 size={16} className="text-muted-foreground shrink-0" />
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-foreground truncate">{account.clinic_name}</p>
-                    {account.address && (
-                      <p className="text-xs text-muted-foreground truncate">{account.address}</p>
-                    )}
-                  </div>
-                </button>
-              ))
-            )}
-          </div>
+          {/* STEP 1: Plan Details */}
+          {step === 1 && (
+            <div className="space-y-4 flex-1 overflow-y-auto">
+              {selectedAccount && (
+                <div className="rounded-lg border border-primary/30 bg-primary/5 p-3 flex items-center gap-3">
+                  <Building2 size={16} className="text-primary shrink-0" />
+                  <p className="text-sm font-semibold text-foreground truncate">{selectedAccount.clinic_name}</p>
+                </div>
+              )}
 
-          <div className="space-y-2">
-            <Button onClick={handleSave} disabled={!selectedAccount || saving} className="w-full">
-              {saving ? 'กำลังบันทึก...' : 'เพิ่มแผนเยี่ยม'}
+              <div className="space-y-1.5">
+                <Label>เป้าหมายการเยี่ยม</Label>
+                <Select value={objective} onValueChange={setObjective}>
+                  <SelectTrigger><SelectValue placeholder="เลือกเป้าหมาย" /></SelectTrigger>
+                  <SelectContent>
+                    {objectiveOptions.map(o => <SelectItem key={o} value={o}>{o}</SelectItem>)}
+                    <SelectItem value="__CUSTOM__">อื่นๆ (ระบุเอง)</SelectItem>
+                  </SelectContent>
+                </Select>
+                {objective === '__CUSTOM__' && (
+                  <Input className="mt-1.5" value={customObjective} onChange={e => setCustomObjective(e.target.value)} placeholder="ระบุเป้าหมาย..." autoFocus />
+                )}
+              </div>
+
+              <div className="space-y-1.5">
+                <Label>เครื่องที่นำเสนอ</Label>
+                <Textarea
+                  value={productsPresented}
+                  onChange={e => setProductsPresented(e.target.value)}
+                  rows={2}
+                  placeholder="พิมพ์ชื่อเครื่องที่จะนำเสนอ..."
+                />
+                <QuickNoteButtons
+                  value={productsPresented}
+                  onChange={setProductsPresented}
+                  storageKey="quick_notes_products_presented"
+                  defaults={['Doublo Gold', 'Ultraformer MPT', 'Secret RF', 'Thermage FLX']}
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <Label>หมายเหตุ</Label>
+                <Textarea
+                  value={planNotes}
+                  onChange={e => setPlanNotes(e.target.value)}
+                  rows={3}
+                  placeholder="บันทึกเพิ่มเติม..."
+                />
+              </div>
+            </div>
+          )}
+
+          {/* STEP 2: Confirm */}
+          {step === 2 && (
+            <div className="space-y-4 flex-1 overflow-y-auto">
+              <div className="rounded-lg border bg-card p-4 space-y-3">
+                <div className="flex items-center gap-2 text-sm">
+                  <CalendarDays size={16} className="text-primary" />
+                  <span className="font-medium">{format(selectedDate, 'd MMMM yyyy', { locale: th })}</span>
+                  <span className="text-muted-foreground">· {startTime} – {endTime}</span>
+                </div>
+
+                <div className="border-t border-border pt-3 space-y-2">
+                  <div className="flex gap-2">
+                    <span className="text-xs text-muted-foreground w-24 shrink-0">ลูกค้า</span>
+                    <span className="text-sm font-medium">{selectedAccount?.clinic_name}</span>
+                  </div>
+                  {resolvedObjective && (
+                    <div className="flex gap-2">
+                      <span className="text-xs text-muted-foreground w-24 shrink-0">เป้าหมาย</span>
+                      <Badge variant="secondary" className="text-xs">{resolvedObjective}</Badge>
+                    </div>
+                  )}
+                  {productsPresented.trim() && (
+                    <div className="flex gap-2">
+                      <span className="text-xs text-muted-foreground w-24 shrink-0">เครื่องที่นำเสนอ</span>
+                      <span className="text-sm">{productsPresented}</span>
+                    </div>
+                  )}
+                  {planNotes.trim() && (
+                    <div className="flex gap-2">
+                      <span className="text-xs text-muted-foreground w-24 shrink-0">หมายเหตุ</span>
+                      <span className="text-sm text-muted-foreground">{planNotes}</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Navigation */}
+        <div className="flex gap-2 pt-2 border-t border-border">
+          {step > 0 && (
+            <Button variant="outline" className="gap-1" onClick={() => setStep(s => s - 1)}>
+              <ChevronLeft size={16} /> ย้อนกลับ
             </Button>
-            <Button variant="outline" className="w-full gap-1.5 text-xs" onClick={() => setShowCreateForm(true)}>
-              <Plus size={14} /> สร้างลูกค้าใหม่
+          )}
+          <div className="flex-1" />
+          {step < 2 ? (
+            <Button className="gap-1" onClick={goNext} disabled={step === 0 && !selectedAccount}>
+              ถัดไป <ChevronRight size={16} />
             </Button>
-          </div>
+          ) : (
+            <Button onClick={handleSave} disabled={saving}>
+              {saving ? 'กำลังบันทึก...' : 'บันทึกแผนเยี่ยม'}
+            </Button>
+          )}
         </div>
       </DialogContent>
     </Dialog>
