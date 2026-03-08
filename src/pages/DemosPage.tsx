@@ -1,22 +1,15 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Presentation, Calendar, MapPin, Building2, Plus, Users, Clock, FileText, Search, Filter } from 'lucide-react';
+import { Presentation, Calendar, MapPin, Building2, Plus, Users, FileText, Search } from 'lucide-react';
 import { format } from 'date-fns';
 import { th } from 'date-fns/locale';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Calendar as CalendarPicker } from '@/components/ui/calendar';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
-import { toast } from 'sonner';
-import { useMockAuth, MOCK_SALES } from '@/hooks/useMockAuth';
-import { ensureOpportunityForDemo } from '@/lib/demoSync';
+import { useMockAuth } from '@/hooks/useMockAuth';
+import CreateDemoWizard from '@/components/demos/CreateDemoWizard';
 
 interface DemoRow {
   id: string;
