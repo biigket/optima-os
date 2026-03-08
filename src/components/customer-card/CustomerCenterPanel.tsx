@@ -7,7 +7,7 @@ import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import StatusBadge from '@/components/ui/StatusBadge';
 import {
   LayoutDashboard, Clock, Handshake, MapPin, FileText, CheckSquare,
-  Eye, Phone as PhoneIcon, Presentation, Users, FileCheck, Wrench, GraduationCap, MessageSquare, Camera
+  Eye, Phone as PhoneIcon, Presentation, Users, FileCheck, Wrench, GraduationCap, MessageSquare, Camera, FlaskConical, User, Star
 } from 'lucide-react';
 import {
   getTimelineForAccount, getVisitsForAccount,
@@ -76,6 +76,7 @@ export default function CustomerCenterPanel({ accountId, opportunities }: Props)
   const tasks = mockWorkItems.filter((w: WorkItem) => w.linkedAccountId === accountId);
   const [internalNotes, setInternalNotes] = useState<OpportunityNote[]>([]);
   const [visitReports, setVisitReports] = useState<VisitReportRow[]>([]);
+  const [demoReports, setDemoReports] = useState<any[]>([]);
 
   useEffect(() => {
     supabase.from('opportunity_notes').select('*').eq('account_id', accountId).order('created_at', { ascending: false })
@@ -83,6 +84,9 @@ export default function CustomerCenterPanel({ accountId, opportunities }: Props)
 
     supabase.from('visit_reports').select('*').eq('account_id', accountId).order('created_at', { ascending: false })
       .then(({ data }) => { if (data) setVisitReports(data as unknown as VisitReportRow[]); });
+
+    supabase.from('demos').select('*, accounts(clinic_name)').eq('account_id', accountId).eq('report_submitted', true).order('created_at', { ascending: false })
+      .then(({ data }) => { if (data) setDemoReports(data); });
   }, [accountId]);
 
   const lastVisit = visits.length > 0 ? visits[0].date : '-';
@@ -116,6 +120,12 @@ export default function CustomerCenterPanel({ accountId, opportunities }: Props)
                 <FileText size={13} /> บันทึกการเยี่ยม
                 {visitReports.length > 0 && (
                   <span className="ml-1 text-[10px] bg-primary/10 text-primary rounded-full px-1.5 py-0.5 font-semibold">{visitReports.length}</span>
+                )}
+              </TabsTrigger>
+              <TabsTrigger value="demo-reports" className="text-xs gap-1.5 rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none px-3 py-2.5">
+                <FlaskConical size={13} /> รายงานเคส DEMO
+                {demoReports.length > 0 && (
+                  <span className="ml-1 text-[10px] bg-primary/10 text-primary rounded-full px-1.5 py-0.5 font-semibold">{demoReports.length}</span>
                 )}
               </TabsTrigger>
               <TabsTrigger value="tasks" className="text-xs gap-1.5 rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none px-3 py-2.5">
@@ -276,6 +286,93 @@ export default function CustomerCenterPanel({ accountId, opportunities }: Props)
                 </div>
               ))}
               {visitReports.length === 0 && <Empty text="ยังไม่มีบันทึกการเยี่ยม" />}
+            </div>
+          </TabsContent>
+
+
+          {/* Demo Reports */}
+          <TabsContent value="demo-reports" className="mt-0">
+            <div className="space-y-4">
+              {demoReports.map(demo => {
+                const report = demo.report_data as Record<string, any> | null;
+                const devices = Object.keys(report || {});
+                return (
+                  <div key={demo.id} className="p-4 rounded-md bg-muted/30 border space-y-3">
+                    <div className="flex justify-between items-center">
+                      <div className="flex items-center gap-2">
+                        <FlaskConical size={14} className="text-primary" />
+                        <span className="text-sm font-semibold text-foreground">
+                          {demo.demo_date ? format(new Date(demo.demo_date), 'd MMM yyyy', { locale: th }) : '-'}
+                        </span>
+                      </div>
+                      <Badge variant="default" className="text-[10px] h-5">เสร็จแล้ว</Badge>
+                    </div>
+                    {demo.location && (
+                      <p className="text-xs text-muted-foreground"><MapPin size={11} className="inline mr-1" />{demo.location}</p>
+                    )}
+                    {devices.length > 0 ? devices.map(deviceName => {
+                      const patients = (report![deviceName] as any[]) || [];
+                      return (
+                        <div key={deviceName} className="space-y-2">
+                          <h4 className="text-xs font-bold text-primary flex items-center gap-1.5">
+                            <Presentation size={12} /> {deviceName}
+                            <span className="text-muted-foreground font-normal">({patients.length} คนไข้)</span>
+                          </h4>
+                          {patients.map((pt: any, idx: number) => (
+                            <div key={idx} className="ml-3 p-3 rounded bg-background border space-y-2">
+                              <p className="text-xs font-semibold text-foreground flex items-center gap-1">
+                                <User size={11} /> คนไข้ #{idx + 1}
+                              </p>
+                              {pt.parameters && (
+                                <div className="text-xs"><span className="text-muted-foreground">Parameters:</span> <span className="text-foreground">{pt.parameters}</span></div>
+                              )}
+                              {pt.feeling && (
+                                <div className="text-xs"><span className="text-muted-foreground">Feeling:</span> <span className="text-foreground">{pt.feeling}</span></div>
+                              )}
+                              {pt.painScore !== undefined && pt.painScore !== null && (
+                                <div className="text-xs flex items-center gap-1.5">
+                                  <span className="text-muted-foreground">Pain Score:</span>
+                                  <div className="flex items-center gap-1">
+                                    <div className="w-16 h-1.5 bg-muted rounded-full overflow-hidden">
+                                      <div className="h-full rounded-full" style={{
+                                        width: `${(pt.painScore / 10) * 100}%`,
+                                        backgroundColor: pt.painScore <= 3 ? 'hsl(var(--primary))' : pt.painScore <= 6 ? 'hsl(40,90%,50%)' : 'hsl(0,70%,50%)'
+                                      }} />
+                                    </div>
+                                    <span className="font-semibold text-foreground">{pt.painScore}/10</span>
+                                  </div>
+                                </div>
+                              )}
+                              {pt.satisfaction && (
+                                <div className="text-xs flex items-center gap-1">
+                                  <span className="text-muted-foreground">Satisfaction:</span>
+                                  <div className="flex gap-0.5">
+                                    {[1, 2, 3, 4, 5].map(s => (
+                                      <Star key={s} size={11} className={s <= (pt.satisfaction || 0) ? 'text-yellow-500 fill-yellow-500' : 'text-muted'} />
+                                    ))}
+                                  </div>
+                                </div>
+                              )}
+                              {pt.sideEffects && (
+                                <div className="text-xs"><span className="text-muted-foreground">ผลข้างเคียง:</span> <span className="text-foreground">{pt.sideEffects}</span></div>
+                              )}
+                              {pt.presentation && (
+                                <div className="text-xs"><span className="text-muted-foreground">สิ่งที่นำเสนอ:</span> <span className="text-foreground">{pt.presentation}</span></div>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      );
+                    }) : (
+                      <p className="text-xs text-muted-foreground">ไม่มีข้อมูลรายงาน</p>
+                    )}
+                    {demo.demo_note && (
+                      <p className="text-xs text-muted-foreground border-t pt-2 mt-2">หมายเหตุ: {demo.demo_note}</p>
+                    )}
+                  </div>
+                );
+              })}
+              {demoReports.length === 0 && <Empty text="ยังไม่มีรายงานเคส DEMO" />}
             </div>
           </TabsContent>
 
