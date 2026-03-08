@@ -313,11 +313,6 @@ export default function EditDemoDialog({ demo, clinicName, open, onOpenChange, o
             </div>
           </div>
 
-          {/* Note */}
-          <div className="space-y-1.5">
-            <Label className="text-xs">หมายเหตุ</Label>
-            <Textarea value={note} onChange={e => setNote(e.target.value)} placeholder="หมายเหตุ..." className="min-h-[60px]" />
-          </div>
         </div>
 
         {/* Footer */}
