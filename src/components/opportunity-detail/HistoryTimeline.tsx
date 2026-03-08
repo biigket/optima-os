@@ -55,8 +55,7 @@ type TimelineItem = {
 export default function HistoryTimeline({ activities, stageHistory, notes, onUpdateNote, onDeleteNote, onPinNote, onDeleteActivity, onUpdateActivity, onAddComment, pinnedIds, clinicName }: HistoryTimelineProps) {
   const [filter, setFilter] = useState('all');
 
-  // Show done activities + all DEMO activities (even pending) in timeline
-  const timelineActivities = activities.filter(a => a.is_done || a.activity_type === 'DEMO');
+  const timelineActivities = activities.filter(a => a.is_done);
 
   // Separate top-level notes from comments (notes with parent_id)
   const topLevelNotes = notes.filter(n => !n.parent_id);
@@ -242,9 +241,6 @@ function ActivityItem({ data, clinicName, isPinned, onDelete, onPin, onUpdate, o
         <div className="flex items-center gap-2 flex-wrap">
           <span className="text-xs font-medium text-foreground flex-1">{data.title}</span>
           
-          {!data.is_done && data.activity_type === 'DEMO' && (
-            <span className="px-1.5 py-0.5 rounded text-[9px] font-semibold bg-orange-100 text-orange-700 dark:bg-orange-900/50 dark:text-orange-400">SCHEDULED</span>
-          )}
           {data.priority === 'HIGH' && (
             <span className="px-1.5 py-0.5 rounded text-[9px] font-semibold bg-red-100 text-red-700 dark:bg-red-900/50 dark:text-red-400">HIGH</span>
           )}
