@@ -36,6 +36,12 @@ interface OpportunityInfo {
 const DEMO_PRODUCTS = ['Doublo', 'Trica3D', 'Quattro', 'PicoHi'];
 const PRODUCT_SPECIALISTS = ['Not', 'Ohm', 'Por'];
 
+const TIME_OPTIONS = Array.from({ length: 4 * 24 }, (_, i) => {
+  const h = String(Math.floor(i / 4)).padStart(2, '0');
+  const m = String((i % 4) * 15).padStart(2, '0');
+  return `${h}:${m}`;
+});
+
 const STAGE_LABELS: Record<string, string> = {
   NEW_LEAD: 'นัดพบ/Need',
   CONTACTED: 'Demo Schedule',
