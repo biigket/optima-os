@@ -355,10 +355,9 @@ export default function CreateOpportunityForm({ open, onOpenChange, onSave, cust
 
         <StepIndicator currentStep={step} />
 
-        <div className="flex-1 overflow-y-auto overflow-x-y-auto overflow-x-y-auto overflow-x-hidden flex flex-col min-h-0">
+        <div className="flex-1 overflow-y-auto overflow-x-y-auto overflow-x-y-auto overflow-x-y-auto overflow-x-hidden flex flex-col min-h-0">
           {/* STEP 0: Select Customer */}
-          {step === 0 && (
-         flex flex-col overflow-x-hiddenol overflow-x-hiddendden flex flex-col">
+          {step ==flex flex-col overflow-x-hiddenol overflow-x-hiddenol overflow-x-hiddendden flex flex-col">
               <div className="relative px-1">
                 <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground" />
                 <Input
@@ -369,7 +368,7 @@ export default function CreateOpportunityForm({ open, onOpenChange, onSave, cust
                   autoFocus
                 />
               </div>
-              <div className="fleoverflow-x-hidden x-1 overflow-y-auto space-y-1.5 px-1 min-h-0">
+             overflow-x-hidden  <div className="fleoverflow-x-hidden x-1 overflow-y-auto space-y-1.5 px-1 min-h-0">
                 {loadingAccounts ? (
                   <p className="text-center text-xs text-muted-foreground py-8">กำลังโหลด...</p>
                 ) : (
@@ -414,7 +413,7 @@ export default function CreateOpportunityForm({ open, onOpenChange, onSave, cust
 
           {/* STEP 1: Deal Details */}
           {step === 1 && (
-            <div className="flex-1 overflow-y-auto space-y-4 px-1 min-h-0">
+            <overflow-x-hidden div className="flex-1 overflow-y-auto space-y-4 px-1 min-h-0">
               {/* Authority */}
               <div className="space-y-1.5">
                 <Label className="text-xs">ผู้มีอำนาจตัดสินใจ</Label>
