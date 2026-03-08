@@ -6,6 +6,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { format, startOfWeek, endOfWeek } from 'date-fns';
 import { toast } from 'sonner';
 import AddVisitPlanDialog from '@/components/weekly-plan/AddVisitPlanDialog';
+import EditVisitPlanDialog from '@/components/weekly-plan/EditVisitPlanDialog';
 
 interface VisitPlan {
   id: string;
@@ -15,6 +16,9 @@ interface VisitPlan {
   status: string;
   start_time: string | null;
   end_time: string | null;
+  objective?: string | null;
+  products_presented?: string | null;
+  notes?: string | null;
   accounts?: { id: string; clinic_name: string; customer_status: string } | null;
 }
 
@@ -25,6 +29,10 @@ export default function WeeklyPlanPage() {
   const [selectedStart, setSelectedStart] = useState('09:00');
   const [selectedEnd, setSelectedEnd] = useState('10:00');
   const [calendarDate, setCalendarDate] = useState(new Date());
+
+  // Edit dialog
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [selectedPlan, setSelectedPlan] = useState<VisitPlan | null>(null);
 
   const fetchPlans = useCallback(async (date?: Date) => {
     const ref = date || calendarDate;
@@ -44,9 +52,8 @@ export default function WeeklyPlanPage() {
   const events = plans.map(p => {
     const st = p.start_time || '09:00';
     const et = p.end_time || '10:00';
-    const isNew = p.visit_type === 'NEW';
     const statusColors: Record<string, { bg: string; border: string; text: string }> = {
-      PLANNED: { bg: isNew ? '#dbeafe' : '#dcfce7', border: isNew ? '#3b82f6' : '#22c55e', text: isNew ? '#1d4ed8' : '#15803d' },
+      PLANNED: { bg: '#dcfce7', border: '#22c55e', text: '#15803d' },
       CHECKED_IN: { bg: '#fef3c7', border: '#f59e0b', text: '#92400e' },
       REPORTED: { bg: '#f3f4f6', border: '#9ca3af', text: '#6b7280' },
     };
@@ -103,12 +110,8 @@ export default function WeeklyPlanPage() {
 
   function handleEventClick(info: any) {
     const plan = info.event.extendedProps.plan as VisitPlan;
-    if (plan.status === 'PLANNED' && confirm(`ลบแผนเยี่ยม "${plan.accounts?.clinic_name}" ?`)) {
-      supabase.from('visit_plans').delete().eq('id', plan.id).then(() => {
-        toast.success('ลบแผนแล้ว');
-        fetchPlans();
-      });
-    }
+    setSelectedPlan(plan);
+    setEditDialogOpen(true);
   }
 
   function handleDatesSet(info: any) {
@@ -120,7 +123,7 @@ export default function WeeklyPlanPage() {
     <div className="space-y-4 animate-fade-in">
       <div>
         <h1 className="text-2xl font-bold text-foreground">แผนเยี่ยมรายสัปดาห์</h1>
-        <p className="text-sm text-muted-foreground">คลิกหรือลากบนปฏิทินเพื่อเพิ่มแผนเยี่ยม · ลาก event เพื่อย้ายวัน/เวลา</p>
+        <p className="text-sm text-muted-foreground">คลิกหรือลากบนปฏิทินเพื่อเพิ่มแผนเยี่ยม · กดที่แผนเพื่อดู/แก้ไขรายละเอียด</p>
       </div>
 
       <div className="bg-card rounded-lg border p-2 sm:p-4 weekly-plan-calendar">
@@ -155,12 +158,12 @@ export default function WeeklyPlanPage() {
           datesSet={handleDatesSet}
           eventContent={(arg) => {
             const plan = arg.event.extendedProps.plan as VisitPlan;
-            const isNew = plan?.visit_type === 'NEW';
+            const statusIcon = plan?.status === 'PLANNED' ? '📋' : plan?.status === 'CHECKED_IN' ? '✅' : '📝';
             return (
               <div className="p-1 text-xs leading-tight overflow-hidden">
                 <div className="font-semibold truncate">{arg.event.title}</div>
-                <div className="opacity-70 text-[10px]">
-                  {isNew ? '🆕 ใหม่' : '🔄 เก่า'} · {plan?.status === 'PLANNED' ? '📋' : plan?.status === 'CHECKED_IN' ? '✅' : '📝'}
+                <div className="opacity-70 text-[10px] truncate">
+                  {statusIcon} {plan?.objective || ''}
                 </div>
               </div>
             );
@@ -174,7 +177,14 @@ export default function WeeklyPlanPage() {
         selectedDate={selectedDate}
         startTime={selectedStart}
         endTime={selectedEnd}
-        onSuccess={() => { toast.success('เพิ่มแผนเยี่ยมแล้ว'); fetchPlans(); }}
+        onSuccess={() => fetchPlans()}
+      />
+
+      <EditVisitPlanDialog
+        open={editDialogOpen}
+        onOpenChange={setEditDialogOpen}
+        plan={selectedPlan}
+        onSuccess={() => fetchPlans()}
       />
     </div>
   );
