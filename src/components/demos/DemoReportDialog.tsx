@@ -29,6 +29,14 @@ const QUICK_NOTES: Record<string, string[]> = {
   presentation: ['แนะนำ Treatment protocol', 'เปรียบเทียบกับคู่แข่ง', 'อธิบาย ROI', 'แนะนำ Package', 'เสนอราคาพิเศษ', 'ให้ข้อมูลไฟแนนซ์', 'หมอสนใจมาก', 'ต้อง Follow up'],
 };
 
+// Sub quick notes for parameters — grouped by category
+const PARAM_CATEGORIES_INIT: Record<string, string[]> = {
+  'HIFU': ['4.5mm — Deep SMAS', '3.0mm — Dermis', '1.5mm — Superficial', '6.0mm — Body', '9.0mm — Body', '13.0mm — Body'],
+  'RF': ['Monopolar — Tightening', 'Bipolar — Superficial', 'Fractional RF — Resurfacing'],
+  'Laser': ['1064nm — Deep pigment', '532nm — Superficial pigment', '595nm — Vascular'],
+  'Micro': ['Microneedling — Rejuv', 'Dermal infusion — Hydration'],
+};
+
 const SATISFACTION_OPTIONS = ['พอใจมาก', 'พอใจ', 'เฉยๆ', 'ไม่พอใจ'];
 const SIDE_EFFECTS = ['ไม่มี', 'บวมเล็กน้อย', 'แดง', 'ชา', 'ปวด', 'จ้ำเลือด'];
 
