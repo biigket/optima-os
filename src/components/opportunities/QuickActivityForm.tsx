@@ -10,6 +10,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { syncDemoFromActivity } from '@/lib/demoSync';
 
 const TITLE_MAP: Record<string, string> = {
   CALL: 'โทร',
@@ -61,7 +62,18 @@ export default function QuickActivityForm({ activityType, opportunityId, account
       toast.error('บันทึกไม่สำเร็จ');
       return;
     }
-    toast.success('บันทึกกิจกรรมแล้ว');
+
+    // Auto-create demo record + move pipeline when activity is DEMO
+    if (activityType === 'DEMO' && date) {
+      await syncDemoFromActivity({
+        accountId,
+        opportunityId,
+        demoDate: format(date, 'yyyy-MM-dd'),
+      });
+      toast.success('บันทึกกิจกรรม + ใบงาน Demo แล้ว');
+    } else {
+      toast.success('บันทึกกิจกรรมแล้ว');
+    }
     onSaved();
     onClose();
   };
