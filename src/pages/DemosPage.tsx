@@ -12,6 +12,7 @@ import { useMockAuth } from '@/hooks/useMockAuth';
 import CreateDemoWizard from '@/components/demos/CreateDemoWizard';
 import EditDemoDialog from '@/components/demos/EditDemoDialog';
 import ConfirmDemoDialog from '@/components/demos/ConfirmDemoDialog';
+import DemoReportDialog from '@/components/demos/DemoReportDialog';
 
 interface DemoRow {
   id: string;
