@@ -299,6 +299,7 @@ export default function DemosPage() {
         clinicName={reportDemo?.account_id ? (accounts[reportDemo.account_id]?.clinic_name || 'ไม่ระบุ') : 'ไม่ระบุ'}
         productsDemoed={reportDemo?.products_demo || []}
         existingReport={reportDemo?.report_data || null}
+        opportunityId={reportDemo?.opportunity_id || null}
         open={reportOpen}
         onOpenChange={setReportOpen}
         onSaved={fetchData}
