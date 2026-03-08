@@ -1,0 +1,2 @@
+ALTER TABLE public.visit_reports DROP CONSTRAINT IF EXISTS visit_reports_status_check;
+ALTER TABLE public.visit_reports ADD CONSTRAINT visit_reports_status_check CHECK (status IN ('VISIT_FORM', 'REPORTED', 'CHECKED_IN', 'CLOSED'));
