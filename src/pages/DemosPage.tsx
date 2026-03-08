@@ -42,14 +42,6 @@ export default function DemosPage() {
   const [createOpen, setCreateOpen] = useState(false);
   const [loading, setLoading] = useState(true);
 
-  // Create form state
-  const [selectedAccountId, setSelectedAccountId] = useState('');
-  const [demoDate, setDemoDate] = useState<Date | undefined>(undefined);
-  const [demoLocation, setDemoLocation] = useState('');
-  const [demoNote, setDemoNote] = useState('');
-  const [allAccounts, setAllAccounts] = useState<AccountInfo[]>([]);
-  const [accountSearch, setAccountSearch] = useState('');
-  const [saving, setSaving] = useState(false);
 
   const fetchData = async () => {
     setLoading(true);
