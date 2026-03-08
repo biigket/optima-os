@@ -271,7 +271,7 @@ export default function CreateDemoWizard({ open, onOpenChange, onSuccess }: Crea
     setSelectedDealId(null);
     setShowNewDealForm(false);
     setDealForm({
-      selectedProductIds: [], deal_value: ''CONTACTED', stage: 'CONTACTED', close_dates: '',
+      selectedProductIds: [], deal_value: '', stage: 'CONTACTED', close_date: '', notes: '',
       budget_range: '', payment_method: '', credit_card_option: '', competitors: [],
       authority_contact_id: '',
     });
