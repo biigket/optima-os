@@ -138,7 +138,9 @@ export default function WeeklyPlanPage() {
     <div className="space-y-4 animate-fade-in">
       <div>
         <h1 className="text-2xl font-bold text-foreground">แผนเยี่ยมรายสัปดาห์</h1>
-        <p className="text-sm text-muted-foreground">คลิกหรือลากบนปฏิทินเพื่อเพิ่มแผนเยี่ยม · กดที่แผนเพื่อดู/แก้ไขรายละเอียด</p>
+        <p className="text-sm text-muted-foreground">
+          {isMobile ? 'กดค้างเพื่อลาก · กดที่แผนเพื่อดู/แก้ไข' : 'คลิกหรือลากบนปฏิทินเพื่อเพิ่มแผนเยี่ยม · กดที่แผนเพื่อดู/แก้ไขรายละเอียด'}
+        </p>
       </div>
 
       <div className="bg-card rounded-lg border p-2 sm:p-4 weekly-plan-calendar">
