@@ -24,6 +24,9 @@ interface VisitPlan {
   account_id: string;
   visit_type: string;
   status: string;
+  notes?: string | null;
+  start_time?: string | null;
+  end_time?: string | null;
   accounts?: { id: string; clinic_name: string } | null;
 }
 
