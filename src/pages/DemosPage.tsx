@@ -139,13 +139,13 @@ export default function DemosPage() {
           <Input placeholder="ค้นหาคลินิก..." value={search} onChange={e => setSearch(e.target.value)} className="pl-9 h-9" />
         </div>
         <div className="flex gap-1">
-          {(['ALL', 'UPCOMING', 'PAST'] as const).map(s => (
+          {(['SHOW_ALL', 'ALL', 'UPCOMING', 'PAST'] as const).map(s => (
             <button
               key={s}
               onClick={() => setStatusFilter(s)}
               className={`px-2.5 py-1 rounded-md text-xs font-medium transition-colors ${statusFilter === s ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground hover:bg-muted/80'}`}
             >
-              {s === 'ALL' ? 'ขอคิวเดโม' : s === 'UPCOMING' ? 'ได้คิวแล้ว' : 'เสร็จแล้ว'}
+              {s === 'SHOW_ALL' ? 'ทั้งหมด' : s === 'ALL' ? 'ขอคิวเดโม' : s === 'UPCOMING' ? 'ได้คิวแล้ว' : 'เสร็จแล้ว'}
             </button>
           ))}
         </div>
