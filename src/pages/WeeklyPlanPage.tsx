@@ -158,10 +158,11 @@ export default function WeeklyPlanPage() {
           slotLabelInterval="01:00:00"
           snapDuration="00:15:00"
           allDaySlot={false}
-          selectable
-          editable
-          eventDurationEditable
-          selectMirror
+          selectable={!isMobile}
+          editable={!isMobile}
+          eventDurationEditable={!isMobile}
+          selectMirror={!isMobile}
+          longPressDelay={500}
           height="auto"
           contentHeight={650}
           events={events}
