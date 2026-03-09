@@ -260,7 +260,6 @@ export default function QuotationDetailPage() {
   }
 
   const account = qt.accounts as any;
-  const paymentLabel: Record<string, string> = { CASH: 'เงินสด', INSTALLMENT: 'ผ่อนชำระ', LEASING: 'ลีสซิ่ง' };
   const status = (qt.customer_signature ? 'CUSTOMER_SIGNED' : qt.approval_status || 'DRAFT') as string;
   const signingUrl = `${window.location.origin}/sign/quotation?id=${id}`;
 
