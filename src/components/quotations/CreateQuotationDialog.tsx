@@ -66,6 +66,8 @@ export default function CreateQuotationDialog({ open, onOpenChange, onCreated }:
       price: form.price ? Number(form.price) : null,
       qt_date: form.qt_date || null,
       payment_condition: form.payment_condition || null,
+      deposit_type: form.deposit_type || 'NONE',
+      deposit_value: form.deposit_value ? Number(form.deposit_value) : 0,
       sale_assigned: form.sale_assigned || null,
       approval_status: 'DRAFT',
       payment_status: 'UNPAID',
