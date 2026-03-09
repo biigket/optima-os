@@ -799,12 +799,24 @@ export default function CustomerCardPage() {
               <div className="space-y-1.5">
                 {/* Approved Quotation PDFs */}
                 {qtDocs.map(q => (
-                  <a
+                  <button
                     key={q.id}
-                    href={q.qt_attachment!}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center gap-3 p-2.5 rounded-md hover:bg-muted/40 transition-colors cursor-pointer"
+                    onClick={async () => {
+                      try {
+                        const { data, error } = await supabase.functions.invoke('generate-quotation-pdf', {
+                          body: { quotationId: q.id },
+                        });
+                        if (error) throw error;
+                        const html = data?.html;
+                        if (html) {
+                          const w = window.open('', '_blank');
+                          if (w) { w.document.write(html); w.document.close(); }
+                        }
+                      } catch (e) {
+                        toast.error('ไม่สามารถสร้าง PDF ได้');
+                      }
+                    }}
+                    className="flex items-center gap-3 p-2.5 rounded-md hover:bg-muted/40 transition-colors cursor-pointer w-full text-left"
                   >
                     <span className="text-base">📋</span>
                     <div className="min-w-0 flex-1">
@@ -813,8 +825,8 @@ export default function CustomerCardPage() {
                         ใบเสนอราคา (อนุมัติแล้ว) • {q.qt_date || '-'} • ฿{(q.price || 0).toLocaleString()}
                       </p>
                     </div>
-                    <ExternalLink size={12} className="text-muted-foreground shrink-0" />
-                  </a>
+                    <FileText size={12} className="text-muted-foreground shrink-0" />
+                  </button>
                 ))}
                 {/* Mock documents */}
                 {documents.map(d => (
