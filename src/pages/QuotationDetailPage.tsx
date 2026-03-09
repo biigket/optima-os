@@ -379,6 +379,7 @@ export default function QuotationDetailPage() {
               const isCurrent = status === s.key || (status === 'REJECTED' && s.key === 'SUBMITTED');
               const isDone = (status === 'SUBMITTED' && i === 0) ||
                              (status === 'APPROVED' && i <= 1) ||
+                             (status === 'CUSTOMER_SIGNED' && i <= 2) ||
                              (status === 'REJECTED' && i === 0);
               const isRejected = status === 'REJECTED' && s.key === 'APPROVED';
               return (
@@ -394,7 +395,7 @@ export default function QuotationDetailPage() {
                       {isDone ? '✓' : isRejected ? '✕' : i + 1}
                     </div>
                     <span className={cn(
-                      'text-xs mt-1.5 font-medium',
+                      'text-xs mt-1.5 font-medium text-center',
                       isDone || isCurrent ? 'text-primary' : isRejected ? 'text-destructive' : 'text-muted-foreground'
                     )}>
                       {isRejected ? 'ไม่อนุมัติ' : s.label}
