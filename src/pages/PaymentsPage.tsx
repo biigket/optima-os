@@ -411,7 +411,22 @@ export default function PaymentsPage() {
                       <div className="flex items-center gap-1.5">
                         <span>{row.qt_number}</span>
                         {row.qt_attachment && (
-                          <Button size="sm" variant="ghost" className="gap-1 text-xs h-6 px-1.5 text-primary" onClick={() => window.open(row.qt_attachment!, '_blank')}>
+                          <Button size="sm" variant="ghost" className="gap-1 text-xs h-6 px-1.5 text-primary" onClick={() => {
+                            const fnUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-quotation-pdf`;
+                            // Open edge function in new tab via form POST
+                            const form = document.createElement('form');
+                            form.method = 'POST';
+                            form.action = fnUrl;
+                            form.target = '_blank';
+                            const input = document.createElement('input');
+                            input.type = 'hidden';
+                            input.name = 'json';
+                            input.value = JSON.stringify({ quotation_id: row.quotation_id });
+                            form.appendChild(input);
+                            document.body.appendChild(form);
+                            form.submit();
+                            document.body.removeChild(form);
+                          }}>
                             <FileText size={12} /> ดูใบเสนอราคา
                           </Button>
                         )}
