@@ -24,11 +24,6 @@ const PAYMENT_OPTIONS = [
     { value: 'POST_CHECK_6M', label: '6 เดือน' },
     { value: 'POST_CHECK_12M', label: '12 เดือน' },
   ]},
-  { value: 'DIRECT_INSTALLMENT', label: 'ผ่อนตรงกับบริษัท', sub: [
-    { value: 'DIRECT_INSTALLMENT_3M', label: '3 เดือน' },
-    { value: 'DIRECT_INSTALLMENT_6M', label: '6 เดือน' },
-    { value: 'DIRECT_INSTALLMENT_12M', label: '12 เดือน' },
-  ]},
 ];
 
 // Build a flat map for display
