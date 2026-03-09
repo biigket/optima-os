@@ -196,7 +196,7 @@ function generateHTML(qt: any, account: any, contacts: any[]): string {
         <tr><td class="lbl">เลขที่</td><td class="val">${qt.qt_number || "-"}</td></tr>
         <tr><td class="lbl">วันที่</td><td class="val">${fmtDate(qt.qt_date)}</td></tr>
         <tr><td class="lbl">ผู้ขาย</td><td class="val">${qt.sale_assigned || "Optima Aesthetics"}</td></tr>
-        <tr><td class="lbl">ชื่องาน</td><td class="val">${qt.product ? "ขอเสนอราคา " + qt.product.split(",")[0]?.trim() : "-"}</td></tr>
+        
       </table>
     </div>
   </div>
