@@ -116,7 +116,7 @@ export default function CustomerCardPage() {
   const [chatImages, setChatImages] = useState<{ id: string; file_url: string; file_name: string; uploaded_by: string | null; created_at: string; opportunity_id: string }[]>([]);
   const [visitReports, setVisitReports] = useState<any[]>([]);
   const [demoReports, setDemoReports] = useState<any[]>([]);
-  const [qtDocs, setQtDocs] = useState<{ id: string; qt_number: string | null; qt_date: string | null; qt_attachment: string | null; product: string | null; price: number | null }[]>([]);
+  const [qtDocs, setQtDocs] = useState<{ id: string; qt_number: string | null; qt_date: string | null; qt_attachment: string | null; product: string | null; price: number | null; approval_status: string | null }[]>([]);
 
   // Fetch activities, stage history, and notes for this account
   useEffect(() => {
@@ -161,8 +161,8 @@ export default function CustomerCardPage() {
         if (data) setDemoReports(data);
       });
     // Approved quotation docs
-    supabase.from('quotations').select('id, qt_number, qt_date, qt_attachment, product, price')
-      .eq('account_id', id).eq('approval_status', 'APPROVED').not('qt_attachment', 'is', null)
+    supabase.from('quotations').select('id, qt_number, qt_date, qt_attachment, product, price, approval_status')
+      .eq('account_id', id).eq('approval_status', 'APPROVED')
       .order('qt_date', { ascending: false })
       .then(({ data }) => {
         if (data) setQtDocs(data as any);
@@ -799,12 +799,24 @@ export default function CustomerCardPage() {
               <div className="space-y-1.5">
                 {/* Approved Quotation PDFs */}
                 {qtDocs.map(q => (
-                  <a
+                  <button
                     key={q.id}
-                    href={q.qt_attachment!}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center gap-3 p-2.5 rounded-md hover:bg-muted/40 transition-colors cursor-pointer"
+                    onClick={async () => {
+                      try {
+                        const { data, error } = await supabase.functions.invoke('generate-quotation-pdf', {
+                          body: { quotationId: q.id },
+                        });
+                        if (error) throw error;
+                        const html = data?.html;
+                        if (html) {
+                          const w = window.open('', '_blank');
+                          if (w) { w.document.write(html); w.document.close(); }
+                        }
+                      } catch (e) {
+                        toast.error('ไม่สามารถสร้าง PDF ได้');
+                      }
+                    }}
+                    className="flex items-center gap-3 p-2.5 rounded-md hover:bg-muted/40 transition-colors cursor-pointer w-full text-left"
                   >
                     <span className="text-base">📋</span>
                     <div className="min-w-0 flex-1">
@@ -813,8 +825,8 @@ export default function CustomerCardPage() {
                         ใบเสนอราคา (อนุมัติแล้ว) • {q.qt_date || '-'} • ฿{(q.price || 0).toLocaleString()}
                       </p>
                     </div>
-                    <ExternalLink size={12} className="text-muted-foreground shrink-0" />
-                  </a>
+                    <FileText size={12} className="text-muted-foreground shrink-0" />
+                  </button>
                 ))}
                 {/* Mock documents */}
                 {documents.map(d => (
