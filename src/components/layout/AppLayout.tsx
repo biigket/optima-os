@@ -3,7 +3,7 @@ import { NavLink, useLocation } from 'react-router-dom';
 import {
   LayoutDashboard, Users, Target, MapPin, FileText, Presentation, CalendarDays,
   ListTodo, Calendar, Cpu, Package, Wrench, ChevronLeft, ChevronRight, Bell,
-  FileSpreadsheet, ShoppingCart, Warehouse, Receipt,
+  FileSpreadsheet, ShoppingCart, Warehouse, Receipt, CreditCard,
   Megaphone, Gift, Star,
   GraduationCap, BookOpen,
   TrendingUp, BarChart3,
@@ -73,6 +73,7 @@ const navGroups = [
     phase: 1,
     items: [
       { to: '/quotations', icon: FileSpreadsheet, label: 'ใบเสนอราคา' },
+      { to: '/payments', icon: CreditCard, label: 'การชำระเงิน' },
       { to: '/sales-orders', icon: ShoppingCart, label: 'ใบสั่งขาย' },
       { to: '/inventory', icon: Warehouse, label: 'คลังสินค้า' },
       { to: '/invoices', icon: Receipt, label: 'ใบแจ้งหนี้' },

@@ -26,6 +26,7 @@ import CustomerSignQuotationPage from "@/pages/CustomerSignQuotationPage";
 import SalesOrdersPage from "@/pages/SalesOrdersPage";
 import InventoryPage from "@/pages/InventoryPage";
 import InvoicesPage from "@/pages/InvoicesPage";
+import PaymentsPage from "@/pages/PaymentsPage";
 import Phase2Placeholder from "@/pages/Phase2Placeholder";
 import NotFound from "@/pages/NotFound";
 import MockLoginPage from "@/pages/MockLoginPage";
@@ -69,6 +70,7 @@ function AuthedAppRoutes() {
         <Route path="/sales-orders" element={<SalesOrdersPage />} />
         <Route path="/inventory" element={<InventoryPage />} />
         <Route path="/invoices" element={<InvoicesPage />} />
+        <Route path="/payments" element={<PaymentsPage />} />
         {phase2Routes.map((path) => (
           <Route key={path} path={path} element={<Phase2Placeholder />} />
         ))}
