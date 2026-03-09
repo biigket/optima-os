@@ -820,7 +820,18 @@ export default function CustomerCardPage() {
                   >
                     <span className="text-base">📋</span>
                     <div className="min-w-0 flex-1">
-                      <p className="text-xs text-foreground truncate">{q.qt_number || 'ใบเสนอราคา'} — {q.product || ''}</p>
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        <p className="text-xs text-foreground truncate">{q.qt_number || 'ใบเสนอราคา'} — {q.product || ''}</p>
+                        {q.customer_signed_at && (
+                          <span className="inline-flex items-center rounded-full px-1.5 py-0.5 text-[10px] font-semibold bg-blue-500/15 text-blue-600">CUSTOMER SIGNED</span>
+                        )}
+                        {q.payment_status && q.payment_status !== 'PAID' && (
+                          <StatusBadge status={q.payment_status} className="text-[10px] px-1.5 py-0.5" />
+                        )}
+                        {q.payment_status === 'PAID' && (
+                          <StatusBadge status="PAID" className="text-[10px] px-1.5 py-0.5" />
+                        )}
+                      </div>
                       <p className="text-[10px] text-muted-foreground">
                         ใบเสนอราคา (อนุมัติแล้ว) • {q.qt_date || '-'} • ฿{(q.price || 0).toLocaleString()}
                       </p>
