@@ -281,7 +281,7 @@ export default function QuotationDetailPage() {
         <div className="flex items-center gap-2">
           {(status === 'APPROVED' || status === 'CUSTOMER_SIGNED') && (
             <Button variant="outline" size="sm" className="gap-1.5" onClick={handlePrintPDF} disabled={printingPDF}>
-              <Printer size={14} /> {printingPDF ? 'กำลังสร้าง...' : 'พิมพ์ PDF'}
+              <FileText size={14} /> {printingPDF ? 'กำลังสร้าง...' : 'ดูใบเสนอราคา'}
             </Button>
           )}
           <StatusBadge status={status} />
