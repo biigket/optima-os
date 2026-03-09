@@ -67,7 +67,7 @@ export default function CustomerRegisterPage() {
 
   if (success) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-sky-50 to-blue-100 p-4">
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background to-muted p-4">
         <Card className="w-full max-w-md text-center shadow-xl border-0">
           <CardContent className="pt-10 pb-10 space-y-4">
             <CheckCircle2 className="mx-auto h-16 w-16 text-emerald-500" />
