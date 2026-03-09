@@ -320,6 +320,9 @@ export default function QuotationDetailPage() {
       approved_name: null,
       approved_position: null,
       approved_signature: null,
+      customer_signature: null,
+      customer_signed_at: null,
+      customer_signer_name: null,
     } as any);
     if (ok) toast.success('เปลี่ยนสถานะเป็นแบบร่างเพื่อแก้ไข');
   }
