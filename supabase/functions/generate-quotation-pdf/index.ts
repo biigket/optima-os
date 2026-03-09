@@ -158,8 +158,11 @@ function generateHTML(qt: any, account: any, contacts: any[]): string {
 
   /* Signatures */
   .signatures { display: flex; justify-content: space-between; align-items: flex-end; margin-top: 50px; }
-  .sig-box { text-align: center; width: 200px; }
-  .sig-line { border-top: 1px solid #999; padding-top: 6px; margin-top: 60px; }
+  .sig-box { text-align: center; width: 220px; }
+  .sig-line { border-top: 1px solid #999; padding-top: 6px; margin-top: 10px; }
+  .sig-img { height: 60px; margin-bottom: 4px; }
+  .sig-name { font-size: 12px; font-weight: 600; color: #333; margin-top: 4px; }
+  .sig-position { font-size: 11px; color: #555; }
   .sig-label { font-size: 11px; color: #555; }
   .sig-sub { font-size: 10px; color: #999; margin-top: 2px; }
   .stamp-area { text-align: center; flex: 1; }
@@ -259,9 +262,12 @@ function generateHTML(qt: any, account: any, contacts: any[]): string {
     <div class="stamp-area"></div>
     <div class="sig-box">
       <div style="font-size:12px;color:#555;">ในนาม Optima Aesthetic Co.,Ltd.</div>
+      ${qt.approved_signature ? `<img src="${qt.approved_signature}" class="sig-img" alt="signature" />` : '<div style="height:60px"></div>'}
+      ${qt.approved_name ? `<div class="sig-name">${qt.approved_name}</div>` : ''}
+      ${qt.approved_position ? `<div class="sig-position">${qt.approved_position}</div>` : ''}
       <div class="sig-line">
         <div class="sig-label">ผู้อนุมัติ</div>
-        <div class="sig-sub">วันที่</div>
+        <div class="sig-sub">วันที่ ${qt.approved_at ? fmtDate(qt.approved_at) : '_______________'}</div>
       </div>
     </div>
   </div>

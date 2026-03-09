@@ -7,9 +7,11 @@ import StatusBadge from '@/components/ui/StatusBadge';
 import { supabase } from '@/integrations/supabase/client';
 import { Separator } from '@/components/ui/separator';
 import { Textarea } from '@/components/ui/textarea';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
 import { toast } from 'sonner';
-import { useState } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { useMockAuth } from '@/hooks/useMockAuth';
 import { cn } from '@/lib/utils';
 
@@ -18,6 +20,104 @@ const APPROVAL_FLOW = [
   { key: 'SUBMITTED', label: 'รออนุมัติ' },
   { key: 'APPROVED', label: 'อนุมัติแล้ว' },
 ];
+
+function SignatureCanvas({ onSignatureChange }: { onSignatureChange: (dataUrl: string | null) => void }) {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const isDrawing = useRef(false);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+    ctx.fillStyle = 'white';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.strokeStyle = '#1a1a1a';
+    ctx.lineWidth = 2;
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+  }, []);
+
+  const getPos = (e: React.MouseEvent | React.TouchEvent) => {
+    const canvas = canvasRef.current!;
+    const rect = canvas.getBoundingClientRect();
+    const scaleX = canvas.width / rect.width;
+    const scaleY = canvas.height / rect.height;
+    if ('touches' in e) {
+      return {
+        x: (e.touches[0].clientX - rect.left) * scaleX,
+        y: (e.touches[0].clientY - rect.top) * scaleY,
+      };
+    }
+    return {
+      x: (e.clientX - rect.left) * scaleX,
+      y: (e.clientY - rect.top) * scaleY,
+    };
+  };
+
+  const startDraw = (e: React.MouseEvent | React.TouchEvent) => {
+    e.preventDefault();
+    isDrawing.current = true;
+    const ctx = canvasRef.current?.getContext('2d');
+    if (!ctx) return;
+    const pos = getPos(e);
+    ctx.beginPath();
+    ctx.moveTo(pos.x, pos.y);
+  };
+
+  const draw = (e: React.MouseEvent | React.TouchEvent) => {
+    e.preventDefault();
+    if (!isDrawing.current) return;
+    const ctx = canvasRef.current?.getContext('2d');
+    if (!ctx) return;
+    const pos = getPos(e);
+    ctx.lineTo(pos.x, pos.y);
+    ctx.stroke();
+  };
+
+  const endDraw = () => {
+    if (isDrawing.current) {
+      isDrawing.current = false;
+      onSignatureChange(canvasRef.current?.toDataURL('image/png') || null);
+    }
+  };
+
+  const clear = () => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+    ctx.fillStyle = 'white';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    onSignatureChange(null);
+  };
+
+  return (
+    <div>
+      <div className="border rounded-lg overflow-hidden bg-white">
+        <canvas
+          ref={canvasRef}
+          width={500}
+          height={180}
+          className="w-full cursor-crosshair touch-none"
+          style={{ height: '140px' }}
+          onMouseDown={startDraw}
+          onMouseMove={draw}
+          onMouseUp={endDraw}
+          onMouseLeave={endDraw}
+          onTouchStart={startDraw}
+          onTouchMove={draw}
+          onTouchEnd={endDraw}
+        />
+      </div>
+      <div className="flex justify-end mt-1">
+        <Button type="button" variant="ghost" size="sm" className="text-xs text-muted-foreground" onClick={clear}>
+          ล้างลายเซ็น
+        </Button>
+      </div>
+    </div>
+  );
+}
 
 export default function QuotationDetailPage() {
   const { id } = useParams();
@@ -28,6 +128,12 @@ export default function QuotationDetailPage() {
   const [showRejectDialog, setShowRejectDialog] = useState(false);
   const [rejectReason, setRejectReason] = useState('');
   const [updating, setUpdating] = useState(false);
+
+  // Approve dialog state
+  const [showApproveDialog, setShowApproveDialog] = useState(false);
+  const [approverName, setApproverName] = useState('');
+  const [approverPosition, setApproverPosition] = useState('');
+  const [signatureData, setSignatureData] = useState<string | null>(null);
 
   const isAdmin = currentUser?.role === 'ADMIN';
 
@@ -88,12 +194,38 @@ export default function QuotationDetailPage() {
     if (ok) toast.success('ส่งใบเสนอราคาเพื่ออนุมัติแล้ว');
   }
 
-  async function handleApprove() {
+  function openApproveDialog() {
+    setApproverName('');
+    setApproverPosition('');
+    setSignatureData(null);
+    setShowApproveDialog(true);
+  }
+
+  async function handleApproveConfirm() {
+    if (!approverName.trim()) {
+      toast.error('กรุณาระบุชื่อ-นามสกุล');
+      return;
+    }
+    if (!approverPosition.trim()) {
+      toast.error('กรุณาระบุตำแหน่ง');
+      return;
+    }
+    if (!signatureData) {
+      toast.error('กรุณาเซ็นชื่อ');
+      return;
+    }
+
     const ok = await updateStatus('APPROVED', {
-      approved_by: currentUser?.name || 'ADMIN',
+      approved_by: approverName.trim(),
       approved_at: new Date().toISOString(),
+      approved_name: approverName.trim(),
+      approved_position: approverPosition.trim(),
+      approved_signature: signatureData,
     } as any);
-    if (ok) toast.success('อนุมัติใบเสนอราคาแล้ว');
+    if (ok) {
+      toast.success('อนุมัติใบเสนอราคาแล้ว');
+      setShowApproveDialog(false);
+    }
   }
 
   async function handleReject() {
@@ -119,6 +251,9 @@ export default function QuotationDetailPage() {
       approved_by: null,
       approved_at: null,
       submitted_at: null,
+      approved_name: null,
+      approved_position: null,
+      approved_signature: null,
     } as any);
     if (ok) toast.success('เปลี่ยนสถานะเป็นแบบร่างเพื่อแก้ไข');
   }
@@ -224,7 +359,8 @@ export default function QuotationDetailPage() {
               <div>
                 <p className="text-sm font-medium text-green-700">อนุมัติแล้ว</p>
                 <p className="text-sm text-green-600">
-                  โดย {(qt as any).approved_by || '-'}
+                  โดย {(qt as any).approved_name || (qt as any).approved_by || '-'}
+                  {(qt as any).approved_position && ` (${(qt as any).approved_position})`}
                   {(qt as any).approved_at && ` เมื่อ ${new Date((qt as any).approved_at).toLocaleDateString('th-TH')}`}
                 </p>
               </div>
@@ -233,17 +369,15 @@ export default function QuotationDetailPage() {
 
           {/* Action Buttons */}
           <div className="flex items-center gap-2 flex-wrap">
-            {/* DRAFT → can submit */}
             {status === 'DRAFT' && (
               <Button size="sm" className="gap-1.5" onClick={handleSubmit} disabled={updating}>
                 <Send size={14} /> ส่งอนุมัติ
               </Button>
             )}
 
-            {/* SUBMITTED → admin can approve/reject */}
             {status === 'SUBMITTED' && isAdmin && (
               <>
-                <Button size="sm" className="gap-1.5 bg-green-600 hover:bg-green-700" onClick={handleApprove} disabled={updating}>
+                <Button size="sm" className="gap-1.5 bg-green-600 hover:bg-green-700" onClick={openApproveDialog} disabled={updating}>
                   <CheckCircle size={14} /> อนุมัติ
                 </Button>
                 <Button size="sm" variant="destructive" className="gap-1.5" onClick={() => setShowRejectDialog(true)} disabled={updating}>
@@ -256,14 +390,12 @@ export default function QuotationDetailPage() {
               <p className="text-sm text-muted-foreground">⏳ รอการอนุมัติจากผู้จัดการ</p>
             )}
 
-            {/* APPROVED → admin can revise */}
             {status === 'APPROVED' && isAdmin && (
               <Button size="sm" variant="outline" className="gap-1.5" onClick={handleRevise} disabled={updating}>
                 <Edit3 size={14} /> แก้ไข (กลับเป็นแบบร่าง)
               </Button>
             )}
 
-            {/* REJECTED → can revise and resubmit */}
             {status === 'REJECTED' && (
               <Button size="sm" className="gap-1.5" onClick={handleRevise} disabled={updating}>
                 <Edit3 size={14} /> แก้ไขและส่งใหม่
@@ -336,6 +468,52 @@ export default function QuotationDetailPage() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Approve Dialog */}
+      <Dialog open={showApproveDialog} onOpenChange={setShowApproveDialog}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="text-green-700">อนุมัติใบเสนอราคา</DialogTitle>
+            <DialogDescription>กรุณาเซ็นชื่อและระบุข้อมูลผู้อนุมัติ</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label className="text-sm font-medium">ลายเซ็น <span className="text-destructive">*</span></Label>
+              <SignatureCanvas onSignatureChange={setSignatureData} />
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <Label className="text-sm font-medium">ชื่อ-นามสกุล <span className="text-destructive">*</span></Label>
+                <Input
+                  value={approverName}
+                  onChange={e => setApproverName(e.target.value)}
+                  placeholder="เช่น นายสมชาย ใจดี"
+                  className="mt-1"
+                />
+              </div>
+              <div>
+                <Label className="text-sm font-medium">ตำแหน่ง <span className="text-destructive">*</span></Label>
+                <Input
+                  value={approverPosition}
+                  onChange={e => setApproverPosition(e.target.value)}
+                  placeholder="เช่น กรรมการผู้จัดการ"
+                  className="mt-1"
+                />
+              </div>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowApproveDialog(false)}>ยกเลิก</Button>
+            <Button
+              className="bg-green-600 hover:bg-green-700"
+              onClick={handleApproveConfirm}
+              disabled={updating || !approverName.trim() || !approverPosition.trim() || !signatureData}
+            >
+              {updating ? 'กำลังบันทึก...' : 'ยืนยันอนุมัติ'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Reject Dialog */}
       <Dialog open={showRejectDialog} onOpenChange={setShowRejectDialog}>
