@@ -797,6 +797,26 @@ export default function CustomerCardPage() {
             {/* ===== DOCUMENTS ===== */}
             <TabsContent value="documents" className="mt-0">
               <div className="space-y-1.5">
+                {/* Approved Quotation PDFs */}
+                {qtDocs.map(q => (
+                  <a
+                    key={q.id}
+                    href={q.qt_attachment!}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-3 p-2.5 rounded-md hover:bg-muted/40 transition-colors cursor-pointer"
+                  >
+                    <span className="text-base">📋</span>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-xs text-foreground truncate">{q.qt_number || 'ใบเสนอราคา'} — {q.product || ''}</p>
+                      <p className="text-[10px] text-muted-foreground">
+                        ใบเสนอราคา (อนุมัติแล้ว) • {q.qt_date || '-'} • ฿{(q.price || 0).toLocaleString()}
+                      </p>
+                    </div>
+                    <ExternalLink size={12} className="text-muted-foreground shrink-0" />
+                  </a>
+                ))}
+                {/* Mock documents */}
                 {documents.map(d => (
                   <div key={d.id} className="flex items-center gap-3 p-2.5 rounded-md hover:bg-muted/40 transition-colors cursor-pointer">
                     <span className="text-base">{DOC_ICONS[d.docType] || '📄'}</span>
@@ -806,7 +826,7 @@ export default function CustomerCardPage() {
                     </div>
                   </div>
                 ))}
-                {documents.length === 0 && <Empty text="ไม่มีเอกสาร" />}
+                {documents.length === 0 && qtDocs.length === 0 && <Empty text="ไม่มีเอกสาร" />}
               </div>
             </TabsContent>
 
