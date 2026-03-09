@@ -6,6 +6,13 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { CheckCircle2, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import QuickNoteButtons from "@/components/ui/QuickNoteButtons";
+
+const DEVICE_DEFAULTS = [
+  "Ultherapy", "Thermage", "Oligio", "OligioX", "UF light", "UF 3",
+  "UF MPT", "Doublo", "SylfirmX", "Xerf", "LinearZ", "Density",
+  "Volumer", "Picosure", "Picoplus", "PicoK", "Morphues", "Potenza",
+];
 
 export default function CustomerRegisterPage() {
   const { toast } = useToast();
