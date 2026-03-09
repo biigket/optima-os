@@ -587,9 +587,15 @@ export type Database = {
           installment_number: number
           paid_date: string | null
           payment_channel: string | null
+          payment_date: string | null
           quotation_id: string
           receipt_sent: boolean | null
+          reject_reason: string | null
           slip_file: string | null
+          slip_status: string | null
+          slip_uploaded_at: string | null
+          verified_at: string | null
+          verified_by: string | null
         }
         Insert: {
           amount?: number | null
@@ -599,9 +605,15 @@ export type Database = {
           installment_number: number
           paid_date?: string | null
           payment_channel?: string | null
+          payment_date?: string | null
           quotation_id: string
           receipt_sent?: boolean | null
+          reject_reason?: string | null
           slip_file?: string | null
+          slip_status?: string | null
+          slip_uploaded_at?: string | null
+          verified_at?: string | null
+          verified_by?: string | null
         }
         Update: {
           amount?: number | null
@@ -611,9 +623,15 @@ export type Database = {
           installment_number?: number
           paid_date?: string | null
           payment_channel?: string | null
+          payment_date?: string | null
           quotation_id?: string
           receipt_sent?: boolean | null
+          reject_reason?: string | null
           slip_file?: string | null
+          slip_status?: string | null
+          slip_uploaded_at?: string | null
+          verified_at?: string | null
+          verified_by?: string | null
         }
         Relationships: [
           {
