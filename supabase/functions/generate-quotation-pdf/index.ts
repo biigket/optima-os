@@ -14,6 +14,7 @@ const SELLER = {
   phone: "0828120999",
   email: "info@optimaaesthetic.co.th",
   website: "www.optimaaesthetic.com",
+  logo: "https://szrjikvwdygyyxfztfvn.supabase.co/storage/v1/object/public/company-assets/optima-logo.png",
 };
 
 function formatNumber(n: number): string {
