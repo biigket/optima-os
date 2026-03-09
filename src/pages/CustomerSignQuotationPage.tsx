@@ -233,9 +233,9 @@ export default function CustomerSignQuotationPage() {
         </Card>
 
         <div className="space-y-2">
-          {pdfUrl && (
-            <Button variant="outline" className="w-full" onClick={() => window.open(pdfUrl, "_blank")}>
-              ดูใบเสนอราคา (PDF)
+          {hasAttachment && (
+            <Button variant="outline" className="w-full" onClick={handleViewPdf} disabled={viewingPdf}>
+              {viewingPdf ? "กำลังโหลด..." : "ดูใบเสนอราคา (PDF)"}
             </Button>
           )}
 
