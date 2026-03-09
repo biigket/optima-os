@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { Search, Upload, Eye, Filter } from 'lucide-react';
+import { Search, Upload, Eye, Filter, FileText } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -37,6 +37,7 @@ interface InstallmentRow {
   deposit_slip_status?: string;
   payment_status?: string;
   price?: number;
+  qt_attachment?: string;
 }
 
 const CONDITION_TABS = [
@@ -78,7 +79,7 @@ export default function PaymentsPage() {
     queryFn: async () => {
       const { data: signedQts, error: qtErr } = await supabase
         .from('quotations')
-        .select('id, qt_number, account_id, price, payment_condition, payment_status, deposit_type, deposit_value, deposit_slip, deposit_slip_status, has_installments, installment_count, payment_due_day')
+        .select('id, qt_number, account_id, price, payment_condition, payment_status, deposit_type, deposit_value, deposit_slip, deposit_slip_status, has_installments, installment_count, payment_due_day, qt_attachment')
         .eq('approval_status', 'CUSTOMER_SIGNED')
         .order('created_at', { ascending: false });
       if (qtErr) throw qtErr;
@@ -214,6 +215,7 @@ export default function PaymentsPage() {
           deposit_slip_status: (qt as any)?.deposit_slip_status || 'NO_SLIP',
           payment_status: qt?.payment_status || 'UNPAID',
           price: qt?.price || 0,
+          qt_attachment: (qt as any)?.qt_attachment || null,
         } as InstallmentRow;
       });
     },
@@ -405,7 +407,16 @@ export default function PaymentsPage() {
                 const overdueLabel = getOverdueLabel(row);
                 return (
                   <TableRow key={row.id}>
-                    <TableCell className="font-medium text-xs">{row.qt_number}</TableCell>
+                    <TableCell className="font-medium text-xs">
+                      <div className="flex items-center gap-1.5">
+                        <span>{row.qt_number}</span>
+                        {row.qt_attachment && (
+                          <Button size="sm" variant="ghost" className="gap-1 text-xs h-6 px-1.5 text-primary" onClick={() => window.open(row.qt_attachment!, '_blank')}>
+                            <FileText size={12} /> ดูใบเสนอราคา
+                          </Button>
+                        )}
+                      </div>
+                    </TableCell>
                     <TableCell className="max-w-[160px] truncate">{row.clinic_name}</TableCell>
                     <TableCell className="text-xs text-muted-foreground max-w-[120px] truncate">
                       {getPaymentConditionLabel(row.payment_condition)}
