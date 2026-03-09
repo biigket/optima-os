@@ -26,6 +26,8 @@ export default function CreateQuotationDialog({ open, onOpenChange, onCreated }:
     price: '',
     qt_date: format(new Date(), 'yyyy-MM-dd'),
     payment_condition: 'CASH' as string,
+    deposit_type: 'NONE' as string,
+    deposit_value: '',
     sale_assigned: '',
   });
 
