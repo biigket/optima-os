@@ -16,6 +16,7 @@ import { format, addDays } from 'date-fns';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import QuickNoteButtons from '@/components/ui/QuickNoteButtons';
+import PaymentConditionSelector, { getPaymentConditionLabel } from './PaymentConditionSelector';
 
 // === Constants ===
 
