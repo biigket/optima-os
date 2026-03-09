@@ -1,6 +1,6 @@
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { ArrowLeft, FileText, Building2, Package, CreditCard, Printer, Send, CheckCircle, XCircle, Edit3, AlertTriangle, Link2, Copy, ExternalLink } from 'lucide-react';
+import { ArrowLeft, FileText, Building2, Package, CreditCard, Send, CheckCircle, XCircle, Edit3, AlertTriangle, Link2, Copy, ExternalLink } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import StatusBadge from '@/components/ui/StatusBadge';
@@ -281,7 +281,7 @@ export default function QuotationDetailPage() {
         <div className="flex items-center gap-2">
           {(status === 'APPROVED' || status === 'CUSTOMER_SIGNED') && (
             <Button variant="outline" size="sm" className="gap-1.5" onClick={handlePrintPDF} disabled={printingPDF}>
-              <Printer size={14} /> {printingPDF ? 'กำลังสร้าง...' : 'พิมพ์ PDF'}
+              <FileText size={14} /> {printingPDF ? 'กำลังสร้าง...' : 'ดูใบเสนอราคา'}
             </Button>
           )}
           <StatusBadge status={status} />
