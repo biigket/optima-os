@@ -159,6 +159,9 @@ export default function CreateQuotationWizard({ open, onOpenChange, onCreated }:
   const [paymentCondition, setPaymentCondition] = useState('CASH');
   const [depositType, setDepositType] = useState('NONE');
   const [depositValue, setDepositValue] = useState('');
+  const [hasInstallments, setHasInstallments] = useState(false);
+  const [installmentCount, setInstallmentCount] = useState('');
+  const [paymentDueDay, setPaymentDueDay] = useState('');
 
   useEffect(() => {
     if (open) {
