@@ -56,6 +56,22 @@ export default function CustomerRightPanel({ accountId }: Props) {
   const marketing = getMarketingForAccount(accountId);
   const lifetimeRevenue = getLifetimeRevenue(accountId);
 
+  const [qtDocs, setQtDocs] = useState<QuotationDoc[]>([]);
+
+  useEffect(() => {
+    async function fetchQtDocs() {
+      const { data } = await supabase
+        .from('quotations')
+        .select('id, qt_number, qt_date, qt_attachment, product, price, approval_status')
+        .eq('account_id', accountId)
+        .eq('approval_status', 'APPROVED')
+        .not('qt_attachment', 'is', null)
+        .order('qt_date', { ascending: false });
+      setQtDocs((data as QuotationDoc[]) || []);
+    }
+    fetchQtDocs();
+  }, [accountId]);
+
   return (
     <div className="rounded-lg border bg-card overflow-hidden">
       <Tabs defaultValue="devices">
