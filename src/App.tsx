@@ -22,25 +22,29 @@ import ForecastPage from "@/pages/ForecastPage";
 import AnalyticsPage from "@/pages/AnalyticsPage";
 import QuotationsPage from "@/pages/QuotationsPage";
 import QuotationDetailPage from "@/pages/QuotationDetailPage";
+import CustomerSignQuotationPage from "@/pages/CustomerSignQuotationPage";
 import SalesOrdersPage from "@/pages/SalesOrdersPage";
 import InventoryPage from "@/pages/InventoryPage";
 import InvoicesPage from "@/pages/InvoicesPage";
 import Phase2Placeholder from "@/pages/Phase2Placeholder";
 import NotFound from "@/pages/NotFound";
 import MockLoginPage from "@/pages/MockLoginPage";
-import { MockAuthProvider, useMockAuth } from "@/hooks/useMockAuth";
+import { MockAuthProvider } from "@/hooks/useMockAuth";
 
 const queryClient = new QueryClient();
 
 const phase2Routes = [
-  '/campaigns', '/promotions', '/kol',
-  '/training', '/lms',
-  '/ai-pipeline', '/ai-reorder', '/ai-marketing',
+  "/campaigns",
+  "/promotions",
+  "/kol",
+  "/training",
+  "/lms",
+  "/ai-pipeline",
+  "/ai-reorder",
+  "/ai-marketing",
 ];
 
-function AppRoutes() {
-  // Login disabled — auto-login as ADMIN
-
+function AuthedAppRoutes() {
   return (
     <AppLayout>
       <Routes>
@@ -65,12 +69,24 @@ function AppRoutes() {
         <Route path="/sales-orders" element={<SalesOrdersPage />} />
         <Route path="/inventory" element={<InventoryPage />} />
         <Route path="/invoices" element={<InvoicesPage />} />
-        {phase2Routes.map(path => (
+        {phase2Routes.map((path) => (
           <Route key={path} path={path} element={<Phase2Placeholder />} />
         ))}
         <Route path="*" element={<NotFound />} />
       </Routes>
     </AppLayout>
+  );
+}
+
+function AppRoutes() {
+  return (
+    <Routes>
+      {/* Public customer signing page (no AppLayout) */}
+      <Route path="/sign/quotation" element={<CustomerSignQuotationPage />} />
+
+      {/* Main app */}
+      <Route path="/*" element={<AuthedAppRoutes />} />
+    </Routes>
   );
 }
 

@@ -3,16 +3,20 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type",
+    "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
+  "Access-Control-Allow-Methods": "GET,POST,OPTIONS",
 };
 
-const htmlHeaders = {
-  ...corsHeaders,
-  "Content-Type": "text/html; charset=utf-8",
-  "Content-Security-Policy":
-    "default-src 'self' 'unsafe-inline' 'unsafe-eval' https: data:; img-src * data:; font-src * data:;",
-  "X-Frame-Options": "SAMEORIGIN",
-};
+const htmlHeaders = new Headers(corsHeaders);
+htmlHeaders.set("content-type", "text/html; charset=utf-8");
+// NOTE: Some gateways may append a restrictive CSP; we still set a permissive one for inline CSS/JS on this page.
+htmlHeaders.set(
+  "content-security-policy",
+  "default-src 'self' 'unsafe-inline' 'unsafe-eval' https: data:; img-src * data:; font-src * data:; style-src * 'unsafe-inline'; script-src * 'unsafe-inline' 'unsafe-eval';"
+);
+
+const jsonHeaders = new Headers(corsHeaders);
+jsonHeaders.set("content-type", "application/json; charset=utf-8");
 
 const SUPABASE_URL = "https://szrjikvwdygyyxfztfvn.supabase.co";
 
@@ -31,15 +35,19 @@ function fmt(n: number): string {
   return n.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 
+function resolveQuotationPdfUrl(qt_attachment: string | null): string | null {
+  if (!qt_attachment) return null;
+  if (qt_attachment.startsWith("http://") || qt_attachment.startsWith("https://")) return qt_attachment;
+  return `${SUPABASE_URL}/storage/v1/object/public/quotation-files/${qt_attachment}`;
+}
+
 function renderSigningPage(qt: any, account: any): string {
   const price = qt.price || 0;
   const contactName = account?.clinic_name || "-";
   const alreadySigned = !!qt.customer_signature;
 
-  // Build the URL for viewing the approved PDF from storage
-  const pdfUrl = qt.qt_attachment
-    ? `${SUPABASE_URL}/storage/v1/object/public/quotation-files/${qt.qt_attachment}`
-    : null;
+  // URL for viewing the approved PDF from storage
+  const pdfUrl = resolveQuotationPdfUrl(qt.qt_attachment ?? null);
 
   return `<!DOCTYPE html>
 <html lang="th">
@@ -386,7 +394,7 @@ Deno.serve(async (req) => {
       if (!quotation_id || !signature || !signer_name) {
         return new Response(
           JSON.stringify({ success: false, error: "Missing required fields" }),
-          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          { status: 400, headers: jsonHeaders }
         );
       }
 
@@ -405,7 +413,7 @@ Deno.serve(async (req) => {
       if (updateErr) {
         return new Response(
           JSON.stringify({ success: false, error: updateErr.message }),
-          { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          { status: 500, headers: jsonHeaders }
         );
       }
 
@@ -416,19 +424,16 @@ Deno.serve(async (req) => {
         .eq("id", quotation_id)
         .single();
 
-      const pdfUrl = qt?.qt_attachment
-        ? `${SUPABASE_URL}/storage/v1/object/public/quotation-files/${qt.qt_attachment}`
-        : null;
+      const pdfUrl = resolveQuotationPdfUrl(qt?.qt_attachment ?? null);
 
-      return new Response(
-        JSON.stringify({ success: true, pdf_url: pdfUrl }),
-        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      return new Response(JSON.stringify({ success: true, pdf_url: pdfUrl }), {
+        headers: jsonHeaders,
+      });
     } catch (err: any) {
-      return new Response(
-        JSON.stringify({ success: false, error: err.message }),
-        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      return new Response(JSON.stringify({ success: false, error: err.message }), {
+        status: 500,
+        headers: jsonHeaders,
+      });
     }
   }
 
