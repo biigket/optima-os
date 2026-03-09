@@ -49,7 +49,6 @@ export default function CustomerRegisterPage() {
           current_devices: form.current_devices.trim() || null,
           customer_status: "NEW_LEAD",
           lead_source: "REGISTER_FORM",
-          lead_source: "REGISTER_FORM",
         })
         .select("id")
         .single();
