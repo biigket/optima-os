@@ -606,6 +606,12 @@ export default function CreateQuotationWizard({ open, onOpenChange, onCreated }:
               onDepositTypeChange={setDepositType}
               onDepositValueChange={setDepositValue}
               totalPrice={grandTotal || undefined}
+              hasInstallments={hasInstallments}
+              installmentCount={installmentCount}
+              paymentDueDay={paymentDueDay}
+              onHasInstallmentsChange={setHasInstallments}
+              onInstallmentCountChange={setInstallmentCount}
+              onPaymentDueDayChange={setPaymentDueDay}
             />
 
             <div className="space-y-1.5">
