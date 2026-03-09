@@ -7,46 +7,32 @@ const corsHeaders = {
 };
 
 const SELLER = {
-  company: "บริษัท ออปติม่าแอสเทติค จำกัด",
-  address:
-    "65 ถนน วิชิตสงคราม ตำบลตลาดเหนือ อำเภอเมืองภูเก็ต จังหวัดภูเก็ต 83000",
+  company: "Optima Aesthetic Co.,Ltd. (สำนักงานใหญ่)",
+  address: "65 Vichitsongkram Road, Talat Nuea, Mueang, Phuket 83000",
   taxId: "0835563001787",
-  phone: "0828120999",
-  email: "info@optimaaesthetic.co.th",
-  website: "www.optimaaesthetic.com",
+  phone: "0610097888",
   logo: "https://szrjikvwdygyyxfztfvn.supabase.co/storage/v1/object/public/company-assets/optima-logo.png",
 };
 
-function formatNumber(n: number): string {
-  return n.toLocaleString("en-US", {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  });
+function fmt(n: number): string {
+  return n.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 
-function formatDate(d: string | null): string {
+function fmtDate(d: string | null): string {
   if (!d) return "-";
   const date = new Date(d);
-  return date.toLocaleDateString("th-TH", {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-  });
-}
-
-function addDays(dateStr: string, days: number): string {
-  const d = new Date(dateStr);
-  d.setDate(d.getDate() + days);
-  return d.toISOString().split("T")[0];
+  const dd = String(date.getDate()).padStart(2, "0");
+  const mm = String(date.getMonth() + 1).padStart(2, "0");
+  const yyyy = date.getFullYear();
+  return `${dd}/${mm}/${yyyy}`;
 }
 
 function generateHTML(qt: any, account: any, contacts: any[]): string {
-  // Parse products from the product string (format: "Name x1, Name x2")
-  const productLines: { name: string; qty: number; price: number }[] = [];
-  // We'll use price as grand total for now since we store aggregated
-
-  const expiryDate = qt.qt_date ? addDays(qt.qt_date, 30) : null;
   const price = qt.price || 0;
+  const vat = price * 7 / 107; // price is VAT-inclusive
+  const priceExVat = price - vat;
+
+  const contactName = contacts.length > 0 ? contacts[0].name : account?.clinic_name || "-";
 
   const paymentLabels: Record<string, string> = {
     CASH: "เงินสด",
@@ -54,8 +40,24 @@ function generateHTML(qt: any, account: any, contacts: any[]): string {
     LEASING: "ลีสซิ่ง",
   };
 
-  const contactName =
-    contacts.length > 0 ? contacts[0].name : "-";
+  // Parse product items
+  const items = (qt.product || "").split(",").map((s: string) => s.trim()).filter(Boolean);
+  const productRows = items.length === 0
+    ? `<tr><td colspan="5" style="text-align:center;color:#999;padding:20px">ไม่มีรายการสินค้า</td></tr>`
+    : items.map((item: string, i: number) => {
+        const match = item.match(/^(.+?)\s*x(\d+)$/);
+        const name = match ? match[1].trim() : item;
+        const qty = match ? parseInt(match[2]) : 1;
+        const unitPrice = items.length === 1 ? price : 0;
+        const total = items.length === 1 ? price : 0;
+        return `<tr>
+          <td class="center">${i + 1}</td>
+          <td>${name}</td>
+          <td class="center">${qty}</td>
+          <td class="right">${unitPrice ? fmt(unitPrice) : "-"}</td>
+          <td class="right">${total ? fmt(total) : "-"}</td>
+        </tr>`;
+      }).join("");
 
   return `<!DOCTYPE html>
 <html lang="th">
@@ -71,8 +73,8 @@ function generateHTML(qt: any, account: any, contacts: any[]): string {
   body {
     font-family: 'Sarabun', sans-serif;
     font-size: 13px;
-    color: #1a1a1a;
-    background: #f5f5f5;
+    color: #333;
+    background: #f0f0f0;
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
   }
@@ -82,71 +84,91 @@ function generateHTML(qt: any, account: any, contacts: any[]): string {
     min-height: 297mm;
     margin: 0 auto;
     background: white;
-    padding: 20mm 18mm;
+    padding: 18mm 20mm;
     position: relative;
   }
   
   @media print {
     body { background: white; }
-    .page { margin: 0; padding: 15mm; box-shadow: none; }
+    .page { margin: 0; padding: 12mm 18mm; box-shadow: none; }
     .no-print { display: none !important; }
     @page { size: A4; margin: 0; }
   }
   
   @media screen {
-    .page { box-shadow: 0 2px 20px rgba(0,0,0,0.1); margin-top: 20px; margin-bottom: 20px; }
+    .page { box-shadow: 0 2px 20px rgba(0,0,0,0.12); margin-top: 50px; margin-bottom: 20px; }
   }
 
-   /* Header */
-  .header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 24px; padding-bottom: 16px; border-bottom: 3px solid #1e3a5f; }
-  .header-left { display: flex; align-items: flex-start; gap: 14px; }
-  .header-logo { width: 70px; height: auto; }
-  .seller-info h1 { font-size: 18px; font-weight: 700; color: #1e3a5f; margin-bottom: 4px; }
-  .seller-info p { font-size: 11px; color: #555; line-height: 1.6; }
-  .doc-title { text-align: right; }
-  .doc-title h2 { font-size: 22px; font-weight: 700; color: #1e3a5f; letter-spacing: 1px; }
-  .doc-title .subtitle { font-size: 12px; color: #888; }
+  /* Header */
+  .header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; }
+  .header-left { max-width: 55%; }
+  .logo { height: 60px; margin-bottom: 8px; }
+  .seller-info { font-size: 12px; color: #555; line-height: 1.7; }
+  
+  .header-right { text-align: right; }
+  .doc-title { font-size: 28px; font-weight: 700; color: #e67e22; margin-bottom: 10px; }
+  
+  .doc-info-table { font-size: 12px; border-collapse: collapse; }
+  .doc-info-table td { padding: 3px 0; }
+  .doc-info-table .lbl { color: #888; padding-right: 16px; text-align: right; white-space: nowrap; }
+  .doc-info-table .val { color: #333; font-weight: 500; text-align: left; }
 
-  /* Info Grid */
-  .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 24px; }
-  .info-box { border: 1px solid #e0e0e0; border-radius: 6px; padding: 14px 16px; }
-  .info-box .label { font-size: 10px; font-weight: 600; text-transform: uppercase; color: #1e3a5f; letter-spacing: 0.5px; margin-bottom: 8px; }
-  .info-row { display: flex; justify-content: space-between; margin-bottom: 4px; }
-  .info-row .key { color: #777; font-size: 12px; }
-  .info-row .val { font-weight: 500; font-size: 12px; }
+  /* Customer */
+  .customer-section { margin-bottom: 20px; }
+  .section-label { font-size: 13px; font-weight: 700; color: #e67e22; margin-bottom: 6px; }
+  .customer-info { font-size: 12px; line-height: 1.8; color: #333; }
 
   /* Product Table */
-  .product-table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
-  .product-table thead { background: #1e3a5f; color: white; }
-  .product-table th { padding: 10px 12px; text-align: left; font-size: 12px; font-weight: 600; }
-  .product-table th:nth-child(2), .product-table th:nth-child(3), .product-table th:nth-child(4) { text-align: right; }
-  .product-table td { padding: 10px 12px; border-bottom: 1px solid #eee; font-size: 12px; }
-  .product-table td:nth-child(2), .product-table td:nth-child(3), .product-table td:nth-child(4) { text-align: right; }
-  .product-table tbody tr:hover { background: #f8f9fa; }
+  .product-table { width: 100%; border-collapse: collapse; margin-bottom: 16px; }
+  .product-table thead th {
+    background: #fff;
+    color: #333;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 10px 8px;
+    border-bottom: 2px solid #e67e22;
+    border-top: 2px solid #e67e22;
+  }
+  .product-table tbody td {
+    padding: 10px 8px;
+    font-size: 12px;
+    border-bottom: 1px solid #eee;
+  }
+  .product-table .center { text-align: center; }
+  .product-table .right { text-align: right; }
+  .product-table th:first-child { width: 40px; text-align: center; }
+  .product-table th:nth-child(3) { width: 80px; text-align: center; }
+  .product-table th:nth-child(4),
+  .product-table th:nth-child(5) { width: 120px; text-align: right; }
 
   /* Summary */
-  .summary-section { display: flex; justify-content: flex-end; margin-bottom: 24px; }
-  .summary-box { width: 280px; }
-  .summary-row { display: flex; justify-content: space-between; padding: 6px 0; font-size: 12px; }
-  .summary-row.total { border-top: 2px solid #1e3a5f; padding-top: 10px; margin-top: 4px; font-size: 15px; font-weight: 700; color: #1e3a5f; }
+  .summary-wrapper { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 24px; }
+  .summary-table { margin-left: auto; font-size: 12px; border-collapse: collapse; }
+  .summary-table td { padding: 5px 0; }
+  .summary-table .lbl { text-align: right; padding-right: 20px; color: #555; }
+  .summary-table .val { text-align: right; font-weight: 500; white-space: nowrap; }
+  .summary-table .grand { border-top: 2px solid #e67e22; font-size: 14px; font-weight: 700; color: #333; }
+  .summary-table .grand td { padding-top: 8px; }
+  .baht-text { font-size: 12px; color: #555; margin-top: 4px; }
 
-  /* Terms */
-  .terms { border: 1px solid #e0e0e0; border-radius: 6px; padding: 14px 16px; margin-bottom: 24px; }
-  .terms .label { font-size: 10px; font-weight: 600; text-transform: uppercase; color: #1e3a5f; letter-spacing: 0.5px; margin-bottom: 8px; }
-  .terms p { font-size: 11px; color: #555; line-height: 1.8; white-space: pre-wrap; }
+  /* Notes */
+  .notes-section { margin-bottom: 30px; }
+  .notes-section .section-label { font-size: 12px; }
+  .notes-content { font-size: 12px; color: #555; line-height: 1.8; white-space: pre-wrap; }
 
   /* Signatures */
-  .signatures { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; margin-top: 40px; }
-  .sig-box { text-align: center; }
-  .sig-line { border-top: 1px solid #999; margin-top: 50px; padding-top: 8px; }
+  .signatures { display: flex; justify-content: space-between; align-items: flex-end; margin-top: 50px; }
+  .sig-box { text-align: center; width: 200px; }
+  .sig-line { border-top: 1px solid #999; padding-top: 6px; margin-top: 60px; }
   .sig-label { font-size: 11px; color: #555; }
-  .sig-name { font-size: 12px; font-weight: 600; margin-top: 4px; }
+  .sig-sub { font-size: 10px; color: #999; margin-top: 2px; }
+  .stamp-area { text-align: center; flex: 1; }
 
-  /* Print button */
-  .print-bar { position: fixed; top: 0; left: 0; right: 0; background: #1e3a5f; padding: 12px 24px; display: flex; justify-content: center; gap: 12px; z-index: 100; }
+  /* Print bar */
+  .print-bar { position: fixed; top: 0; left: 0; right: 0; background: #e67e22; padding: 10px 24px; display: flex; justify-content: center; gap: 12px; z-index: 100; }
   .print-bar button { padding: 8px 24px; border: none; border-radius: 6px; font-family: 'Sarabun', sans-serif; font-size: 14px; font-weight: 600; cursor: pointer; }
-  .btn-print { background: white; color: #1e3a5f; }
-  .btn-close { background: transparent; color: white; border: 1px solid rgba(255,255,255,0.3) !important; }
+  .btn-print { background: white; color: #e67e22; }
+  .btn-close { background: transparent; color: white; border: 1px solid rgba(255,255,255,0.4) !important; }
 </style>
 </head>
 <body>
@@ -160,39 +182,32 @@ function generateHTML(qt: any, account: any, contacts: any[]): string {
   <!-- Header -->
   <div class="header">
     <div class="header-left">
-      <img src="${SELLER.logo}" alt="Logo" class="header-logo" />
+      <img src="${SELLER.logo}" alt="Optima Aesthetics" class="logo" />
       <div class="seller-info">
-        <h1>${SELLER.company}</h1>
-        <p>${SELLER.address}</p>
-        <p>เลขผู้เสียภาษี: ${SELLER.taxId}</p>
-        <p>โทร: ${SELLER.phone} | ${SELLER.email}</p>
-        <p>${SELLER.website}</p>
+        ${SELLER.company}<br/>
+        ${SELLER.address}<br/>
+        เลขประจำตัวผู้เสียภาษี ${SELLER.taxId}<br/>
+        โทร. ${SELLER.phone}
       </div>
     </div>
-    <div class="doc-title">
-      <h2>ใบเสนอราคา</h2>
-      <div class="subtitle">QUOTATION</div>
+    <div class="header-right">
+      <div class="doc-title">ใบเสนอราคา</div>
+      <table class="doc-info-table">
+        <tr><td class="lbl">เลขที่</td><td class="val">${qt.qt_number || "-"}</td></tr>
+        <tr><td class="lbl">วันที่</td><td class="val">${fmtDate(qt.qt_date)}</td></tr>
+        <tr><td class="lbl">ผู้ขาย</td><td class="val">${qt.sale_assigned || "Optima Aesthetics"}</td></tr>
+        <tr><td class="lbl">ชื่องาน</td><td class="val">${qt.product ? "ขอเสนอราคา " + qt.product.split(",")[0]?.trim() : "-"}</td></tr>
+      </table>
     </div>
   </div>
 
-  <!-- Info Grid -->
-  <div class="info-grid">
-    <div class="info-box">
-      <div class="label">ข้อมูลลูกค้า / Customer Information</div>
-      <div class="info-row"><span class="key">ชื่อ</span><span class="val">${account?.clinic_name || "-"}</span></div>
-      <div class="info-row"><span class="key">ที่อยู่</span><span class="val">${account?.address || "-"}</span></div>
-      <div class="info-row"><span class="key">เลขผู้เสียภาษี</span><span class="val">${account?.tax_id || "-"}</span></div>
-      <div class="info-row"><span class="key">ผู้ติดต่อ</span><span class="val">${contactName}</span></div>
-      <div class="info-row"><span class="key">โทร</span><span class="val">${account?.phone || "-"}</span></div>
-      <div class="info-row"><span class="key">Email</span><span class="val">${account?.email || "-"}</span></div>
-    </div>
-    <div class="info-box">
-      <div class="label">ข้อมูลเอกสาร / Document Information</div>
-      <div class="info-row"><span class="key">เลขที่</span><span class="val">${qt.qt_number || "-"}</span></div>
-      <div class="info-row"><span class="key">วันที่ออก</span><span class="val">${formatDate(qt.qt_date)}</span></div>
-      <div class="info-row"><span class="key">หมดอายุ</span><span class="val">${expiryDate ? formatDate(expiryDate) : "-"}</span></div>
-      <div class="info-row"><span class="key">เงื่อนไขชำระ</span><span class="val">${paymentLabels[qt.payment_condition] || qt.payment_condition || "-"}</span></div>
-      <div class="info-row"><span class="key">ผู้ดูแล</span><span class="val">${qt.sale_assigned || "-"}</span></div>
+  <!-- Customer -->
+  <div class="customer-section">
+    <div class="section-label">ลูกค้า</div>
+    <div class="customer-info">
+      ${contactName}<br/>
+      ${account?.address || "-"}<br/>
+      ${account?.tax_id ? "เลขประจำตัวผู้เสียภาษี " + account.tax_id : ""}
     </div>
   </div>
 
@@ -200,64 +215,53 @@ function generateHTML(qt: any, account: any, contacts: any[]): string {
   <table class="product-table">
     <thead>
       <tr>
-        <th style="width:50px">#</th>
-        <th>รายการสินค้า</th>
-        <th style="width:80px">จำนวน</th>
-        <th style="width:130px">ราคาต่อหน่วย</th>
-        <th style="width:130px">จำนวนเงิน</th>
+        <th>#</th>
+        <th style="text-align:left">รายละเอียด</th>
+        <th>จำนวน</th>
+        <th>ราคาต่อหน่วย</th>
+        <th>ยอดรวม</th>
       </tr>
     </thead>
     <tbody>
-      ${(() => {
-        // Parse product string "Doublo Neo x1, Trica3D x2"
-        const items = (qt.product || "").split(",").map((s: string) => s.trim()).filter(Boolean);
-        if (items.length === 0) {
-          return `<tr><td colspan="5" style="text-align:center;color:#999;padding:20px">ไม่มีรายการสินค้า</td></tr>`;
-        }
-        return items
-          .map((item: string, i: number) => {
-            const match = item.match(/^(.+?)\s*x(\d+)$/);
-            const name = match ? match[1].trim() : item;
-            const qty = match ? parseInt(match[2]) : 1;
-            // We don't have per-item prices stored, show as line item
-            return `<tr>
-              <td>${i + 1}</td>
-              <td>${name}</td>
-              <td>${qty}</td>
-              <td>-</td>
-              <td>-</td>
-            </tr>`;
-          })
-          .join("");
-      })()}
+      ${productRows}
     </tbody>
   </table>
 
   <!-- Summary -->
-  <div class="summary-section">
-    <div class="summary-box">
-      <div class="summary-row"><span>ยอดรวมทั้งสิ้น (Grand Total)</span></div>
-      <div class="summary-row total">
-        <span>Grand Total</span>
-        <span>฿${formatNumber(price)}</span>
-      </div>
+  <div class="summary-wrapper">
+    <div></div>
+    <div>
+      <table class="summary-table">
+        <tr><td class="lbl">รวมเป็นเงิน</td><td class="val">${fmt(price)} บาท</td></tr>
+        <tr><td class="lbl">ภาษีมูลค่าเพิ่ม 7%</td><td class="val">${fmt(vat)} บาท</td></tr>
+        <tr><td class="lbl">ราคาไม่รวมภาษีมูลค่าเพิ่ม</td><td class="val">${fmt(priceExVat)} บาท</td></tr>
+        <tr class="grand"><td class="lbl">จำนวนเงินรวมทั้งสิ้น</td><td class="val">${fmt(price)} บาท</td></tr>
+      </table>
     </div>
   </div>
+
+  <!-- Notes -->
+  ${qt.notes || qt.payment_condition ? `
+  <div class="notes-section">
+    <div class="section-label">หมายเหตุ</div>
+    <div class="notes-content">${qt.payment_condition ? paymentLabels[qt.payment_condition] || qt.payment_condition : ""}${qt.notes ? "\n" + qt.notes : ""}</div>
+  </div>` : ""}
 
   <!-- Signatures -->
   <div class="signatures">
     <div class="sig-box">
+      <div style="font-size:12px;color:#555;">ในนาม ${contactName}</div>
       <div class="sig-line">
-        <div class="sig-label">ผู้เสนอราคา / Authorized by</div>
-        <div class="sig-name">${qt.sale_assigned || "___________________"}</div>
-        <div class="sig-label">วันที่ / Date: _______________</div>
+        <div class="sig-label">ผู้สั่งซื้อสินค้า</div>
+        <div class="sig-sub">วันที่</div>
       </div>
     </div>
+    <div class="stamp-area"></div>
     <div class="sig-box">
+      <div style="font-size:12px;color:#555;">ในนาม Optima Aesthetic Co.,Ltd.</div>
       <div class="sig-line">
-        <div class="sig-label">ผู้อนุมัติ / Approved by</div>
-        <div class="sig-name">___________________</div>
-        <div class="sig-label">วันที่ / Date: _______________</div>
+        <div class="sig-label">ผู้อนุมัติ</div>
+        <div class="sig-sub">วันที่</div>
       </div>
     </div>
   </div>
@@ -287,7 +291,6 @@ Deno.serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
     );
 
-    // Fetch quotation with account
     const { data: qt, error: qtErr } = await supabase
       .from("quotations")
       .select("*, accounts!quotations_account_id_fkey(clinic_name, company_name, address, phone, email, tax_id)")
@@ -301,7 +304,6 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Fetch contacts
     const { data: contacts } = await supabase
       .from("contacts")
       .select("id, name, phone, email")
