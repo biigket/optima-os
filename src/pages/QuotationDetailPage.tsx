@@ -421,7 +421,7 @@ export default function QuotationDetailPage() {
           )}
 
           {/* Approved info */}
-          {status === 'APPROVED' && (
+          {(status === 'APPROVED' || status === 'CUSTOMER_SIGNED') && (
             <div className="flex items-start gap-2 p-3 rounded-lg bg-green-500/10 border border-green-500/20 mb-4">
               <CheckCircle size={16} className="text-green-600 shrink-0 mt-0.5" />
               <div>
@@ -431,6 +431,55 @@ export default function QuotationDetailPage() {
                   {(qt as any).approved_position && ` (${(qt as any).approved_position})`}
                   {(qt as any).approved_at && ` เมื่อ ${new Date((qt as any).approved_at).toLocaleDateString('th-TH')}`}
                 </p>
+              </div>
+            </div>
+          )}
+
+          {/* Customer signed info */}
+          {status === 'CUSTOMER_SIGNED' && (
+            <div className="flex items-start gap-2 p-3 rounded-lg bg-blue-500/10 border border-blue-500/20 mb-4">
+              <CheckCircle size={16} className="text-blue-600 shrink-0 mt-0.5" />
+              <div>
+                <p className="text-sm font-medium text-blue-700">ลูกค้าเซ็นแล้ว</p>
+                <p className="text-sm text-blue-600">
+                  โดย {(qt as any).customer_signer_name || '-'}
+                  {(qt as any).customer_signed_at && ` เมื่อ ${new Date((qt as any).customer_signed_at).toLocaleDateString('th-TH')}`}
+                </p>
+              </div>
+            </div>
+          )}
+
+          {/* Customer signing link - shown when approved but not yet signed by customer */}
+          {status === 'APPROVED' && (
+            <div className="p-3 rounded-lg bg-amber-50 border border-amber-200 mb-4">
+              <p className="text-sm font-medium text-amber-800 mb-2 flex items-center gap-1.5">
+                <Link2 size={14} /> ส่งลิงก์ให้ลูกค้าเซ็นใบเสนอราคา
+              </p>
+              <div className="flex items-center gap-2">
+                <Input
+                  readOnly
+                  value={signingUrl}
+                  className="text-xs bg-white flex-1"
+                />
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="gap-1 shrink-0"
+                  onClick={() => {
+                    navigator.clipboard.writeText(signingUrl);
+                    toast.success('คัดลอกลิงก์แล้ว');
+                  }}
+                >
+                  <Copy size={14} /> คัดลอก
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="gap-1 shrink-0"
+                  onClick={() => window.open(signingUrl, '_blank')}
+                >
+                  <ExternalLink size={14} /> เปิด
+                </Button>
               </div>
             </div>
           )}
