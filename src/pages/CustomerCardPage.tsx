@@ -160,6 +160,13 @@ export default function CustomerCardPage() {
       .then(({ data }) => {
         if (data) setDemoReports(data);
       });
+    // Approved quotation docs
+    supabase.from('quotations').select('id, qt_number, qt_date, qt_attachment, product, price')
+      .eq('account_id', id).eq('approval_status', 'APPROVED').not('qt_attachment', 'is', null)
+      .order('qt_date', { ascending: false })
+      .then(({ data }) => {
+        if (data) setQtDocs(data as any);
+      });
   }, [id, opportunities]);
   const handleSubmit = async () => {
     if (!editForm.clinic_name?.trim()) {
