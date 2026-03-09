@@ -16,6 +16,7 @@ import { format, addDays } from 'date-fns';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import QuickNoteButtons from '@/components/ui/QuickNoteButtons';
+import PaymentConditionSelector, { getPaymentConditionLabel } from './PaymentConditionSelector';
 
 // === Constants ===
 
@@ -156,6 +157,8 @@ export default function CreateQuotationWizard({ open, onOpenChange, onCreated }:
   const [salesTerms, setSalesTerms] = useState('');
   const [saleAssigned, setSaleAssigned] = useState('');
   const [paymentCondition, setPaymentCondition] = useState('CASH');
+  const [depositType, setDepositType] = useState('NONE');
+  const [depositValue, setDepositValue] = useState('');
 
   useEffect(() => {
     if (open) {
@@ -179,6 +182,8 @@ export default function CreateQuotationWizard({ open, onOpenChange, onCreated }:
     setSalesTerms('');
     setSaleAssigned('');
     setPaymentCondition('CASH');
+    setDepositType('NONE');
+    setDepositValue('');
   }
 
   async function fetchAccounts() {
@@ -301,6 +306,8 @@ export default function CreateQuotationWizard({ open, onOpenChange, onCreated }:
       price: grandTotal,
       qt_date: qtDate || null,
       payment_condition: paymentCondition || null,
+      deposit_type: depositType || 'NONE',
+      deposit_value: depositValue ? Number(depositValue) : 0,
       sale_assigned: saleAssigned || null,
       approval_status: 'DRAFT',
       payment_status: 'UNPAID',
@@ -582,18 +589,15 @@ export default function CreateQuotationWizard({ open, onOpenChange, onCreated }:
               </div>
             </div>
 
-            <div className="space-y-1.5">
-              <Label className="text-xs">เงื่อนไขการชำระเงิน</Label>
-              <select
-                value={paymentCondition}
-                onChange={e => setPaymentCondition(e.target.value)}
-                className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm"
-              >
-                <option value="CASH">เงินสด</option>
-                <option value="INSTALLMENT">ผ่อนชำระ</option>
-                <option value="LEASING">ลีสซิ่ง</option>
-              </select>
-            </div>
+            <PaymentConditionSelector
+              paymentCondition={paymentCondition}
+              onPaymentConditionChange={setPaymentCondition}
+              depositType={depositType}
+              depositValue={depositValue}
+              onDepositTypeChange={setDepositType}
+              onDepositValueChange={setDepositValue}
+              totalPrice={grandTotal || undefined}
+            />
 
             <div className="space-y-1.5">
               <Label className="text-xs">เงื่อนไขการขาย (Sales Terms)</Label>
@@ -693,7 +697,10 @@ export default function CreateQuotationWizard({ open, onOpenChange, onCreated }:
             )}
 
             {saleAssigned && (
-              <div className="text-xs text-muted-foreground">เซลล์: {saleAssigned} | เงื่อนไขชำระ: {paymentCondition === 'CASH' ? 'เงินสด' : paymentCondition === 'INSTALLMENT' ? 'ผ่อนชำระ' : 'ลีสซิ่ง'}</div>
+              <div className="text-xs text-muted-foreground">
+                เซลล์: {saleAssigned} | เงื่อนไขชำระ: {getPaymentConditionLabel(paymentCondition)}
+                {depositType !== 'NONE' && ` | มัดจำ: ${depositType === 'PERCENT' ? `${depositValue}%` : `฿${Number(depositValue || 0).toLocaleString()}`}`}
+              </div>
             )}
           </div>
         )}
