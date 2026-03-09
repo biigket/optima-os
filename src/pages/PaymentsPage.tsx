@@ -46,7 +46,6 @@ const CONDITION_TABS = [
   { value: 'CREDIT', label: 'เครดิต' },
   { value: 'LEASING', label: 'ลีสซิ่ง' },
   { value: 'POST_CHECK', label: 'โพสต์เช็ค' },
-  { value: 'DIRECT_INSTALLMENT', label: 'ผ่อนตรง' },
 ];
 
 function getConditionGroup(condition?: string | null): string {
@@ -55,7 +54,6 @@ function getConditionGroup(condition?: string | null): string {
   if (condition.startsWith('CREDIT_')) return 'CREDIT';
   if (condition.startsWith('LEASING')) return 'LEASING';
   if (condition.startsWith('POST_CHECK')) return 'POST_CHECK';
-  if (condition.startsWith('DIRECT_INSTALLMENT')) return 'DIRECT_INSTALLMENT';
   return 'CASH';
 }
 
@@ -80,7 +78,7 @@ export default function PaymentsPage() {
     queryFn: async () => {
       const { data: signedQts, error: qtErr } = await supabase
         .from('quotations')
-        .select('id, qt_number, account_id, price, payment_condition, payment_status, deposit_type, deposit_value, deposit_slip, deposit_slip_status')
+        .select('id, qt_number, account_id, price, payment_condition, payment_status, deposit_type, deposit_value, deposit_slip, deposit_slip_status, has_installments, installment_count, payment_due_day')
         .eq('approval_status', 'CUSTOMER_SIGNED')
         .order('created_at', { ascending: false });
       if (qtErr) throw qtErr;
@@ -103,22 +101,47 @@ export default function PaymentsPage() {
         const toInsert: any[] = [];
         for (const qt of missingQts) {
           const totalPrice = qt.price || 0;
-          const condition = qt.payment_condition || 'CASH';
           const today = new Date();
+          const hasInstallments = qt.has_installments === true;
+          const installmentCount = (qt.installment_count && qt.installment_count > 1) ? qt.installment_count : 1;
+          const dueDay = qt.payment_due_day || today.getDate();
 
-          if (condition === 'INSTALLMENT') {
-            const splits = [0.5, 0.25, 0.25];
-            splits.forEach((pct, i) => {
-              const dueDate = new Date(today);
-              dueDate.setDate(dueDate.getDate() + i * 30);
+          if (hasInstallments && installmentCount > 1) {
+            // แบ่งจ่ายเท่าๆ กัน ตามจำนวนงวด
+            const perInstallment = Math.floor(totalPrice / installmentCount);
+            const remainder = totalPrice - perInstallment * installmentCount;
+
+            for (let i = 0; i < installmentCount; i++) {
+              // คำนวณวันครบกำหนดแต่ละงวด ตาม payment_due_day
+              const dueDate = new Date(today.getFullYear(), today.getMonth() + i, dueDay);
+              // ถ้าวันกำหนดงวดแรกผ่านไปแล้ว ให้เริ่มเดือนถัดไป
+              if (i === 0 && dueDate < today) {
+                dueDate.setMonth(dueDate.getMonth() + 1);
+                // ปรับงวดถัดๆ ไปด้วย
+                for (let j = 1; j < installmentCount; j++) {
+                  // จะถูกสร้างใน loop หลัก
+                }
+              }
               toInsert.push({
                 quotation_id: qt.id,
                 installment_number: i + 1,
-                amount: Math.round(totalPrice * pct),
+                amount: i === 0 ? perInstallment + remainder : perInstallment,
                 due_date: dueDate.toISOString().split('T')[0],
               });
-            });
+            }
+
+            // ปรับวันที่ถ้างวดแรกผ่านไปแล้ว
+            if (toInsert.length > 0) {
+              const firstDue = new Date(toInsert[toInsert.length - installmentCount].due_date);
+              if (firstDue < today) {
+                for (let i = toInsert.length - installmentCount; i < toInsert.length; i++) {
+                  const d = new Date(today.getFullYear(), today.getMonth() + 1 + (i - (toInsert.length - installmentCount)), dueDay);
+                  toInsert[i].due_date = d.toISOString().split('T')[0];
+                }
+              }
+            }
           } else {
+            // งวดเดียว
             toInsert.push({
               quotation_id: qt.id,
               installment_number: 1,
