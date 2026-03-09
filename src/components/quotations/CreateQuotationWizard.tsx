@@ -187,6 +187,9 @@ export default function CreateQuotationWizard({ open, onOpenChange, onCreated }:
     setPaymentCondition('CASH');
     setDepositType('NONE');
     setDepositValue('');
+    setHasInstallments(false);
+    setInstallmentCount('');
+    setPaymentDueDay('');
   }
 
   async function fetchAccounts() {
