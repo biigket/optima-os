@@ -158,8 +158,11 @@ function generateHTML(qt: any, account: any, contacts: any[]): string {
 
   /* Signatures */
   .signatures { display: flex; justify-content: space-between; align-items: flex-end; margin-top: 50px; }
-  .sig-box { text-align: center; width: 200px; }
-  .sig-line { border-top: 1px solid #999; padding-top: 6px; margin-top: 60px; }
+  .sig-box { text-align: center; width: 220px; }
+  .sig-line { border-top: 1px solid #999; padding-top: 6px; margin-top: 10px; }
+  .sig-img { height: 60px; margin-bottom: 4px; }
+  .sig-name { font-size: 12px; font-weight: 600; color: #333; margin-top: 4px; }
+  .sig-position { font-size: 11px; color: #555; }
   .sig-label { font-size: 11px; color: #555; }
   .sig-sub { font-size: 10px; color: #999; margin-top: 2px; }
   .stamp-area { text-align: center; flex: 1; }
