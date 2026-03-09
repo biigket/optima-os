@@ -44,6 +44,10 @@ const colorMap: Record<string, string> = {
   APPROVED: 'bg-success/15 text-success',
   REJECTED: 'bg-destructive/15 text-destructive',
   CUSTOMER_SIGNED: 'bg-blue-500/15 text-blue-600',
+  // Slip status
+  NO_SLIP: 'bg-muted text-muted-foreground',
+  PENDING_VERIFY: 'bg-warning/15 text-warning',
+  VERIFIED: 'bg-success/15 text-success',
   // Inventory
   AVAILABLE: 'bg-success/15 text-success',
   OUT: 'bg-destructive/15 text-destructive',
