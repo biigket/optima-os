@@ -1,18 +1,30 @@
+import { useState, useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import {
-  Monitor, ShoppingCart, Wrench, Receipt, FolderOpen, Megaphone
+  Monitor, ShoppingCart, Wrench, Receipt, FolderOpen, Megaphone, ExternalLink
 } from 'lucide-react';
 import {
   getDevicesForAccount, getConsumablesForAccount, getServiceForAccount,
   getPurchasesForAccount, getDocumentsForAccount, getMarketingForAccount,
   getLifetimeRevenue
 } from '@/data/customerCardMockData';
+import { supabase } from '@/integrations/supabase/client';
 
 interface Props {
   accountId: string;
+}
+
+interface QuotationDoc {
+  id: string;
+  qt_number: string | null;
+  qt_date: string | null;
+  qt_attachment: string | null;
+  product: string | null;
+  price: number | null;
+  approval_status: string | null;
 }
 
 function formatCurrency(val?: number) {
