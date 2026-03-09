@@ -15,6 +15,7 @@ import { useState, useRef, useEffect, useCallback } from 'react';
 import { useMockAuth } from '@/hooks/useMockAuth';
 import { cn } from '@/lib/utils';
 import SignatureCanvas from '@/components/ui/SignatureCanvas';
+import { getPaymentConditionLabel } from '@/components/quotations/PaymentConditionSelector';
 
 const APPROVAL_FLOW = [
   { key: 'DRAFT', label: 'แบบร่าง' },
@@ -260,7 +261,6 @@ export default function QuotationDetailPage() {
   }
 
   const account = qt.accounts as any;
-  const paymentLabel: Record<string, string> = { CASH: 'เงินสด', INSTALLMENT: 'ผ่อนชำระ', LEASING: 'ลีสซิ่ง' };
   const status = (qt.customer_signature ? 'CUSTOMER_SIGNED' : qt.approval_status || 'DRAFT') as string;
   const signingUrl = `${window.location.origin}/sign/quotation?id=${id}`;
 
@@ -505,7 +505,17 @@ export default function QuotationDetailPage() {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
-            <InfoRow label="เงื่อนไข" value={paymentLabel[qt.payment_condition || ''] || qt.payment_condition} />
+            <InfoRow label="เงื่อนไข" value={getPaymentConditionLabel(qt.payment_condition)} />
+            {(qt as any).deposit_type && (qt as any).deposit_type !== 'NONE' && (
+              <InfoRow
+                label="มัดจำ"
+                value={
+                  (qt as any).deposit_type === 'PERCENT'
+                    ? `${(qt as any).deposit_value || 0}% (฿${((qt.price || 0) * ((qt as any).deposit_value || 0) / 100).toLocaleString()})`
+                    : `฿${((qt as any).deposit_value || 0).toLocaleString()}`
+                }
+              />
+            )}
             <div className="flex justify-between items-center">
               <span className="text-sm text-muted-foreground">สถานะชำระ</span>
               <StatusBadge status={qt.payment_status || 'UNPAID'} />

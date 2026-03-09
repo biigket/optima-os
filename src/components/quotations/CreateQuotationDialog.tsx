@@ -9,6 +9,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
+import PaymentConditionSelector from './PaymentConditionSelector';
 
 interface Props {
   open: boolean;
@@ -25,6 +26,8 @@ export default function CreateQuotationDialog({ open, onOpenChange, onCreated }:
     price: '',
     qt_date: format(new Date(), 'yyyy-MM-dd'),
     payment_condition: 'CASH' as string,
+    deposit_type: 'NONE' as string,
+    deposit_value: '',
     sale_assigned: '',
   });
 
@@ -46,7 +49,8 @@ export default function CreateQuotationDialog({ open, onOpenChange, onCreated }:
 
   const reset = () => setForm({
     qt_number: '', account_id: '', product: '', price: '',
-    qt_date: format(new Date(), 'yyyy-MM-dd'), payment_condition: 'CASH', sale_assigned: '',
+    qt_date: format(new Date(), 'yyyy-MM-dd'), payment_condition: 'CASH',
+    deposit_type: 'NONE', deposit_value: '', sale_assigned: '',
   });
 
   const handleSave = async () => {
@@ -62,6 +66,8 @@ export default function CreateQuotationDialog({ open, onOpenChange, onCreated }:
       price: form.price ? Number(form.price) : null,
       qt_date: form.qt_date || null,
       payment_condition: form.payment_condition || null,
+      deposit_type: form.deposit_type || 'NONE',
+      deposit_value: form.deposit_value ? Number(form.deposit_value) : 0,
       sale_assigned: form.sale_assigned || null,
       approval_status: 'DRAFT',
       payment_status: 'UNPAID',
@@ -123,23 +129,20 @@ export default function CreateQuotationDialog({ open, onOpenChange, onCreated }:
             </Select>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-1.5">
-              <Label>ราคา (฿)</Label>
-              <Input type="number" placeholder="0" value={form.price} onChange={e => setForm(f => ({ ...f, price: e.target.value }))} />
-            </div>
-            <div className="space-y-1.5">
-              <Label>เงื่อนไขการชำระ</Label>
-              <Select value={form.payment_condition} onValueChange={v => setForm(f => ({ ...f, payment_condition: v }))}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="CASH">เงินสด</SelectItem>
-                  <SelectItem value="INSTALLMENT">ผ่อนชำระ</SelectItem>
-                  <SelectItem value="LEASING">ลีสซิ่ง</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+          <div className="space-y-1.5">
+            <Label>ราคา (฿)</Label>
+            <Input type="number" placeholder="0" value={form.price} onChange={e => setForm(f => ({ ...f, price: e.target.value }))} />
           </div>
+
+          <PaymentConditionSelector
+            paymentCondition={form.payment_condition}
+            onPaymentConditionChange={v => setForm(f => ({ ...f, payment_condition: v }))}
+            depositType={form.deposit_type}
+            depositValue={form.deposit_value}
+            onDepositTypeChange={v => setForm(f => ({ ...f, deposit_type: v }))}
+            onDepositValueChange={v => setForm(f => ({ ...f, deposit_value: v }))}
+            totalPrice={form.price ? Number(form.price) : undefined}
+          />
 
           <div className="space-y-1.5">
             <Label>เซลล์ผู้รับผิดชอบ</Label>
