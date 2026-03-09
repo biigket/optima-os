@@ -125,7 +125,7 @@ export default function PaymentsPage() {
       let newInstallments: any[] = [];
       if (qtsToProcess.length > 0) {
         const toInsert: any[] = [];
-        for (const qt of missingQts) {
+        for (const qt of qtsToProcess) {
           const totalPrice = qt.price || 0;
           const today = new Date();
           const hasInstallments = qt.has_installments === true;
