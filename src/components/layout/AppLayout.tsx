@@ -3,7 +3,7 @@ import { NavLink, useLocation } from 'react-router-dom';
 import {
   LayoutDashboard, Users, Target, MapPin, FileText, Presentation, CalendarDays,
   ListTodo, Calendar, Cpu, Package, Wrench, ChevronLeft, ChevronRight, Bell,
-  FileSpreadsheet, ShoppingCart, Warehouse, Receipt,
+  FileSpreadsheet, ShoppingCart, Warehouse, Receipt, CreditCard,
   Megaphone, Gift, Star,
   GraduationCap, BookOpen,
   TrendingUp, BarChart3,
