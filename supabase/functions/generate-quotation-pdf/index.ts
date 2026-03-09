@@ -14,6 +14,7 @@ const SELLER = {
   phone: "0828120999",
   email: "info@optimaaesthetic.co.th",
   website: "www.optimaaesthetic.com",
+  logo: "https://szrjikvwdygyyxfztfvn.supabase.co/storage/v1/object/public/company-assets/optima-logo.png",
 };
 
 function formatNumber(n: number): string {
@@ -96,8 +97,10 @@ function generateHTML(qt: any, account: any, contacts: any[]): string {
     .page { box-shadow: 0 2px 20px rgba(0,0,0,0.1); margin-top: 20px; margin-bottom: 20px; }
   }
 
-  /* Header */
+   /* Header */
   .header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 24px; padding-bottom: 16px; border-bottom: 3px solid #1e3a5f; }
+  .header-left { display: flex; align-items: flex-start; gap: 14px; }
+  .header-logo { width: 70px; height: auto; }
   .seller-info h1 { font-size: 18px; font-weight: 700; color: #1e3a5f; margin-bottom: 4px; }
   .seller-info p { font-size: 11px; color: #555; line-height: 1.6; }
   .doc-title { text-align: right; }
@@ -156,12 +159,15 @@ function generateHTML(qt: any, account: any, contacts: any[]): string {
 <div class="page">
   <!-- Header -->
   <div class="header">
-    <div class="seller-info">
-      <h1>${SELLER.company}</h1>
-      <p>${SELLER.address}</p>
-      <p>เลขผู้เสียภาษี: ${SELLER.taxId}</p>
-      <p>โทร: ${SELLER.phone} | ${SELLER.email}</p>
-      <p>${SELLER.website}</p>
+    <div class="header-left">
+      <img src="${SELLER.logo}" alt="Logo" class="header-logo" />
+      <div class="seller-info">
+        <h1>${SELLER.company}</h1>
+        <p>${SELLER.address}</p>
+        <p>เลขผู้เสียภาษี: ${SELLER.taxId}</p>
+        <p>โทร: ${SELLER.phone} | ${SELLER.email}</p>
+        <p>${SELLER.website}</p>
+      </div>
     </div>
     <div class="doc-title">
       <h2>ใบเสนอราคา</h2>
