@@ -1,0 +1,2 @@
+ALTER TABLE public.quotations DROP CONSTRAINT quotations_approval_status_check;
+ALTER TABLE public.quotations ADD CONSTRAINT quotations_approval_status_check CHECK (approval_status = ANY (ARRAY['DRAFT'::text, 'SUBMITTED'::text, 'APPROVED'::text, 'REJECTED'::text, 'CUSTOMER_SIGNED'::text]));
