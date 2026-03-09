@@ -417,12 +417,39 @@ Deno.serve(async (req) => {
         );
       }
 
-      // Get the updated quotation to return the PDF URL
+      // Get the updated quotation to return the PDF URL and account_id
       const { data: qt } = await supabase
         .from("quotations")
-        .select("qt_attachment")
+        .select("qt_attachment, account_id")
         .eq("id", quotation_id)
         .single();
+
+      // Auto-advance opportunities for this account to NEGOTIATION
+      if (qt?.account_id) {
+        const { data: opps } = await supabase
+          .from("opportunities")
+          .select("id, stage")
+          .eq("account_id", qt.account_id)
+          .not("stage", "in", '("NEGOTIATION","CLOSED_WON","CLOSED_LOST")');
+
+        if (opps && opps.length > 0) {
+          for (const opp of opps) {
+            await supabase
+              .from("opportunities")
+              .update({ stage: "NEGOTIATION" })
+              .eq("id", opp.id);
+
+            await supabase
+              .from("opportunity_stage_history")
+              .insert({
+                opportunity_id: opp.id,
+                from_stage: opp.stage,
+                to_stage: "NEGOTIATION",
+                changed_by: "CUSTOMER_SIGNED",
+              });
+          }
+        }
+      }
 
       const pdfUrl = resolveQuotationPdfUrl(qt?.qt_attachment ?? null);
 
