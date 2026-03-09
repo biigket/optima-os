@@ -83,7 +83,7 @@ export default function CustomerRegisterPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-sky-50 to-blue-100 p-4">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background to-muted p-4">
       <Card className="w-full max-w-md shadow-xl border-0">
         <CardHeader className="text-center space-y-2">
           <img src="/images/optima-logo.png" alt="Optima" className="h-10 mx-auto" />
