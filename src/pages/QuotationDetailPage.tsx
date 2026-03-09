@@ -507,9 +507,23 @@ export default function QuotationDetailPage() {
               <p className="text-sm text-muted-foreground">⏳ รอการอนุมัติจากผู้จัดการ</p>
             )}
 
-            {status === 'APPROVED' && isAdmin && (
+            {(status === 'APPROVED' || status === 'CUSTOMER_SIGNED') && isAdmin && (
               <Button size="sm" variant="outline" className="gap-1.5" onClick={handleRevise} disabled={updating}>
                 <Edit3 size={14} /> แก้ไข (กลับเป็นแบบร่าง)
+              </Button>
+            )}
+
+            {status === 'APPROVED' && (
+              <Button
+                size="sm"
+                variant="outline"
+                className="gap-1.5"
+                onClick={() => {
+                  queryClient.invalidateQueries({ queryKey: ['quotation', id] });
+                  toast.info('รีเฟรชข้อมูลแล้ว');
+                }}
+              >
+                🔄 ตรวจสอบสถานะลูกค้าเซ็น
               </Button>
             )}
 
