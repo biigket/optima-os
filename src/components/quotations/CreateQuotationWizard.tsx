@@ -589,18 +589,15 @@ export default function CreateQuotationWizard({ open, onOpenChange, onCreated }:
               </div>
             </div>
 
-            <div className="space-y-1.5">
-              <Label className="text-xs">เงื่อนไขการชำระเงิน</Label>
-              <select
-                value={paymentCondition}
-                onChange={e => setPaymentCondition(e.target.value)}
-                className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm"
-              >
-                <option value="CASH">เงินสด</option>
-                <option value="INSTALLMENT">ผ่อนชำระ</option>
-                <option value="LEASING">ลีสซิ่ง</option>
-              </select>
-            </div>
+            <PaymentConditionSelector
+              paymentCondition={paymentCondition}
+              onPaymentConditionChange={setPaymentCondition}
+              depositType={depositType}
+              depositValue={depositValue}
+              onDepositTypeChange={setDepositType}
+              onDepositValueChange={setDepositValue}
+              totalPrice={grandTotal || undefined}
+            />
 
             <div className="space-y-1.5">
               <Label className="text-xs">เงื่อนไขการขาย (Sales Terms)</Label>
