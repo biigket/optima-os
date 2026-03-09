@@ -238,14 +238,42 @@ export default function QuotationDetailPage() {
       });
       if (error) throw error;
       const html = typeof data === 'string' ? data : await data.text?.() || JSON.stringify(data);
-      const blob = new Blob([html], { type: 'text/html; charset=utf-8' });
+
+      // Convert HTML to PDF using html2pdf.js
+      const html2pdf = (await import('html2pdf.js')).default;
+      const container = document.createElement('div');
+      container.innerHTML = html;
+      // Remove print bar from the HTML
+      const printBar = container.querySelector('.print-bar');
+      if (printBar) printBar.remove();
+      // Remove page background styling for clean PDF
+      const pageEl = container.querySelector('.page') as HTMLElement;
+      if (pageEl) {
+        pageEl.style.boxShadow = 'none';
+        pageEl.style.margin = '0';
+      }
+      document.body.appendChild(container);
+
+      const pdfBlob: Blob = await html2pdf()
+        .set({
+          margin: 0,
+          filename: 'quotation.pdf',
+          image: { type: 'jpeg', quality: 0.98 },
+          html2canvas: { scale: 2, useCORS: true, logging: false },
+          jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+        })
+        .from(container)
+        .outputPdf('blob');
+
+      document.body.removeChild(container);
+
       const qtNumber = qt?.qt_number || 'QT';
-      const fileName = `${qtNumber}_approved.html`;
+      const fileName = `${qtNumber}_approved.pdf`;
       const filePath = `${qt?.account_id || 'unknown'}/${fileName}`;
 
       const { error: uploadErr } = await supabase.storage
         .from('quotation-files')
-        .upload(filePath, blob, { upsert: true, contentType: 'text/html' });
+        .upload(filePath, pdfBlob, { upsert: true, contentType: 'application/pdf' });
       if (uploadErr) throw uploadErr;
 
       const { data: urlData } = supabase.storage
