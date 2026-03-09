@@ -24,7 +24,7 @@ import {
   ChevronDown, LayoutDashboard, Clock, FileText,
   ShoppingCart, Wrench, Receipt, FolderOpen, Megaphone, ImageIcon,
   Eye, Presentation, FileCheck, GraduationCap,
-  Phone as PhoneIcon, Star, Trash2
+  Phone as PhoneIcon, Star, Trash2, ExternalLink
 } from 'lucide-react';
 import {
   getLifetimeRevenue, getDevicesForAccount, getVisitsForAccount,
@@ -116,6 +116,7 @@ export default function CustomerCardPage() {
   const [chatImages, setChatImages] = useState<{ id: string; file_url: string; file_name: string; uploaded_by: string | null; created_at: string; opportunity_id: string }[]>([]);
   const [visitReports, setVisitReports] = useState<any[]>([]);
   const [demoReports, setDemoReports] = useState<any[]>([]);
+  const [qtDocs, setQtDocs] = useState<{ id: string; qt_number: string | null; qt_date: string | null; qt_attachment: string | null; product: string | null; price: number | null }[]>([]);
 
   // Fetch activities, stage history, and notes for this account
   useEffect(() => {
@@ -158,6 +159,13 @@ export default function CustomerCardPage() {
       .order('created_at', { ascending: false })
       .then(({ data }) => {
         if (data) setDemoReports(data);
+      });
+    // Approved quotation docs
+    supabase.from('quotations').select('id, qt_number, qt_date, qt_attachment, product, price')
+      .eq('account_id', id).eq('approval_status', 'APPROVED').not('qt_attachment', 'is', null)
+      .order('qt_date', { ascending: false })
+      .then(({ data }) => {
+        if (data) setQtDocs(data as any);
       });
   }, [id, opportunities]);
   const handleSubmit = async () => {
@@ -789,6 +797,26 @@ export default function CustomerCardPage() {
             {/* ===== DOCUMENTS ===== */}
             <TabsContent value="documents" className="mt-0">
               <div className="space-y-1.5">
+                {/* Approved Quotation PDFs */}
+                {qtDocs.map(q => (
+                  <a
+                    key={q.id}
+                    href={q.qt_attachment!}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-3 p-2.5 rounded-md hover:bg-muted/40 transition-colors cursor-pointer"
+                  >
+                    <span className="text-base">📋</span>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-xs text-foreground truncate">{q.qt_number || 'ใบเสนอราคา'} — {q.product || ''}</p>
+                      <p className="text-[10px] text-muted-foreground">
+                        ใบเสนอราคา (อนุมัติแล้ว) • {q.qt_date || '-'} • ฿{(q.price || 0).toLocaleString()}
+                      </p>
+                    </div>
+                    <ExternalLink size={12} className="text-muted-foreground shrink-0" />
+                  </a>
+                ))}
+                {/* Mock documents */}
                 {documents.map(d => (
                   <div key={d.id} className="flex items-center gap-3 p-2.5 rounded-md hover:bg-muted/40 transition-colors cursor-pointer">
                     <span className="text-base">{DOC_ICONS[d.docType] || '📄'}</span>
@@ -798,7 +826,7 @@ export default function CustomerCardPage() {
                     </div>
                   </div>
                 ))}
-                {documents.length === 0 && <Empty text="ไม่มีเอกสาร" />}
+                {documents.length === 0 && qtDocs.length === 0 && <Empty text="ไม่มีเอกสาร" />}
               </div>
             </TabsContent>
 
