@@ -40,12 +40,26 @@ export default function CustomerSignQuotationPage() {
     return ((qt as any).customer_signature ? "CUSTOMER_SIGNED" : (qt as any).approval_status || "DRAFT") as string;
   }, [qt]);
 
-  const pdfUrl = useMemo(() => {
-    const raw = (qt as any)?.qt_attachment as string | null | undefined;
-    if (!raw || !quotationId) return null;
-    const base = import.meta.env.VITE_SUPABASE_URL;
-    return `${base}/functions/v1/quotation-pdf?id=${encodeURIComponent(quotationId)}`;
-  }, [qt, quotationId]);
+  const hasAttachment = !!(qt as any)?.qt_attachment;
+  const [viewingPdf, setViewingPdf] = useState(false);
+
+  async function handleViewPdf() {
+    if (!quotationId) return;
+    setViewingPdf(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("generate-quotation-pdf", {
+        body: { quotation_id: quotationId },
+      });
+      if (error) throw error;
+      const html = typeof data === "string" ? data : (await (data as any)?.text?.()) || JSON.stringify(data);
+      const win = window.open("", "_blank");
+      if (win) { win.document.write(html); win.document.close(); }
+      else toast.error("กรุณาอนุญาต popup เพื่อเปิดใบเสนอราคา");
+    } catch (err: any) {
+      toast.error("เปิด PDF ไม่สำเร็จ: " + (err?.message || ""));
+    }
+    setViewingPdf(false);
+  }
 
   async function generateAndUploadPdf() {
     if (!quotationId || !qt) return null;
@@ -219,9 +233,9 @@ export default function CustomerSignQuotationPage() {
         </Card>
 
         <div className="space-y-2">
-          {pdfUrl && (
-            <Button variant="outline" className="w-full" onClick={() => window.open(pdfUrl, "_blank")}>
-              ดูใบเสนอราคา (PDF)
+          {hasAttachment && (
+            <Button variant="outline" className="w-full" onClick={handleViewPdf} disabled={viewingPdf}>
+              {viewingPdf ? "กำลังโหลด..." : "ดูใบเสนอราคา (PDF)"}
             </Button>
           )}
 
@@ -247,9 +261,9 @@ export default function CustomerSignQuotationPage() {
               <div className="text-xs text-muted-foreground">
                 โดย {(qt as any).customer_signer_name || "-"}
               </div>
-              {pdfUrl && (
-                <Button className="w-full" onClick={() => window.open(pdfUrl, "_blank")}>
-                  ดาวน์โหลด PDF
+              {hasAttachment && (
+                <Button className="w-full" onClick={handleViewPdf} disabled={viewingPdf}>
+                  {viewingPdf ? "กำลังโหลด..." : "ดาวน์โหลด PDF"}
                 </Button>
               )}
             </CardContent>
