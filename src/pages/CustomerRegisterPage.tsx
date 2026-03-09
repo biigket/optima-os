@@ -46,7 +46,9 @@ export default function CustomerRegisterPage() {
           clinic_name: form.clinic_name.trim(),
           phone: form.phone.trim(),
           email: form.email.trim() || null,
+          current_devices: form.current_devices.trim() || null,
           customer_status: "NEW_LEAD",
+          lead_source: "REGISTER_FORM",
           lead_source: "REGISTER_FORM",
         })
         .select("id")
