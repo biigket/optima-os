@@ -97,8 +97,10 @@ function generateHTML(qt: any, account: any, contacts: any[]): string {
     .page { box-shadow: 0 2px 20px rgba(0,0,0,0.1); margin-top: 20px; margin-bottom: 20px; }
   }
 
-  /* Header */
+   /* Header */
   .header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 24px; padding-bottom: 16px; border-bottom: 3px solid #1e3a5f; }
+  .header-left { display: flex; align-items: flex-start; gap: 14px; }
+  .header-logo { width: 70px; height: auto; }
   .seller-info h1 { font-size: 18px; font-weight: 700; color: #1e3a5f; margin-bottom: 4px; }
   .seller-info p { font-size: 11px; color: #555; line-height: 1.6; }
   .doc-title { text-align: right; }
