@@ -46,7 +46,6 @@ const CONDITION_TABS = [
   { value: 'CREDIT', label: 'เครดิต' },
   { value: 'LEASING', label: 'ลีสซิ่ง' },
   { value: 'POST_CHECK', label: 'โพสต์เช็ค' },
-  { value: 'DIRECT_INSTALLMENT', label: 'ผ่อนตรง' },
 ];
 
 function getConditionGroup(condition?: string | null): string {
