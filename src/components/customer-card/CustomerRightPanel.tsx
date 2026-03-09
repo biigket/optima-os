@@ -1,18 +1,30 @@
+import { useState, useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import {
-  Monitor, ShoppingCart, Wrench, Receipt, FolderOpen, Megaphone
+  Monitor, ShoppingCart, Wrench, Receipt, FolderOpen, Megaphone, ExternalLink
 } from 'lucide-react';
 import {
   getDevicesForAccount, getConsumablesForAccount, getServiceForAccount,
   getPurchasesForAccount, getDocumentsForAccount, getMarketingForAccount,
   getLifetimeRevenue
 } from '@/data/customerCardMockData';
+import { supabase } from '@/integrations/supabase/client';
 
 interface Props {
   accountId: string;
+}
+
+interface QuotationDoc {
+  id: string;
+  qt_number: string | null;
+  qt_date: string | null;
+  qt_attachment: string | null;
+  product: string | null;
+  price: number | null;
+  approval_status: string | null;
 }
 
 function formatCurrency(val?: number) {
@@ -43,6 +55,22 @@ export default function CustomerRightPanel({ accountId }: Props) {
   const documents = getDocumentsForAccount(accountId);
   const marketing = getMarketingForAccount(accountId);
   const lifetimeRevenue = getLifetimeRevenue(accountId);
+
+  const [qtDocs, setQtDocs] = useState<QuotationDoc[]>([]);
+
+  useEffect(() => {
+    async function fetchQtDocs() {
+      const { data } = await supabase
+        .from('quotations')
+        .select('id, qt_number, qt_date, qt_attachment, product, price, approval_status')
+        .eq('account_id', accountId)
+        .eq('approval_status', 'APPROVED')
+        .not('qt_attachment', 'is', null)
+        .order('qt_date', { ascending: false });
+      setQtDocs((data as QuotationDoc[]) || []);
+    }
+    fetchQtDocs();
+  }, [accountId]);
 
   return (
     <div className="rounded-lg border bg-card overflow-hidden">
@@ -169,6 +197,26 @@ export default function CustomerRightPanel({ accountId }: Props) {
           {/* Documents */}
           <TabsContent value="documents" className="mt-0">
             <div className="space-y-1.5">
+              {/* Approved Quotation PDFs */}
+              {qtDocs.map(q => (
+                <a
+                  key={q.id}
+                  href={q.qt_attachment!}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-3 p-2.5 rounded-md hover:bg-muted/40 transition-colors cursor-pointer"
+                >
+                  <span className="text-base">📋</span>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-xs text-foreground truncate">{q.qt_number || 'ใบเสนอราคา'} — {q.product || ''}</p>
+                    <p className="text-[10px] text-muted-foreground">
+                      ใบเสนอราคา (อนุมัติแล้ว) • {q.qt_date || '-'} • ฿{(q.price || 0).toLocaleString()}
+                    </p>
+                  </div>
+                  <ExternalLink size={12} className="text-muted-foreground shrink-0" />
+                </a>
+              ))}
+              {/* Mock documents */}
               {documents.map(d => (
                 <div key={d.id} className="flex items-center gap-3 p-2.5 rounded-md hover:bg-muted/40 transition-colors cursor-pointer">
                   <span className="text-base">{DOC_ICONS[d.docType] || '📄'}</span>
@@ -178,7 +226,7 @@ export default function CustomerRightPanel({ accountId }: Props) {
                   </div>
                 </div>
               ))}
-              {documents.length === 0 && <Empty />}
+              {documents.length === 0 && qtDocs.length === 0 && <Empty />}
             </div>
           </TabsContent>
 
