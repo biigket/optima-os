@@ -236,7 +236,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
       {/* Mobile sidebar (Sheet) */}
       <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
-        <SheetContent side="left" className="sidebar-gradient p-0 w-72 border-sidebar-border [&>button]:hidden">
+        <SheetContent side="left" className="sidebar-gradient p-0 w-72 border-sidebar-border [&>button]:hidden flex flex-col h-full overflow-hidden">
           <div className="flex h-14 items-center justify-between px-4 border-b border-sidebar-border">
             <span className="text-sm font-semibold tracking-wide text-sidebar-primary-foreground">
               OPTIMA<span className="text-sidebar-primary"> OS</span>
