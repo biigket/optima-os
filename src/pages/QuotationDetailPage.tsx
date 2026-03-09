@@ -295,7 +295,17 @@ export default function QuotationDetailPage() {
     }
   }
 
-  async function handleReject() {
+  // When customer signs (detected by refetch), auto-regenerate PDF with both signatures
+  useEffect(() => {
+    if (!qt) return;
+    const customerSig = (qt as any).customer_signature;
+    if (customerSig && prevCustomerSigRef.current !== customerSig && prevCustomerSigRef.current !== undefined) {
+      savePdfToStorage();
+      toast.success('ลูกค้าเซ็นใบเสนอราคาแล้ว กำลังสร้าง PDF ใหม่...');
+    }
+    prevCustomerSigRef.current = customerSig || null;
+  }, [(qt as any)?.customer_signature]);
+
     if (!rejectReason.trim()) {
       toast.error('กรุณาระบุเหตุผลที่ไม่อนุมัติ');
       return;
