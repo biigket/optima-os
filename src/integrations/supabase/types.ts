@@ -691,6 +691,9 @@ export type Database = {
           approval_status: string | null
           approved_at: string | null
           approved_by: string | null
+          approved_name: string | null
+          approved_position: string | null
+          approved_signature: string | null
           created_at: string
           id: string
           invoice_sent: boolean | null
@@ -711,6 +714,9 @@ export type Database = {
           approval_status?: string | null
           approved_at?: string | null
           approved_by?: string | null
+          approved_name?: string | null
+          approved_position?: string | null
+          approved_signature?: string | null
           created_at?: string
           id?: string
           invoice_sent?: boolean | null
@@ -731,6 +737,9 @@ export type Database = {
           approval_status?: string | null
           approved_at?: string | null
           approved_by?: string | null
+          approved_name?: string | null
+          approved_position?: string | null
+          approved_signature?: string | null
           created_at?: string
           id?: string
           invoice_sent?: boolean | null
