@@ -1,6 +1,6 @@
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { ArrowLeft, FileText, Building2, Package, CreditCard, Printer, Send, CheckCircle, XCircle, Edit3, AlertTriangle } from 'lucide-react';
+import { ArrowLeft, FileText, Building2, Package, CreditCard, Printer, Send, CheckCircle, XCircle, Edit3, AlertTriangle, Link2, Copy, ExternalLink } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import StatusBadge from '@/components/ui/StatusBadge';
@@ -19,6 +19,7 @@ const APPROVAL_FLOW = [
   { key: 'DRAFT', label: 'แบบร่าง' },
   { key: 'SUBMITTED', label: 'รออนุมัติ' },
   { key: 'APPROVED', label: 'อนุมัติแล้ว' },
+  { key: 'CUSTOMER_SIGNED', label: 'ลูกค้าเซ็นแล้ว' },
 ];
 
 function SignatureCanvas({ onSignatureChange }: { onSignatureChange: (dataUrl: string | null) => void }) {
