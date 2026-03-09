@@ -70,7 +70,7 @@ export default function CustomerRegisterPage() {
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background to-muted p-4">
         <Card className="w-full max-w-md text-center shadow-xl border-0">
           <CardContent className="pt-10 pb-10 space-y-4">
-            <CheckCircle2 className="mx-auto h-16 w-16 text-emerald-500" />
+            <CheckCircle2 className="mx-auto h-16 w-16 text-primary" />
             <h2 className="text-2xl font-bold text-foreground">ลงทะเบียนสำเร็จ!</h2>
             <p className="text-muted-foreground">ขอบคุณที่ลงทะเบียน ทีมงานจะติดต่อกลับโดยเร็ว</p>
             <Button onClick={() => { setSuccess(false); setForm({ clinic_name: "", contact_name: "", phone: "", email: "" }); }} variant="outline" className="mt-4">
