@@ -35,15 +35,19 @@ function fmt(n: number): string {
   return n.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 
+function resolveQuotationPdfUrl(qt_attachment: string | null): string | null {
+  if (!qt_attachment) return null;
+  if (qt_attachment.startsWith("http://") || qt_attachment.startsWith("https://")) return qt_attachment;
+  return `${SUPABASE_URL}/storage/v1/object/public/quotation-files/${qt_attachment}`;
+}
+
 function renderSigningPage(qt: any, account: any): string {
   const price = qt.price || 0;
   const contactName = account?.clinic_name || "-";
   const alreadySigned = !!qt.customer_signature;
 
-  // Build the URL for viewing the approved PDF from storage
-  const pdfUrl = qt.qt_attachment
-    ? `${SUPABASE_URL}/storage/v1/object/public/quotation-files/${qt.qt_attachment}`
-    : null;
+  // URL for viewing the approved PDF from storage
+  const pdfUrl = resolveQuotationPdfUrl(qt.qt_attachment ?? null);
 
   return `<!DOCTYPE html>
 <html lang="th">
