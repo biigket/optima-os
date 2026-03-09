@@ -185,7 +185,10 @@ export default function PaymentsPage() {
         }
       }
 
-      const allInstallments = [...(installments || []), ...newInstallments];
+      // Combine: keep existing (minus deleted) + newly created
+      const deletedSet = new Set(idsToDelete);
+      const keptInstallments = (installments || []).filter((i: any) => !deletedSet.has(i.id));
+      const allInstallments = [...keptInstallments, ...newInstallments];
 
       const accountIds = [...new Set(signedQts.map(q => q.account_id).filter(Boolean))] as string[];
       const { data: accounts } = await supabase
