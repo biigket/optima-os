@@ -3,16 +3,20 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type",
+    "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
+  "Access-Control-Allow-Methods": "GET,POST,OPTIONS",
 };
 
-const htmlHeaders = {
-  ...corsHeaders,
-  "Content-Type": "text/html; charset=utf-8",
-  "Content-Security-Policy":
-    "default-src 'self' 'unsafe-inline' 'unsafe-eval' https: data:; img-src * data:; font-src * data:;",
-  "X-Frame-Options": "SAMEORIGIN",
-};
+const htmlHeaders = new Headers(corsHeaders);
+htmlHeaders.set("content-type", "text/html; charset=utf-8");
+// NOTE: Some gateways may append a restrictive CSP; we still set a permissive one for inline CSS/JS on this page.
+htmlHeaders.set(
+  "content-security-policy",
+  "default-src 'self' 'unsafe-inline' 'unsafe-eval' https: data:; img-src * data:; font-src * data:; style-src * 'unsafe-inline'; script-src * 'unsafe-inline' 'unsafe-eval';"
+);
+
+const jsonHeaders = new Headers(corsHeaders);
+jsonHeaders.set("content-type", "application/json; charset=utf-8");
 
 const SUPABASE_URL = "https://szrjikvwdygyyxfztfvn.supabase.co";
 
