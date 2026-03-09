@@ -225,6 +225,43 @@ export default function QuotationDetailPage() {
     if (ok) {
       toast.success('อนุมัติใบเสนอราคาแล้ว');
       setShowApproveDialog(false);
+      // Generate and store PDF
+      savePdfToStorage();
+    }
+  }
+
+  async function savePdfToStorage() {
+    if (!id) return;
+    try {
+      const { data, error } = await supabase.functions.invoke('generate-quotation-pdf', {
+        body: { quotation_id: id },
+      });
+      if (error) throw error;
+      const html = typeof data === 'string' ? data : await data.text?.() || JSON.stringify(data);
+      const blob = new Blob([html], { type: 'text/html; charset=utf-8' });
+      const qtNumber = qt?.qt_number || 'QT';
+      const fileName = `${qtNumber}_approved.html`;
+      const filePath = `${qt?.account_id || 'unknown'}/${fileName}`;
+
+      const { error: uploadErr } = await supabase.storage
+        .from('quotation-files')
+        .upload(filePath, blob, { upsert: true, contentType: 'text/html' });
+      if (uploadErr) throw uploadErr;
+
+      const { data: urlData } = supabase.storage
+        .from('quotation-files')
+        .getPublicUrl(filePath);
+
+      await supabase
+        .from('quotations')
+        .update({ qt_attachment: urlData.publicUrl } as any)
+        .eq('id', id);
+
+      queryClient.invalidateQueries({ queryKey: ['quotation', id] });
+      toast.success('บันทึกไฟล์ PDF สำเร็จ');
+    } catch (err: any) {
+      console.error('Save PDF error:', err);
+      toast.error('บันทึกไฟล์ PDF ไม่สำเร็จ: ' + (err.message || ''));
     }
   }
 
