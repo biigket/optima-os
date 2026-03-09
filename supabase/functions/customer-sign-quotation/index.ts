@@ -394,7 +394,7 @@ Deno.serve(async (req) => {
       if (!quotation_id || !signature || !signer_name) {
         return new Response(
           JSON.stringify({ success: false, error: "Missing required fields" }),
-          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          { status: 400, headers: jsonHeaders }
         );
       }
 
@@ -413,7 +413,7 @@ Deno.serve(async (req) => {
       if (updateErr) {
         return new Response(
           JSON.stringify({ success: false, error: updateErr.message }),
-          { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          { status: 500, headers: jsonHeaders }
         );
       }
 
@@ -424,19 +424,16 @@ Deno.serve(async (req) => {
         .eq("id", quotation_id)
         .single();
 
-      const pdfUrl = qt?.qt_attachment
-        ? `${SUPABASE_URL}/storage/v1/object/public/quotation-files/${qt.qt_attachment}`
-        : null;
+      const pdfUrl = resolveQuotationPdfUrl(qt?.qt_attachment ?? null);
 
-      return new Response(
-        JSON.stringify({ success: true, pdf_url: pdfUrl }),
-        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      return new Response(JSON.stringify({ success: true, pdf_url: pdfUrl }), {
+        headers: jsonHeaders,
+      });
     } catch (err: any) {
-      return new Response(
-        JSON.stringify({ success: false, error: err.message }),
-        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      return new Response(JSON.stringify({ success: false, error: err.message }), {
+        status: 500,
+        headers: jsonHeaders,
+      });
     }
   }
 
