@@ -215,6 +215,7 @@ export default function PaymentsPage() {
           deposit_slip_status: (qt as any)?.deposit_slip_status || 'NO_SLIP',
           payment_status: qt?.payment_status || 'UNPAID',
           price: qt?.price || 0,
+          qt_attachment: (qt as any)?.qt_attachment || null,
         } as InstallmentRow;
       });
     },
