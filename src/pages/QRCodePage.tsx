@@ -28,7 +28,7 @@ export default function QRCodePage() {
           <div className="flex items-center gap-2 w-full">
             <code className="flex-1 text-xs bg-muted p-2 rounded truncate">{registerUrl}</code>
             <Button size="icon" variant="outline" onClick={handleCopy}>
-              {copied ? <Check className="h-4 w-4 text-emerald-500" /> : <Copy className="h-4 w-4" />}
+              {copied ? <Check className="h-4 w-4 text-primary" /> : <Copy className="h-4 w-4" />}
             </Button>
           </div>
           <p className="text-sm text-muted-foreground text-center">
