@@ -24,7 +24,7 @@ import {
   ChevronDown, LayoutDashboard, Clock, FileText,
   ShoppingCart, Wrench, Receipt, FolderOpen, Megaphone, ImageIcon,
   Eye, Presentation, FileCheck, GraduationCap,
-  Phone as PhoneIcon, Star, Trash2
+  Phone as PhoneIcon, Star, Trash2, ExternalLink
 } from 'lucide-react';
 import {
   getLifetimeRevenue, getDevicesForAccount, getVisitsForAccount,
