@@ -86,8 +86,9 @@ function AuthedAppRoutes() {
 function AppRoutes() {
   return (
     <Routes>
-      {/* Public customer signing page (no AppLayout) */}
+      {/* Public pages (no AppLayout) */}
       <Route path="/sign/quotation" element={<CustomerSignQuotationPage />} />
+      <Route path="/register" element={<CustomerRegisterPage />} />
 
       {/* Main app */}
       <Route path="/*" element={<AuthedAppRoutes />} />
