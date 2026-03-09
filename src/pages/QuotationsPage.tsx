@@ -10,7 +10,7 @@ import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { supabase } from '@/integrations/supabase/client';
 import CreateQuotationWizard from '@/components/quotations/CreateQuotationWizard';
 
-type ApprovalFilter = 'ALL' | 'DRAFT' | 'SUBMITTED' | 'APPROVED' | 'REJECTED';
+type ApprovalFilter = 'ALL' | 'DRAFT' | 'SUBMITTED' | 'APPROVED' | 'CUSTOMER_SIGNED' | 'REJECTED';
 
 export default function QuotationsPage() {
   const [search, setSearch] = useState('');
