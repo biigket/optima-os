@@ -411,7 +411,19 @@ export default function PaymentsPage() {
                       <div className="flex items-center gap-1.5">
                         <span>{row.qt_number}</span>
                         {row.qt_attachment && (
-                          <Button size="sm" variant="ghost" className="gap-1 text-xs h-6 px-1.5 text-primary" onClick={() => window.open(row.qt_attachment!, '_blank')}>
+                          <Button size="sm" variant="ghost" className="gap-1 text-xs h-6 px-1.5 text-primary" onClick={async () => {
+                            const fnUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-quotation-pdf`;
+                            try {
+                              const res = await fetch(fnUrl, {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json', 'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY },
+                                body: JSON.stringify({ quotation_id: row.quotation_id }),
+                              });
+                              const html = await res.text();
+                              const win = window.open('', '_blank');
+                              if (win) { win.document.write(html); win.document.close(); }
+                            } catch (e) { console.error(e); }
+                          }}>
                             <FileText size={12} /> ดูใบเสนอราคา
                           </Button>
                         )}
