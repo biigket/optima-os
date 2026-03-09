@@ -360,20 +360,20 @@ Deno.serve(async (req) => {
     if (error || !qt) {
       return new Response("<h1>ไม่พบใบเสนอราคา</h1>", {
         status: 404,
-        headers: { "Content-Type": "text/html; charset=utf-8" },
+        headers: htmlHeaders,
       });
     }
 
     if (qt.approval_status !== "APPROVED" && qt.approval_status !== "CUSTOMER_SIGNED") {
       return new Response("<h1>ใบเสนอราคานี้ยังไม่ได้รับการอนุมัติ</h1>", {
         status: 400,
-        headers: { "Content-Type": "text/html; charset=utf-8" },
+        headers: htmlHeaders,
       });
     }
 
     const html = renderSigningPage(qt, qt.accounts);
     return new Response(html, {
-      headers: { ...corsHeaders, "Content-Type": "text/html; charset=utf-8" },
+      headers: htmlHeaders,
     });
   }
 
