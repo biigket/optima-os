@@ -506,6 +506,14 @@ export default function QuotationDetailPage() {
           </CardHeader>
           <CardContent className="space-y-3">
             <InfoRow label="เงื่อนไข" value={getPaymentConditionLabel(qt.payment_condition)} />
+            {(qt as any).has_installments && (
+              <>
+                <InfoRow label="แบ่งจ่าย" value={`${(qt as any).installment_count || 0} งวด`} />
+                {(qt as any).payment_due_day && (
+                  <InfoRow label="กำหนดจ่ายทุกวันที่" value={`${(qt as any).payment_due_day} ของเดือน`} />
+                )}
+              </>
+            )}
             {(qt as any).deposit_type && (qt as any).deposit_type !== 'NONE' && (
               <InfoRow
                 label="มัดจำ"

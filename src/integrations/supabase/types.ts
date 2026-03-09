@@ -721,10 +721,13 @@ export type Database = {
           deposit_slip_status: string | null
           deposit_type: string | null
           deposit_value: number | null
+          has_installments: boolean | null
           id: string
+          installment_count: number | null
           invoice_sent: boolean | null
           leasing_doc: string | null
           payment_condition: string | null
+          payment_due_day: number | null
           payment_status: string | null
           price: number | null
           product: string | null
@@ -752,10 +755,13 @@ export type Database = {
           deposit_slip_status?: string | null
           deposit_type?: string | null
           deposit_value?: number | null
+          has_installments?: boolean | null
           id?: string
+          installment_count?: number | null
           invoice_sent?: boolean | null
           leasing_doc?: string | null
           payment_condition?: string | null
+          payment_due_day?: number | null
           payment_status?: string | null
           price?: number | null
           product?: string | null
@@ -783,10 +789,13 @@ export type Database = {
           deposit_slip_status?: string | null
           deposit_type?: string | null
           deposit_value?: number | null
+          has_installments?: boolean | null
           id?: string
+          installment_count?: number | null
           invoice_sent?: boolean | null
           leasing_doc?: string | null
           payment_condition?: string | null
+          payment_due_day?: number | null
           payment_status?: string | null
           price?: number | null
           product?: string | null

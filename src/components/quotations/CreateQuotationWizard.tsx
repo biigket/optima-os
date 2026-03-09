@@ -159,6 +159,9 @@ export default function CreateQuotationWizard({ open, onOpenChange, onCreated }:
   const [paymentCondition, setPaymentCondition] = useState('CASH');
   const [depositType, setDepositType] = useState('NONE');
   const [depositValue, setDepositValue] = useState('');
+  const [hasInstallments, setHasInstallments] = useState(false);
+  const [installmentCount, setInstallmentCount] = useState('');
+  const [paymentDueDay, setPaymentDueDay] = useState('');
 
   useEffect(() => {
     if (open) {
@@ -184,6 +187,9 @@ export default function CreateQuotationWizard({ open, onOpenChange, onCreated }:
     setPaymentCondition('CASH');
     setDepositType('NONE');
     setDepositValue('');
+    setHasInstallments(false);
+    setInstallmentCount('');
+    setPaymentDueDay('');
   }
 
   async function fetchAccounts() {
@@ -308,6 +314,9 @@ export default function CreateQuotationWizard({ open, onOpenChange, onCreated }:
       payment_condition: paymentCondition || null,
       deposit_type: depositType || 'NONE',
       deposit_value: depositValue ? Number(depositValue) : 0,
+      has_installments: hasInstallments,
+      installment_count: hasInstallments && installmentCount ? Number(installmentCount) : 0,
+      payment_due_day: hasInstallments && paymentDueDay ? Number(paymentDueDay) : null,
       sale_assigned: saleAssigned || null,
       approval_status: 'DRAFT',
       payment_status: 'UNPAID',
@@ -597,6 +606,12 @@ export default function CreateQuotationWizard({ open, onOpenChange, onCreated }:
               onDepositTypeChange={setDepositType}
               onDepositValueChange={setDepositValue}
               totalPrice={grandTotal || undefined}
+              hasInstallments={hasInstallments}
+              installmentCount={installmentCount}
+              paymentDueDay={paymentDueDay}
+              onHasInstallmentsChange={setHasInstallments}
+              onInstallmentCountChange={setInstallmentCount}
+              onPaymentDueDayChange={setPaymentDueDay}
             />
 
             <div className="space-y-1.5">
@@ -700,6 +715,8 @@ export default function CreateQuotationWizard({ open, onOpenChange, onCreated }:
               <div className="text-xs text-muted-foreground">
                 เซลล์: {saleAssigned} | เงื่อนไขชำระ: {getPaymentConditionLabel(paymentCondition)}
                 {depositType !== 'NONE' && ` | มัดจำ: ${depositType === 'PERCENT' ? `${depositValue}%` : `฿${Number(depositValue || 0).toLocaleString()}`}`}
+                {hasInstallments && installmentCount && ` | แบ่งจ่าย ${installmentCount} งวด`}
+                {hasInstallments && paymentDueDay && ` (ทุกวันที่ ${paymentDueDay})`}
               </div>
             )}
           </div>

@@ -2,6 +2,7 @@ import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Checkbox } from '@/components/ui/checkbox';
 
 const PAYMENT_OPTIONS = [
   { value: 'CASH', label: 'เงินสด' },
@@ -53,6 +54,18 @@ function getParentKey(value: string): string {
   return value;
 }
 
+// Conditions where custom installments are NOT allowed
+const INSTALLMENT_DISABLED_CONDITIONS = [
+  'LEASING_12M',
+  'CREDIT_CARD_3M', 'CREDIT_CARD_6M', 'CREDIT_CARD_10M',
+  'CREDIT_15D', 'CREDIT_30D',
+  'POST_CHECK_3M', 'POST_CHECK_6M', 'POST_CHECK_12M',
+];
+
+function isInstallmentDisabled(condition: string): boolean {
+  return INSTALLMENT_DISABLED_CONDITIONS.includes(condition);
+}
+
 interface Props {
   paymentCondition: string;
   onPaymentConditionChange: (v: string) => void;
@@ -61,6 +74,12 @@ interface Props {
   onDepositTypeChange: (v: string) => void;
   onDepositValueChange: (v: string) => void;
   totalPrice?: number;
+  hasInstallments?: boolean;
+  installmentCount?: string;
+  paymentDueDay?: string;
+  onHasInstallmentsChange?: (v: boolean) => void;
+  onInstallmentCountChange?: (v: string) => void;
+  onPaymentDueDayChange?: (v: string) => void;
 }
 
 export default function PaymentConditionSelector({
@@ -71,6 +90,12 @@ export default function PaymentConditionSelector({
   onDepositTypeChange,
   onDepositValueChange,
   totalPrice,
+  hasInstallments,
+  installmentCount,
+  paymentDueDay,
+  onHasInstallmentsChange,
+  onInstallmentCountChange,
+  onPaymentDueDayChange,
 }: Props) {
   const parentKey = getParentKey(paymentCondition);
   const parentOption = PAYMENT_OPTIONS.find(o => o.value === parentKey);
@@ -80,6 +105,8 @@ export default function PaymentConditionSelector({
   const computedDeposit = depositType === 'PERCENT' && totalPrice
     ? (totalPrice * depositNum / 100)
     : depositNum;
+
+  const installmentDisabled = isInstallmentDisabled(paymentCondition);
 
   return (
     <div className="space-y-4">
@@ -94,6 +121,14 @@ export default function PaymentConditionSelector({
               onPaymentConditionChange(opt.sub[0].value);
             } else {
               onPaymentConditionChange(v);
+            }
+            // Reset installments if switching to disabled condition
+            if (onHasInstallmentsChange) {
+              const newCondition = opt?.sub?.[0]?.value || v;
+              if (isInstallmentDisabled(newCondition)) {
+                onHasInstallmentsChange(false);
+                onInstallmentCountChange?.('0');
+              }
             }
           }}
         >
@@ -110,7 +145,16 @@ export default function PaymentConditionSelector({
       {hasSub && parentOption.sub && (
         <div className="space-y-1.5 pl-4 border-l-2 border-primary/20">
           <Label className="text-xs text-muted-foreground">ตัวเลือกย่อย</Label>
-          <Select value={paymentCondition} onValueChange={onPaymentConditionChange}>
+          <Select
+            value={paymentCondition}
+            onValueChange={v => {
+              onPaymentConditionChange(v);
+              if (onHasInstallmentsChange && isInstallmentDisabled(v)) {
+                onHasInstallmentsChange(false);
+                onInstallmentCountChange?.('0');
+              }
+            }}
+          >
             <SelectTrigger><SelectValue /></SelectTrigger>
             <SelectContent>
               {parentOption.sub.map(s => (
@@ -118,6 +162,66 @@ export default function PaymentConditionSelector({
               ))}
             </SelectContent>
           </Select>
+        </div>
+      )}
+
+      {/* Installment split */}
+      {onHasInstallmentsChange && (
+        <div className="space-y-2 p-3 rounded-lg bg-muted/50 border border-border">
+          <div className="flex items-center gap-2">
+            <Checkbox
+              id="has-installments"
+              checked={hasInstallments && !installmentDisabled}
+              disabled={installmentDisabled}
+              onCheckedChange={(checked) => {
+                onHasInstallmentsChange(!!checked);
+                if (!checked) {
+                  onInstallmentCountChange?.('0');
+                  onPaymentDueDayChange?.('');
+                }
+              }}
+            />
+            <Label
+              htmlFor="has-installments"
+              className={`text-sm cursor-pointer ${installmentDisabled ? 'text-muted-foreground' : ''}`}
+            >
+              มีการแบ่งจ่าย
+            </Label>
+            {installmentDisabled && (
+              <span className="text-xs text-muted-foreground">(ไม่สามารถใช้ได้กับเงื่อนไขนี้)</span>
+            )}
+          </div>
+
+          {hasInstallments && !installmentDisabled && (
+            <div className="flex items-center gap-4 mt-2 pl-6">
+              <div className="flex items-center gap-2">
+                <Label className="text-sm text-muted-foreground whitespace-nowrap">จำนวนงวด</Label>
+                <Input
+                  type="number"
+                  min="2"
+                  max="60"
+                  placeholder="เช่น 3"
+                  value={installmentCount}
+                  onChange={e => onInstallmentCountChange?.(e.target.value)}
+                  className="w-24 h-9"
+                />
+                <span className="text-sm text-muted-foreground">งวด</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Label className="text-sm text-muted-foreground whitespace-nowrap">กำหนดจ่ายทุกวันที่</Label>
+                <Input
+                  type="number"
+                  min="1"
+                  max="31"
+                  placeholder="เช่น 15"
+                  value={paymentDueDay}
+                  onChange={e => onPaymentDueDayChange?.(e.target.value)}
+                  className="w-20 h-9"
+                />
+                <span className="text-sm text-muted-foreground">ของเดือน</span>
+              </div>
+            </div>
+          )}
         </div>
       )}
 
