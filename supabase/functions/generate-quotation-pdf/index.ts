@@ -159,12 +159,15 @@ function generateHTML(qt: any, account: any, contacts: any[]): string {
 <div class="page">
   <!-- Header -->
   <div class="header">
-    <div class="seller-info">
-      <h1>${SELLER.company}</h1>
-      <p>${SELLER.address}</p>
-      <p>เลขผู้เสียภาษี: ${SELLER.taxId}</p>
-      <p>โทร: ${SELLER.phone} | ${SELLER.email}</p>
-      <p>${SELLER.website}</p>
+    <div class="header-left">
+      <img src="${SELLER.logo}" alt="Logo" class="header-logo" />
+      <div class="seller-info">
+        <h1>${SELLER.company}</h1>
+        <p>${SELLER.address}</p>
+        <p>เลขผู้เสียภาษี: ${SELLER.taxId}</p>
+        <p>โทร: ${SELLER.phone} | ${SELLER.email}</p>
+        <p>${SELLER.website}</p>
+      </div>
     </div>
     <div class="doc-title">
       <h2>ใบเสนอราคา</h2>
