@@ -804,13 +804,16 @@ export default function CustomerCardPage() {
                     onClick={async () => {
                       try {
                         const { data, error } = await supabase.functions.invoke('generate-quotation-pdf', {
-                          body: { quotationId: q.id },
+                          body: { quotation_id: q.id },
                         });
                         if (error) throw error;
-                        const html = data?.html;
+                        // data is raw HTML string when Content-Type is text/html
+                        const html = typeof data === 'string' ? data : data?.html;
                         if (html) {
                           const w = window.open('', '_blank');
                           if (w) { w.document.write(html); w.document.close(); }
+                        } else {
+                          toast.error('ไม่พบข้อมูล PDF');
                         }
                       } catch (e) {
                         toast.error('ไม่สามารถสร้าง PDF ได้');
