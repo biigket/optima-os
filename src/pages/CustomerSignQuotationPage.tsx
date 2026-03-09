@@ -261,9 +261,9 @@ export default function CustomerSignQuotationPage() {
               <div className="text-xs text-muted-foreground">
                 โดย {(qt as any).customer_signer_name || "-"}
               </div>
-              {pdfUrl && (
-                <Button className="w-full" onClick={() => window.open(pdfUrl, "_blank")}>
-                  ดาวน์โหลด PDF
+              {hasAttachment && (
+                <Button className="w-full" onClick={handleViewPdf} disabled={viewingPdf}>
+                  {viewingPdf ? "กำลังโหลด..." : "ดาวน์โหลด PDF"}
                 </Button>
               )}
             </CardContent>
