@@ -49,7 +49,8 @@ export default function CreateQuotationDialog({ open, onOpenChange, onCreated }:
 
   const reset = () => setForm({
     qt_number: '', account_id: '', product: '', price: '',
-    qt_date: format(new Date(), 'yyyy-MM-dd'), payment_condition: 'CASH', sale_assigned: '',
+    qt_date: format(new Date(), 'yyyy-MM-dd'), payment_condition: 'CASH',
+    deposit_type: 'NONE', deposit_value: '', sale_assigned: '',
   });
 
   const handleSave = async () => {
