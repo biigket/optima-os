@@ -306,6 +306,8 @@ export default function CreateQuotationWizard({ open, onOpenChange, onCreated }:
       price: grandTotal,
       qt_date: qtDate || null,
       payment_condition: paymentCondition || null,
+      deposit_type: depositType || 'NONE',
+      deposit_value: depositValue ? Number(depositValue) : 0,
       sale_assigned: saleAssigned || null,
       approval_status: 'DRAFT',
       payment_status: 'UNPAID',
