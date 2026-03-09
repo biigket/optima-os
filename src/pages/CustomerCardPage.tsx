@@ -116,7 +116,7 @@ export default function CustomerCardPage() {
   const [chatImages, setChatImages] = useState<{ id: string; file_url: string; file_name: string; uploaded_by: string | null; created_at: string; opportunity_id: string }[]>([]);
   const [visitReports, setVisitReports] = useState<any[]>([]);
   const [demoReports, setDemoReports] = useState<any[]>([]);
-  const [qtDocs, setQtDocs] = useState<{ id: string; qt_number: string | null; qt_date: string | null; qt_attachment: string | null; product: string | null; price: number | null; approval_status: string | null; customer_signed_at: string | null; payment_status: string | null }[]>([]);
+  const [qtDocs, setQtDocs] = useState<{ id: string; qt_number: string | null; qt_date: string | null; qt_attachment: string | null; product: string | null; price: number | null; approval_status: string | null; customer_signed_at: string | null; payment_status: string | null; customer_signed_at: string | null; payment_status: string | null }[]>([]);
 
   // Fetch activities, stage history, and notes for this account
   useEffect(() => {
@@ -161,7 +161,7 @@ export default function CustomerCardPage() {
         if (data) setDemoReports(data);
       });
     // Approved quotation docs
-    supabase.from('quotations').select('id, qt_number, qt_date, qt_attachment, product, price, approval_status')
+    supabase.from('quotations').select('id, , customer_signed_at, payment_statusqt_number, qt_date, qt_attachment, product, price, approval_status')
       .eq('account_id', id).eq('approval_status', 'APPROVED')
       .order('qt_date', { ascending: false })
       .then(({ data }) => {
