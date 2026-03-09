@@ -420,9 +420,48 @@ Deno.serve(async (req) => {
       // Get the updated quotation to return the PDF URL and account_id
       const { data: qt } = await supabase
         .from("quotations")
-        .select("qt_attachment, account_id")
+        .select("qt_attachment, account_id, price, payment_condition")
         .eq("id", quotation_id)
         .single();
+
+      // Auto-create default payment installment if none exists
+      if (qt) {
+        const { data: existing } = await supabase
+          .from("payment_installments")
+          .select("id")
+          .eq("quotation_id", quotation_id)
+          .limit(1);
+
+        if (!existing || existing.length === 0) {
+          const totalPrice = qt.price || 0;
+          const condition = qt.payment_condition || "CASH";
+
+          if (condition === "INSTALLMENT") {
+            // Create 3 installments: 50%, 25%, 25%
+            const splits = [0.5, 0.25, 0.25];
+            for (let i = 0; i < splits.length; i++) {
+              const dueDate = new Date();
+              dueDate.setDate(dueDate.getDate() + (i * 30));
+              await supabase.from("payment_installments").insert({
+                quotation_id,
+                installment_number: i + 1,
+                amount: Math.round(totalPrice * splits[i]),
+                due_date: dueDate.toISOString().split("T")[0],
+              });
+            }
+          } else {
+            // CASH or LEASING: single installment
+            const dueDate = new Date();
+            dueDate.setDate(dueDate.getDate() + 30);
+            await supabase.from("payment_installments").insert({
+              quotation_id,
+              installment_number: 1,
+              amount: totalPrice,
+              due_date: dueDate.toISOString().split("T")[0],
+            });
+          }
+        }
+      }
 
       // Auto-advance opportunities for this account to NEGOTIATION
       if (qt?.account_id) {
