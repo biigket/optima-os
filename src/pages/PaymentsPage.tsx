@@ -93,13 +93,39 @@ export default function PaymentsPage() {
         .order('due_date', { ascending: true });
       if (instErr) throw instErr;
 
-      const existingQtIds = new Set((installments || []).map(i => i.quotation_id));
-      const missingQts = signedQts.filter(q => !existingQtIds.has(q.id));
+      // Group existing installments by quotation_id
+      const installmentsByQt = new Map<string, any[]>();
+      (installments || []).forEach(i => {
+        const arr = installmentsByQt.get(i.quotation_id) || [];
+        arr.push(i);
+        installmentsByQt.set(i.quotation_id, arr);
+      });
+
+      // Find QTs that need installments created or recreated (count mismatch)
+      const qtsToProcess: typeof signedQts = [];
+      const idsToDelete: string[] = [];
+
+      for (const qt of signedQts) {
+        const existing = installmentsByQt.get(qt.id) || [];
+        const expectedCount = (qt.has_installments && qt.installment_count && qt.installment_count > 1) ? qt.installment_count : 1;
+        if (existing.length === 0) {
+          qtsToProcess.push(qt);
+        } else if (existing.length !== expectedCount) {
+          // Mismatch — delete old and recreate
+          idsToDelete.push(...existing.map((e: any) => e.id));
+          qtsToProcess.push(qt);
+        }
+      }
+
+      // Delete mismatched installments
+      if (idsToDelete.length > 0) {
+        await supabase.from('payment_installments').delete().in('id', idsToDelete);
+      }
 
       let newInstallments: any[] = [];
-      if (missingQts.length > 0) {
+      if (qtsToProcess.length > 0) {
         const toInsert: any[] = [];
-        for (const qt of missingQts) {
+        for (const qt of qtsToProcess) {
           const totalPrice = qt.price || 0;
           const today = new Date();
           const hasInstallments = qt.has_installments === true;
@@ -159,7 +185,10 @@ export default function PaymentsPage() {
         }
       }
 
-      const allInstallments = [...(installments || []), ...newInstallments];
+      // Combine: keep existing (minus deleted) + newly created
+      const deletedSet = new Set(idsToDelete);
+      const keptInstallments = (installments || []).filter((i: any) => !deletedSet.has(i.id));
+      const allInstallments = [...keptInstallments, ...newInstallments];
 
       const accountIds = [...new Set(signedQts.map(q => q.account_id).filter(Boolean))] as string[];
       const { data: accounts } = await supabase
