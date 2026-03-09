@@ -15,6 +15,7 @@ import { useState, useRef, useEffect, useCallback } from 'react';
 import { useMockAuth } from '@/hooks/useMockAuth';
 import { cn } from '@/lib/utils';
 import SignatureCanvas from '@/components/ui/SignatureCanvas';
+import { getPaymentConditionLabel } from '@/components/quotations/PaymentConditionSelector';
 
 const APPROVAL_FLOW = [
   { key: 'DRAFT', label: 'แบบร่าง' },
