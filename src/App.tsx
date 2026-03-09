@@ -30,6 +30,8 @@ import PaymentsPage from "@/pages/PaymentsPage";
 import Phase2Placeholder from "@/pages/Phase2Placeholder";
 import NotFound from "@/pages/NotFound";
 import MockLoginPage from "@/pages/MockLoginPage";
+import CustomerRegisterPage from "@/pages/CustomerRegisterPage";
+import QRCodePage from "@/pages/QRCodePage";
 import { MockAuthProvider } from "@/hooks/useMockAuth";
 
 const queryClient = new QueryClient();
@@ -71,6 +73,7 @@ function AuthedAppRoutes() {
         <Route path="/inventory" element={<InventoryPage />} />
         <Route path="/invoices" element={<InvoicesPage />} />
         <Route path="/payments" element={<PaymentsPage />} />
+        <Route path="/qr-register" element={<QRCodePage />} />
         {phase2Routes.map((path) => (
           <Route key={path} path={path} element={<Phase2Placeholder />} />
         ))}
@@ -83,8 +86,9 @@ function AuthedAppRoutes() {
 function AppRoutes() {
   return (
     <Routes>
-      {/* Public customer signing page (no AppLayout) */}
+      {/* Public pages (no AppLayout) */}
       <Route path="/sign/quotation" element={<CustomerSignQuotationPage />} />
+      <Route path="/register" element={<CustomerRegisterPage />} />
 
       {/* Main app */}
       <Route path="/*" element={<AuthedAppRoutes />} />
