@@ -160,9 +160,9 @@ export default function CustomerCardPage() {
       .then(({ data }) => {
         if (data) setDemoReports(data);
       });
-    // Approved quotation docs
-    supabase.from('quotations').select('id, , customer_signed_at, payment_statusqt_number, qt_date, qt_attachment, product, price, approval_status')
-      .eq('account_id', id).eq('approval_status', 'APPROVED')
+    // Approved / Customer-signed quotation docs
+    supabase.from('quotations').select('id, qt_number, qt_date, qt_attachment, product, price, approval_status, customer_signed_at, payment_status')
+      .eq('account_id', id).in('approval_status', ['APPROVED', 'CUSTOMER_SIGNED'])
       .order('qt_date', { ascending: false })
       .then(({ data }) => {
         if (data) setQtDocs(data as any);
