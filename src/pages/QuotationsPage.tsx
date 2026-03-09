@@ -10,7 +10,7 @@ import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { supabase } from '@/integrations/supabase/client';
 import CreateQuotationWizard from '@/components/quotations/CreateQuotationWizard';
 
-type ApprovalFilter = 'ALL' | 'DRAFT' | 'SUBMITTED' | 'APPROVED' | 'REJECTED';
+type ApprovalFilter = 'ALL' | 'DRAFT' | 'SUBMITTED' | 'APPROVED' | 'CUSTOMER_SIGNED' | 'REJECTED';
 
 export default function QuotationsPage() {
   const [search, setSearch] = useState('');
@@ -44,6 +44,7 @@ export default function QuotationsPage() {
     DRAFT: quotations.filter(q => q.approval_status === 'DRAFT').length,
     SUBMITTED: quotations.filter(q => q.approval_status === 'SUBMITTED').length,
     APPROVED: quotations.filter(q => q.approval_status === 'APPROVED').length,
+    CUSTOMER_SIGNED: quotations.filter(q => q.approval_status === 'CUSTOMER_SIGNED').length,
     REJECTED: quotations.filter(q => q.approval_status === 'REJECTED').length,
   };
 
@@ -60,11 +61,12 @@ export default function QuotationsPage() {
       </div>
 
       <Tabs value={statusFilter} onValueChange={v => setStatusFilter(v as ApprovalFilter)}>
-        <TabsList>
+        <TabsList className="flex-wrap">
           <TabsTrigger value="ALL">ทั้งหมด ({counts.ALL})</TabsTrigger>
           <TabsTrigger value="DRAFT">แบบร่าง ({counts.DRAFT})</TabsTrigger>
-          <TabsTrigger value="SUBMITTED">ส่งแล้ว ({counts.SUBMITTED})</TabsTrigger>
-          <TabsTrigger value="APPROVED">อนุมัติ ({counts.APPROVED})</TabsTrigger>
+          <TabsTrigger value="SUBMITTED">รออนุมัติ ({counts.SUBMITTED})</TabsTrigger>
+          <TabsTrigger value="APPROVED">อนุมัติแล้ว ({counts.APPROVED})</TabsTrigger>
+          <TabsTrigger value="CUSTOMER_SIGNED">ลูกค้าเซ็นแล้ว ({counts.CUSTOMER_SIGNED})</TabsTrigger>
           <TabsTrigger value="REJECTED">ไม่อนุมัติ ({counts.REJECTED})</TabsTrigger>
         </TabsList>
       </Tabs>
