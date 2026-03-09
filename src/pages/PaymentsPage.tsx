@@ -103,22 +103,47 @@ export default function PaymentsPage() {
         const toInsert: any[] = [];
         for (const qt of missingQts) {
           const totalPrice = qt.price || 0;
-          const condition = qt.payment_condition || 'CASH';
           const today = new Date();
+          const hasInstallments = qt.has_installments === true;
+          const installmentCount = (qt.installment_count && qt.installment_count > 1) ? qt.installment_count : 1;
+          const dueDay = qt.payment_due_day || today.getDate();
 
-          if (condition === 'INSTALLMENT') {
-            const splits = [0.5, 0.25, 0.25];
-            splits.forEach((pct, i) => {
-              const dueDate = new Date(today);
-              dueDate.setDate(dueDate.getDate() + i * 30);
+          if (hasInstallments && installmentCount > 1) {
+            // แบ่งจ่ายเท่าๆ กัน ตามจำนวนงวด
+            const perInstallment = Math.floor(totalPrice / installmentCount);
+            const remainder = totalPrice - perInstallment * installmentCount;
+
+            for (let i = 0; i < installmentCount; i++) {
+              // คำนวณวันครบกำหนดแต่ละงวด ตาม payment_due_day
+              const dueDate = new Date(today.getFullYear(), today.getMonth() + i, dueDay);
+              // ถ้าวันกำหนดงวดแรกผ่านไปแล้ว ให้เริ่มเดือนถัดไป
+              if (i === 0 && dueDate < today) {
+                dueDate.setMonth(dueDate.getMonth() + 1);
+                // ปรับงวดถัดๆ ไปด้วย
+                for (let j = 1; j < installmentCount; j++) {
+                  // จะถูกสร้างใน loop หลัก
+                }
+              }
               toInsert.push({
                 quotation_id: qt.id,
                 installment_number: i + 1,
-                amount: Math.round(totalPrice * pct),
+                amount: i === 0 ? perInstallment + remainder : perInstallment,
                 due_date: dueDate.toISOString().split('T')[0],
               });
-            });
+            }
+
+            // ปรับวันที่ถ้างวดแรกผ่านไปแล้ว
+            if (toInsert.length > 0) {
+              const firstDue = new Date(toInsert[toInsert.length - installmentCount].due_date);
+              if (firstDue < today) {
+                for (let i = toInsert.length - installmentCount; i < toInsert.length; i++) {
+                  const d = new Date(today.getFullYear(), today.getMonth() + 1 + (i - (toInsert.length - installmentCount)), dueDay);
+                  toInsert[i].due_date = d.toISOString().split('T')[0];
+                }
+              }
+            }
           } else {
+            // งวดเดียว
             toInsert.push({
               quotation_id: qt.id,
               installment_number: 1,
