@@ -137,6 +137,18 @@ export default function QuotationDetailPage() {
   const [signatureData, setSignatureData] = useState<string | null>(null);
 
   const isAdmin = currentUser?.role === 'ADMIN';
+  const prevCustomerSigRef = useRef<string | null>(null);
+
+  // When customer signs, auto-regenerate PDF with both signatures
+  useEffect(() => {
+    if (!qt) return;
+    const customerSig = (qt as any).customer_signature;
+    if (customerSig && prevCustomerSigRef.current === null && customerSig !== prevCustomerSigRef.current) {
+      // Customer just signed - regenerate PDF
+      savePdfToStorage();
+    }
+    prevCustomerSigRef.current = customerSig || null;
+  }, [(qt as any)?.customer_signature]);
 
   async function handlePrintPDF() {
     if (!id) return;
