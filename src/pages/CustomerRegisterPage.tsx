@@ -82,7 +82,7 @@ export default function CustomerRegisterPage() {
             <CheckCircle2 className="mx-auto h-16 w-16 text-primary" />
             <h2 className="text-2xl font-bold text-foreground">ลงทะเบียนสำเร็จ!</h2>
             <p className="text-muted-foreground">ขอบคุณที่ลงทะเบียน ทีมงานจะติดต่อกลับโดยเร็ว</p>
-            <Button onClick={() => { setSuccess(false); setForm({ clinic_name: "", contact_name: "", phone: "", email: "" }); }} variant="outline" className="mt-4">
+            <Button onClick={() => { setSuccess(false); setForm({ clinic_name: "", contact_name: "", phone: "", email: "", current_devices: "" }); }} variant="outline" className="mt-4">
               ลงทะเบียนเพิ่ม
             </Button>
           </CardContent>
