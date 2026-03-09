@@ -61,11 +61,12 @@ export default function QuotationsPage() {
       </div>
 
       <Tabs value={statusFilter} onValueChange={v => setStatusFilter(v as ApprovalFilter)}>
-        <TabsList>
+        <TabsList className="flex-wrap">
           <TabsTrigger value="ALL">ทั้งหมด ({counts.ALL})</TabsTrigger>
           <TabsTrigger value="DRAFT">แบบร่าง ({counts.DRAFT})</TabsTrigger>
-          <TabsTrigger value="SUBMITTED">ส่งแล้ว ({counts.SUBMITTED})</TabsTrigger>
-          <TabsTrigger value="APPROVED">อนุมัติ ({counts.APPROVED})</TabsTrigger>
+          <TabsTrigger value="SUBMITTED">รออนุมัติ ({counts.SUBMITTED})</TabsTrigger>
+          <TabsTrigger value="APPROVED">อนุมัติแล้ว ({counts.APPROVED})</TabsTrigger>
+          <TabsTrigger value="CUSTOMER_SIGNED">ลูกค้าเซ็นแล้ว ({counts.CUSTOMER_SIGNED})</TabsTrigger>
           <TabsTrigger value="REJECTED">ไม่อนุมัติ ({counts.REJECTED})</TabsTrigger>
         </TabsList>
       </Tabs>
