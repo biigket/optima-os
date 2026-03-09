@@ -11,6 +11,7 @@ import { supabase } from '@/integrations/supabase/client';
 import PaymentKpiCards from '@/components/payments/PaymentKpiCards';
 import UploadSlipDialog from '@/components/payments/UploadSlipDialog';
 import VerifySlipDialog from '@/components/payments/VerifySlipDialog';
+import UploadDepositSlipDialog from '@/components/payments/UploadDepositSlipDialog';
 import { getPaymentConditionLabel } from '@/components/quotations/PaymentConditionSelector';
 import { differenceInDays } from 'date-fns';
 
@@ -30,6 +31,12 @@ interface InstallmentRow {
   clinic_name?: string;
   qt_number?: string;
   payment_condition?: string;
+  deposit_type?: string;
+  deposit_value?: number;
+  deposit_slip?: string;
+  deposit_slip_status?: string;
+  payment_status?: string;
+  price?: number;
 }
 
 const CONDITION_TABS = [
@@ -52,12 +59,20 @@ function getConditionGroup(condition?: string | null): string {
   return 'CASH';
 }
 
+function calcDepositAmount(depositType?: string, depositValue?: number, price?: number): number {
+  if (!depositType || depositType === 'NONE' || !depositValue) return 0;
+  if (depositType === 'AMOUNT') return depositValue;
+  if (depositType === 'PERCENT' && price) return Math.round(price * depositValue / 100);
+  return 0;
+}
+
 export default function PaymentsPage() {
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('ALL');
   const [conditionTab, setConditionTab] = useState('ALL');
   const [uploadTarget, setUploadTarget] = useState<InstallmentRow | null>(null);
   const [verifyTarget, setVerifyTarget] = useState<InstallmentRow | null>(null);
+  const [depositTarget, setDepositTarget] = useState<{ id: string; deposit_amount: number; qt_number: string } | null>(null);
   const queryClient = useQueryClient();
 
   const { data: rows = [], isLoading } = useQuery({
@@ -65,7 +80,7 @@ export default function PaymentsPage() {
     queryFn: async () => {
       const { data: signedQts, error: qtErr } = await supabase
         .from('quotations')
-        .select('id, qt_number, account_id, price, payment_condition, payment_status')
+        .select('id, qt_number, account_id, price, payment_condition, payment_status, deposit_type, deposit_value, deposit_slip, deposit_slip_status')
         .eq('approval_status', 'CUSTOMER_SIGNED')
         .order('created_at', { ascending: false });
       if (qtErr) throw qtErr;
@@ -141,6 +156,12 @@ export default function PaymentsPage() {
           qt_number: qt?.qt_number || '',
           slip_status: r.slip_status || 'NO_SLIP',
           payment_condition: qt?.payment_condition || null,
+          deposit_type: (qt as any)?.deposit_type || 'NONE',
+          deposit_value: (qt as any)?.deposit_value || 0,
+          deposit_slip: (qt as any)?.deposit_slip || null,
+          deposit_slip_status: (qt as any)?.deposit_slip_status || 'NO_SLIP',
+          payment_status: qt?.payment_status || 'UNPAID',
+          price: qt?.price || 0,
         } as InstallmentRow;
       });
     },
@@ -194,6 +215,31 @@ export default function PaymentsPage() {
 
   const refetch = () => queryClient.invalidateQueries({ queryKey: ['payment-installments'] });
 
+  // Deduplicate deposit info per quotation
+  const depositByQt = useMemo(() => {
+    const map = new Map<string, InstallmentRow>();
+    rows.forEach(r => {
+      if (!map.has(r.quotation_id) && r.deposit_type && r.deposit_type !== 'NONE' && (r.deposit_value || 0) > 0) {
+        map.set(r.quotation_id, r);
+      }
+    });
+    return map;
+  }, [rows]);
+
+  const hasDeposit = (row: InstallmentRow) => {
+    return row.deposit_type && row.deposit_type !== 'NONE' && (row.deposit_value || 0) > 0;
+  };
+
+  // Get unique QTs with deposits for filtered rows
+  const filteredDepositQts = useMemo(() => {
+    const seen = new Set<string>();
+    return filtered.filter(r => {
+      if (seen.has(r.quotation_id) || !hasDeposit(r)) return false;
+      seen.add(r.quotation_id);
+      return true;
+    });
+  }, [filtered]);
+
   return (
     <div className="space-y-6 animate-fade-in">
       <div>
@@ -202,6 +248,46 @@ export default function PaymentsPage() {
       </div>
 
       <PaymentKpiCards data={kpi} />
+
+      {/* Deposit Slip Section */}
+      {filteredDepositQts.length > 0 && (
+        <div className="rounded-lg border bg-card p-4 space-y-3">
+          <h2 className="text-sm font-semibold text-foreground">สลิปมัดจำ</h2>
+          <div className="space-y-2">
+            {filteredDepositQts.map(row => {
+              const depositAmt = calcDepositAmount(row.deposit_type, row.deposit_value, row.price);
+              return (
+                <div key={`dep-${row.quotation_id}`} className="flex items-center justify-between p-3 rounded-md bg-muted/50 gap-3">
+                  <div className="flex items-center gap-4 min-w-0">
+                    <span className="text-xs font-medium text-muted-foreground shrink-0">{row.qt_number}</span>
+                    <span className="text-sm truncate">{row.clinic_name}</span>
+                    <span className="text-xs text-muted-foreground shrink-0">
+                      มัดจำ {row.deposit_type === 'PERCENT' ? `${row.deposit_value}%` : ''} ฿{depositAmt.toLocaleString()}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2 shrink-0">
+                    <StatusBadge status={row.payment_status === 'DEPOSIT_PAID' ? 'DEPOSIT_PAID' : (row.deposit_slip_status || 'NO_SLIP')} />
+                    {row.payment_status !== 'DEPOSIT_PAID' && (!row.deposit_slip_status || row.deposit_slip_status === 'NO_SLIP') && (
+                      <Button size="sm" variant="outline" className="gap-1 text-xs h-7" onClick={() => setDepositTarget({
+                        id: row.quotation_id,
+                        deposit_amount: depositAmt,
+                        qt_number: row.qt_number || '',
+                      })}>
+                        <Upload size={12} /> อัพสลิปมัดจำ
+                      </Button>
+                    )}
+                    {row.deposit_slip && row.payment_status === 'DEPOSIT_PAID' && (
+                      <Button size="sm" variant="ghost" className="gap-1 text-xs h-7" onClick={() => window.open(row.deposit_slip!, '_blank')}>
+                        <Eye size={12} /> ดูสลิป
+                      </Button>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       {/* Condition Tabs */}
       <Tabs value={conditionTab} onValueChange={setConditionTab}>
@@ -321,6 +407,12 @@ export default function PaymentsPage() {
         open={!!verifyTarget}
         onOpenChange={v => { if (!v) setVerifyTarget(null); }}
         installment={verifyTarget}
+        onSuccess={refetch}
+      />
+      <UploadDepositSlipDialog
+        open={!!depositTarget}
+        onOpenChange={v => { if (!v) setDepositTarget(null); }}
+        quotation={depositTarget}
         onSuccess={refetch}
       />
     </div>
