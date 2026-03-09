@@ -159,9 +159,11 @@ export default function QuotationDetailPage() {
           <p className="text-sm text-muted-foreground">สร้างเมื่อ {qt.created_at ? new Date(qt.created_at).toLocaleDateString('th-TH') : '-'}</p>
         </div>
         <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm" className="gap-1.5" onClick={handlePrintPDF} disabled={printingPDF}>
-            <Printer size={14} /> {printingPDF ? 'กำลังสร้าง...' : 'พิมพ์ PDF'}
-          </Button>
+          {status === 'APPROVED' && (
+            <Button variant="outline" size="sm" className="gap-1.5" onClick={handlePrintPDF} disabled={printingPDF}>
+              <Printer size={14} /> {printingPDF ? 'กำลังสร้าง...' : 'พิมพ์ PDF'}
+            </Button>
+          )}
           <StatusBadge status={status} />
           <StatusBadge status={qt.payment_status || 'UNPAID'} />
         </div>
