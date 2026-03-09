@@ -79,7 +79,7 @@ export default function PaymentsPage() {
     queryFn: async () => {
       const { data: signedQts, error: qtErr } = await supabase
         .from('quotations')
-        .select('id, qt_number, account_id, price, payment_condition, payment_status, deposit_type, deposit_value, deposit_slip, deposit_slip_status, has_installments, installment_count, payment_due_day')
+        .select('id, qt_number, account_id, price, payment_condition, payment_status, deposit_type, deposit_value, deposit_slip, deposit_slip_status, has_installments, installment_count, payment_due_day, qt_attachment')
         .eq('approval_status', 'CUSTOMER_SIGNED')
         .order('created_at', { ascending: false });
       if (qtErr) throw qtErr;
