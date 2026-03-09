@@ -42,8 +42,10 @@ export default function CustomerSignQuotationPage() {
 
   const pdfUrl = useMemo(() => {
     const raw = (qt as any)?.qt_attachment as string | null | undefined;
-    return raw || null;
-  }, [qt]);
+    if (!raw || !quotationId) return null;
+    const base = import.meta.env.VITE_SUPABASE_URL;
+    return `${base}/functions/v1/quotation-pdf?id=${encodeURIComponent(quotationId)}`;
+  }, [qt, quotationId]);
 
   async function generateAndUploadPdf() {
     if (!quotationId || !qt) return null;
