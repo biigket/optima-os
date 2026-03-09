@@ -37,6 +37,7 @@ interface InstallmentRow {
   deposit_slip_status?: string;
   payment_status?: string;
   price?: number;
+  qt_attachment?: string;
 }
 
 const CONDITION_TABS = [
