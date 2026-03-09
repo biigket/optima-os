@@ -30,6 +30,8 @@ import PaymentsPage from "@/pages/PaymentsPage";
 import Phase2Placeholder from "@/pages/Phase2Placeholder";
 import NotFound from "@/pages/NotFound";
 import MockLoginPage from "@/pages/MockLoginPage";
+import CustomerRegisterPage from "@/pages/CustomerRegisterPage";
+import QRCodePage from "@/pages/QRCodePage";
 import { MockAuthProvider } from "@/hooks/useMockAuth";
 
 const queryClient = new QueryClient();
