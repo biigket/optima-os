@@ -39,17 +39,41 @@ export default function PaymentsPage() {
   const { data: rows = [], isLoading } = useQuery({
     queryKey: ['payment-installments'],
     queryFn: async () => {
-      const { data, error } = await supabase
+      // Fetch installments with quotation info
+      const { data: installments, error } = await supabase
         .from('payment_installments')
-        .select('*, quotations!inner(qt_number, account_id, accounts!inner(clinic_name))')
+        .select('*')
         .order('due_date', { ascending: true });
       if (error) throw error;
-      return (data || []).map((r: any) => ({
-        ...r,
-        clinic_name: r.quotations?.accounts?.clinic_name || '',
-        qt_number: r.quotations?.qt_number || '',
-        slip_status: r.slip_status || 'NO_SLIP',
-      })) as InstallmentRow[];
+      if (!installments || installments.length === 0) return [];
+
+      // Fetch related quotations
+      const qtIds = [...new Set(installments.map(i => i.quotation_id))];
+      const { data: quotations } = await supabase
+        .from('quotations')
+        .select('id, qt_number, account_id')
+        .in('id', qtIds);
+
+      // Fetch related accounts
+      const accountIds = [...new Set((quotations || []).map(q => q.account_id).filter(Boolean))] as string[];
+      const { data: accounts } = await supabase
+        .from('accounts')
+        .select('id, clinic_name')
+        .in('id', accountIds);
+
+      const qtMap = Object.fromEntries((quotations || []).map(q => [q.id, q]));
+      const accMap = Object.fromEntries((accounts || []).map(a => [a.id, a]));
+
+      return installments.map((r: any) => {
+        const qt = qtMap[r.quotation_id];
+        const acc = qt?.account_id ? accMap[qt.account_id] : null;
+        return {
+          ...r,
+          clinic_name: acc?.clinic_name || '',
+          qt_number: qt?.qt_number || '',
+          slip_status: r.slip_status || 'NO_SLIP',
+        } as InstallmentRow;
+      });
     },
   });
 
