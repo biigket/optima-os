@@ -182,6 +182,8 @@ export default function CreateQuotationWizard({ open, onOpenChange, onCreated }:
     setSalesTerms('');
     setSaleAssigned('');
     setPaymentCondition('CASH');
+    setDepositType('NONE');
+    setDepositValue('');
   }
 
   async function fetchAccounts() {
