@@ -6,6 +6,13 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { CheckCircle2, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import QuickNoteButtons from "@/components/ui/QuickNoteButtons";
+
+const DEVICE_DEFAULTS = [
+  "Ultherapy", "Thermage", "Oligio", "OligioX", "UF light", "UF 3",
+  "UF MPT", "Doublo", "SylfirmX", "Xerf", "LinearZ", "Density",
+  "Volumer", "Picosure", "Picoplus", "PicoK", "Morphues", "Potenza",
+];
 
 export default function CustomerRegisterPage() {
   const { toast } = useToast();
@@ -16,6 +23,7 @@ export default function CustomerRegisterPage() {
     contact_name: "",
     phone: "",
     email: "",
+    current_devices: "",
   });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -38,6 +46,7 @@ export default function CustomerRegisterPage() {
           clinic_name: form.clinic_name.trim(),
           phone: form.phone.trim(),
           email: form.email.trim() || null,
+          current_devices: form.current_devices.trim() || null,
           customer_status: "NEW_LEAD",
           lead_source: "REGISTER_FORM",
         })
@@ -73,7 +82,7 @@ export default function CustomerRegisterPage() {
             <CheckCircle2 className="mx-auto h-16 w-16 text-primary" />
             <h2 className="text-2xl font-bold text-foreground">ลงทะเบียนสำเร็จ!</h2>
             <p className="text-muted-foreground">ขอบคุณที่ลงทะเบียน ทีมงานจะติดต่อกลับโดยเร็ว</p>
-            <Button onClick={() => { setSuccess(false); setForm({ clinic_name: "", contact_name: "", phone: "", email: "" }); }} variant="outline" className="mt-4">
+            <Button onClick={() => { setSuccess(false); setForm({ clinic_name: "", contact_name: "", phone: "", email: "", current_devices: "" }); }} variant="outline" className="mt-4">
               ลงทะเบียนเพิ่ม
             </Button>
           </CardContent>
@@ -107,6 +116,20 @@ export default function CustomerRegisterPage() {
             <div className="space-y-1.5">
               <Label htmlFor="email">อีเมล</Label>
               <Input id="email" name="email" type="email" value={form.email} onChange={handleChange} placeholder="example@email.com" />
+            </div>
+            <div className="space-y-1.5">
+              <Label>เครื่องที่มีอยู่แล้ว</Label>
+              <Input
+                value={form.current_devices}
+                onChange={(e) => setForm(prev => ({ ...prev, current_devices: e.target.value }))}
+                placeholder="พิมพ์ชื่อเครื่องที่ลูกค้ามีอยู่..."
+              />
+              <QuickNoteButtons
+                value={form.current_devices}
+                onChange={(v) => setForm(prev => ({ ...prev, current_devices: v }))}
+                storageKey="register_device_tags"
+                defaults={DEVICE_DEFAULTS}
+              />
             </div>
             <Button type="submit" className="w-full" disabled={loading}>
               {loading ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> กำลังบันทึก...</> : "ลงทะเบียน"}
