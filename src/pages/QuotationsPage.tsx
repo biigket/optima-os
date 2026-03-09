@@ -44,6 +44,7 @@ export default function QuotationsPage() {
     DRAFT: quotations.filter(q => q.approval_status === 'DRAFT').length,
     SUBMITTED: quotations.filter(q => q.approval_status === 'SUBMITTED').length,
     APPROVED: quotations.filter(q => q.approval_status === 'APPROVED').length,
+    CUSTOMER_SIGNED: quotations.filter(q => q.approval_status === 'CUSTOMER_SIGNED').length,
     REJECTED: quotations.filter(q => q.approval_status === 'REJECTED').length,
   };
 
