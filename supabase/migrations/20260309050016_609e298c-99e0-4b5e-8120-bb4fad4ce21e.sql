@@ -1,0 +1,1 @@
+UPDATE public.quotations SET approval_status = 'APPROVED', customer_signature = NULL, customer_signed_at = NULL, customer_signer_name = NULL WHERE id = '358395e1-4bc2-4e1a-9042-9cf532481101'
