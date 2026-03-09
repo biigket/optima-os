@@ -39,32 +39,80 @@ export default function PaymentsPage() {
   const { data: rows = [], isLoading } = useQuery({
     queryKey: ['payment-installments'],
     queryFn: async () => {
-      // Fetch installments with quotation info
-      const { data: installments, error } = await supabase
+      // 1) Fetch all CUSTOMER_SIGNED quotations
+      const { data: signedQts, error: qtErr } = await supabase
+        .from('quotations')
+        .select('id, qt_number, account_id, price, payment_condition, payment_status')
+        .eq('approval_status', 'CUSTOMER_SIGNED')
+        .order('created_at', { ascending: false });
+      if (qtErr) throw qtErr;
+      if (!signedQts || signedQts.length === 0) return [];
+
+      const qtIds = signedQts.map(q => q.id);
+
+      // 2) Fetch existing installments for those quotations
+      const { data: installments, error: instErr } = await supabase
         .from('payment_installments')
         .select('*')
+        .in('quotation_id', qtIds)
         .order('due_date', { ascending: true });
-      if (error) throw error;
-      if (!installments || installments.length === 0) return [];
+      if (instErr) throw instErr;
 
-      // Fetch related quotations
-      const qtIds = [...new Set(installments.map(i => i.quotation_id))];
-      const { data: quotations } = await supabase
-        .from('quotations')
-        .select('id, qt_number, account_id')
-        .in('id', qtIds);
+      // 3) Auto-create installments for signed QTs that don't have any
+      const existingQtIds = new Set((installments || []).map(i => i.quotation_id));
+      const missingQts = signedQts.filter(q => !existingQtIds.has(q.id));
 
-      // Fetch related accounts
-      const accountIds = [...new Set((quotations || []).map(q => q.account_id).filter(Boolean))] as string[];
+      let newInstallments: any[] = [];
+      if (missingQts.length > 0) {
+        const toInsert: any[] = [];
+        for (const qt of missingQts) {
+          const totalPrice = qt.price || 0;
+          const condition = qt.payment_condition || 'CASH';
+          const today = new Date();
+
+          if (condition === 'INSTALLMENT') {
+            const splits = [0.5, 0.25, 0.25];
+            splits.forEach((pct, i) => {
+              const dueDate = new Date(today);
+              dueDate.setDate(dueDate.getDate() + i * 30);
+              toInsert.push({
+                quotation_id: qt.id,
+                installment_number: i + 1,
+                amount: Math.round(totalPrice * pct),
+                due_date: dueDate.toISOString().split('T')[0],
+              });
+            });
+          } else {
+            toInsert.push({
+              quotation_id: qt.id,
+              installment_number: 1,
+              amount: totalPrice,
+              due_date: today.toISOString().split('T')[0],
+            });
+          }
+        }
+        if (toInsert.length > 0) {
+          const { data: created } = await supabase
+            .from('payment_installments')
+            .insert(toInsert)
+            .select();
+          newInstallments = created || [];
+        }
+      }
+
+      const allInstallments = [...(installments || []), ...newInstallments];
+
+      // 4) Fetch related accounts
+      const accountIds = [...new Set(signedQts.map(q => q.account_id).filter(Boolean))] as string[];
       const { data: accounts } = await supabase
         .from('accounts')
         .select('id, clinic_name')
-        .in('id', accountIds);
+        .in('id', accountIds.length > 0 ? accountIds : ['__none__']);
 
-      const qtMap = Object.fromEntries((quotations || []).map(q => [q.id, q]));
+      const qtMap = Object.fromEntries(signedQts.map(q => [q.id, q]));
       const accMap = Object.fromEntries((accounts || []).map(a => [a.id, a]));
 
-      return installments.map((r: any) => {
+      return allInstallments.map((r: any) => {
         const qt = qtMap[r.quotation_id];
         const acc = qt?.account_id ? accMap[qt.account_id] : null;
         return {
