@@ -6,6 +6,14 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type",
 };
 
+const htmlHeaders = {
+  ...corsHeaders,
+  "Content-Type": "text/html; charset=utf-8",
+  "Content-Security-Policy":
+    "default-src 'self' 'unsafe-inline' 'unsafe-eval' https: data:; img-src * data:; font-src * data:;",
+  "X-Frame-Options": "SAMEORIGIN",
+};
+
 const SUPABASE_URL = "https://szrjikvwdygyyxfztfvn.supabase.co";
 
 const SELLER = {
