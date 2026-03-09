@@ -1,6 +1,6 @@
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { ArrowLeft, FileText, Building2, Package, CreditCard, Printer, Send, CheckCircle, XCircle, Edit3, AlertTriangle } from 'lucide-react';
+import { ArrowLeft, FileText, Building2, Package, CreditCard, Printer, Send, CheckCircle, XCircle, Edit3, AlertTriangle, Link2, Copy, ExternalLink } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import StatusBadge from '@/components/ui/StatusBadge';
@@ -19,6 +19,7 @@ const APPROVAL_FLOW = [
   { key: 'DRAFT', label: 'แบบร่าง' },
   { key: 'SUBMITTED', label: 'รออนุมัติ' },
   { key: 'APPROVED', label: 'อนุมัติแล้ว' },
+  { key: 'CUSTOMER_SIGNED', label: 'ลูกค้าเซ็นแล้ว' },
 ];
 
 function SignatureCanvas({ onSignatureChange }: { onSignatureChange: (dataUrl: string | null) => void }) {
@@ -136,6 +137,7 @@ export default function QuotationDetailPage() {
   const [signatureData, setSignatureData] = useState<string | null>(null);
 
   const isAdmin = currentUser?.role === 'ADMIN';
+  const prevCustomerSigRef = useRef<string | null>(undefined as any);
 
   async function handlePrintPDF() {
     if (!id) return;
@@ -293,6 +295,17 @@ export default function QuotationDetailPage() {
     }
   }
 
+  // When customer signs (detected by refetch), auto-regenerate PDF with both signatures
+  useEffect(() => {
+    if (!qt) return;
+    const customerSig = (qt as any).customer_signature;
+    if (customerSig && prevCustomerSigRef.current !== customerSig && prevCustomerSigRef.current !== undefined) {
+      savePdfToStorage();
+      toast.success('ลูกค้าเซ็นใบเสนอราคาแล้ว กำลังสร้าง PDF ใหม่...');
+    }
+    prevCustomerSigRef.current = customerSig || null;
+  }, [(qt as any)?.customer_signature]);
+
   async function handleReject() {
     if (!rejectReason.trim()) {
       toast.error('กรุณาระบุเหตุผลที่ไม่อนุมัติ');
@@ -319,6 +332,9 @@ export default function QuotationDetailPage() {
       approved_name: null,
       approved_position: null,
       approved_signature: null,
+      customer_signature: null,
+      customer_signed_at: null,
+      customer_signer_name: null,
     } as any);
     if (ok) toast.success('เปลี่ยนสถานะเป็นแบบร่างเพื่อแก้ไข');
   }
@@ -342,7 +358,8 @@ export default function QuotationDetailPage() {
 
   const account = qt.accounts as any;
   const paymentLabel: Record<string, string> = { CASH: 'เงินสด', INSTALLMENT: 'ผ่อนชำระ', LEASING: 'ลีสซิ่ง' };
-  const status = (qt.approval_status || 'DRAFT') as string;
+  const status = (qt.customer_signature ? 'CUSTOMER_SIGNED' : qt.approval_status || 'DRAFT') as string;
+  const signingUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/customer-sign-quotation?id=${id}`;
 
   return (
     <div className="space-y-6 animate-fade-in max-w-4xl">
@@ -359,7 +376,7 @@ export default function QuotationDetailPage() {
           <p className="text-sm text-muted-foreground">สร้างเมื่อ {qt.created_at ? new Date(qt.created_at).toLocaleDateString('th-TH') : '-'}</p>
         </div>
         <div className="flex items-center gap-2">
-          {status === 'APPROVED' && (
+          {(status === 'APPROVED' || status === 'CUSTOMER_SIGNED') && (
             <Button variant="outline" size="sm" className="gap-1.5" onClick={handlePrintPDF} disabled={printingPDF}>
               <Printer size={14} /> {printingPDF ? 'กำลังสร้าง...' : 'พิมพ์ PDF'}
             </Button>
@@ -377,6 +394,7 @@ export default function QuotationDetailPage() {
               const isCurrent = status === s.key || (status === 'REJECTED' && s.key === 'SUBMITTED');
               const isDone = (status === 'SUBMITTED' && i === 0) ||
                              (status === 'APPROVED' && i <= 1) ||
+                             (status === 'CUSTOMER_SIGNED' && i <= 2) ||
                              (status === 'REJECTED' && i === 0);
               const isRejected = status === 'REJECTED' && s.key === 'APPROVED';
               return (
@@ -392,7 +410,7 @@ export default function QuotationDetailPage() {
                       {isDone ? '✓' : isRejected ? '✕' : i + 1}
                     </div>
                     <span className={cn(
-                      'text-xs mt-1.5 font-medium',
+                      'text-xs mt-1.5 font-medium text-center',
                       isDone || isCurrent ? 'text-primary' : isRejected ? 'text-destructive' : 'text-muted-foreground'
                     )}>
                       {isRejected ? 'ไม่อนุมัติ' : s.label}
@@ -418,7 +436,7 @@ export default function QuotationDetailPage() {
           )}
 
           {/* Approved info */}
-          {status === 'APPROVED' && (
+          {(status === 'APPROVED' || status === 'CUSTOMER_SIGNED') && (
             <div className="flex items-start gap-2 p-3 rounded-lg bg-green-500/10 border border-green-500/20 mb-4">
               <CheckCircle size={16} className="text-green-600 shrink-0 mt-0.5" />
               <div>
@@ -428,6 +446,55 @@ export default function QuotationDetailPage() {
                   {(qt as any).approved_position && ` (${(qt as any).approved_position})`}
                   {(qt as any).approved_at && ` เมื่อ ${new Date((qt as any).approved_at).toLocaleDateString('th-TH')}`}
                 </p>
+              </div>
+            </div>
+          )}
+
+          {/* Customer signed info */}
+          {status === 'CUSTOMER_SIGNED' && (
+            <div className="flex items-start gap-2 p-3 rounded-lg bg-blue-500/10 border border-blue-500/20 mb-4">
+              <CheckCircle size={16} className="text-blue-600 shrink-0 mt-0.5" />
+              <div>
+                <p className="text-sm font-medium text-blue-700">ลูกค้าเซ็นแล้ว</p>
+                <p className="text-sm text-blue-600">
+                  โดย {(qt as any).customer_signer_name || '-'}
+                  {(qt as any).customer_signed_at && ` เมื่อ ${new Date((qt as any).customer_signed_at).toLocaleDateString('th-TH')}`}
+                </p>
+              </div>
+            </div>
+          )}
+
+          {/* Customer signing link - shown when approved but not yet signed by customer */}
+          {status === 'APPROVED' && (
+            <div className="p-3 rounded-lg bg-amber-50 border border-amber-200 mb-4">
+              <p className="text-sm font-medium text-amber-800 mb-2 flex items-center gap-1.5">
+                <Link2 size={14} /> ส่งลิงก์ให้ลูกค้าเซ็นใบเสนอราคา
+              </p>
+              <div className="flex items-center gap-2">
+                <Input
+                  readOnly
+                  value={signingUrl}
+                  className="text-xs bg-white flex-1"
+                />
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="gap-1 shrink-0"
+                  onClick={() => {
+                    navigator.clipboard.writeText(signingUrl);
+                    toast.success('คัดลอกลิงก์แล้ว');
+                  }}
+                >
+                  <Copy size={14} /> คัดลอก
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="gap-1 shrink-0"
+                  onClick={() => window.open(signingUrl, '_blank')}
+                >
+                  <ExternalLink size={14} /> เปิด
+                </Button>
               </div>
             </div>
           )}
@@ -455,9 +522,23 @@ export default function QuotationDetailPage() {
               <p className="text-sm text-muted-foreground">⏳ รอการอนุมัติจากผู้จัดการ</p>
             )}
 
-            {status === 'APPROVED' && isAdmin && (
+            {(status === 'APPROVED' || status === 'CUSTOMER_SIGNED') && isAdmin && (
               <Button size="sm" variant="outline" className="gap-1.5" onClick={handleRevise} disabled={updating}>
                 <Edit3 size={14} /> แก้ไข (กลับเป็นแบบร่าง)
+              </Button>
+            )}
+
+            {status === 'APPROVED' && (
+              <Button
+                size="sm"
+                variant="outline"
+                className="gap-1.5"
+                onClick={() => {
+                  queryClient.invalidateQueries({ queryKey: ['quotation', id] });
+                  toast.info('รีเฟรชข้อมูลแล้ว');
+                }}
+              >
+                🔄 ตรวจสอบสถานะลูกค้าเซ็น
               </Button>
             )}
 

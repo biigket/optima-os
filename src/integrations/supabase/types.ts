@@ -695,6 +695,9 @@ export type Database = {
           approved_position: string | null
           approved_signature: string | null
           created_at: string
+          customer_signature: string | null
+          customer_signed_at: string | null
+          customer_signer_name: string | null
           id: string
           invoice_sent: boolean | null
           leasing_doc: string | null
@@ -718,6 +721,9 @@ export type Database = {
           approved_position?: string | null
           approved_signature?: string | null
           created_at?: string
+          customer_signature?: string | null
+          customer_signed_at?: string | null
+          customer_signer_name?: string | null
           id?: string
           invoice_sent?: boolean | null
           leasing_doc?: string | null
@@ -741,6 +747,9 @@ export type Database = {
           approved_position?: string | null
           approved_signature?: string | null
           created_at?: string
+          customer_signature?: string | null
+          customer_signed_at?: string | null
+          customer_signer_name?: string | null
           id?: string
           invoice_sent?: boolean | null
           leasing_doc?: string | null

@@ -1,1 +1,4 @@
 project_id = "szrjikvwdygyyxfztfvn"
+
+[functions.customer-sign-quotation]
+verify_jwt = false

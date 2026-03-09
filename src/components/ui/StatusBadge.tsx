@@ -43,6 +43,7 @@ const colorMap: Record<string, string> = {
   SUBMITTED: 'bg-accent/15 text-accent',
   APPROVED: 'bg-success/15 text-success',
   REJECTED: 'bg-destructive/15 text-destructive',
+  CUSTOMER_SIGNED: 'bg-blue-500/15 text-blue-600',
   // Inventory
   AVAILABLE: 'bg-success/15 text-success',
   OUT: 'bg-destructive/15 text-destructive',

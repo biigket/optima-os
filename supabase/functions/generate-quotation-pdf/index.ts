@@ -250,13 +250,15 @@ function generateHTML(qt: any, account: any, contacts: any[]): string {
     <div class="notes-content">${qt.payment_condition ? paymentLabels[qt.payment_condition] || qt.payment_condition : ""}${qt.notes ? "\n" + qt.notes : ""}</div>
   </div>` : ""}
 
-  <!-- Signatures -->
+   <!-- Signatures -->
   <div class="signatures">
     <div class="sig-box">
       <div style="font-size:12px;color:#555;">ในนาม ${contactName}</div>
+      ${qt.customer_signature ? `<img src="${qt.customer_signature}" class="sig-img" alt="customer signature" />` : '<div style="height:60px"></div>'}
+      ${qt.customer_signer_name ? `<div class="sig-name">${qt.customer_signer_name}</div>` : ''}
       <div class="sig-line">
         <div class="sig-label">ผู้สั่งซื้อสินค้า</div>
-        <div class="sig-sub">วันที่</div>
+        <div class="sig-sub">วันที่ ${qt.customer_signed_at ? fmtDate(qt.customer_signed_at) : '_______________'}</div>
       </div>
     </div>
     <div class="stamp-area"></div>
