@@ -262,9 +262,12 @@ function generateHTML(qt: any, account: any, contacts: any[]): string {
     <div class="stamp-area"></div>
     <div class="sig-box">
       <div style="font-size:12px;color:#555;">ในนาม Optima Aesthetic Co.,Ltd.</div>
+      ${qt.approved_signature ? `<img src="${qt.approved_signature}" class="sig-img" alt="signature" />` : '<div style="height:60px"></div>'}
+      ${qt.approved_name ? `<div class="sig-name">${qt.approved_name}</div>` : ''}
+      ${qt.approved_position ? `<div class="sig-position">${qt.approved_position}</div>` : ''}
       <div class="sig-line">
         <div class="sig-label">ผู้อนุมัติ</div>
-        <div class="sig-sub">วันที่</div>
+        <div class="sig-sub">วันที่ ${qt.approved_at ? fmtDate(qt.approved_at) : '_______________'}</div>
       </div>
     </div>
   </div>
