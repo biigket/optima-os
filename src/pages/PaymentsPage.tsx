@@ -6,10 +6,12 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import StatusBadge from '@/components/ui/StatusBadge';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { supabase } from '@/integrations/supabase/client';
 import PaymentKpiCards from '@/components/payments/PaymentKpiCards';
 import UploadSlipDialog from '@/components/payments/UploadSlipDialog';
 import VerifySlipDialog from '@/components/payments/VerifySlipDialog';
+import { getPaymentConditionLabel } from '@/components/quotations/PaymentConditionSelector';
 import { differenceInDays } from 'date-fns';
 
 type SlipStatus = 'NO_SLIP' | 'PENDING_VERIFY' | 'VERIFIED' | 'REJECTED';
@@ -27,11 +29,33 @@ interface InstallmentRow {
   payment_date: string | null;
   clinic_name?: string;
   qt_number?: string;
+  payment_condition?: string;
+}
+
+const CONDITION_TABS = [
+  { value: 'ALL', label: 'ทั้งหมด' },
+  { value: 'CASH', label: 'เงินสด' },
+  { value: 'CREDIT_CARD', label: 'บัตรเครดิต' },
+  { value: 'CREDIT', label: 'เครดิต' },
+  { value: 'LEASING', label: 'ลีสซิ่ง' },
+  { value: 'POST_CHECK', label: 'โพสต์เช็ค' },
+  { value: 'DIRECT_INSTALLMENT', label: 'ผ่อนตรง' },
+];
+
+function getConditionGroup(condition?: string | null): string {
+  if (!condition) return 'CASH';
+  if (condition.startsWith('CREDIT_CARD')) return 'CREDIT_CARD';
+  if (condition.startsWith('CREDIT_')) return 'CREDIT';
+  if (condition.startsWith('LEASING')) return 'LEASING';
+  if (condition.startsWith('POST_CHECK')) return 'POST_CHECK';
+  if (condition.startsWith('DIRECT_INSTALLMENT')) return 'DIRECT_INSTALLMENT';
+  return 'CASH';
 }
 
 export default function PaymentsPage() {
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('ALL');
+  const [conditionTab, setConditionTab] = useState('ALL');
   const [uploadTarget, setUploadTarget] = useState<InstallmentRow | null>(null);
   const [verifyTarget, setVerifyTarget] = useState<InstallmentRow | null>(null);
   const queryClient = useQueryClient();
@@ -39,7 +63,6 @@ export default function PaymentsPage() {
   const { data: rows = [], isLoading } = useQuery({
     queryKey: ['payment-installments'],
     queryFn: async () => {
-      // 1) Fetch all CUSTOMER_SIGNED quotations
       const { data: signedQts, error: qtErr } = await supabase
         .from('quotations')
         .select('id, qt_number, account_id, price, payment_condition, payment_status')
@@ -50,7 +73,6 @@ export default function PaymentsPage() {
 
       const qtIds = signedQts.map(q => q.id);
 
-      // 2) Fetch existing installments for those quotations
       const { data: installments, error: instErr } = await supabase
         .from('payment_installments')
         .select('*')
@@ -58,7 +80,6 @@ export default function PaymentsPage() {
         .order('due_date', { ascending: true });
       if (instErr) throw instErr;
 
-      // 3) Auto-create installments for signed QTs that don't have any
       const existingQtIds = new Set((installments || []).map(i => i.quotation_id));
       const missingQts = signedQts.filter(q => !existingQtIds.has(q.id));
 
@@ -102,7 +123,6 @@ export default function PaymentsPage() {
 
       const allInstallments = [...(installments || []), ...newInstallments];
 
-      // 4) Fetch related accounts
       const accountIds = [...new Set(signedQts.map(q => q.account_id).filter(Boolean))] as string[];
       const { data: accounts } = await supabase
         .from('accounts')
@@ -120,6 +140,7 @@ export default function PaymentsPage() {
           clinic_name: acc?.clinic_name || '',
           qt_number: qt?.qt_number || '',
           slip_status: r.slip_status || 'NO_SLIP',
+          payment_condition: qt?.payment_condition || null,
         } as InstallmentRow;
       });
     },
@@ -149,9 +170,19 @@ export default function PaymentsPage() {
         (r.clinic_name || '').toLowerCase().includes(search.toLowerCase()) ||
         (r.qt_number || '').toLowerCase().includes(search.toLowerCase());
       const matchStatus = statusFilter === 'ALL' || r.slip_status === statusFilter;
-      return matchSearch && matchStatus;
+      const matchCondition = conditionTab === 'ALL' || getConditionGroup(r.payment_condition) === conditionTab;
+      return matchSearch && matchStatus && matchCondition;
     });
-  }, [rows, search, statusFilter]);
+  }, [rows, search, statusFilter, conditionTab]);
+
+  const tabCounts = useMemo(() => {
+    const counts: Record<string, number> = { ALL: rows.length };
+    rows.forEach(r => {
+      const group = getConditionGroup(r.payment_condition);
+      counts[group] = (counts[group] || 0) + 1;
+    });
+    return counts;
+  }, [rows]);
 
   const getOverdueLabel = (row: InstallmentRow) => {
     if (!row.due_date || row.slip_status === 'VERIFIED' || row.paid_date) return null;
@@ -171,6 +202,22 @@ export default function PaymentsPage() {
       </div>
 
       <PaymentKpiCards data={kpi} />
+
+      {/* Condition Tabs */}
+      <Tabs value={conditionTab} onValueChange={setConditionTab}>
+        <TabsList className="flex flex-wrap h-auto gap-1">
+          {CONDITION_TABS.map(tab => (
+            <TabsTrigger key={tab.value} value={tab.value} className="text-xs">
+              {tab.label}
+              {(tabCounts[tab.value] || 0) > 0 && (
+                <span className="ml-1.5 text-[10px] bg-muted-foreground/20 rounded-full px-1.5 py-0.5">
+                  {tabCounts[tab.value] || 0}
+                </span>
+              )}
+            </TabsTrigger>
+          ))}
+        </TabsList>
+      </Tabs>
 
       {/* Filters */}
       <div className="flex flex-col sm:flex-row gap-3">
@@ -200,6 +247,7 @@ export default function PaymentsPage() {
             <TableRow>
               <TableHead>QT#</TableHead>
               <TableHead>ลูกค้า</TableHead>
+              <TableHead>เงื่อนไข</TableHead>
               <TableHead className="text-center">งวดที่</TableHead>
               <TableHead className="text-right">ยอด</TableHead>
               <TableHead>วันครบกำหนด</TableHead>
@@ -211,9 +259,9 @@ export default function PaymentsPage() {
           </TableHeader>
           <TableBody>
             {isLoading ? (
-              <TableRow><TableCell colSpan={9} className="text-center py-8 text-muted-foreground">กำลังโหลด...</TableCell></TableRow>
+              <TableRow><TableCell colSpan={10} className="text-center py-8 text-muted-foreground">กำลังโหลด...</TableCell></TableRow>
             ) : filtered.length === 0 ? (
-              <TableRow><TableCell colSpan={9} className="text-center py-8 text-muted-foreground">ไม่พบรายการ</TableCell></TableRow>
+              <TableRow><TableCell colSpan={10} className="text-center py-8 text-muted-foreground">ไม่พบรายการ</TableCell></TableRow>
             ) : (
               filtered.map(row => {
                 const overdueLabel = getOverdueLabel(row);
@@ -221,6 +269,9 @@ export default function PaymentsPage() {
                   <TableRow key={row.id}>
                     <TableCell className="font-medium text-xs">{row.qt_number}</TableCell>
                     <TableCell className="max-w-[160px] truncate">{row.clinic_name}</TableCell>
+                    <TableCell className="text-xs text-muted-foreground max-w-[120px] truncate">
+                      {getPaymentConditionLabel(row.payment_condition)}
+                    </TableCell>
                     <TableCell className="text-center">{row.installment_number}</TableCell>
                     <TableCell className="text-right font-medium">฿{(row.amount || 0).toLocaleString()}</TableCell>
                     <TableCell className="text-muted-foreground text-sm">{row.due_date || '-'}</TableCell>
