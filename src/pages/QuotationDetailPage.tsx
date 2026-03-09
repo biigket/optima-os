@@ -306,6 +306,7 @@ export default function QuotationDetailPage() {
     prevCustomerSigRef.current = customerSig || null;
   }, [(qt as any)?.customer_signature]);
 
+  async function handleReject() {
     if (!rejectReason.trim()) {
       toast.error('กรุณาระบุเหตุผลที่ไม่อนุมัติ');
       return;
