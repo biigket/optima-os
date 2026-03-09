@@ -716,6 +716,9 @@ export type Database = {
           customer_signature: string | null
           customer_signed_at: string | null
           customer_signer_name: string | null
+          deposit_paid_date: string | null
+          deposit_slip: string | null
+          deposit_slip_status: string | null
           deposit_type: string | null
           deposit_value: number | null
           id: string
@@ -744,6 +747,9 @@ export type Database = {
           customer_signature?: string | null
           customer_signed_at?: string | null
           customer_signer_name?: string | null
+          deposit_paid_date?: string | null
+          deposit_slip?: string | null
+          deposit_slip_status?: string | null
           deposit_type?: string | null
           deposit_value?: number | null
           id?: string
@@ -772,6 +778,9 @@ export type Database = {
           customer_signature?: string | null
           customer_signed_at?: string | null
           customer_signer_name?: string | null
+          deposit_paid_date?: string | null
+          deposit_slip?: string | null
+          deposit_slip_status?: string | null
           deposit_type?: string | null
           deposit_value?: number | null
           id?: string

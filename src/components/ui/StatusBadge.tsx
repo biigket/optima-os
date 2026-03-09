@@ -37,6 +37,7 @@ const colorMap: Record<string, string> = {
   DELIVERED: 'bg-success/15 text-success',
   // Payment
   UNPAID: 'bg-destructive/15 text-destructive',
+  DEPOSIT_PAID: 'bg-accent/15 text-accent',
   PARTIAL: 'bg-warning/15 text-warning',
   PAID: 'bg-success/15 text-success',
   // Approval
