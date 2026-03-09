@@ -117,6 +117,20 @@ export default function CustomerRegisterPage() {
               <Label htmlFor="email">อีเมล</Label>
               <Input id="email" name="email" type="email" value={form.email} onChange={handleChange} placeholder="example@email.com" />
             </div>
+            <div className="space-y-1.5">
+              <Label>เครื่องที่มีอยู่แล้ว</Label>
+              <Input
+                value={form.current_devices}
+                onChange={(e) => setForm(prev => ({ ...prev, current_devices: e.target.value }))}
+                placeholder="พิมพ์ชื่อเครื่องที่ลูกค้ามีอยู่..."
+              />
+              <QuickNoteButtons
+                value={form.current_devices}
+                onChange={(v) => setForm(prev => ({ ...prev, current_devices: v }))}
+                storageKey="register_device_tags"
+                defaults={DEVICE_DEFAULTS}
+              />
+            </div>
             <Button type="submit" className="w-full" disabled={loading}>
               {loading ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> กำลังบันทึก...</> : "ลงทะเบียน"}
             </Button>
