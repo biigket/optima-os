@@ -73,6 +73,7 @@ const navGroups = [
     phase: 1,
     items: [
       { to: '/quotations', icon: FileSpreadsheet, label: 'ใบเสนอราคา' },
+      { to: '/payments', icon: CreditCard, label: 'การชำระเงิน' },
       { to: '/sales-orders', icon: ShoppingCart, label: 'ใบสั่งขาย' },
       { to: '/inventory', icon: Warehouse, label: 'คลังสินค้า' },
       { to: '/invoices', icon: Receipt, label: 'ใบแจ้งหนี้' },

@@ -69,6 +69,7 @@ function AuthedAppRoutes() {
         <Route path="/sales-orders" element={<SalesOrdersPage />} />
         <Route path="/inventory" element={<InventoryPage />} />
         <Route path="/invoices" element={<InvoicesPage />} />
+        <Route path="/payments" element={<PaymentsPage />} />
         {phase2Routes.map((path) => (
           <Route key={path} path={path} element={<Phase2Placeholder />} />
         ))}
