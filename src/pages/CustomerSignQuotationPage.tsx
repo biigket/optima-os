@@ -139,14 +139,18 @@ export default function CustomerSignQuotationPage() {
       toast.success("ลงนามสำเร็จ กำลังสร้างไฟล์ PDF...");
 
       await refetch();
-      const url = await generateAndUploadPdf();
 
-      if (url) {
-        toast.success("สร้างไฟล์ PDF สำเร็จ");
-        window.open(url, "_blank");
-      } else {
-        toast.success("ลงนามสำเร็จ");
+      // Upload PDF to storage (best-effort, for record keeping)
+      try {
+        await generateAndUploadPdf();
+      } catch {
+        // ignore upload errors
       }
+
+      toast.success("ลงนามสำเร็จ");
+
+      // Open the PDF view using generate-quotation-pdf (same as พิมพ์ PDF)
+      await handleViewPdf();
     } catch (err: any) {
       toast.error("เกิดข้อผิดพลาด: " + (err?.message || ""));
     } finally {
