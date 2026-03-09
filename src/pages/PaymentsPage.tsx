@@ -407,7 +407,16 @@ export default function PaymentsPage() {
                 const overdueLabel = getOverdueLabel(row);
                 return (
                   <TableRow key={row.id}>
-                    <TableCell className="font-medium text-xs">{row.qt_number}</TableCell>
+                    <TableCell className="font-medium text-xs">
+                      <div className="flex items-center gap-1.5">
+                        <span>{row.qt_number}</span>
+                        {row.qt_attachment && (
+                          <Button size="sm" variant="ghost" className="gap-1 text-xs h-6 px-1.5 text-primary" onClick={() => window.open(row.qt_attachment!, '_blank')}>
+                            <FileText size={12} /> ดูใบเสนอราคา
+                          </Button>
+                        )}
+                      </div>
+                    </TableCell>
                     <TableCell className="max-w-[160px] truncate">{row.clinic_name}</TableCell>
                     <TableCell className="text-xs text-muted-foreground max-w-[120px] truncate">
                       {getPaymentConditionLabel(row.payment_condition)}
