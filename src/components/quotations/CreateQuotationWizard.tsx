@@ -697,7 +697,10 @@ export default function CreateQuotationWizard({ open, onOpenChange, onCreated }:
             )}
 
             {saleAssigned && (
-              <div className="text-xs text-muted-foreground">เซลล์: {saleAssigned} | เงื่อนไขชำระ: {paymentCondition === 'CASH' ? 'เงินสด' : paymentCondition === 'INSTALLMENT' ? 'ผ่อนชำระ' : 'ลีสซิ่ง'}</div>
+              <div className="text-xs text-muted-foreground">
+                เซลล์: {saleAssigned} | เงื่อนไขชำระ: {getPaymentConditionLabel(paymentCondition)}
+                {depositType !== 'NONE' && ` | มัดจำ: ${depositType === 'PERCENT' ? `${depositValue}%` : `฿${Number(depositValue || 0).toLocaleString()}`}`}
+              </div>
             )}
           </div>
         )}
