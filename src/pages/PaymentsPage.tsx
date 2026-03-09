@@ -54,7 +54,6 @@ function getConditionGroup(condition?: string | null): string {
   if (condition.startsWith('CREDIT_')) return 'CREDIT';
   if (condition.startsWith('LEASING')) return 'LEASING';
   if (condition.startsWith('POST_CHECK')) return 'POST_CHECK';
-  if (condition.startsWith('DIRECT_INSTALLMENT')) return 'DIRECT_INSTALLMENT';
   return 'CASH';
 }
 
