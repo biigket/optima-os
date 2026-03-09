@@ -505,7 +505,17 @@ export default function QuotationDetailPage() {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
-            <InfoRow label="เงื่อนไข" value={paymentLabel[qt.payment_condition || ''] || qt.payment_condition} />
+            <InfoRow label="เงื่อนไข" value={getPaymentConditionLabel(qt.payment_condition)} />
+            {(qt as any).deposit_type && (qt as any).deposit_type !== 'NONE' && (
+              <InfoRow
+                label="มัดจำ"
+                value={
+                  (qt as any).deposit_type === 'PERCENT'
+                    ? `${(qt as any).deposit_value || 0}% (฿${((qt.price || 0) * ((qt as any).deposit_value || 0) / 100).toLocaleString()})`
+                    : `฿${((qt as any).deposit_value || 0).toLocaleString()}`
+                }
+              />
+            )}
             <div className="flex justify-between items-center">
               <span className="text-sm text-muted-foreground">สถานะชำระ</span>
               <StatusBadge status={qt.payment_status || 'UNPAID'} />

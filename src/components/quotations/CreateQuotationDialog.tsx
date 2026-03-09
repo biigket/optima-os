@@ -129,23 +129,20 @@ export default function CreateQuotationDialog({ open, onOpenChange, onCreated }:
             </Select>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-1.5">
-              <Label>ราคา (฿)</Label>
-              <Input type="number" placeholder="0" value={form.price} onChange={e => setForm(f => ({ ...f, price: e.target.value }))} />
-            </div>
-            <div className="space-y-1.5">
-              <Label>เงื่อนไขการชำระ</Label>
-              <Select value={form.payment_condition} onValueChange={v => setForm(f => ({ ...f, payment_condition: v }))}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="CASH">เงินสด</SelectItem>
-                  <SelectItem value="INSTALLMENT">ผ่อนชำระ</SelectItem>
-                  <SelectItem value="LEASING">ลีสซิ่ง</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+          <div className="space-y-1.5">
+            <Label>ราคา (฿)</Label>
+            <Input type="number" placeholder="0" value={form.price} onChange={e => setForm(f => ({ ...f, price: e.target.value }))} />
           </div>
+
+          <PaymentConditionSelector
+            paymentCondition={form.payment_condition}
+            onPaymentConditionChange={v => setForm(f => ({ ...f, payment_condition: v }))}
+            depositType={form.deposit_type}
+            depositValue={form.deposit_value}
+            onDepositTypeChange={v => setForm(f => ({ ...f, deposit_type: v }))}
+            onDepositValueChange={v => setForm(f => ({ ...f, deposit_value: v }))}
+            totalPrice={form.price ? Number(form.price) : undefined}
+          />
 
           <div className="space-y-1.5">
             <Label>เซลล์ผู้รับผิดชอบ</Label>
