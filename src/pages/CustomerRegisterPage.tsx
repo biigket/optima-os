@@ -23,6 +23,7 @@ export default function CustomerRegisterPage() {
     contact_name: "",
     phone: "",
     email: "",
+    current_devices: "",
   });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
