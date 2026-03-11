@@ -162,11 +162,32 @@ export default function CustomerCardPage() {
         if (data) setDemoReports(data);
       });
     // Approved / Customer-signed quotation docs
-    supabase.from('quotations').select('id, qt_number, qt_date, qt_attachment, product, price, approval_status, customer_signed_at, payment_status, payment_condition, sale_assigned')
+    supabase.from('quotations').select('id, qt_number, qt_date, qt_attachment, product, price, approval_status, customer_signed_at, payment_status, payment_condition, sale_assigned, deposit_value, deposit_slip_status')
       .eq('account_id', id).in('approval_status', ['APPROVED', 'CUSTOMER_SIGNED'])
       .order('qt_date', { ascending: false })
-      .then(({ data }) => {
-        if (data) setQtDocs(data as any);
+      .then(async ({ data }) => {
+        if (data) {
+          setQtDocs(data as any);
+          // Fetch all installments for these quotations
+          const qtIds = data.map(q => q.id);
+          if (qtIds.length > 0) {
+            const { data: installments } = await supabase
+              .from('payment_installments')
+              .select('quotation_id, amount, slip_status')
+              .in('quotation_id', qtIds);
+            if (installments) {
+              const grouped: Record<string, { paid: number; total: number }> = {};
+              for (const inst of installments) {
+                if (!grouped[inst.quotation_id]) grouped[inst.quotation_id] = { paid: 0, total: 0 };
+                grouped[inst.quotation_id].total += (inst.amount || 0);
+                if (inst.slip_status === 'VERIFIED') {
+                  grouped[inst.quotation_id].paid += (inst.amount || 0);
+                }
+              }
+              setInstallmentsByQt(grouped);
+            }
+          }
+        }
       });
   }, [id, opportunities]);
   const handleSubmit = async () => {
