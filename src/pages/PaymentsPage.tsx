@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useNavigate } from 'react-router-dom';
 import { Search, Upload, Eye, Filter, FileText } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -66,6 +67,7 @@ function calcDepositAmount(depositType?: string, depositValue?: number, price?: 
 }
 
 export default function PaymentsPage() {
+  const navigate = useNavigate();
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('ALL');
   const [conditionTab, setConditionTab] = useState('ALL');
@@ -406,7 +408,7 @@ export default function PaymentsPage() {
               filtered.map(row => {
                 const overdueLabel = getOverdueLabel(row);
                 return (
-                  <TableRow key={row.id}>
+                  <TableRow key={row.id} className="cursor-pointer hover:bg-muted/50" onClick={() => navigate(`/payments/${row.quotation_id}`)}>
                     <TableCell className="font-medium text-xs">
                       <div className="flex items-center gap-1.5">
                         <span>{row.qt_number}</span>
@@ -445,7 +447,7 @@ export default function PaymentsPage() {
                         </span>
                       )}
                     </TableCell>
-                    <TableCell className="text-right">
+                    <TableCell className="text-right" onClick={e => e.stopPropagation()}>
                       <div className="flex justify-end gap-1">
                         {(row.slip_status === 'NO_SLIP' || row.slip_status === 'REJECTED') && (
                           <Button size="sm" variant="outline" className="gap-1 text-xs h-7" onClick={() => setUploadTarget(row)}>
