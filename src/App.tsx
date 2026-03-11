@@ -34,6 +34,7 @@ import MockLoginPage from "@/pages/MockLoginPage";
 import CustomerRegisterPage from "@/pages/CustomerRegisterPage";
 import QRCodePage from "@/pages/QRCodePage";
 import QcStockPage from "@/pages/QcStockPage";
+import QcStockDetailPage from "@/pages/QcStockDetailPage";
 import { MockAuthProvider } from "@/hooks/useMockAuth";
 
 const queryClient = new QueryClient();
