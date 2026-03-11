@@ -43,6 +43,27 @@ const cartridgeStatusColor: Record<CartridgeStatus, string> = {
   'Support KOL': 'bg-purple-100 text-purple-800 border-purple-200',
 };
 
+const trica3dStatusColor: Record<Trica3DStatus, string> = {
+  'พร้อมขาย': 'bg-emerald-100 text-emerald-800 border-emerald-200',
+  'ติดตั้งแล้ว': 'bg-muted text-muted-foreground border-border',
+  'ติดจอง': 'bg-amber-100 text-amber-800 border-amber-200',
+  'DEMO': 'bg-blue-100 text-blue-800 border-blue-200',
+  'ยืม': 'bg-purple-100 text-purple-800 border-purple-200',
+  'เครื่องเสีย': 'bg-destructive/10 text-destructive border-destructive/20',
+};
+
+type Trica3DFilterTab = 'ALL' | Trica3DStatus;
+
+const trica3dFilterTabs: { label: string; value: Trica3DFilterTab }[] = [
+  { label: 'ทั้งหมด', value: 'ALL' },
+  { label: 'พร้อมขาย', value: 'พร้อมขาย' },
+  { label: 'ติดตั้งแล้ว', value: 'ติดตั้งแล้ว' },
+  { label: 'ติดจอง', value: 'ติดจอง' },
+  { label: 'DEMO', value: 'DEMO' },
+  { label: 'ยืม', value: 'ยืม' },
+  { label: 'เครื่องเสีย', value: 'เครื่องเสีย' },
+];
+
 export default function QcStockPage() {
   const navigate = useNavigate();
   // ND2 state
@@ -56,6 +77,12 @@ export default function QcStockPage() {
   const [cartridgeSearch, setCartridgeSearch] = useState('');
   const [cartridgeFilter, setCartridgeFilter] = useState<CartridgeFilterTab>('ALL');
   const [cartridgeFormOpen, setCartridgeFormOpen] = useState(false);
+
+  // Trica 3D state
+  const [trica3dItems, setTrica3dItems] = useState<Trica3DStockItem[]>(mockTrica3DStock);
+  const [trica3dSearch, setTrica3dSearch] = useState('');
+  const [trica3dFilter, setTrica3dFilter] = useState<Trica3DFilterTab>('ALL');
+  const [trica3dFormOpen, setTrica3dFormOpen] = useState(false);
 
   // ND2 filters
   const filtered = useMemo(() => {
