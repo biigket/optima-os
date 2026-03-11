@@ -32,8 +32,8 @@ export default function CustomerRegisterPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!form.clinic_name.trim() || !form.contact_name.trim() || !form.phone.trim()) {
-      toast({ title: "กรุณากรอกข้อมูลให้ครบ", description: "ชื่อคลินิก, ชื่อผู้ติดต่อ และเบอร์โทร เป็นข้อมูลจำเป็น", variant: "destructive" });
+    if (!form.clinic_name.trim() || !form.contact_name.trim() || !form.phone.trim() || !form.email.trim()) {
+      toast({ title: "กรุณากรอกข้อมูลให้ครบ", description: "ชื่อคลินิก, ชื่อผู้ติดต่อ, เบอร์โทร และอีเมล เป็นข้อมูลจำเป็น", variant: "destructive" });
       return;
     }
 
@@ -114,8 +114,8 @@ export default function CustomerRegisterPage() {
               <Input id="phone" name="phone" type="tel" value={form.phone} onChange={handleChange} placeholder="08x-xxx-xxxx" required />
             </div>
             <div className="space-y-1.5">
-              <Label htmlFor="email">อีเมล</Label>
-              <Input id="email" name="email" type="email" value={form.email} onChange={handleChange} placeholder="example@email.com" />
+              <Label htmlFor="email">อีเมล *</Label>
+              <Input id="email" name="email" type="email" value={form.email} onChange={handleChange} placeholder="example@email.com" required />
             </div>
             <div className="space-y-1.5">
               <Label>เครื่องที่มีอยู่แล้ว</Label>
