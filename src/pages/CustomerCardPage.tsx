@@ -268,7 +268,12 @@ export default function CustomerCardPage() {
   const activeDeals = opportunities.filter(o => !['WON', 'LOST', 'CLOSED'].includes(o.stage)).length;
   const lastVisit = visits.length > 0 ? visits[0].date : '-';
   const realRevenue = qtDocs.reduce((sum, q) => sum + (q.price || 0), 0);
-  const paidRevenue = qtDocs.filter(q => q.payment_status === 'PAID').reduce((sum, q) => sum + (q.price || 0), 0);
+  // Calculate paid from verified installments + verified deposits
+  const paidRevenue = qtDocs.reduce((sum, q) => {
+    const instPaid = installmentsByQt[q.id]?.paid || 0;
+    const depositPaid = (q.deposit_slip_status === 'VERIFIED' && q.deposit_value) ? q.deposit_value : 0;
+    return sum + instPaid + depositPaid;
+  }, 0);
   const outstandingAmount = realRevenue - paidRevenue;
 
   return (
