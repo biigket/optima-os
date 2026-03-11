@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search, Plus, ClipboardCheck, CheckCircle2, XCircle, Clock, Package, Cpu, Zap } from 'lucide-react';
+import { Search, Plus, ClipboardCheck, CheckCircle2, XCircle, Clock, Package, Cpu, Zap, MonitorSmartphone } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import StatusBadge from '@/components/ui/StatusBadge';
@@ -9,8 +9,10 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { mockND2Stock, type ND2StockItem, type QcStatus } from '@/data/qcMockData';
 import { mockCartridgeStock, type CartridgeStockItem, type CartridgeStatus } from '@/data/cartridgeMockData';
+import { mockTrica3DStock, type Trica3DStockItem, type Trica3DStatus } from '@/data/trica3dMockData';
 import ND2IntakeForm from '@/components/qc-stock/ND2IntakeForm';
 import CartridgeIntakeForm from '@/components/qc-stock/CartridgeIntakeForm';
+import Trica3DIntakeForm from '@/components/qc-stock/Trica3DIntakeForm';
 
 type FilterTab = 'ALL' | QcStatus;
 
@@ -41,6 +43,27 @@ const cartridgeStatusColor: Record<CartridgeStatus, string> = {
   'Support KOL': 'bg-purple-100 text-purple-800 border-purple-200',
 };
 
+const trica3dStatusColor: Record<Trica3DStatus, string> = {
+  'พร้อมขาย': 'bg-emerald-100 text-emerald-800 border-emerald-200',
+  'ติดตั้งแล้ว': 'bg-muted text-muted-foreground border-border',
+  'ติดจอง': 'bg-amber-100 text-amber-800 border-amber-200',
+  'DEMO': 'bg-blue-100 text-blue-800 border-blue-200',
+  'ยืม': 'bg-purple-100 text-purple-800 border-purple-200',
+  'เครื่องเสีย': 'bg-destructive/10 text-destructive border-destructive/20',
+};
+
+type Trica3DFilterTab = 'ALL' | Trica3DStatus;
+
+const trica3dFilterTabs: { label: string; value: Trica3DFilterTab }[] = [
+  { label: 'ทั้งหมด', value: 'ALL' },
+  { label: 'พร้อมขาย', value: 'พร้อมขาย' },
+  { label: 'ติดตั้งแล้ว', value: 'ติดตั้งแล้ว' },
+  { label: 'ติดจอง', value: 'ติดจอง' },
+  { label: 'DEMO', value: 'DEMO' },
+  { label: 'ยืม', value: 'ยืม' },
+  { label: 'เครื่องเสีย', value: 'เครื่องเสีย' },
+];
+
 export default function QcStockPage() {
   const navigate = useNavigate();
   // ND2 state
@@ -54,6 +77,12 @@ export default function QcStockPage() {
   const [cartridgeSearch, setCartridgeSearch] = useState('');
   const [cartridgeFilter, setCartridgeFilter] = useState<CartridgeFilterTab>('ALL');
   const [cartridgeFormOpen, setCartridgeFormOpen] = useState(false);
+
+  // Trica 3D state
+  const [trica3dItems, setTrica3dItems] = useState<Trica3DStockItem[]>(mockTrica3DStock);
+  const [trica3dSearch, setTrica3dSearch] = useState('');
+  const [trica3dFilter, setTrica3dFilter] = useState<Trica3DFilterTab>('ALL');
+  const [trica3dFormOpen, setTrica3dFormOpen] = useState(false);
 
   // ND2 filters
   const filtered = useMemo(() => {
@@ -85,12 +114,26 @@ export default function QcStockPage() {
     });
   }, [cartridgeItems, cartridgeSearch, cartridgeFilter]);
 
+  // Trica 3D filters
+  const filteredTrica3d = useMemo(() => {
+    return trica3dItems.filter(item => {
+      const matchSearch = item.serialNumber.toLowerCase().includes(trica3dSearch.toLowerCase()) ||
+        item.clinic.toLowerCase().includes(trica3dSearch.toLowerCase());
+      const matchFilter = trica3dFilter === 'ALL' || item.status === trica3dFilter;
+      return matchSearch && matchFilter;
+    });
+  }, [trica3dItems, trica3dSearch, trica3dFilter]);
+
   const handleAddItem = (item: ND2StockItem) => {
     setItems(prev => [item, ...prev]);
   };
 
   const handleAddCartridge = (item: CartridgeStockItem) => {
     setCartridgeItems(prev => [item, ...prev]);
+  };
+
+  const handleAddTrica3d = (item: Trica3DStockItem) => {
+    setTrica3dItems(prev => [item, ...prev]);
   };
 
   const kpis = [
@@ -114,6 +157,10 @@ export default function QcStockPage() {
           <TabsTrigger value="nd2" className="gap-1.5">
             <Cpu size={14} />
             เครื่อง ND2
+          </TabsTrigger>
+          <TabsTrigger value="trica3d" className="gap-1.5">
+            <MonitorSmartphone size={14} />
+            เครื่อง Trica 3D
           </TabsTrigger>
           <TabsTrigger value="cartridge" className="gap-1.5">
             <Zap size={14} />
@@ -226,6 +273,80 @@ export default function QcStockPage() {
           </div>
         </TabsContent>
 
+        {/* ==================== Trica 3D Tab ==================== */}
+        <TabsContent value="trica3d" className="space-y-4">
+          <div className="flex justify-end">
+            <Button onClick={() => setTrica3dFormOpen(true)} className="gap-2">
+              <Plus size={16} />
+              รับ Trica 3D เข้า Stock
+            </Button>
+          </div>
+
+          {/* Filters */}
+          <div className="flex flex-wrap items-center gap-3">
+            <div className="relative max-w-sm flex-1">
+              <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+              <Input placeholder="ค้นหา S/N, คลินิก..." value={trica3dSearch} onChange={e => setTrica3dSearch(e.target.value)} className="pl-9" />
+            </div>
+            <div className="flex gap-1 flex-wrap">
+              {trica3dFilterTabs.map(tab => (
+                <Button
+                  key={tab.value}
+                  variant={trica3dFilter === tab.value ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setTrica3dFilter(tab.value)}
+                >
+                  {tab.label}
+                </Button>
+              ))}
+            </div>
+          </div>
+
+          {/* Table */}
+          <div className="rounded-lg border bg-card">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>S/N Trica</TableHead>
+                  <TableHead>Clinic</TableHead>
+                  <TableHead>STATUS</TableHead>
+                  <TableHead>วันรับเข้า Stock</TableHead>
+                  <TableHead>วันที่ติดตั้ง</TableHead>
+                  <TableHead>สาเหตุเสีย</TableHead>
+                  <TableHead>หมายเหตุ</TableHead>
+                  <TableHead>เก็บที่</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filteredTrica3d.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={8} className="text-center text-muted-foreground py-12">
+                      ยังไม่มีข้อมูล Trica 3D — กด "รับ Trica 3D เข้า Stock" เพื่อเพิ่ม
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  filteredTrica3d.map(item => (
+                    <TableRow key={item.id} className="cursor-pointer hover:bg-muted/50">
+                      <TableCell className="font-mono font-medium text-foreground text-xs">{item.serialNumber}</TableCell>
+                      <TableCell className="text-sm">{item.clinic || '—'}</TableCell>
+                      <TableCell>
+                        <span className={`inline-flex items-center rounded-full border px-2 py-0.5 text-xs font-medium ${trica3dStatusColor[item.status] || 'bg-muted text-muted-foreground'}`}>
+                          {item.status}
+                        </span>
+                      </TableCell>
+                      <TableCell className="text-sm text-muted-foreground">{item.receivedDate || '—'}</TableCell>
+                      <TableCell className="text-sm text-muted-foreground">{item.installDate || '—'}</TableCell>
+                      <TableCell className="text-sm text-muted-foreground max-w-[180px] truncate">{item.failReason || '—'}</TableCell>
+                      <TableCell className="text-sm text-muted-foreground max-w-[200px] truncate">{item.notes || '—'}</TableCell>
+                      <TableCell className="text-sm text-muted-foreground">{item.storageLocation || '—'}</TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          </div>
+        </TabsContent>
+
         {/* ==================== Cartridge Tab ==================== */}
         <TabsContent value="cartridge" className="space-y-4">
           <div className="flex justify-end">
@@ -307,6 +428,7 @@ export default function QcStockPage() {
 
       <ND2IntakeForm open={formOpen} onOpenChange={setFormOpen} onSubmit={handleAddItem} />
       <CartridgeIntakeForm open={cartridgeFormOpen} onOpenChange={setCartridgeFormOpen} onSubmit={handleAddCartridge} />
+      <Trica3DIntakeForm open={trica3dFormOpen} onOpenChange={setTrica3dFormOpen} onSubmit={handleAddTrica3d} />
     </div>
   );
 }
