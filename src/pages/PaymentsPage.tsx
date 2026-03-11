@@ -179,11 +179,11 @@ export default function PaymentsPage() {
               }
             }
           } else {
-            // งวดเดียว
+            // งวดเดียว — หักมัดจำออกด้วย
             toInsert.push({
               quotation_id: qt.id,
               installment_number: 1,
-              amount: totalPrice,
+              amount: totalPrice - depositAmount,
               due_date: today.toISOString().split('T')[0],
             });
           }
