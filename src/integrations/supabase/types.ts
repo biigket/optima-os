@@ -265,6 +265,27 @@ export type Database = {
           },
         ]
       }
+      document_running_numbers: {
+        Row: {
+          doc_type: string
+          id: string
+          last_number: number
+          year_month: string
+        }
+        Insert: {
+          doc_type: string
+          id?: string
+          last_number?: number
+          year_month: string
+        }
+        Update: {
+          doc_type?: string
+          id?: string
+          last_number?: number
+          year_month?: string
+        }
+        Relationships: []
+      }
       installations: {
         Row: {
           account_id: string | null
@@ -712,15 +733,18 @@ export type Database = {
           approved_name: string | null
           approved_position: string | null
           approved_signature: string | null
+          billing_note_number: string | null
           created_at: string
           customer_signature: string | null
           customer_signed_at: string | null
           customer_signer_name: string | null
+          delivery_note_number: string | null
           deposit_paid_date: string | null
           deposit_slip: string | null
           deposit_slip_status: string | null
           deposit_type: string | null
           deposit_value: number | null
+          docs_generated_at: string | null
           has_installments: boolean | null
           id: string
           installment_count: number | null
@@ -737,6 +761,7 @@ export type Database = {
           reject_reason: string | null
           sale_assigned: string | null
           submitted_at: string | null
+          tax_invoice_number: string | null
         }
         Insert: {
           account_id?: string | null
@@ -746,15 +771,18 @@ export type Database = {
           approved_name?: string | null
           approved_position?: string | null
           approved_signature?: string | null
+          billing_note_number?: string | null
           created_at?: string
           customer_signature?: string | null
           customer_signed_at?: string | null
           customer_signer_name?: string | null
+          delivery_note_number?: string | null
           deposit_paid_date?: string | null
           deposit_slip?: string | null
           deposit_slip_status?: string | null
           deposit_type?: string | null
           deposit_value?: number | null
+          docs_generated_at?: string | null
           has_installments?: boolean | null
           id?: string
           installment_count?: number | null
@@ -771,6 +799,7 @@ export type Database = {
           reject_reason?: string | null
           sale_assigned?: string | null
           submitted_at?: string | null
+          tax_invoice_number?: string | null
         }
         Update: {
           account_id?: string | null
@@ -780,15 +809,18 @@ export type Database = {
           approved_name?: string | null
           approved_position?: string | null
           approved_signature?: string | null
+          billing_note_number?: string | null
           created_at?: string
           customer_signature?: string | null
           customer_signed_at?: string | null
           customer_signer_name?: string | null
+          delivery_note_number?: string | null
           deposit_paid_date?: string | null
           deposit_slip?: string | null
           deposit_slip_status?: string | null
           deposit_type?: string | null
           deposit_value?: number | null
+          docs_generated_at?: string | null
           has_installments?: boolean | null
           id?: string
           installment_count?: number | null
@@ -805,6 +837,7 @@ export type Database = {
           reject_reason?: string | null
           sale_assigned?: string | null
           submitted_at?: string | null
+          tax_invoice_number?: string | null
         }
         Relationships: [
           {
@@ -955,7 +988,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      get_next_doc_number: {
+        Args: { p_doc_type: string; p_year_month: string }
+        Returns: number
+      }
     }
     Enums: {
       [_ in never]: never
