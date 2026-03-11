@@ -368,6 +368,7 @@ Deno.serve(async (req) => {
 
     const account = qt.accounts;
     const depositAmount = calcDeposit(qt);
+    const fullPrice = qt.price || 0;
     const now = new Date();
     const yearMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
     const docDate = fmtDate(now.toISOString());
@@ -401,11 +402,11 @@ Deno.serve(async (req) => {
 
     // If doc_type is specified, render that single document
     if (doc_type === 'BN') {
-      const html = generateBillingNote(qt, account, bnNumber, displayDate, depositAmount);
+      const html = generateBillingNote(qt, account, bnNumber, displayDate, fullPrice, depositAmount);
       return new Response(html, { headers: { ...corsHeaders, "Content-Type": "text/html; charset=utf-8" } });
     }
     if (doc_type === 'IV') {
-      const html = generateTaxInvoice(qt, account, ivNumber, displayDate, depositAmount, bnNumber);
+      const html = generateTaxInvoice(qt, account, ivNumber, displayDate, fullPrice, bnNumber);
       return new Response(html, { headers: { ...corsHeaders, "Content-Type": "text/html; charset=utf-8" } });
     }
     if (doc_type === 'DN') {
