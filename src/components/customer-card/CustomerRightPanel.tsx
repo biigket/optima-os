@@ -1,17 +1,18 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import {
-  Monitor, ShoppingCart, Wrench, Receipt, FolderOpen, Megaphone, ExternalLink
+  Monitor, ShoppingCart, Wrench, Receipt, FolderOpen, Megaphone, ExternalLink, CreditCard
 } from 'lucide-react';
 import {
   getDevicesForAccount, getConsumablesForAccount, getServiceForAccount,
-  getPurchasesForAccount, getDocumentsForAccount, getMarketingForAccount,
-  getLifetimeRevenue
+  getDocumentsForAccount, getMarketingForAccount,
 } from '@/data/customerCardMockData';
 import { supabase } from '@/integrations/supabase/client';
+import StatusBadge from '@/components/ui/StatusBadge';
 
 interface Props {
   accountId: string;
@@ -25,9 +26,17 @@ interface QuotationDoc {
   product: string | null;
   price: number | null;
   approval_status: string | null;
+  payment_status: string | null;
+  payment_condition: string | null;
+  sale_assigned: string | null;
+  customer_signed_at: string | null;
 }
 
-function formatCurrency(val?: number) {
+interface QuotationPurchase extends QuotationDoc {
+  // same shape, used for purchases tab
+}
+
+function formatCurrency(val?: number | null) {
   if (!val) return '฿0';
   return `฿${val.toLocaleString()}`;
 }
@@ -48,28 +57,41 @@ const DOC_ICONS: Record<string, string> = {
 };
 
 export default function CustomerRightPanel({ accountId }: Props) {
+  const navigate = useNavigate();
   const devices = getDevicesForAccount(accountId);
   const consumables = getConsumablesForAccount(accountId);
   const services = getServiceForAccount(accountId);
-  const purchases = getPurchasesForAccount(accountId);
   const documents = getDocumentsForAccount(accountId);
   const marketing = getMarketingForAccount(accountId);
-  const lifetimeRevenue = getLifetimeRevenue(accountId);
 
   const [qtDocs, setQtDocs] = useState<QuotationDoc[]>([]);
+  const [purchases, setPurchases] = useState<QuotationPurchase[]>([]);
+  const [lifetimeRevenue, setLifetimeRevenue] = useState(0);
 
   useEffect(() => {
-    async function fetchQtDocs() {
-      const { data } = await supabase
+    async function fetchData() {
+      // Fetch approved quotations for documents tab
+      const { data: docs } = await supabase
         .from('quotations')
-        .select('id, qt_number, qt_date, qt_attachment, product, price, approval_status')
+        .select('id, qt_number, qt_date, qt_attachment, product, price, approval_status, payment_status, payment_condition, sale_assigned, customer_signed_at')
         .eq('account_id', accountId)
-        .eq('approval_status', 'APPROVED')
+        .in('approval_status', ['APPROVED', 'CUSTOMER_SIGNED'])
         .not('qt_attachment', 'is', null)
         .order('qt_date', { ascending: false });
-      setQtDocs((data as QuotationDoc[]) || []);
+      setQtDocs((docs as QuotationDoc[]) || []);
+
+      // Fetch all customer-signed quotations for purchases tab
+      const { data: purchaseData } = await supabase
+        .from('quotations')
+        .select('id, qt_number, qt_date, qt_attachment, product, price, approval_status, payment_status, payment_condition, sale_assigned, customer_signed_at')
+        .eq('account_id', accountId)
+        .in('approval_status', ['APPROVED', 'CUSTOMER_SIGNED'])
+        .order('qt_date', { ascending: false });
+      const items = (purchaseData as QuotationPurchase[]) || [];
+      setPurchases(items);
+      setLifetimeRevenue(items.reduce((sum, q) => sum + (q.price || 0), 0));
     }
-    fetchQtDocs();
+    fetchData();
   }, [accountId]);
 
   return (
@@ -163,34 +185,41 @@ export default function CustomerRightPanel({ accountId }: Props) {
             </div>
           </TabsContent>
 
-          {/* Purchases */}
+          {/* Purchases — from real quotations */}
           <TabsContent value="purchases" className="mt-0">
             <div className="p-3 rounded-md bg-primary/5 border border-primary/10 mb-3">
               <p className="text-[11px] text-muted-foreground">รายได้ตลอดอายุลูกค้า</p>
               <p className="text-lg font-bold text-foreground">{formatCurrency(lifetimeRevenue)}</p>
             </div>
-            <div className="rounded-md border overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead className="text-xs">สินค้า</TableHead>
-                    <TableHead className="text-xs">ราคา</TableHead>
-                    <TableHead className="text-xs">วันที่</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {purchases.map(p => (
-                    <TableRow key={p.id}>
-                      <TableCell className="text-xs">{p.product}</TableCell>
-                      <TableCell className="text-xs">{formatCurrency(p.price)}</TableCell>
-                      <TableCell className="text-[11px] text-muted-foreground">{p.invoiceDate}</TableCell>
-                    </TableRow>
-                  ))}
-                  {purchases.length === 0 && (
-                    <TableRow><TableCell colSpan={3} className="text-center py-6 text-muted-foreground text-xs">ยังไม่มีประวัติซื้อ</TableCell></TableRow>
-                  )}
-                </TableBody>
-              </Table>
+            <div className="space-y-2">
+              {purchases.map(p => (
+                <div
+                  key={p.id}
+                  onClick={() => navigate(`/payments/${p.id}`)}
+                  className="p-3 rounded-md bg-muted/30 border space-y-1.5 cursor-pointer hover:bg-muted/50 transition-colors"
+                >
+                  <div className="flex justify-between items-start">
+                    <div className="min-w-0 flex-1">
+                      <p className="text-sm font-medium text-foreground">{p.product || '-'}</p>
+                      <p className="text-[11px] text-muted-foreground">{p.qt_number || '-'} • {p.qt_date || '-'}</p>
+                    </div>
+                    <div className="flex flex-col items-end gap-1">
+                      <p className="text-sm font-semibold text-foreground">{formatCurrency(p.price)}</p>
+                      <StatusBadge status={p.payment_status || 'UNPAID'} />
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2 text-[11px] text-muted-foreground">
+                    <CreditCard size={10} />
+                    <span>{p.payment_condition || '-'}</span>
+                    <span>•</span>
+                    <span>{p.sale_assigned || '-'}</span>
+                    <ExternalLink size={10} className="ml-auto text-primary" />
+                  </div>
+                </div>
+              ))}
+              {purchases.length === 0 && (
+                <p className="text-xs text-muted-foreground text-center py-6">ยังไม่มีประวัติซื้อ</p>
+              )}
             </div>
           </TabsContent>
 
