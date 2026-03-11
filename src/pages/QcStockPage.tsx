@@ -114,12 +114,26 @@ export default function QcStockPage() {
     });
   }, [cartridgeItems, cartridgeSearch, cartridgeFilter]);
 
+  // Trica 3D filters
+  const filteredTrica3d = useMemo(() => {
+    return trica3dItems.filter(item => {
+      const matchSearch = item.serialNumber.toLowerCase().includes(trica3dSearch.toLowerCase()) ||
+        item.clinic.toLowerCase().includes(trica3dSearch.toLowerCase());
+      const matchFilter = trica3dFilter === 'ALL' || item.status === trica3dFilter;
+      return matchSearch && matchFilter;
+    });
+  }, [trica3dItems, trica3dSearch, trica3dFilter]);
+
   const handleAddItem = (item: ND2StockItem) => {
     setItems(prev => [item, ...prev]);
   };
 
   const handleAddCartridge = (item: CartridgeStockItem) => {
     setCartridgeItems(prev => [item, ...prev]);
+  };
+
+  const handleAddTrica3d = (item: Trica3DStockItem) => {
+    setTrica3dItems(prev => [item, ...prev]);
   };
 
   const kpis = [
