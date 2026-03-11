@@ -1,17 +1,18 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import {
-  Monitor, ShoppingCart, Wrench, Receipt, FolderOpen, Megaphone, ExternalLink
+  Monitor, ShoppingCart, Wrench, Receipt, FolderOpen, Megaphone, ExternalLink, CreditCard
 } from 'lucide-react';
 import {
   getDevicesForAccount, getConsumablesForAccount, getServiceForAccount,
-  getPurchasesForAccount, getDocumentsForAccount, getMarketingForAccount,
-  getLifetimeRevenue
+  getDocumentsForAccount, getMarketingForAccount,
 } from '@/data/customerCardMockData';
 import { supabase } from '@/integrations/supabase/client';
+import StatusBadge from '@/components/ui/StatusBadge';
 
 interface Props {
   accountId: string;
@@ -25,9 +26,17 @@ interface QuotationDoc {
   product: string | null;
   price: number | null;
   approval_status: string | null;
+  payment_status: string | null;
+  payment_condition: string | null;
+  sale_assigned: string | null;
+  customer_signed_at: string | null;
 }
 
-function formatCurrency(val?: number) {
+interface QuotationPurchase extends QuotationDoc {
+  // same shape, used for purchases tab
+}
+
+function formatCurrency(val?: number | null) {
   if (!val) return '฿0';
   return `฿${val.toLocaleString()}`;
 }
@@ -48,28 +57,41 @@ const DOC_ICONS: Record<string, string> = {
 };
 
 export default function CustomerRightPanel({ accountId }: Props) {
+  const navigate = useNavigate();
   const devices = getDevicesForAccount(accountId);
   const consumables = getConsumablesForAccount(accountId);
   const services = getServiceForAccount(accountId);
-  const purchases = getPurchasesForAccount(accountId);
   const documents = getDocumentsForAccount(accountId);
   const marketing = getMarketingForAccount(accountId);
-  const lifetimeRevenue = getLifetimeRevenue(accountId);
 
   const [qtDocs, setQtDocs] = useState<QuotationDoc[]>([]);
+  const [purchases, setPurchases] = useState<QuotationPurchase[]>([]);
+  const [lifetimeRevenue, setLifetimeRevenue] = useState(0);
 
   useEffect(() => {
-    async function fetchQtDocs() {
-      const { data } = await supabase
+    async function fetchData() {
+      // Fetch approved quotations for documents tab
+      const { data: docs } = await supabase
         .from('quotations')
-        .select('id, qt_number, qt_date, qt_attachment, product, price, approval_status')
+        .select('id, qt_number, qt_date, qt_attachment, product, price, approval_status, payment_status, payment_condition, sale_assigned, customer_signed_at')
         .eq('account_id', accountId)
-        .eq('approval_status', 'APPROVED')
+        .in('approval_status', ['APPROVED', 'CUSTOMER_SIGNED'])
         .not('qt_attachment', 'is', null)
         .order('qt_date', { ascending: false });
-      setQtDocs((data as QuotationDoc[]) || []);
+      setQtDocs((docs as QuotationDoc[]) || []);
+
+      // Fetch all customer-signed quotations for purchases tab
+      const { data: purchaseData } = await supabase
+        .from('quotations')
+        .select('id, qt_number, qt_date, qt_attachment, product, price, approval_status, payment_status, payment_condition, sale_assigned, customer_signed_at')
+        .eq('account_id', accountId)
+        .in('approval_status', ['APPROVED', 'CUSTOMER_SIGNED'])
+        .order('qt_date', { ascending: false });
+      const items = (purchaseData as QuotationPurchase[]) || [];
+      setPurchases(items);
+      setLifetimeRevenue(items.reduce((sum, q) => sum + (q.price || 0), 0));
     }
-    fetchQtDocs();
+    fetchData();
   }, [accountId]);
 
   return (
