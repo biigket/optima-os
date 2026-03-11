@@ -30,6 +30,8 @@ interface QuotationDoc {
   payment_condition: string | null;
   sale_assigned: string | null;
   customer_signed_at: string | null;
+  deposit_value: number | null;
+  deposit_slip_status: string | null;
 }
 
 interface QuotationPurchase extends QuotationDoc {
