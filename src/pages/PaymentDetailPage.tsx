@@ -84,6 +84,7 @@ export default function PaymentDetailPage() {
     if (data.qt.approved_at) events.push({ date: data.qt.approved_at, icon: 'approve', label: 'อนุมัติใบเสนอราคา' });
     if (data.qt.customer_signed_at) events.push({ date: data.qt.customer_signed_at, icon: 'sign', label: 'ลูกค้าเซ็นใบเสนอราคา' });
     if (data.qt.deposit_paid_date) events.push({ date: data.qt.deposit_paid_date, icon: 'deposit', label: 'ชำระมัดจำ', detail: `฿${summary.depositAmount.toLocaleString()}` });
+    if (data.qt.docs_generated_at) events.push({ date: data.qt.docs_generated_at, icon: 'create', label: 'ออกใบวางบิล / ใบกำกับภาษี / ใบส่งของ', detail: `${data.qt.billing_note_number || ''}` });
 
     data.installments.forEach(i => {
       if (i.slip_uploaded_at) events.push({ date: i.slip_uploaded_at, icon: 'upload', label: `อัพสลิปงวดที่ ${i.installment_number}`, detail: i.payment_channel || undefined });
