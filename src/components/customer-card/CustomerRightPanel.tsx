@@ -185,34 +185,41 @@ export default function CustomerRightPanel({ accountId }: Props) {
             </div>
           </TabsContent>
 
-          {/* Purchases */}
+          {/* Purchases — from real quotations */}
           <TabsContent value="purchases" className="mt-0">
             <div className="p-3 rounded-md bg-primary/5 border border-primary/10 mb-3">
               <p className="text-[11px] text-muted-foreground">รายได้ตลอดอายุลูกค้า</p>
               <p className="text-lg font-bold text-foreground">{formatCurrency(lifetimeRevenue)}</p>
             </div>
-            <div className="rounded-md border overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead className="text-xs">สินค้า</TableHead>
-                    <TableHead className="text-xs">ราคา</TableHead>
-                    <TableHead className="text-xs">วันที่</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {purchases.map(p => (
-                    <TableRow key={p.id}>
-                      <TableCell className="text-xs">{p.product}</TableCell>
-                      <TableCell className="text-xs">{formatCurrency(p.price)}</TableCell>
-                      <TableCell className="text-[11px] text-muted-foreground">{p.invoiceDate}</TableCell>
-                    </TableRow>
-                  ))}
-                  {purchases.length === 0 && (
-                    <TableRow><TableCell colSpan={3} className="text-center py-6 text-muted-foreground text-xs">ยังไม่มีประวัติซื้อ</TableCell></TableRow>
-                  )}
-                </TableBody>
-              </Table>
+            <div className="space-y-2">
+              {purchases.map(p => (
+                <div
+                  key={p.id}
+                  onClick={() => navigate(`/payments/${p.id}`)}
+                  className="p-3 rounded-md bg-muted/30 border space-y-1.5 cursor-pointer hover:bg-muted/50 transition-colors"
+                >
+                  <div className="flex justify-between items-start">
+                    <div className="min-w-0 flex-1">
+                      <p className="text-sm font-medium text-foreground">{p.product || '-'}</p>
+                      <p className="text-[11px] text-muted-foreground">{p.qt_number || '-'} • {p.qt_date || '-'}</p>
+                    </div>
+                    <div className="flex flex-col items-end gap-1">
+                      <p className="text-sm font-semibold text-foreground">{formatCurrency(p.price)}</p>
+                      <StatusBadge status={p.payment_status || 'UNPAID'} />
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2 text-[11px] text-muted-foreground">
+                    <CreditCard size={10} />
+                    <span>{p.payment_condition || '-'}</span>
+                    <span>•</span>
+                    <span>{p.sale_assigned || '-'}</span>
+                    <ExternalLink size={10} className="ml-auto text-primary" />
+                  </div>
+                </div>
+              ))}
+              {purchases.length === 0 && (
+                <p className="text-xs text-muted-foreground text-center py-6">ยังไม่มีประวัติซื้อ</p>
+              )}
             </div>
           </TabsContent>
 
