@@ -31,6 +31,7 @@ const filterTabs: { label: string; value: FilterTab; icon: React.ElementType }[]
 ];
 
 export default function QcStockPage() {
+  const navigate = useNavigate();
   const [items, setItems] = useState<ND2StockItem[]>(mockND2Stock);
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState<FilterTab>('ALL');
