@@ -207,34 +207,12 @@ export default function PaymentDetailPage() {
                   <p className="font-medium">฿{(qt.price || 0).toLocaleString()}</p>
                 </div>
                 {hasDeposit && (
-                  <>
-                    <div>
-                      <span className="text-muted-foreground">มัดจำ</span>
-                      <p className="font-medium">
-                        {qt.deposit_type === 'PERCENT' ? `${qt.deposit_value}%` : ''} ฿{depositAmount.toLocaleString()}
-                      </p>
-                    </div>
-                    <div>
-                      <span className="text-muted-foreground">สถานะมัดจำ</span>
-                      <div className="flex items-center gap-2 mt-0.5">
-                        <StatusBadge status={qt.payment_status === 'DEPOSIT_PAID' ? 'DEPOSIT_PAID' : (qt.deposit_slip_status || 'NO_SLIP')} />
-                        {qt.payment_status !== 'DEPOSIT_PAID' && (!qt.deposit_slip_status || qt.deposit_slip_status === 'NO_SLIP') && (
-                          <Button size="sm" variant="outline" className="gap-1 text-xs h-6" onClick={() => setDepositTarget({
-                            id: qt.id,
-                            deposit_amount: depositAmount,
-                            qt_number: qt.qt_number || '',
-                          })}>
-                            <Upload size={10} /> อัพสลิปมัดจำ
-                          </Button>
-                        )}
-                        {qt.deposit_slip && (
-                          <Button size="sm" variant="ghost" className="gap-1 text-xs h-6" onClick={() => window.open(qt.deposit_slip!, '_blank')}>
-                            <Eye size={10} /> ดูสลิป
-                          </Button>
-                        )}
-                      </div>
-                    </div>
-                  </>
+                  <div>
+                    <span className="text-muted-foreground">มัดจำ</span>
+                    <p className="font-medium">
+                      {qt.deposit_type === 'PERCENT' ? `${qt.deposit_value}%` : ''} ฿{depositAmount.toLocaleString()}
+                    </p>
+                  </div>
                 )}
                 {qt.has_installments && (
                   <>
