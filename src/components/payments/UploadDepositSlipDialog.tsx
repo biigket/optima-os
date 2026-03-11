@@ -49,7 +49,20 @@ export default function UploadDepositSlipDialog({ open, onOpenChange, quotation,
       } as any).eq('id', quotation.id);
 
       if (dbErr) throw dbErr;
-      toast.success('อัพโหลดสลิปมัดจำเรียบร้อย');
+
+      // Generate billing note, tax invoice, delivery note
+      try {
+        const fnUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-payment-docs`;
+        await fetch(fnUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY },
+          body: JSON.stringify({ quotation_id: quotation.id }),
+        });
+      } catch (docErr) {
+        console.error('Failed to generate docs:', docErr);
+      }
+
+      toast.success('อัพโหลดสลิปมัดจำและออกเอกสารเรียบร้อย');
       onSuccess();
       onOpenChange(false);
       resetForm();
