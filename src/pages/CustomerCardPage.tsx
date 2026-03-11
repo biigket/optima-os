@@ -246,6 +246,8 @@ export default function CustomerCardPage() {
   const activeDeals = opportunities.filter(o => !['WON', 'LOST', 'CLOSED'].includes(o.stage)).length;
   const lastVisit = visits.length > 0 ? visits[0].date : '-';
   const realRevenue = qtDocs.reduce((sum, q) => sum + (q.price || 0), 0);
+  const paidRevenue = qtDocs.filter(q => q.payment_status === 'PAID').reduce((sum, q) => sum + (q.price || 0), 0);
+  const outstandingAmount = realRevenue - paidRevenue;
 
   return (
     <div className="animate-fade-in max-w-[1200px] mx-auto">
