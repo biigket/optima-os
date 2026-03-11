@@ -16,7 +16,7 @@ type FilterTab = 'ALL' | QcStatus;
 
 const filterTabs: { label: string; value: FilterTab; icon: React.ElementType }[] = [
   { label: 'ทั้งหมด', value: 'ALL', icon: Package },
-  { label: 'QC ผ่าน', value: 'QC_PASSED', icon: CheckCircle2 },
+  { label: 'พร้อมขาย', value: 'QC_PASSED', icon: CheckCircle2 },
   { label: 'QC ไม่ผ่าน', value: 'QC_FAILED', icon: XCircle },
   { label: 'รอ QC', value: 'PENDING_QC', icon: Clock },
 ];
@@ -95,7 +95,7 @@ export default function QcStockPage() {
 
   const kpis = [
     { label: 'ทั้งหมด', value: counts.total, icon: Package, color: 'text-primary' },
-    { label: 'QC ผ่าน', value: counts.passed, icon: CheckCircle2, color: 'text-emerald-600' },
+    { label: 'พร้อมขาย', value: counts.passed, icon: CheckCircle2, color: 'text-emerald-600' },
     { label: 'QC ไม่ผ่าน', value: counts.failed, icon: XCircle, color: 'text-destructive' },
     { label: 'รอ QC', value: counts.pending, icon: Clock, color: 'text-amber-600' },
     { label: 'พร้อมขาย', value: counts.readyToSell, icon: Cpu, color: 'text-blue-600' },
