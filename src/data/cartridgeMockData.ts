@@ -39,4 +39,8 @@ export const mockCartridgeStock: CartridgeStockItem[] = [
   { id: 'cart-20', serialNumber: 'SDL923710123', cartridgeType: 'L9.0', status: 'พร้อมขาย', qcFailReason: '', receivedDate: '2025-03-28', storageLocation: 'คลัง B ชั้น 2' },
   { id: 'cart-21', serialNumber: 'SDL923710120', cartridgeType: 'L9.0', status: 'ขายแล้ว', qcFailReason: '', receivedDate: '2025-03-28', storageLocation: '' },
   { id: 'cart-22', serialNumber: 'SDL925110145', cartridgeType: 'L9.0', status: 'Support KOL', qcFailReason: '', receivedDate: '2025-06-27', storageLocation: '' },
+  { id: 'cart-23', serialNumber: 'RMN49001', cartridgeType: 'N49', status: 'พร้อมขาย', qcFailReason: '', receivedDate: '2025-06-15', storageLocation: 'คลัง A ชั้น 1' },
+  { id: 'cart-24', serialNumber: 'RMI49002', cartridgeType: 'I49', status: 'DEMO', qcFailReason: '', receivedDate: '2025-06-20', storageLocation: '' },
+  { id: 'cart-25', serialNumber: 'RMN25003', cartridgeType: 'N25', status: 'พร้อมขาย', qcFailReason: '', receivedDate: '2025-07-01', storageLocation: 'คลัง A ชั้น 2' },
+  { id: 'cart-26', serialNumber: 'RMI25004', cartridgeType: 'I25', status: 'ไม่ผ่าน QC', qcFailReason: 'Connection error', receivedDate: '2025-07-05', storageLocation: '' },
 ];
