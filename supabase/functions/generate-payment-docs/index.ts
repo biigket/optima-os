@@ -153,9 +153,8 @@ function renderCustomer(account: any): string {
   </div>`;
 }
 
-function renderProductTable(qt: any, depositAmount: number): string {
+function renderProductTable(qt: any, amount: number, suffix: string = ""): string {
   const items = (qt.product || "").split(",").map((s: string) => s.trim()).filter(Boolean);
-  const price = depositAmount;
 
   const productRows = items.length === 0
     ? `<tr><td colspan="5" style="text-align:center;color:#999;padding:20px">ไม่มีรายการสินค้า</td></tr>`
@@ -163,11 +162,11 @@ function renderProductTable(qt: any, depositAmount: number): string {
         const match = item.match(/^(.+?)\s*x(\d+)$/);
         const name = match ? match[1].trim() : item;
         const qty = match ? parseInt(match[2]) : 1;
-        const unitPrice = items.length === 1 ? price : 0;
-        const total = items.length === 1 ? price : 0;
+        const unitPrice = items.length === 1 ? amount : 0;
+        const total = items.length === 1 ? amount : 0;
         return `<tr>
           <td class="center">${i + 1}</td>
-          <td>${name} (มัดจำ)</td>
+          <td>${name}${suffix ? " " + suffix : ""}</td>
           <td class="center">${qty}</td>
           <td class="right">${unitPrice ? fmt(unitPrice) : "-"}</td>
           <td class="right">${total ? fmt(total) : "-"}</td>
@@ -234,7 +233,7 @@ function calcDeposit(qt: any): number {
 }
 
 // ==================== Billing Note (Purple, ref QT) ====================
-function generateBillingNote(qt: any, account: any, docNumber: string, docDate: string, depositAmount: number): string {
+function generateBillingNote(qt: any, account: any, docNumber: string, docDate: string, fullPrice: number, depositAmount: number): string {
   return `<!DOCTYPE html>
 <html lang="th"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ใบวางบิล ${docNumber}</title><style>${getDocStyles(THEMES.BN)}</style></head><body>
@@ -247,17 +246,16 @@ function generateBillingNote(qt: any, account: any, docNumber: string, docDate: 
   ${renderCustomer(account)}
   <div class="ref-section">
     <p><span class="ref-label">อ้างอิงใบเสนอราคา:</span> ${qt.qt_number || "-"}</p>
-    <p><span class="ref-label">ยอดรวมตามสัญญา:</span> ฿${fmt(qt.price || 0)}</p>
-    <p><span class="ref-label">ยอดมัดจำ:</span> ฿${fmt(depositAmount)} ${qt.deposit_type === 'PERCENT' ? `(${qt.deposit_value}%)` : ''}</p>
+    ${depositAmount > 0 ? `<p><span class="ref-label">ยอดมัดจำ:</span> ฿${fmt(depositAmount)} ${qt.deposit_type === 'PERCENT' ? '(' + qt.deposit_value + '%)' : ''}</p>` : ''}
   </div>
-  ${renderProductTable(qt, depositAmount)}
-  ${renderSummary(depositAmount)}
+  ${renderProductTable(qt, fullPrice)}
+  ${renderSummary(fullPrice)}
   ${renderSignatures()}
 </div></body></html>`;
 }
 
 // ==================== Tax Invoice (Deep Blue, ref BN) ====================
-function generateTaxInvoice(qt: any, account: any, docNumber: string, docDate: string, depositAmount: number, bnNumber: string): string {
+function generateTaxInvoice(qt: any, account: any, docNumber: string, docDate: string, fullPrice: number, bnNumber: string): string {
   return `<!DOCTYPE html>
 <html lang="th"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ใบกำกับภาษี ${docNumber}</title><style>${getDocStyles(THEMES.IV)}</style></head><body>
@@ -271,10 +269,9 @@ function generateTaxInvoice(qt: any, account: any, docNumber: string, docDate: s
   <div class="ref-section">
     <p><span class="ref-label">อ้างอิงใบวางบิล:</span> ${bnNumber || "-"}</p>
     <p><span class="ref-label">อ้างอิงใบเสนอราคา:</span> ${qt.qt_number || "-"}</p>
-    <p><span class="ref-label">ประเภท:</span> ค่ามัดจำสินค้า</p>
   </div>
-  ${renderProductTable(qt, depositAmount)}
-  ${renderSummary(depositAmount)}
+  ${renderProductTable(qt, fullPrice)}
+  ${renderSummary(fullPrice)}
   ${renderSignatures()}
 </div></body></html>`;
 }
@@ -371,6 +368,7 @@ Deno.serve(async (req) => {
 
     const account = qt.accounts;
     const depositAmount = calcDeposit(qt);
+    const fullPrice = qt.price || 0;
     const now = new Date();
     const yearMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
     const docDate = fmtDate(now.toISOString());
@@ -404,11 +402,11 @@ Deno.serve(async (req) => {
 
     // If doc_type is specified, render that single document
     if (doc_type === 'BN') {
-      const html = generateBillingNote(qt, account, bnNumber, displayDate, depositAmount);
+      const html = generateBillingNote(qt, account, bnNumber, displayDate, fullPrice, depositAmount);
       return new Response(html, { headers: { ...corsHeaders, "Content-Type": "text/html; charset=utf-8" } });
     }
     if (doc_type === 'IV') {
-      const html = generateTaxInvoice(qt, account, ivNumber, displayDate, depositAmount, bnNumber);
+      const html = generateTaxInvoice(qt, account, ivNumber, displayDate, fullPrice, bnNumber);
       return new Response(html, { headers: { ...corsHeaders, "Content-Type": "text/html; charset=utf-8" } });
     }
     if (doc_type === 'DN') {
