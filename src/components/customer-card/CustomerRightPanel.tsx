@@ -66,7 +66,8 @@ export default function CustomerRightPanel({ accountId }: Props) {
 
   const [qtDocs, setQtDocs] = useState<QuotationDoc[]>([]);
   const [purchases, setPurchases] = useState<QuotationPurchase[]>([]);
-  const [lifetimeRevenue, setLifetimeRevenue] = useState(0);
+  const [paidRevenue, setPaidRevenue] = useState(0);
+  const [outstandingAmount, setOutstandingAmount] = useState(0);
 
   useEffect(() => {
     async function fetchData() {
@@ -89,7 +90,10 @@ export default function CustomerRightPanel({ accountId }: Props) {
         .order('qt_date', { ascending: false });
       const items = (purchaseData as QuotationPurchase[]) || [];
       setPurchases(items);
-      setLifetimeRevenue(items.reduce((sum, q) => sum + (q.price || 0), 0));
+      const paid = items.filter(q => q.payment_status === 'PAID').reduce((sum, q) => sum + (q.price || 0), 0);
+      const total = items.reduce((sum, q) => sum + (q.price || 0), 0);
+      setPaidRevenue(paid);
+      setOutstandingAmount(total - paid);
     }
     fetchData();
   }, [accountId]);
@@ -187,9 +191,15 @@ export default function CustomerRightPanel({ accountId }: Props) {
 
           {/* Purchases — from real quotations */}
           <TabsContent value="purchases" className="mt-0">
-            <div className="p-3 rounded-md bg-primary/5 border border-primary/10 mb-3">
-              <p className="text-[11px] text-muted-foreground">รายได้ตลอดอายุลูกค้า</p>
-              <p className="text-lg font-bold text-foreground">{formatCurrency(lifetimeRevenue)}</p>
+            <div className="grid grid-cols-2 gap-2 mb-3">
+              <div className="p-3 rounded-md bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-900">
+                <p className="text-[11px] text-muted-foreground">รายได้ (ชำระแล้ว)</p>
+                <p className="text-lg font-bold text-green-700 dark:text-green-400">{formatCurrency(paidRevenue)}</p>
+              </div>
+              <div className="p-3 rounded-md bg-orange-50 dark:bg-orange-950/30 border border-orange-200 dark:border-orange-900">
+                <p className="text-[11px] text-muted-foreground">ยอดค้างชำระ</p>
+                <p className="text-lg font-bold text-orange-700 dark:text-orange-400">{formatCurrency(outstandingAmount)}</p>
+              </div>
             </div>
             <div className="space-y-2">
               {purchases.map(p => (
