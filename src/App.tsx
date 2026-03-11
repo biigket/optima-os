@@ -74,6 +74,7 @@ function AuthedAppRoutes() {
         <Route path="/inventory" element={<InventoryPage />} />
         <Route path="/invoices" element={<InvoicesPage />} />
         <Route path="/payments" element={<PaymentsPage />} />
+        <Route path="/payments/:quotationId" element={<PaymentDetailPage />} />
         <Route path="/qr-register" element={<QRCodePage />} />
         {phase2Routes.map((path) => (
           <Route key={path} path={path} element={<Phase2Placeholder />} />
