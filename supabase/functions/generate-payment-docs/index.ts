@@ -255,7 +255,7 @@ function generateBillingNote(qt: any, account: any, docNumber: string, docDate: 
 }
 
 // ==================== Tax Invoice (Deep Blue, ref BN) ====================
-function generateTaxInvoice(qt: any, account: any, docNumber: string, docDate: string, depositAmount: number, bnNumber: string): string {
+function generateTaxInvoice(qt: any, account: any, docNumber: string, docDate: string, fullPrice: number, bnNumber: string): string {
   return `<!DOCTYPE html>
 <html lang="th"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ใบกำกับภาษี ${docNumber}</title><style>${getDocStyles(THEMES.IV)}</style></head><body>
@@ -269,10 +269,9 @@ function generateTaxInvoice(qt: any, account: any, docNumber: string, docDate: s
   <div class="ref-section">
     <p><span class="ref-label">อ้างอิงใบวางบิล:</span> ${bnNumber || "-"}</p>
     <p><span class="ref-label">อ้างอิงใบเสนอราคา:</span> ${qt.qt_number || "-"}</p>
-    <p><span class="ref-label">ประเภท:</span> ค่ามัดจำสินค้า</p>
   </div>
-  ${renderProductTable(qt, depositAmount)}
-  ${renderSummary(depositAmount)}
+  ${renderProductTable(qt, fullPrice)}
+  ${renderSummary(fullPrice)}
   ${renderSignatures()}
 </div></body></html>`;
 }
