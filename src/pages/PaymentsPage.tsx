@@ -147,7 +147,7 @@ export default function PaymentsPage() {
             // หักมัดจำออกก่อน แล้วแบ่งจ่ายเท่าๆ กัน ตามจำนวนงวด
             const amountAfterDeposit = totalPrice - depositAmount;
             const perInstallment = Math.floor(amountAfterDeposit / installmentCount);
-            const remainder = totalPrice - perInstallment * installmentCount;
+            const remainder = amountAfterDeposit - perInstallment * installmentCount;
 
             for (let i = 0; i < installmentCount; i++) {
               // คำนวณวันครบกำหนดแต่ละงวด ตาม payment_due_day
