@@ -158,6 +158,10 @@ export default function QcStockPage() {
             <Cpu size={14} />
             เครื่อง ND2
           </TabsTrigger>
+          <TabsTrigger value="trica3d" className="gap-1.5">
+            <MonitorSmartphone size={14} />
+            เครื่อง Trica 3D
+          </TabsTrigger>
           <TabsTrigger value="cartridge" className="gap-1.5">
             <Zap size={14} />
             วัสดุสิ้นเปลือง Cartridge
