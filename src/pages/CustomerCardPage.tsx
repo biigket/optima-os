@@ -116,7 +116,8 @@ export default function CustomerCardPage() {
   const [chatImages, setChatImages] = useState<{ id: string; file_url: string; file_name: string; uploaded_by: string | null; created_at: string; opportunity_id: string }[]>([]);
   const [visitReports, setVisitReports] = useState<any[]>([]);
   const [demoReports, setDemoReports] = useState<any[]>([]);
-  const [qtDocs, setQtDocs] = useState<{ id: string; qt_number: string | null; qt_date: string | null; qt_attachment: string | null; product: string | null; price: number | null; approval_status: string | null; customer_signed_at: string | null; payment_status: string | null; payment_condition: string | null; sale_assigned: string | null }[]>([]);
+  const [qtDocs, setQtDocs] = useState<{ id: string; qt_number: string | null; qt_date: string | null; qt_attachment: string | null; product: string | null; price: number | null; approval_status: string | null; customer_signed_at: string | null; payment_status: string | null; payment_condition: string | null; sale_assigned: string | null; deposit_value: number | null; deposit_slip_status: string | null }[]>([]);
+  const [installmentsByQt, setInstallmentsByQt] = useState<Record<string, { paid: number; total: number }>>({});
 
   // Fetch activities, stage history, and notes for this account
   useEffect(() => {
