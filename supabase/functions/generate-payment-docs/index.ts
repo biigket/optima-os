@@ -28,7 +28,14 @@ function fmtDate(d: string | null): string {
   return `${dd}/${mm}/${yyyy}`;
 }
 
-function getDocStyles(): string {
+// Color themes per document type
+const THEMES = {
+  BN: { primary: "#7c3aed", secondary: "#6d28d9", bg: "#f5f3ff", border: "#ddd6fe", barBg: "#7c3aed" }, // purple
+  IV: { primary: "#1e40af", secondary: "#1e3a8a", bg: "#eff6ff", border: "#bfdbfe", barBg: "#1e40af" }, // deep blue
+  DN: { primary: "#e67e22", secondary: "#b5651d", bg: "#fef9f3", border: "#f0d9b5", barBg: "#e67e22" }, // orange
+};
+
+function getDocStyles(theme: typeof THEMES.BN): string {
   return `
   @import url('https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;700&display=swap');
   * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -62,19 +69,19 @@ function getDocStyles(): string {
   .logo { height: 60px; margin-bottom: 8px; }
   .seller-info { font-size: 12px; color: #555; line-height: 1.7; }
   .header-right { text-align: right; }
-  .doc-title { font-size: 26px; font-weight: 700; color: #e67e22; margin-bottom: 4px; }
-  .doc-title-en { font-size: 14px; font-weight: 600; color: #b5651d; margin-bottom: 10px; }
+  .doc-title { font-size: 26px; font-weight: 700; color: ${theme.primary}; margin-bottom: 4px; }
+  .doc-title-en { font-size: 14px; font-weight: 600; color: ${theme.secondary}; margin-bottom: 10px; }
   .doc-info-table { font-size: 12px; border-collapse: collapse; }
   .doc-info-table td { padding: 3px 0; }
   .doc-info-table .lbl { color: #888; padding-right: 16px; text-align: right; white-space: nowrap; }
   .doc-info-table .val { color: #333; font-weight: 500; text-align: left; }
-  .section-label { font-size: 13px; font-weight: 700; color: #e67e22; margin-bottom: 6px; }
+  .section-label { font-size: 13px; font-weight: 700; color: ${theme.primary}; margin-bottom: 6px; }
   .customer-section { margin-bottom: 20px; }
   .customer-info { font-size: 12px; line-height: 1.8; color: #333; }
   .product-table { width: 100%; border-collapse: collapse; margin-bottom: 16px; }
   .product-table thead th {
     background: #fff; color: #333; font-size: 12px; font-weight: 600;
-    padding: 10px 8px; border-bottom: 2px solid #e67e22; border-top: 2px solid #e67e22;
+    padding: 10px 8px; border-bottom: 2px solid ${theme.primary}; border-top: 2px solid ${theme.primary};
   }
   .product-table tbody td { padding: 10px 8px; font-size: 12px; border-bottom: 1px solid #eee; }
   .product-table .center { text-align: center; }
@@ -87,9 +94,9 @@ function getDocStyles(): string {
   .summary-table td { padding: 5px 0; }
   .summary-table .lbl { text-align: right; padding-right: 20px; color: #555; }
   .summary-table .val { text-align: right; font-weight: 500; white-space: nowrap; }
-  .summary-table .grand { border-top: 2px solid #e67e22; font-size: 14px; font-weight: 700; color: #333; }
+  .summary-table .grand { border-top: 2px solid ${theme.primary}; font-size: 14px; font-weight: 700; color: #333; }
   .summary-table .grand td { padding-top: 8px; }
-  .ref-section { margin-bottom: 20px; padding: 12px; background: #fef9f3; border-radius: 6px; border: 1px solid #f0d9b5; }
+  .ref-section { margin-bottom: 20px; padding: 12px; background: ${theme.bg}; border-radius: 6px; border: 1px solid ${theme.border}; }
   .ref-section p { font-size: 12px; line-height: 1.8; color: #555; }
   .ref-section .ref-label { font-weight: 600; color: #333; }
   .signatures { display: flex; justify-content: space-between; align-items: flex-end; margin-top: 50px; }
@@ -98,9 +105,9 @@ function getDocStyles(): string {
   .sig-label { font-size: 11px; color: #555; }
   .sig-sub { font-size: 10px; color: #999; margin-top: 2px; }
   .stamp-area { text-align: center; flex: 1; }
-  .print-bar { position: fixed; top: 0; left: 0; right: 0; background: #e67e22; padding: 10px 24px; display: flex; justify-content: center; gap: 12px; z-index: 100; }
+  .print-bar { position: fixed; top: 0; left: 0; right: 0; background: ${theme.barBg}; padding: 10px 24px; display: flex; justify-content: center; gap: 12px; z-index: 100; }
   .print-bar button { padding: 8px 24px; border: none; border-radius: 6px; font-family: 'Sarabun', sans-serif; font-size: 14px; font-weight: 600; cursor: pointer; }
-  .btn-print { background: white; color: #e67e22; }
+  .btn-print { background: white; color: ${theme.primary}; }
   .btn-close { background: transparent; color: white; border: 1px solid rgba(255,255,255,0.4) !important; }
   .payment-info { margin-bottom: 20px; }
   .payment-info table { font-size: 12px; border-collapse: collapse; }
@@ -226,11 +233,11 @@ function calcDeposit(qt: any): number {
   return 0;
 }
 
-// ==================== Billing Note ====================
+// ==================== Billing Note (Purple, ref QT) ====================
 function generateBillingNote(qt: any, account: any, docNumber: string, docDate: string, depositAmount: number): string {
   return `<!DOCTYPE html>
 <html lang="th"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ใบวางบิล ${docNumber}</title><style>${getDocStyles()}</style></head><body>
+<title>ใบวางบิล ${docNumber}</title><style>${getDocStyles(THEMES.BN)}</style></head><body>
 <div class="print-bar no-print">
   <button class="btn-print" onclick="window.print()">🖨️ พิมพ์ / บันทึก PDF</button>
   <button class="btn-close" onclick="window.close()">ปิด</button>
@@ -249,11 +256,11 @@ function generateBillingNote(qt: any, account: any, docNumber: string, docDate: 
 </div></body></html>`;
 }
 
-// ==================== Tax Invoice ====================
-function generateTaxInvoice(qt: any, account: any, docNumber: string, docDate: string, depositAmount: number): string {
+// ==================== Tax Invoice (Deep Blue, ref BN) ====================
+function generateTaxInvoice(qt: any, account: any, docNumber: string, docDate: string, depositAmount: number, bnNumber: string): string {
   return `<!DOCTYPE html>
 <html lang="th"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ใบกำกับภาษี ${docNumber}</title><style>${getDocStyles()}</style></head><body>
+<title>ใบกำกับภาษี ${docNumber}</title><style>${getDocStyles(THEMES.IV)}</style></head><body>
 <div class="print-bar no-print">
   <button class="btn-print" onclick="window.print()">🖨️ พิมพ์ / บันทึก PDF</button>
   <button class="btn-close" onclick="window.close()">ปิด</button>
@@ -262,6 +269,7 @@ function generateTaxInvoice(qt: any, account: any, docNumber: string, docDate: s
   ${renderHeader("ใบกำกับภาษี", "Tax Invoice", docNumber, docDate)}
   ${renderCustomer(account)}
   <div class="ref-section">
+    <p><span class="ref-label">อ้างอิงใบวางบิล:</span> ${bnNumber || "-"}</p>
     <p><span class="ref-label">อ้างอิงใบเสนอราคา:</span> ${qt.qt_number || "-"}</p>
     <p><span class="ref-label">ประเภท:</span> ค่ามัดจำสินค้า</p>
   </div>
@@ -271,7 +279,7 @@ function generateTaxInvoice(qt: any, account: any, docNumber: string, docDate: s
 </div></body></html>`;
 }
 
-// ==================== Delivery Note ====================
+// ==================== Delivery Note (Orange) ====================
 function generateDeliveryNote(qt: any, account: any, docNumber: string, docDate: string, depositAmount: number): string {
   const items = (qt.product || "").split(",").map((s: string) => s.trim()).filter(Boolean);
   const productRows = items.length === 0
@@ -290,7 +298,7 @@ function generateDeliveryNote(qt: any, account: any, docNumber: string, docDate:
 
   return `<!DOCTYPE html>
 <html lang="th"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ใบส่งของ ${docNumber}</title><style>${getDocStyles()}</style></head><body>
+<title>ใบส่งของ ${docNumber}</title><style>${getDocStyles(THEMES.DN)}</style></head><body>
 <div class="print-bar no-print">
   <button class="btn-print" onclick="window.print()">🖨️ พิมพ์ / บันทึก PDF</button>
   <button class="btn-close" onclick="window.close()">ปิด</button>
@@ -367,49 +375,48 @@ Deno.serve(async (req) => {
     const yearMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
     const docDate = fmtDate(now.toISOString());
 
-    // If doc_type is specified, just render that single document (for viewing)
-    if (doc_type === 'BN' && qt.billing_note_number) {
-      const html = generateBillingNote(qt, account, qt.billing_note_number, fmtDate(qt.docs_generated_at), depositAmount);
+    // Auto-generate numbers if not yet generated
+    let bnNumber = qt.billing_note_number;
+    let ivNumber = qt.tax_invoice_number;
+    let dnNumber = qt.delivery_note_number;
+    let generatedAt = qt.docs_generated_at;
+
+    if (!bnNumber || !ivNumber || !dnNumber) {
+      const { data: bnNum } = await supabase.rpc("get_next_doc_number", { p_doc_type: "BN", p_year_month: yearMonth });
+      const { data: ivNum } = await supabase.rpc("get_next_doc_number", { p_doc_type: "IV", p_year_month: yearMonth });
+      const { data: dnNum } = await supabase.rpc("get_next_doc_number", { p_doc_type: "DN", p_year_month: yearMonth });
+
+      const monthStr = yearMonth.replace("-", "");
+      bnNumber = `BN-${monthStr}-${String(bnNum).padStart(4, "0")}`;
+      ivNumber = `IV-${monthStr}-${String(ivNum).padStart(4, "0")}`;
+      dnNumber = `DN-${monthStr}-${String(dnNum).padStart(4, "0")}`;
+      generatedAt = now.toISOString();
+
+      await supabase.from("quotations").update({
+        billing_note_number: bnNumber,
+        tax_invoice_number: ivNumber,
+        delivery_note_number: dnNumber,
+        docs_generated_at: generatedAt,
+      }).eq("id", quotation_id);
+    }
+
+    const displayDate = fmtDate(generatedAt);
+
+    // If doc_type is specified, render that single document
+    if (doc_type === 'BN') {
+      const html = generateBillingNote(qt, account, bnNumber, displayDate, depositAmount);
       return new Response(html, { headers: { ...corsHeaders, "Content-Type": "text/html; charset=utf-8" } });
     }
-    if (doc_type === 'IV' && qt.tax_invoice_number) {
-      const html = generateTaxInvoice(qt, account, qt.tax_invoice_number, fmtDate(qt.docs_generated_at), depositAmount);
+    if (doc_type === 'IV') {
+      const html = generateTaxInvoice(qt, account, ivNumber, displayDate, depositAmount, bnNumber);
       return new Response(html, { headers: { ...corsHeaders, "Content-Type": "text/html; charset=utf-8" } });
     }
-    if (doc_type === 'DN' && qt.delivery_note_number) {
-      const html = generateDeliveryNote(qt, account, qt.delivery_note_number, fmtDate(qt.docs_generated_at), depositAmount);
+    if (doc_type === 'DN') {
+      const html = generateDeliveryNote(qt, account, dnNumber, displayDate, depositAmount);
       return new Response(html, { headers: { ...corsHeaders, "Content-Type": "text/html; charset=utf-8" } });
     }
 
-    // Generate all 3 documents with running numbers
-    // Check if already generated
-    if (qt.billing_note_number && qt.tax_invoice_number && qt.delivery_note_number) {
-      return new Response(JSON.stringify({
-        billing_note_number: qt.billing_note_number,
-        tax_invoice_number: qt.tax_invoice_number,
-        delivery_note_number: qt.delivery_note_number,
-        already_generated: true,
-      }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
-    }
-
-    // Get running numbers
-    const { data: bnNum } = await supabase.rpc("get_next_doc_number", { p_doc_type: "BN", p_year_month: yearMonth });
-    const { data: ivNum } = await supabase.rpc("get_next_doc_number", { p_doc_type: "IV", p_year_month: yearMonth });
-    const { data: dnNum } = await supabase.rpc("get_next_doc_number", { p_doc_type: "DN", p_year_month: yearMonth });
-
-    const monthStr = yearMonth.replace("-", "");
-    const bnNumber = `BN-${monthStr}-${String(bnNum).padStart(4, "0")}`;
-    const ivNumber = `IV-${monthStr}-${String(ivNum).padStart(4, "0")}`;
-    const dnNumber = `DN-${monthStr}-${String(dnNum).padStart(4, "0")}`;
-
-    // Save to quotation
-    await supabase.from("quotations").update({
-      billing_note_number: bnNumber,
-      tax_invoice_number: ivNumber,
-      delivery_note_number: dnNumber,
-      docs_generated_at: now.toISOString(),
-    }).eq("id", quotation_id);
-
+    // Default: return numbers
     return new Response(JSON.stringify({
       billing_note_number: bnNumber,
       tax_invoice_number: ivNumber,
