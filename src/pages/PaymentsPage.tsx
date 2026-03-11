@@ -67,6 +67,7 @@ function calcDepositAmount(depositType?: string, depositValue?: number, price?: 
 }
 
 export default function PaymentsPage() {
+  const navigate = useNavigate();
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('ALL');
   const [conditionTab, setConditionTab] = useState('ALL');
