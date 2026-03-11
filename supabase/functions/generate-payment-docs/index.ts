@@ -233,7 +233,7 @@ function calcDeposit(qt: any): number {
 }
 
 // ==================== Billing Note (Purple, ref QT) ====================
-function generateBillingNote(qt: any, account: any, docNumber: string, docDate: string, depositAmount: number): string {
+function generateBillingNote(qt: any, account: any, docNumber: string, docDate: string, fullPrice: number, depositAmount: number): string {
   return `<!DOCTYPE html>
 <html lang="th"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ใบวางบิล ${docNumber}</title><style>${getDocStyles(THEMES.BN)}</style></head><body>
@@ -246,11 +246,10 @@ function generateBillingNote(qt: any, account: any, docNumber: string, docDate: 
   ${renderCustomer(account)}
   <div class="ref-section">
     <p><span class="ref-label">อ้างอิงใบเสนอราคา:</span> ${qt.qt_number || "-"}</p>
-    <p><span class="ref-label">ยอดรวมตามสัญญา:</span> ฿${fmt(qt.price || 0)}</p>
-    <p><span class="ref-label">ยอดมัดจำ:</span> ฿${fmt(depositAmount)} ${qt.deposit_type === 'PERCENT' ? `(${qt.deposit_value}%)` : ''}</p>
+    ${depositAmount > 0 ? `<p><span class="ref-label">ยอดมัดจำ:</span> ฿${fmt(depositAmount)} ${qt.deposit_type === 'PERCENT' ? '(' + qt.deposit_value + '%)' : ''}</p>` : ''}
   </div>
-  ${renderProductTable(qt, depositAmount)}
-  ${renderSummary(depositAmount)}
+  ${renderProductTable(qt, fullPrice)}
+  ${renderSummary(fullPrice)}
   ${renderSignatures()}
 </div></body></html>`;
 }
