@@ -408,7 +408,7 @@ export default function PaymentsPage() {
               filtered.map(row => {
                 const overdueLabel = getOverdueLabel(row);
                 return (
-                  <TableRow key={row.id}>
+                  <TableRow key={row.id} className="cursor-pointer hover:bg-muted/50" onClick={() => navigate(`/payments/${row.quotation_id}`)}>
                     <TableCell className="font-medium text-xs">
                       <div className="flex items-center gap-1.5">
                         <span>{row.qt_number}</span>
