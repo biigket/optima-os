@@ -111,12 +111,24 @@ export default function PaymentsPage() {
       for (const qt of signedQts) {
         const existing = installmentsByQt.get(qt.id) || [];
         const expectedCount = (qt.has_installments && qt.installment_count && qt.installment_count > 1) ? qt.installment_count : 1;
+        
+        // คำนวณยอดที่ควรจะเป็น (หักมัดจำ)
+        const totalPrice = qt.price || 0;
+        let depositAmt = 0;
+        if (qt.deposit_type === 'AMOUNT' && (qt.deposit_value || 0) > 0) depositAmt = qt.deposit_value!;
+        else if (qt.deposit_type === 'PERCENT' && (qt.deposit_value || 0) > 0) depositAmt = Math.round(totalPrice * qt.deposit_value! / 100);
+        const expectedTotal = totalPrice - depositAmt;
+        const actualTotal = existing.reduce((s: number, e: any) => s + (e.amount || 0), 0);
+
         if (existing.length === 0) {
           qtsToProcess.push(qt);
-        } else if (existing.length !== expectedCount) {
-          // Mismatch — delete old and recreate
-          idsToDelete.push(...existing.map((e: any) => e.id));
-          qtsToProcess.push(qt);
+        } else if (existing.length !== expectedCount || Math.abs(actualTotal - expectedTotal) > 1) {
+          // Mismatch count or amount — delete old and recreate (only if no slips uploaded)
+          const hasSlips = existing.some((e: any) => e.slip_file || e.paid_date);
+          if (!hasSlips) {
+            idsToDelete.push(...existing.map((e: any) => e.id));
+            qtsToProcess.push(qt);
+          }
         }
       }
 
@@ -135,10 +147,19 @@ export default function PaymentsPage() {
           const installmentCount = (qt.installment_count && qt.installment_count > 1) ? qt.installment_count : 1;
           const dueDay = qt.payment_due_day || today.getDate();
 
+          // คำนวณยอดมัดจำ
+          let depositAmount = 0;
+          if (qt.deposit_type === 'AMOUNT' && (qt.deposit_value || 0) > 0) {
+            depositAmount = qt.deposit_value!;
+          } else if (qt.deposit_type === 'PERCENT' && (qt.deposit_value || 0) > 0) {
+            depositAmount = Math.round(totalPrice * qt.deposit_value! / 100);
+          }
+
           if (hasInstallments && installmentCount > 1) {
-            // แบ่งจ่ายเท่าๆ กัน ตามจำนวนงวด
-            const perInstallment = Math.floor(totalPrice / installmentCount);
-            const remainder = totalPrice - perInstallment * installmentCount;
+            // หักมัดจำออกก่อน แล้วแบ่งจ่ายเท่าๆ กัน ตามจำนวนงวด
+            const amountAfterDeposit = totalPrice - depositAmount;
+            const perInstallment = Math.floor(amountAfterDeposit / installmentCount);
+            const remainder = amountAfterDeposit - perInstallment * installmentCount;
 
             for (let i = 0; i < installmentCount; i++) {
               // คำนวณวันครบกำหนดแต่ละงวด ตาม payment_due_day
@@ -170,11 +191,11 @@ export default function PaymentsPage() {
               }
             }
           } else {
-            // งวดเดียว
+            // งวดเดียว — หักมัดจำออกด้วย
             toInsert.push({
               quotation_id: qt.id,
               installment_number: 1,
-              amount: totalPrice,
+              amount: totalPrice - depositAmount,
               due_date: today.toISOString().split('T')[0],
             });
           }

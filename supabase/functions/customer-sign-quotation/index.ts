@@ -420,7 +420,7 @@ Deno.serve(async (req) => {
       // Get the updated quotation to return the PDF URL and account_id
       const { data: qt } = await supabase
         .from("quotations")
-        .select("qt_attachment, account_id, price, payment_condition")
+        .select("qt_attachment, account_id, price, payment_condition, deposit_type, deposit_value, has_installments, installment_count, payment_due_day")
         .eq("id", quotation_id)
         .single();
 
@@ -434,29 +434,43 @@ Deno.serve(async (req) => {
 
         if (!existing || existing.length === 0) {
           const totalPrice = qt.price || 0;
-          const condition = qt.payment_condition || "CASH";
 
-          if (condition === "INSTALLMENT") {
-            // Create 3 installments: 50%, 25%, 25%
-            const splits = [0.5, 0.25, 0.25];
-            for (let i = 0; i < splits.length; i++) {
+          // คำนวณยอดมัดจำ
+          let depositAmount = 0;
+          if (qt.deposit_type === 'AMOUNT' && (qt.deposit_value || 0) > 0) {
+            depositAmount = qt.deposit_value!;
+          } else if (qt.deposit_type === 'PERCENT' && (qt.deposit_value || 0) > 0) {
+            depositAmount = Math.round(totalPrice * qt.deposit_value! / 100);
+          }
+
+          const amountAfterDeposit = totalPrice - depositAmount;
+          const hasInstallments = qt.has_installments === true;
+          const installmentCount = (qt.installment_count && qt.installment_count > 1) ? qt.installment_count : 1;
+          const dueDay = qt.payment_due_day || new Date().getDate();
+
+          if (hasInstallments && installmentCount > 1) {
+            const perInstallment = Math.floor(amountAfterDeposit / installmentCount);
+            const remainder = amountAfterDeposit - perInstallment * installmentCount;
+            for (let i = 0; i < installmentCount; i++) {
               const dueDate = new Date();
-              dueDate.setDate(dueDate.getDate() + (i * 30));
+              dueDate.setMonth(dueDate.getMonth() + i, dueDay);
+              if (i === 0 && dueDate < new Date()) {
+                dueDate.setMonth(dueDate.getMonth() + 1);
+              }
               await supabase.from("payment_installments").insert({
                 quotation_id,
                 installment_number: i + 1,
-                amount: Math.round(totalPrice * splits[i]),
+                amount: i === 0 ? perInstallment + remainder : perInstallment,
                 due_date: dueDate.toISOString().split("T")[0],
               });
             }
           } else {
-            // CASH or LEASING: single installment
             const dueDate = new Date();
             dueDate.setDate(dueDate.getDate() + 30);
             await supabase.from("payment_installments").insert({
               quotation_id,
               installment_number: 1,
-              amount: totalPrice,
+              amount: amountAfterDeposit,
               due_date: dueDate.toISOString().split("T")[0],
             });
           }
