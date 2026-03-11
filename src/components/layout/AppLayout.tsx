@@ -7,7 +7,7 @@ import {
   Megaphone, Gift, Star,
   GraduationCap, BookOpen,
   TrendingUp, BarChart3,
-  Lock, Bot, Brain, Zap, LogOut, Menu, X
+  Lock, Bot, Brain, Zap, LogOut, Menu, X, ClipboardCheck
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useMockAuth } from '@/hooks/useMockAuth';
@@ -59,6 +59,7 @@ const navGroups = [
     phase: 1,
     items: [
       { to: '/maintenance', icon: Wrench, label: 'ซ่อมบำรุง' },
+      { to: '/qc-stock', icon: ClipboardCheck, label: 'QC สินค้า' },
     ],
   },
   {

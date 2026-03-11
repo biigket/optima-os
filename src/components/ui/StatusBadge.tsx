@@ -57,6 +57,13 @@ const colorMap: Record<string, string> = {
   VISIT_FORM: 'bg-accent/15 text-accent',
   REPORT: 'bg-success/15 text-success',
   WEEKLY_PLAN: 'bg-warning/15 text-warning',
+  // QC
+  QC_PASSED: 'bg-success/15 text-success',
+  QC_FAILED: 'bg-destructive/15 text-destructive',
+  PENDING_QC: 'bg-warning/15 text-warning',
+  READY_TO_SELL: 'bg-success/15 text-success',
+  INSTALLED: 'bg-accent/15 text-accent',
+  SENT_FOR_REPAIR: 'bg-destructive/15 text-destructive',
 };
 
 export default function StatusBadge({ status, className }: { status: BadgeType; className?: string }) {
