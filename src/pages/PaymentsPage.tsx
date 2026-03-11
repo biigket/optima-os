@@ -111,12 +111,24 @@ export default function PaymentsPage() {
       for (const qt of signedQts) {
         const existing = installmentsByQt.get(qt.id) || [];
         const expectedCount = (qt.has_installments && qt.installment_count && qt.installment_count > 1) ? qt.installment_count : 1;
+        
+        // คำนวณยอดที่ควรจะเป็น (หักมัดจำ)
+        const totalPrice = qt.price || 0;
+        let depositAmt = 0;
+        if (qt.deposit_type === 'AMOUNT' && (qt.deposit_value || 0) > 0) depositAmt = qt.deposit_value!;
+        else if (qt.deposit_type === 'PERCENT' && (qt.deposit_value || 0) > 0) depositAmt = Math.round(totalPrice * qt.deposit_value! / 100);
+        const expectedTotal = totalPrice - depositAmt;
+        const actualTotal = existing.reduce((s: number, e: any) => s + (e.amount || 0), 0);
+
         if (existing.length === 0) {
           qtsToProcess.push(qt);
-        } else if (existing.length !== expectedCount) {
-          // Mismatch — delete old and recreate
-          idsToDelete.push(...existing.map((e: any) => e.id));
-          qtsToProcess.push(qt);
+        } else if (existing.length !== expectedCount || Math.abs(actualTotal - expectedTotal) > 1) {
+          // Mismatch count or amount — delete old and recreate (only if no slips uploaded)
+          const hasSlips = existing.some((e: any) => e.slip_file || e.paid_date);
+          if (!hasSlips) {
+            idsToDelete.push(...existing.map((e: any) => e.id));
+            qtsToProcess.push(qt);
+          }
         }
       }
 
