@@ -27,10 +27,10 @@ import {
   Phone as PhoneIcon, Star, Trash2, ExternalLink
 } from 'lucide-react';
 import {
-  getLifetimeRevenue, getDevicesForAccount, getVisitsForAccount,
+  getDevicesForAccount, getVisitsForAccount,
   getTimelineForAccount, getReportsForAccount,
   getConsumablesForAccount, getServiceForAccount,
-  getPurchasesForAccount, getDocumentsForAccount, getMarketingForAccount
+  getDocumentsForAccount, getMarketingForAccount
 } from '@/data/customerCardMockData';
 import type { Opportunity, Activity } from '@/types';
 import HistoryTimeline from '@/components/opportunity-detail/HistoryTimeline';
