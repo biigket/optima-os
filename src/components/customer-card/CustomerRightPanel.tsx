@@ -76,7 +76,7 @@ export default function CustomerRightPanel({ accountId }: Props) {
       // Fetch approved quotations for documents tab
       const { data: docs } = await supabase
         .from('quotations')
-        .select('id, qt_number, qt_date, qt_attachment, product, price, approval_status, payment_status, payment_condition, sale_assigned, customer_signed_at')
+        .select('id, qt_number, qt_date, qt_attachment, product, price, approval_status, payment_status, payment_condition, sale_assigned, customer_signed_at, deposit_value, deposit_slip_status')
         .eq('account_id', accountId)
         .in('approval_status', ['APPROVED', 'CUSTOMER_SIGNED'])
         .not('qt_attachment', 'is', null)
