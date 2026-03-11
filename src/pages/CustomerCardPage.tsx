@@ -234,7 +234,7 @@ export default function CustomerCardPage() {
   }
 
   const primaryContact = contacts[0];
-  const revenue = getLifetimeRevenue(account.id);
+  // revenue now calculated from real qtDocs below
   const devices = getDevicesForAccount(account.id);
   const visits = getVisitsForAccount(account.id);
   const timeline = getTimelineForAccount(account.id);
