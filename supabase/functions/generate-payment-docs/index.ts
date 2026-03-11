@@ -153,9 +153,8 @@ function renderCustomer(account: any): string {
   </div>`;
 }
 
-function renderProductTable(qt: any, depositAmount: number): string {
+function renderProductTable(qt: any, amount: number, suffix: string = ""): string {
   const items = (qt.product || "").split(",").map((s: string) => s.trim()).filter(Boolean);
-  const price = depositAmount;
 
   const productRows = items.length === 0
     ? `<tr><td colspan="5" style="text-align:center;color:#999;padding:20px">ไม่มีรายการสินค้า</td></tr>`
@@ -163,11 +162,11 @@ function renderProductTable(qt: any, depositAmount: number): string {
         const match = item.match(/^(.+?)\s*x(\d+)$/);
         const name = match ? match[1].trim() : item;
         const qty = match ? parseInt(match[2]) : 1;
-        const unitPrice = items.length === 1 ? price : 0;
-        const total = items.length === 1 ? price : 0;
+        const unitPrice = items.length === 1 ? amount : 0;
+        const total = items.length === 1 ? amount : 0;
         return `<tr>
           <td class="center">${i + 1}</td>
-          <td>${name} (มัดจำ)</td>
+          <td>${name}${suffix ? " " + suffix : ""}</td>
           <td class="center">${qty}</td>
           <td class="right">${unitPrice ? fmt(unitPrice) : "-"}</td>
           <td class="right">${total ? fmt(total) : "-"}</td>
