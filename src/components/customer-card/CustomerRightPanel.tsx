@@ -90,7 +90,10 @@ export default function CustomerRightPanel({ accountId }: Props) {
         .order('qt_date', { ascending: false });
       const items = (purchaseData as QuotationPurchase[]) || [];
       setPurchases(items);
-      setLifetimeRevenue(items.reduce((sum, q) => sum + (q.price || 0), 0));
+      const paid = items.filter(q => q.payment_status === 'PAID').reduce((sum, q) => sum + (q.price || 0), 0);
+      const total = items.reduce((sum, q) => sum + (q.price || 0), 0);
+      setPaidRevenue(paid);
+      setOutstandingAmount(total - paid);
     }
     fetchData();
   }, [accountId]);
