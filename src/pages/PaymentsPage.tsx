@@ -135,9 +135,18 @@ export default function PaymentsPage() {
           const installmentCount = (qt.installment_count && qt.installment_count > 1) ? qt.installment_count : 1;
           const dueDay = qt.payment_due_day || today.getDate();
 
+          // คำนวณยอดมัดจำ
+          let depositAmount = 0;
+          if (qt.deposit_type === 'AMOUNT' && (qt.deposit_value || 0) > 0) {
+            depositAmount = qt.deposit_value!;
+          } else if (qt.deposit_type === 'PERCENT' && (qt.deposit_value || 0) > 0) {
+            depositAmount = Math.round(totalPrice * qt.deposit_value! / 100);
+          }
+
           if (hasInstallments && installmentCount > 1) {
-            // แบ่งจ่ายเท่าๆ กัน ตามจำนวนงวด
-            const perInstallment = Math.floor(totalPrice / installmentCount);
+            // หักมัดจำออกก่อน แล้วแบ่งจ่ายเท่าๆ กัน ตามจำนวนงวด
+            const amountAfterDeposit = totalPrice - depositAmount;
+            const perInstallment = Math.floor(amountAfterDeposit / installmentCount);
             const remainder = totalPrice - perInstallment * installmentCount;
 
             for (let i = 0; i < installmentCount; i++) {
