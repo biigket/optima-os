@@ -241,11 +241,11 @@ export default function CustomerCardPage() {
   const reports = getReportsForAccount(account.id);
   const consumables = getConsumablesForAccount(account.id);
   const services = getServiceForAccount(account.id);
-  const purchases = getPurchasesForAccount(account.id);
   const documents = getDocumentsForAccount(account.id);
   const marketing = getMarketingForAccount(account.id);
   const activeDeals = opportunities.filter(o => !['WON', 'LOST', 'CLOSED'].includes(o.stage)).length;
   const lastVisit = visits.length > 0 ? visits[0].date : '-';
+  const realRevenue = qtDocs.reduce((sum, q) => sum + (q.price || 0), 0);
 
   return (
     <div className="animate-fade-in max-w-[1200px] mx-auto">
