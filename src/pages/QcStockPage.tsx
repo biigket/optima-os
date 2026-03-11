@@ -16,7 +16,7 @@ type FilterTab = 'ALL' | QcStatus;
 
 const filterTabs: { label: string; value: FilterTab; icon: React.ElementType }[] = [
   { label: 'ทั้งหมด', value: 'ALL', icon: Package },
-  { label: 'QC ผ่าน', value: 'QC_PASSED', icon: CheckCircle2 },
+  { label: 'พร้อมขาย', value: 'QC_PASSED', icon: CheckCircle2 },
   { label: 'QC ไม่ผ่าน', value: 'QC_FAILED', icon: XCircle },
   { label: 'รอ QC', value: 'PENDING_QC', icon: Clock },
 ];
