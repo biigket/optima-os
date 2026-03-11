@@ -34,6 +34,7 @@ import MockLoginPage from "@/pages/MockLoginPage";
 import CustomerRegisterPage from "@/pages/CustomerRegisterPage";
 import QRCodePage from "@/pages/QRCodePage";
 import QcStockPage from "@/pages/QcStockPage";
+import QcStockDetailPage from "@/pages/QcStockDetailPage";
 import { MockAuthProvider } from "@/hooks/useMockAuth";
 
 const queryClient = new QueryClient();
@@ -77,7 +78,8 @@ function AuthedAppRoutes() {
         <Route path="/payments" element={<PaymentsPage />} />
         <Route path="/payments/:quotationId" element={<PaymentDetailPage />} />
         <Route path="/qr-register" element={<QRCodePage />} />
-        <Route path="/qc-stock" element={<QcStockPage />} />
+         <Route path="/qc-stock" element={<QcStockPage />} />
+         <Route path="/qc-stock/:id" element={<QcStockDetailPage />} />
         {phase2Routes.map((path) => (
           <Route key={path} path={path} element={<Phase2Placeholder />} />
         ))}

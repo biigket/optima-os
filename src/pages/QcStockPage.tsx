@@ -1,4 +1,5 @@
 import { useState, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Search, Plus, ClipboardCheck, CheckCircle2, XCircle, Clock, Package, Cpu } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -30,6 +31,7 @@ const filterTabs: { label: string; value: FilterTab; icon: React.ElementType }[]
 ];
 
 export default function QcStockPage() {
+  const navigate = useNavigate();
   const [items, setItems] = useState<ND2StockItem[]>(mockND2Stock);
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState<FilterTab>('ALL');
@@ -126,7 +128,6 @@ export default function QcStockPage() {
               <TableHead>HRM</TableHead>
               <TableHead>QC</TableHead>
               <TableHead>STATUS</TableHead>
-              <TableHead>Clinic / จอง</TableHead>
               <TableHead>วันรับเข้า</TableHead>
               <TableHead>ที่เก็บ</TableHead>
             </TableRow>
@@ -134,13 +135,13 @@ export default function QcStockPage() {
           <TableBody>
             {filtered.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={9} className="text-center text-muted-foreground py-8">
+                <TableCell colSpan={8} className="text-center text-muted-foreground py-8">
                   ไม่พบข้อมูล
                 </TableCell>
               </TableRow>
             ) : (
               filtered.map(item => (
-                <TableRow key={item.id}>
+                <TableRow key={item.id} className="cursor-pointer hover:bg-muted/50" onClick={() => navigate(`/qc-stock/${item.id}`)}>
                   <TableCell className="font-mono font-medium text-foreground">{item.hntSerialNumber}</TableCell>
                   <TableCell className="font-mono text-xs text-muted-foreground">
                     <div>{item.hfl1}</div>
@@ -162,9 +163,6 @@ export default function QcStockPage() {
                   </TableCell>
                   <TableCell>
                     <StatusBadge status={item.status} />
-                  </TableCell>
-                  <TableCell className="text-sm">
-                    {item.clinic || item.reservedFor || '—'}
                   </TableCell>
                   <TableCell className="text-sm text-muted-foreground">
                     {item.receivedDate || '—'}
