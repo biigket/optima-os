@@ -238,6 +238,49 @@ export default function PaymentDetailPage() {
             </CardContent>
           </Card>
 
+          {/* Deposit Status Panel */}
+          {hasDeposit && (
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-sm flex items-center gap-1.5">
+                  <CreditCard size={14} /> สถานะมัดจำ
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="flex items-center justify-between">
+                  <div className="space-y-1">
+                    <p className="text-sm text-muted-foreground">ยอดมัดจำ</p>
+                    <p className="text-lg font-bold text-foreground">
+                      {qt.deposit_type === 'PERCENT' ? `${qt.deposit_value}% ` : ''}฿{depositAmount.toLocaleString()}
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <StatusBadge status={qt.payment_status === 'DEPOSIT_PAID' || qt.payment_status === 'PAID' ? 'DEPOSIT_PAID' : (qt.deposit_slip_status || 'NO_SLIP')} />
+                    {qt.payment_status !== 'DEPOSIT_PAID' && qt.payment_status !== 'PAID' && (!qt.deposit_slip_status || qt.deposit_slip_status === 'NO_SLIP') && (
+                      <Button size="sm" variant="outline" className="gap-1 text-xs" onClick={() => setDepositTarget({
+                        id: qt.id,
+                        deposit_amount: depositAmount,
+                        qt_number: qt.qt_number || '',
+                      })}>
+                        <Upload size={12} /> อัพสลิปมัดจำ
+                      </Button>
+                    )}
+                    {qt.deposit_slip && (
+                      <Button size="sm" variant="ghost" className="gap-1 text-xs" onClick={() => window.open(qt.deposit_slip!, '_blank')}>
+                        <Eye size={12} /> ดูสลิป
+                      </Button>
+                    )}
+                  </div>
+                </div>
+                {qt.deposit_paid_date && (
+                  <p className="text-xs text-muted-foreground mt-2">
+                    ชำระเมื่อ {format(new Date(qt.deposit_paid_date), 'd MMM yyyy', { locale: th })}
+                  </p>
+                )}
+              </CardContent>
+            </Card>
+          )}
+
           {/* Installments Table */}
           <Card>
             <CardHeader className="pb-3">
