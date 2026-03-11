@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search, Plus, ClipboardCheck, CheckCircle2, XCircle, Clock, Package, Cpu, Zap } from 'lucide-react';
+import { Search, Plus, ClipboardCheck, CheckCircle2, XCircle, Clock, Package, Cpu, Zap, MonitorSmartphone } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import StatusBadge from '@/components/ui/StatusBadge';
@@ -9,8 +9,10 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { mockND2Stock, type ND2StockItem, type QcStatus } from '@/data/qcMockData';
 import { mockCartridgeStock, type CartridgeStockItem, type CartridgeStatus } from '@/data/cartridgeMockData';
+import { mockTrica3DStock, type Trica3DStockItem, type Trica3DStatus } from '@/data/trica3dMockData';
 import ND2IntakeForm from '@/components/qc-stock/ND2IntakeForm';
 import CartridgeIntakeForm from '@/components/qc-stock/CartridgeIntakeForm';
+import Trica3DIntakeForm from '@/components/qc-stock/Trica3DIntakeForm';
 
 type FilterTab = 'ALL' | QcStatus;
 
