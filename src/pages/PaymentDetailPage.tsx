@@ -133,23 +133,76 @@ export default function PaymentDetailPage() {
           </div>
           <p className="text-sm text-muted-foreground">{account?.clinic_name}</p>
         </div>
-        {qt.qt_attachment && (
-          <Button variant="outline" size="sm" className="gap-1.5" onClick={async () => {
-            const fnUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-quotation-pdf`;
-            try {
-              const res = await fetch(fnUrl, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY },
-                body: JSON.stringify({ quotation_id: qt.id }),
-              });
-              const html = await res.text();
-              const win = window.open('', '_blank');
-              if (win) { win.document.write(html); win.document.close(); }
-            } catch (e) { console.error(e); }
-          }}>
-            <FileText size={14} /> ดูใบเสนอราคา
-          </Button>
-        )}
+        <div className="flex items-center gap-2 flex-wrap">
+          {qt.qt_attachment && (
+            <Button variant="outline" size="sm" className="gap-1.5" onClick={async () => {
+              const fnUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-quotation-pdf`;
+              try {
+                const res = await fetch(fnUrl, {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json', 'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY },
+                  body: JSON.stringify({ quotation_id: qt.id }),
+                });
+                const html = await res.text();
+                const win = window.open('', '_blank');
+                if (win) { win.document.write(html); win.document.close(); }
+              } catch (e) { console.error(e); }
+            }}>
+              <FileText size={14} /> ใบเสนอราคา
+            </Button>
+          )}
+          {qt.billing_note_number && (
+            <Button variant="outline" size="sm" className="gap-1.5" onClick={async () => {
+              const fnUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-payment-docs`;
+              try {
+                const res = await fetch(fnUrl, {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json', 'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY },
+                  body: JSON.stringify({ quotation_id: qt.id, doc_type: 'BN' }),
+                });
+                const html = await res.text();
+                const win = window.open('', '_blank');
+                if (win) { win.document.write(html); win.document.close(); }
+              } catch (e) { console.error(e); }
+            }}>
+              <FileText size={14} /> ใบวางบิล
+            </Button>
+          )}
+          {qt.tax_invoice_number && (
+            <Button variant="outline" size="sm" className="gap-1.5" onClick={async () => {
+              const fnUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-payment-docs`;
+              try {
+                const res = await fetch(fnUrl, {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json', 'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY },
+                  body: JSON.stringify({ quotation_id: qt.id, doc_type: 'IV' }),
+                });
+                const html = await res.text();
+                const win = window.open('', '_blank');
+                if (win) { win.document.write(html); win.document.close(); }
+              } catch (e) { console.error(e); }
+            }}>
+              <FileText size={14} /> ใบกำกับภาษี
+            </Button>
+          )}
+          {qt.delivery_note_number && (
+            <Button variant="outline" size="sm" className="gap-1.5" onClick={async () => {
+              const fnUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-payment-docs`;
+              try {
+                const res = await fetch(fnUrl, {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json', 'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY },
+                  body: JSON.stringify({ quotation_id: qt.id, doc_type: 'DN' }),
+                });
+                const html = await res.text();
+                const win = window.open('', '_blank');
+                if (win) { win.document.write(html); win.document.close(); }
+              } catch (e) { console.error(e); }
+            }}>
+              <FileText size={14} /> ใบส่งของ
+            </Button>
+          )}
+        </div>
       </div>
 
       {/* Mini KPI Summary */}
