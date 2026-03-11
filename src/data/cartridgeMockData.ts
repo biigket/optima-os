@@ -1,4 +1,4 @@
-export type CartridgeType = 'A2.0' | 'A3.0' | 'A4.5' | 'A6.0' | 'L1.5' | 'L3.0' | 'L4.5' | 'L9.0';
+export type CartridgeType = 'A2.0' | 'A3.0' | 'A4.5' | 'A6.0' | 'L1.5' | 'L3.0' | 'L4.5' | 'L9.0' | 'N49' | 'I49' | 'N25' | 'I25';
 
 export type CartridgeStatus = 'พร้อมขาย' | 'ขายแล้ว' | 'ไม่ผ่าน QC' | 'DEMO' | 'Claim' | 'Support KOL';
 
@@ -12,7 +12,7 @@ export interface CartridgeStockItem {
   storageLocation: string;
 }
 
-export const cartridgeTypes: CartridgeType[] = ['A2.0', 'A3.0', 'A4.5', 'A6.0', 'L1.5', 'L3.0', 'L4.5', 'L9.0'];
+export const cartridgeTypes: CartridgeType[] = ['A2.0', 'A3.0', 'A4.5', 'A6.0', 'L1.5', 'L3.0', 'L4.5', 'L9.0', 'N49', 'I49', 'N25', 'I25'];
 
 export const cartridgeStatuses: CartridgeStatus[] = ['พร้อมขาย', 'ขายแล้ว', 'ไม่ผ่าน QC', 'DEMO', 'Claim', 'Support KOL'];
 
@@ -39,4 +39,8 @@ export const mockCartridgeStock: CartridgeStockItem[] = [
   { id: 'cart-20', serialNumber: 'SDL923710123', cartridgeType: 'L9.0', status: 'พร้อมขาย', qcFailReason: '', receivedDate: '2025-03-28', storageLocation: 'คลัง B ชั้น 2' },
   { id: 'cart-21', serialNumber: 'SDL923710120', cartridgeType: 'L9.0', status: 'ขายแล้ว', qcFailReason: '', receivedDate: '2025-03-28', storageLocation: '' },
   { id: 'cart-22', serialNumber: 'SDL925110145', cartridgeType: 'L9.0', status: 'Support KOL', qcFailReason: '', receivedDate: '2025-06-27', storageLocation: '' },
+  { id: 'cart-23', serialNumber: 'RMN49001', cartridgeType: 'N49', status: 'พร้อมขาย', qcFailReason: '', receivedDate: '2025-06-15', storageLocation: 'คลัง A ชั้น 1' },
+  { id: 'cart-24', serialNumber: 'RMI49002', cartridgeType: 'I49', status: 'DEMO', qcFailReason: '', receivedDate: '2025-06-20', storageLocation: '' },
+  { id: 'cart-25', serialNumber: 'RMN25003', cartridgeType: 'N25', status: 'พร้อมขาย', qcFailReason: '', receivedDate: '2025-07-01', storageLocation: 'คลัง A ชั้น 2' },
+  { id: 'cart-26', serialNumber: 'RMI25004', cartridgeType: 'I25', status: 'ไม่ผ่าน QC', qcFailReason: 'Connection error', receivedDate: '2025-07-05', storageLocation: '' },
 ];
