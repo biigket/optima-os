@@ -27,10 +27,10 @@ import {
   Phone as PhoneIcon, Star, Trash2, ExternalLink
 } from 'lucide-react';
 import {
-  getLifetimeRevenue, getDevicesForAccount, getVisitsForAccount,
+  getDevicesForAccount, getVisitsForAccount,
   getTimelineForAccount, getReportsForAccount,
   getConsumablesForAccount, getServiceForAccount,
-  getPurchasesForAccount, getDocumentsForAccount, getMarketingForAccount
+  getDocumentsForAccount, getMarketingForAccount
 } from '@/data/customerCardMockData';
 import type { Opportunity, Activity } from '@/types';
 import HistoryTimeline from '@/components/opportunity-detail/HistoryTimeline';
@@ -116,7 +116,7 @@ export default function CustomerCardPage() {
   const [chatImages, setChatImages] = useState<{ id: string; file_url: string; file_name: string; uploaded_by: string | null; created_at: string; opportunity_id: string }[]>([]);
   const [visitReports, setVisitReports] = useState<any[]>([]);
   const [demoReports, setDemoReports] = useState<any[]>([]);
-  const [qtDocs, setQtDocs] = useState<{ id: string; qt_number: string | null; qt_date: string | null; qt_attachment: string | null; product: string | null; price: number | null; approval_status: string | null; customer_signed_at: string | null; payment_status: string | null }[]>([]);
+  const [qtDocs, setQtDocs] = useState<{ id: string; qt_number: string | null; qt_date: string | null; qt_attachment: string | null; product: string | null; price: number | null; approval_status: string | null; customer_signed_at: string | null; payment_status: string | null; payment_condition: string | null; sale_assigned: string | null }[]>([]);
 
   // Fetch activities, stage history, and notes for this account
   useEffect(() => {
@@ -161,7 +161,7 @@ export default function CustomerCardPage() {
         if (data) setDemoReports(data);
       });
     // Approved / Customer-signed quotation docs
-    supabase.from('quotations').select('id, qt_number, qt_date, qt_attachment, product, price, approval_status, customer_signed_at, payment_status')
+    supabase.from('quotations').select('id, qt_number, qt_date, qt_attachment, product, price, approval_status, customer_signed_at, payment_status, payment_condition, sale_assigned')
       .eq('account_id', id).in('approval_status', ['APPROVED', 'CUSTOMER_SIGNED'])
       .order('qt_date', { ascending: false })
       .then(({ data }) => {
@@ -234,18 +234,18 @@ export default function CustomerCardPage() {
   }
 
   const primaryContact = contacts[0];
-  const revenue = getLifetimeRevenue(account.id);
+  // revenue now calculated from real qtDocs below
   const devices = getDevicesForAccount(account.id);
   const visits = getVisitsForAccount(account.id);
   const timeline = getTimelineForAccount(account.id);
   const reports = getReportsForAccount(account.id);
   const consumables = getConsumablesForAccount(account.id);
   const services = getServiceForAccount(account.id);
-  const purchases = getPurchasesForAccount(account.id);
   const documents = getDocumentsForAccount(account.id);
   const marketing = getMarketingForAccount(account.id);
   const activeDeals = opportunities.filter(o => !['WON', 'LOST', 'CLOSED'].includes(o.stage)).length;
   const lastVisit = visits.length > 0 ? visits[0].date : '-';
+  const realRevenue = qtDocs.reduce((sum, q) => sum + (q.price || 0), 0);
 
   return (
     <div className="animate-fade-in max-w-[1200px] mx-auto">
@@ -295,7 +295,7 @@ export default function CustomerCardPage() {
             {account.company_name && <p className="text-xs text-muted-foreground">บริษัท: {account.company_name}</p>}
           </div>
           <div className="flex gap-3 overflow-x-auto pb-1 shrink-0">
-            <QuickStat icon={DollarSign} label="รายได้รวม" value={formatCurrency(revenue)} />
+            <QuickStat icon={DollarSign} label="รายได้รวม" value={formatCurrency(realRevenue)} />
             <QuickStat icon={Monitor} label="เครื่อง" value={`${devices.length}`} />
             <QuickStat icon={Handshake} label="ดีลเปิด" value={`${activeDeals}`} />
             <QuickStat icon={MapPin} label="เยี่ยมล่าสุด" value={lastVisit} />
@@ -467,7 +467,7 @@ export default function CustomerCardPage() {
               <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
                 <KpiMini label="เยี่ยมล่าสุด" value={lastVisit} />
                 <KpiMini label="ดีลที่เปิดอยู่" value={`${activeDeals} รายการ`} />
-                <KpiMini label="รายได้รวม" value={formatCurrency(revenue)} />
+                <KpiMini label="รายได้รวม" value={formatCurrency(realRevenue)} />
                 <KpiMini label="เครื่องที่ติดตั้ง" value={`${devices.length} เครื่อง`} />
                 <KpiMini label="สั่ง Cartridge ล่าสุด" value={visits.length > 0 ? visits[0].date : '-'} />
                 <KpiMini label="แอคชั่นถัดไป" value={visits.length > 0 ? visits[0].nextStep : '-'} />
@@ -769,28 +769,37 @@ export default function CustomerCardPage() {
             <TabsContent value="purchases" className="mt-0">
               <div className="p-3 rounded-md bg-primary/5 border border-primary/10 mb-3">
                 <p className="text-[11px] text-muted-foreground">รายได้ตลอดอายุลูกค้า</p>
-                <p className="text-lg font-bold text-foreground">{formatCurrency(revenue)}</p>
+                <p className="text-lg font-bold text-foreground">{formatCurrency(realRevenue)}</p>
               </div>
-              <div className="rounded-md border overflow-x-auto">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead className="text-xs">สินค้า</TableHead>
-                      <TableHead className="text-xs">ราคา</TableHead>
-                      <TableHead className="text-xs">วันที่</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {purchases.map(p => (
-                      <TableRow key={p.id}>
-                        <TableCell className="text-xs">{p.product}</TableCell>
-                        <TableCell className="text-xs">{formatCurrency(p.price)}</TableCell>
-                        <TableCell className="text-[11px] text-muted-foreground">{p.invoiceDate}</TableCell>
-                      </TableRow>
-                    ))}
-                    {purchases.length === 0 && <TableRow><TableCell colSpan={3} className="text-center py-6 text-muted-foreground text-xs">ยังไม่มีประวัติซื้อ</TableCell></TableRow>}
-                  </TableBody>
-                </Table>
+              <div className="space-y-2">
+                {qtDocs.map(q => (
+                  <div
+                    key={q.id}
+                    onClick={() => navigate(`/payments/${q.id}`)}
+                    className="p-3 rounded-md bg-muted/30 border space-y-1.5 cursor-pointer hover:bg-muted/50 transition-colors"
+                  >
+                    <div className="flex justify-between items-start">
+                      <div className="min-w-0 flex-1">
+                        <p className="text-sm font-medium text-foreground">{q.product || '-'}</p>
+                        <p className="text-[11px] text-muted-foreground">{q.qt_number || '-'} • {q.qt_date || '-'}</p>
+                      </div>
+                      <div className="flex flex-col items-end gap-1">
+                        <p className="text-sm font-semibold text-foreground">{formatCurrency(q.price || 0)}</p>
+                        <StatusBadge status={q.payment_status || 'UNPAID'} />
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2 text-[11px] text-muted-foreground">
+                      <Receipt size={10} />
+                      <span>{q.payment_condition || '-'}</span>
+                      <span>•</span>
+                      <span>{q.sale_assigned || '-'}</span>
+                      <ExternalLink size={10} className="ml-auto text-primary" />
+                    </div>
+                  </div>
+                ))}
+                {qtDocs.length === 0 && (
+                  <p className="text-xs text-muted-foreground text-center py-6">ยังไม่มีประวัติซื้อ</p>
+                )}
               </div>
             </TabsContent>
 
