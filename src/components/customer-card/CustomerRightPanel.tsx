@@ -66,7 +66,8 @@ export default function CustomerRightPanel({ accountId }: Props) {
 
   const [qtDocs, setQtDocs] = useState<QuotationDoc[]>([]);
   const [purchases, setPurchases] = useState<QuotationPurchase[]>([]);
-  const [lifetimeRevenue, setLifetimeRevenue] = useState(0);
+  const [paidRevenue, setPaidRevenue] = useState(0);
+  const [outstandingAmount, setOutstandingAmount] = useState(0);
 
   useEffect(() => {
     async function fetchData() {
