@@ -273,6 +273,80 @@ export default function QcStockPage() {
           </div>
         </TabsContent>
 
+        {/* ==================== Trica 3D Tab ==================== */}
+        <TabsContent value="trica3d" className="space-y-4">
+          <div className="flex justify-end">
+            <Button onClick={() => setTrica3dFormOpen(true)} className="gap-2">
+              <Plus size={16} />
+              รับ Trica 3D เข้า Stock
+            </Button>
+          </div>
+
+          {/* Filters */}
+          <div className="flex flex-wrap items-center gap-3">
+            <div className="relative max-w-sm flex-1">
+              <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+              <Input placeholder="ค้นหา S/N, คลินิก..." value={trica3dSearch} onChange={e => setTrica3dSearch(e.target.value)} className="pl-9" />
+            </div>
+            <div className="flex gap-1 flex-wrap">
+              {trica3dFilterTabs.map(tab => (
+                <Button
+                  key={tab.value}
+                  variant={trica3dFilter === tab.value ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setTrica3dFilter(tab.value)}
+                >
+                  {tab.label}
+                </Button>
+              ))}
+            </div>
+          </div>
+
+          {/* Table */}
+          <div className="rounded-lg border bg-card">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>S/N Trica</TableHead>
+                  <TableHead>Clinic</TableHead>
+                  <TableHead>STATUS</TableHead>
+                  <TableHead>วันรับเข้า Stock</TableHead>
+                  <TableHead>วันที่ติดตั้ง</TableHead>
+                  <TableHead>สาเหตุเสีย</TableHead>
+                  <TableHead>หมายเหตุ</TableHead>
+                  <TableHead>เก็บที่</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filteredTrica3d.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={8} className="text-center text-muted-foreground py-12">
+                      ยังไม่มีข้อมูล Trica 3D — กด "รับ Trica 3D เข้า Stock" เพื่อเพิ่ม
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  filteredTrica3d.map(item => (
+                    <TableRow key={item.id} className="cursor-pointer hover:bg-muted/50">
+                      <TableCell className="font-mono font-medium text-foreground text-xs">{item.serialNumber}</TableCell>
+                      <TableCell className="text-sm">{item.clinic || '—'}</TableCell>
+                      <TableCell>
+                        <span className={`inline-flex items-center rounded-full border px-2 py-0.5 text-xs font-medium ${trica3dStatusColor[item.status] || 'bg-muted text-muted-foreground'}`}>
+                          {item.status}
+                        </span>
+                      </TableCell>
+                      <TableCell className="text-sm text-muted-foreground">{item.receivedDate || '—'}</TableCell>
+                      <TableCell className="text-sm text-muted-foreground">{item.installDate || '—'}</TableCell>
+                      <TableCell className="text-sm text-muted-foreground max-w-[180px] truncate">{item.failReason || '—'}</TableCell>
+                      <TableCell className="text-sm text-muted-foreground max-w-[200px] truncate">{item.notes || '—'}</TableCell>
+                      <TableCell className="text-sm text-muted-foreground">{item.storageLocation || '—'}</TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          </div>
+        </TabsContent>
+
         {/* ==================== Cartridge Tab ==================== */}
         <TabsContent value="cartridge" className="space-y-4">
           <div className="flex justify-end">
@@ -354,6 +428,7 @@ export default function QcStockPage() {
 
       <ND2IntakeForm open={formOpen} onOpenChange={setFormOpen} onSubmit={handleAddItem} />
       <CartridgeIntakeForm open={cartridgeFormOpen} onOpenChange={setCartridgeFormOpen} onSubmit={handleAddCartridge} />
+      <Trica3DIntakeForm open={trica3dFormOpen} onOpenChange={setTrica3dFormOpen} onSubmit={handleAddTrica3d} />
     </div>
   );
 }
