@@ -27,6 +27,7 @@ import SalesOrdersPage from "@/pages/SalesOrdersPage";
 import InventoryPage from "@/pages/InventoryPage";
 import InvoicesPage from "@/pages/InvoicesPage";
 import PaymentsPage from "@/pages/PaymentsPage";
+import PaymentDetailPage from "@/pages/PaymentDetailPage";
 import Phase2Placeholder from "@/pages/Phase2Placeholder";
 import NotFound from "@/pages/NotFound";
 import MockLoginPage from "@/pages/MockLoginPage";
