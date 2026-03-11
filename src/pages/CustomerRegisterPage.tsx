@@ -114,8 +114,8 @@ export default function CustomerRegisterPage() {
               <Input id="phone" name="phone" type="tel" value={form.phone} onChange={handleChange} placeholder="08x-xxx-xxxx" required />
             </div>
             <div className="space-y-1.5">
-              <Label htmlFor="email">อีเมล</Label>
-              <Input id="email" name="email" type="email" value={form.email} onChange={handleChange} placeholder="example@email.com" />
+              <Label htmlFor="email">อีเมล *</Label>
+              <Input id="email" name="email" type="email" value={form.email} onChange={handleChange} placeholder="example@email.com" required />
             </div>
             <div className="space-y-1.5">
               <Label>เครื่องที่มีอยู่แล้ว</Label>
