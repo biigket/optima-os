@@ -34,7 +34,7 @@ export default function PaymentDetailPage() {
     queryFn: async () => {
       const { data: qt, error: qtErr } = await supabase
         .from('quotations')
-        .select('id, qt_number, account_id, price, product, payment_condition, payment_status, deposit_type, deposit_value, deposit_slip, deposit_slip_status, deposit_paid_date, has_installments, installment_count, payment_due_day, qt_attachment, customer_signed_at, approved_at, created_at')
+        .select('id, qt_number, account_id, price, product, payment_condition, payment_status, deposit_type, deposit_value, deposit_slip, deposit_slip_status, deposit_paid_date, has_installments, installment_count, payment_due_day, qt_attachment, customer_signed_at, approved_at, created_at, billing_note_number, tax_invoice_number, delivery_note_number, docs_generated_at')
         .eq('id', quotationId!)
         .single();
       if (qtErr) throw qtErr;
