@@ -447,7 +447,7 @@ export default function PaymentsPage() {
                         </span>
                       )}
                     </TableCell>
-                    <TableCell className="text-right">
+                    <TableCell className="text-right" onClick={e => e.stopPropagation()}>
                       <div className="flex justify-end gap-1">
                         {(row.slip_status === 'NO_SLIP' || row.slip_status === 'REJECTED') && (
                           <Button size="sm" variant="outline" className="gap-1 text-xs h-7" onClick={() => setUploadTarget(row)}>
