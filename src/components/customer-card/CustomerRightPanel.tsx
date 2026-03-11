@@ -30,6 +30,8 @@ interface QuotationDoc {
   payment_condition: string | null;
   sale_assigned: string | null;
   customer_signed_at: string | null;
+  deposit_value: number | null;
+  deposit_slip_status: string | null;
 }
 
 interface QuotationPurchase extends QuotationDoc {
@@ -74,7 +76,7 @@ export default function CustomerRightPanel({ accountId }: Props) {
       // Fetch approved quotations for documents tab
       const { data: docs } = await supabase
         .from('quotations')
-        .select('id, qt_number, qt_date, qt_attachment, product, price, approval_status, payment_status, payment_condition, sale_assigned, customer_signed_at')
+        .select('id, qt_number, qt_date, qt_attachment, product, price, approval_status, payment_status, payment_condition, sale_assigned, customer_signed_at, deposit_value, deposit_slip_status')
         .eq('account_id', accountId)
         .in('approval_status', ['APPROVED', 'CUSTOMER_SIGNED'])
         .not('qt_attachment', 'is', null)
@@ -84,14 +86,36 @@ export default function CustomerRightPanel({ accountId }: Props) {
       // Fetch all customer-signed quotations for purchases tab
       const { data: purchaseData } = await supabase
         .from('quotations')
-        .select('id, qt_number, qt_date, qt_attachment, product, price, approval_status, payment_status, payment_condition, sale_assigned, customer_signed_at')
+        .select('id, qt_number, qt_date, qt_attachment, product, price, approval_status, payment_status, payment_condition, sale_assigned, customer_signed_at, deposit_value, deposit_slip_status')
         .eq('account_id', accountId)
         .in('approval_status', ['APPROVED', 'CUSTOMER_SIGNED'])
         .order('qt_date', { ascending: false });
       const items = (purchaseData as QuotationPurchase[]) || [];
       setPurchases(items);
-      const paid = items.filter(q => q.payment_status === 'PAID').reduce((sum, q) => sum + (q.price || 0), 0);
+
+      // Fetch installments for accurate paid/outstanding calculation
+      const qtIds = items.map(q => q.id);
+      let instPaidMap: Record<string, number> = {};
+      if (qtIds.length > 0) {
+        const { data: installments } = await supabase
+          .from('payment_installments')
+          .select('quotation_id, amount, slip_status')
+          .in('quotation_id', qtIds);
+        if (installments) {
+          for (const inst of installments) {
+            if (inst.slip_status === 'VERIFIED') {
+              instPaidMap[inst.quotation_id] = (instPaidMap[inst.quotation_id] || 0) + (inst.amount || 0);
+            }
+          }
+        }
+      }
+
       const total = items.reduce((sum, q) => sum + (q.price || 0), 0);
+      const paid = items.reduce((sum, q) => {
+        const instPaid = instPaidMap[q.id] || 0;
+        const depositPaid = (q.deposit_slip_status === 'VERIFIED' && q.deposit_value) ? q.deposit_value : 0;
+        return sum + instPaid + depositPaid;
+      }, 0);
       setPaidRevenue(paid);
       setOutstandingAmount(total - paid);
     }
