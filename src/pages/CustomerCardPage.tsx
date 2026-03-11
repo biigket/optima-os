@@ -295,7 +295,7 @@ export default function CustomerCardPage() {
             {account.company_name && <p className="text-xs text-muted-foreground">บริษัท: {account.company_name}</p>}
           </div>
           <div className="flex gap-3 overflow-x-auto pb-1 shrink-0">
-            <QuickStat icon={DollarSign} label="รายได้รวม" value={formatCurrency(revenue)} />
+            <QuickStat icon={DollarSign} label="รายได้รวม" value={formatCurrency(realRevenue)} />
             <QuickStat icon={Monitor} label="เครื่อง" value={`${devices.length}`} />
             <QuickStat icon={Handshake} label="ดีลเปิด" value={`${activeDeals}`} />
             <QuickStat icon={MapPin} label="เยี่ยมล่าสุด" value={lastVisit} />
