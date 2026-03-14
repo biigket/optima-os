@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Search, Plus, Package, Cpu, Zap, MonitorSmartphone } from 'lucide-react';
 import { Input } from '@/components/ui/input';
