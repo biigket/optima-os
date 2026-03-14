@@ -21,6 +21,8 @@ import { mockND2Stock } from '@/data/qcMockData';
 import { mockTrica3DStock } from '@/data/trica3dMockData';
 import { mockQuattroStock } from '@/data/quattroMockData';
 import { mockCartridgeStock } from '@/data/cartridgeMockData';
+import { mockPicohiStock } from '@/data/picohiMockData';
+import { mockFreezeroStock } from '@/data/freezeroMockData';
 import { getPrice } from '@/data/inventoryPricing';
 import { addReservation } from '@/data/inventoryReservation';
 
@@ -58,6 +60,12 @@ function getInventoryProducts(): InventoryProduct[] {
   mockCartridgeStock.filter(i => i.status === 'พร้อมขาย').forEach(i =>
     items.push({ id: i.id, name: `Cartridge ${i.cartridgeType} (${i.serialNumber})`, category: 'Cartridge', serialNumber: i.serialNumber, price: getPrice(i.id) ?? 0 })
   );
+  mockPicohiStock.filter(i => i.status === 'พร้อมขาย').forEach(i =>
+    items.push({ id: i.id, name: `Picohi (${i.serialNumber})`, category: 'Picohi', serialNumber: i.serialNumber, price: getPrice(i.id) ?? 0 })
+  );
+  mockFreezeroStock.filter(i => i.status === 'พร้อมขาย').forEach(i =>
+    items.push({ id: i.id, name: `Freezero (${i.serialNumber})`, category: 'Freezero', serialNumber: i.serialNumber, price: getPrice(i.id) ?? 0 })
+  );
   return items;
 }
 
@@ -65,6 +73,8 @@ const categoryBadge: Record<string, string> = {
   ND2: 'bg-blue-100 text-blue-800',
   'Trica 3D': 'bg-purple-100 text-purple-800',
   Quattro: 'bg-emerald-100 text-emerald-800',
+  Picohi: 'bg-pink-100 text-pink-800',
+  Freezero: 'bg-cyan-100 text-cyan-800',
   Cartridge: 'bg-amber-100 text-amber-800',
 };
 
