@@ -9,10 +9,12 @@ import { Badge } from '@/components/ui/badge';
 import { mockND2Stock, type ND2StockItem } from '@/data/qcMockData';
 import { mockCartridgeStock, type CartridgeStockItem } from '@/data/cartridgeMockData';
 import { mockTrica3DStock, type Trica3DStockItem } from '@/data/trica3dMockData';
+import { mockQuattroStock, type QuattroStockItem } from '@/data/quattroMockData';
 import { unifiedStatuses, unifiedStatusColor, type UnifiedStockStatus } from '@/data/unifiedStockStatus';
 import ND2IntakeForm from '@/components/qc-stock/ND2IntakeForm';
 import CartridgeIntakeForm from '@/components/qc-stock/CartridgeIntakeForm';
 import Trica3DIntakeForm from '@/components/qc-stock/Trica3DIntakeForm';
+import QuattroIntakeForm from '@/components/qc-stock/QuattroIntakeForm';
 
 type FilterTab = 'ALL' | UnifiedStockStatus;
 
@@ -48,6 +50,12 @@ export default function QcStockPage() {
   const [trica3dSearch, setTrica3dSearch] = useState('');
   const [trica3dFilter, setTrica3dFilter] = useState<FilterTab>('ALL');
   const [trica3dFormOpen, setTrica3dFormOpen] = useState(false);
+
+  // Quattro state
+  const [quattroItems, setQuattroItems] = useState<QuattroStockItem[]>(mockQuattroStock);
+  const [quattroSearch, setQuattroSearch] = useState('');
+  const [quattroFilter, setQuattroFilter] = useState<FilterTab>('ALL');
+  const [quattroFormOpen, setQuattroFormOpen] = useState(false);
 
   // ND2 filters
   const filtered = useMemo(() => {
@@ -89,12 +97,24 @@ export default function QcStockPage() {
     });
   }, [trica3dItems, trica3dSearch, trica3dFilter]);
 
+  // Quattro filters
+  const filteredQuattro = useMemo(() => {
+    return quattroItems.filter(item => {
+      const matchSearch = item.serialNumber.toLowerCase().includes(quattroSearch.toLowerCase()) ||
+        item.handpiece.toLowerCase().includes(quattroSearch.toLowerCase());
+      const matchFilter = quattroFilter === 'ALL' || item.status === quattroFilter;
+      return matchSearch && matchFilter;
+    });
+  }, [quattroItems, quattroSearch, quattroFilter]);
+
   const handleAddItem = (item: ND2StockItem) => { setItems(prev => [item, ...prev]); };
   const handleAddCartridge = (item: CartridgeStockItem) => { setCartridgeItems(prev => [item, ...prev]); };
   const handleAddTrica3d = (item: Trica3DStockItem) => { setTrica3dItems(prev => [item, ...prev]); };
+  const handleAddQuattro = (item: QuattroStockItem) => { setQuattroItems(prev => [item, ...prev]); };
 
   const cartridgeCounts = useMemo(() => makeCounts(cartridgeItems), [cartridgeItems]);
   const trica3dCounts = useMemo(() => makeCounts(trica3dItems), [trica3dItems]);
+  const quattroCounts = useMemo(() => makeCounts(quattroItems), [quattroItems]);
 
   const kpiColorMap: Record<string, string> = {
     'ทั้งหมด': 'from-primary/15 to-primary/5 border-primary/20',
@@ -136,6 +156,10 @@ export default function QcStockPage() {
           <TabsTrigger value="trica3d" className="gap-1.5">
             <MonitorSmartphone size={14} />
             เครื่อง Trica 3D
+          </TabsTrigger>
+          <TabsTrigger value="quattro" className="gap-1.5">
+            <Package size={14} />
+            เครื่อง Quattro
           </TabsTrigger>
           <TabsTrigger value="cartridge" className="gap-1.5">
             <Zap size={14} />
@@ -404,11 +428,93 @@ export default function QcStockPage() {
             </Table>
           </div>
         </TabsContent>
+
+        {/* ==================== Quattro Tab ==================== */}
+        <TabsContent value="quattro" className="space-y-4">
+          <div className="flex justify-end">
+            <Button onClick={() => setQuattroFormOpen(true)} className="gap-2">
+              <Plus size={16} />
+              รับ Quattro เข้า Stock
+            </Button>
+          </div>
+
+          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3">
+            {buildKpis(quattroCounts).map(kpi => (
+              <div key={kpi.label} className={`rounded-xl border bg-gradient-to-br p-3 space-y-1 ${kpiColorMap[kpi.label] || ''}`}>
+                <span className="text-xs font-medium text-muted-foreground">{kpi.label}</span>
+                <p className={`text-2xl font-bold ${kpiTextMap[kpi.label] || 'text-foreground'}`}>{kpi.value}</p>
+              </div>
+            ))}
+          </div>
+
+          <div className="flex flex-wrap items-center gap-3">
+            <div className="relative max-w-sm flex-1">
+              <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+              <Input placeholder="ค้นหา S/N, Handpiece..." value={quattroSearch} onChange={e => setQuattroSearch(e.target.value)} className="pl-9" />
+            </div>
+            <div className="flex gap-1 flex-wrap">
+              {filterTabs.map(tab => (
+                <Button
+                  key={tab.value}
+                  variant={quattroFilter === tab.value ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setQuattroFilter(tab.value)}
+                >
+                  {tab.label}
+                </Button>
+              ))}
+            </div>
+          </div>
+
+          <div className="rounded-lg border bg-card">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>S/N</TableHead>
+                  <TableHead>Handpiece</TableHead>
+                  <TableHead>STATUS</TableHead>
+                  <TableHead>เครื่องเสียเพราะ?</TableHead>
+                  <TableHead>วันที่รับเข้า Stock</TableHead>
+                  <TableHead>เก็บที่</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filteredQuattro.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={6} className="text-center text-muted-foreground py-12">
+                      ยังไม่มีข้อมูล Quattro — กด "รับ Quattro เข้า Stock" เพื่อเพิ่ม
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  filteredQuattro.map(item => (
+                    <TableRow key={item.id} className="cursor-pointer hover:bg-muted/50">
+                      <TableCell className="font-mono font-medium text-foreground">{item.serialNumber}</TableCell>
+                      <TableCell className="text-sm">{item.handpiece || '—'}</TableCell>
+                      <TableCell>
+                        <StatusChip status={item.status} />
+                      </TableCell>
+                      <TableCell className="text-sm text-muted-foreground max-w-[200px] truncate">
+                        {item.failReason || '—'}
+                      </TableCell>
+                      <TableCell className="text-sm text-muted-foreground">
+                        {item.receivedDate || '—'}
+                      </TableCell>
+                      <TableCell className="text-sm text-muted-foreground">
+                        {item.storageLocation || '—'}
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          </div>
+        </TabsContent>
       </Tabs>
 
       <ND2IntakeForm open={formOpen} onOpenChange={setFormOpen} onSubmit={handleAddItem} />
       <CartridgeIntakeForm open={cartridgeFormOpen} onOpenChange={setCartridgeFormOpen} onSubmit={handleAddCartridge} />
       <Trica3DIntakeForm open={trica3dFormOpen} onOpenChange={setTrica3dFormOpen} onSubmit={handleAddTrica3d} />
+      <QuattroIntakeForm open={quattroFormOpen} onOpenChange={setQuattroFormOpen} onSubmit={handleAddQuattro} />
     </div>
   );
 }
