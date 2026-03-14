@@ -284,7 +284,7 @@ export default function CreateQuotationWizard({ open, onOpenChange, onCreated }:
   }
 
   // Product line management
-  function addProduct(name: string, price: number) {
+  function addProduct(name: string, price: number, inventoryItemId?: string) {
     const exists = productLines.find(p => p.name === name);
     if (exists) {
       toast.error('สินค้านี้ถูกเพิ่มแล้ว');
@@ -295,6 +295,7 @@ export default function CreateQuotationWizard({ open, onOpenChange, onCreated }:
       name,
       qty: 1,
       unitPrice: price,
+      inventoryItemId,
     }]);
   }
 
