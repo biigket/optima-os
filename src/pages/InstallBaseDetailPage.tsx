@@ -13,6 +13,7 @@ export default function InstallBaseDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
   const [inst, setInst] = useState(() => mockInstallations.find(i => i.id === id));
+  const [pmCount, setPmCount] = useState(2);
   const [pmFormOpen, setPmFormOpen] = useState(false);
   const [pmViewOpen, setPmViewOpen] = useState(false);
   const [selectedPmNumber, setSelectedPmNumber] = useState(1);
