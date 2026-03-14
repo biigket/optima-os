@@ -60,9 +60,10 @@ const DOC_ICONS: Record<string, string> = {
   CONTRACT: '📄', QUOTATION: '📋', INVOICE: '🧾', PM_REPORT: '🔧', CERTIFICATE: '🏆',
 };
 
-export default function CustomerRightPanel({ accountId }: Props) {
+export default function CustomerRightPanel({ accountId, clinicName }: Props) {
   const navigate = useNavigate();
   const devices = getDevicesForAccount(accountId);
+  const installBaseDevices = getInstallationsForAccount(accountId, clinicName);
   const consumables = getConsumablesForAccount(accountId);
   const services = getServiceForAccount(accountId);
   const documents = getDocumentsForAccount(accountId);
