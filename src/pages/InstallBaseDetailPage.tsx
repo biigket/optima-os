@@ -29,7 +29,7 @@ export default function InstallBaseDetailPage() {
     );
   }
 
-  const pmSchedule = generatePMSchedule(inst.installDate);
+  const pmSchedule = generatePMSchedule(inst.installDate, pmCount);
   const today = new Date().toISOString().split('T')[0];
   const warrantyExpired = inst.warrantyExpiry < today;
 
