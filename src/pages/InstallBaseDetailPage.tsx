@@ -4,16 +4,28 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { ArrowLeft, FileText, CheckCircle, Clock, AlertTriangle, Eye, Plus } from 'lucide-react';
+import { ArrowLeft, FileText, CheckCircle, Clock, AlertTriangle, Eye, Plus, Trash2 } from 'lucide-react';
 import { mockInstallations, generatePMSchedule, type PMReport } from '@/data/installBaseMockData';
 import PMReportForm from '@/components/install-base/PMReportForm';
 import PMReportViewDialog from '@/components/install-base/PMReportViewDialog';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 export default function InstallBaseDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
   const [inst, setInst] = useState(() => mockInstallations.find(i => i.id === id));
   const [pmCount, setPmCount] = useState(2);
+  const [deletedPMs, setDeletedPMs] = useState<number[]>([]);
+  const [pmToDelete, setPmToDelete] = useState<number | null>(null);
   const [pmFormOpen, setPmFormOpen] = useState(false);
   const [pmViewOpen, setPmViewOpen] = useState(false);
   const [selectedPmNumber, setSelectedPmNumber] = useState(1);
