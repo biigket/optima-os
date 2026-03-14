@@ -12,6 +12,7 @@ import { mockCartridgeStock } from '@/data/cartridgeMockData';
 import { mockTrica3DStock } from '@/data/trica3dMockData';
 import { mockQuattroStock } from '@/data/quattroMockData';
 import { inventoryPrices, getPrice, setPrice } from '@/data/inventoryPricing';
+import { syncReservations } from '@/data/inventoryReservation';
 
 type ProductCategory = 'ALL' | 'ND2' | 'TRICA3D' | 'QUATTRO' | 'CARTRIDGE';
 
