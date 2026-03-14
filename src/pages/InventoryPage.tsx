@@ -37,6 +37,8 @@ const categoryTabs: { label: string; value: ProductCategory; icon: React.ReactNo
   { label: 'ND2', value: 'ND2', icon: <Cpu size={14} /> },
   { label: 'Trica 3D', value: 'TRICA3D', icon: <MonitorSmartphone size={14} /> },
   { label: 'Quattro', value: 'QUATTRO', icon: <Zap size={14} /> },
+  { label: 'Picohi', value: 'PICOHI', icon: <Zap size={14} /> },
+  { label: 'Freezero', value: 'FREEZERO', icon: <Zap size={14} /> },
   { label: 'Cartridge', value: 'CARTRIDGE', icon: <DollarSign size={14} /> },
 ];
 
