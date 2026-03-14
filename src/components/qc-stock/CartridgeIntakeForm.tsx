@@ -7,7 +7,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
 import { toast } from 'sonner';
-import { type CartridgeStockItem, type CartridgeType, type CartridgeStatus, cartridgeTypes, cartridgeStatuses } from '@/data/cartridgeMockData';
+import { type CartridgeStockItem, type CartridgeType, cartridgeTypes } from '@/data/cartridgeMockData';
+import { unifiedStatuses, type UnifiedStockStatus } from '@/data/unifiedStockStatus';
 
 interface CartridgeIntakeFormProps {
   open: boolean;
@@ -19,7 +20,7 @@ export default function CartridgeIntakeForm({ open, onOpenChange, onSubmit }: Ca
   const [form, setForm] = useState({
     serialNumber: '',
     cartridgeType: '' as CartridgeType | '',
-    status: 'พร้อมขาย' as CartridgeStatus,
+    status: 'พร้อมขาย' as UnifiedStockStatus,
     qcFailReason: '',
     receivedDate: '',
     storageLocation: '',
@@ -32,10 +33,6 @@ export default function CartridgeIntakeForm({ open, onOpenChange, onSubmit }: Ca
     }
     if (!form.cartridgeType) {
       toast.error('กรุณาเลือกประเภท Cartridge');
-      return;
-    }
-    if (form.status === 'ไม่ผ่าน QC' && !form.qcFailReason.trim()) {
-      toast.error('กรุณาระบุสาเหตุที่ไม่ผ่าน QC');
       return;
     }
 
@@ -70,7 +67,6 @@ export default function CartridgeIntakeForm({ open, onOpenChange, onSubmit }: Ca
         </DialogHeader>
 
         <div className="space-y-4 mt-2">
-          {/* Cartridge S/N */}
           <div className="space-y-1.5">
             <Label className="text-sm font-medium">
               Cartridge S/N <span className="text-destructive">*</span>
@@ -82,7 +78,6 @@ export default function CartridgeIntakeForm({ open, onOpenChange, onSubmit }: Ca
             />
           </div>
 
-          {/* วันที่รับเข้า Stock */}
           <div className="space-y-1.5">
             <Label className="text-sm font-medium">วันที่รับเข้า Stock</Label>
             <Input
@@ -94,7 +89,6 @@ export default function CartridgeIntakeForm({ open, onOpenChange, onSubmit }: Ca
 
           <Separator />
 
-          {/* Cartridge Type */}
           <div className="space-y-1.5">
             <Label className="text-sm font-medium">
               Cartridge <span className="text-destructive">*</span>
@@ -114,30 +108,26 @@ export default function CartridgeIntakeForm({ open, onOpenChange, onSubmit }: Ca
             </Select>
           </div>
 
-          {/* Status */}
           <div className="space-y-1.5">
             <Label className="text-sm font-medium">STATUS</Label>
             <Select
               value={form.status}
-              onValueChange={v => setForm(prev => ({ ...prev, status: v as CartridgeStatus, qcFailReason: v !== 'ไม่ผ่าน QC' ? '' : prev.qcFailReason }))}
+              onValueChange={v => setForm(prev => ({ ...prev, status: v as UnifiedStockStatus, qcFailReason: '' }))}
             >
               <SelectTrigger>
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                {cartridgeStatuses.map(s => (
+                {unifiedStatuses.map(s => (
                   <SelectItem key={s} value={s}>{s}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
           </div>
 
-          {/* สาเหตุไม่ผ่าน QC */}
-          {form.status === 'ไม่ผ่าน QC' && (
+          {(form.status === 'รอซ่อม/รอ QC' || form.status === 'รอเคลม ตปท.') && (
             <div className="space-y-1.5">
-              <Label className="text-sm font-medium">
-                สาเหตุไม่ผ่าน QC <span className="text-destructive">*</span>
-              </Label>
+              <Label className="text-sm font-medium">หมายเหตุ/สาเหตุ</Label>
               <Textarea
                 placeholder="ระบุสาเหตุ..."
                 value={form.qcFailReason}
@@ -147,7 +137,6 @@ export default function CartridgeIntakeForm({ open, onOpenChange, onSubmit }: Ca
             </div>
           )}
 
-          {/* เก็บที่ */}
           <div className="space-y-1.5">
             <Label className="text-sm font-medium">เก็บที่</Label>
             <Select

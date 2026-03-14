@@ -7,8 +7,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
 import { toast } from 'sonner';
-import type { Trica3DStockItem, Trica3DStatus } from '@/data/trica3dMockData';
-import { trica3dStatuses } from '@/data/trica3dMockData';
+import type { Trica3DStockItem } from '@/data/trica3dMockData';
+import { unifiedStatuses, type UnifiedStockStatus } from '@/data/unifiedStockStatus';
 
 interface Trica3DIntakeFormProps {
   open: boolean;
@@ -20,7 +20,7 @@ export default function Trica3DIntakeForm({ open, onOpenChange, onSubmit }: Tric
   const [form, setForm] = useState({
     serialNumber: '',
     clinic: '',
-    status: 'พร้อมขาย' as Trica3DStatus,
+    status: 'พร้อมขาย' as UnifiedStockStatus,
     receivedDate: new Date().toISOString().split('T')[0],
     installDate: '',
     failReason: '',
@@ -60,7 +60,6 @@ export default function Trica3DIntakeForm({ open, onOpenChange, onSubmit }: Tric
         </DialogHeader>
 
         <div className="space-y-6 mt-2">
-          {/* S/N */}
           <div>
             <Label htmlFor="trica-sn" className="text-xs">S/N Trica <span className="text-destructive">*</span></Label>
             <Input id="trica-sn" value={form.serialNumber} onChange={e => set('serialNumber', e.target.value)}
@@ -69,7 +68,6 @@ export default function Trica3DIntakeForm({ open, onOpenChange, onSubmit }: Tric
 
           <Separator />
 
-          {/* Clinic & Status */}
           <div className="grid grid-cols-2 gap-3">
             <div>
               <Label className="text-xs">Clinic</Label>
@@ -80,7 +78,7 @@ export default function Trica3DIntakeForm({ open, onOpenChange, onSubmit }: Tric
               <Select value={form.status} onValueChange={v => set('status', v)}>
                 <SelectTrigger className="mt-1"><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  {trica3dStatuses.map(s => (
+                  {unifiedStatuses.map(s => (
                     <SelectItem key={s} value={s}>{s}</SelectItem>
                   ))}
                 </SelectContent>
@@ -90,7 +88,6 @@ export default function Trica3DIntakeForm({ open, onOpenChange, onSubmit }: Tric
 
           <Separator />
 
-          {/* Dates */}
           <div className="grid grid-cols-2 gap-3">
             <div>
               <Label className="text-xs">วันรับเข้า Stock</Label>
@@ -102,19 +99,17 @@ export default function Trica3DIntakeForm({ open, onOpenChange, onSubmit }: Tric
             </div>
           </div>
 
-          {/* Conditional: เครื่องเสีย */}
-          {form.status === 'เครื่องเสีย' && (
+          {(form.status === 'รอซ่อม/รอ QC' || form.status === 'รอเคลม ตปท.') && (
             <>
               <Separator />
               <div>
-                <Label className="text-xs">สาเหตุเสีย</Label>
+                <Label className="text-xs">สาเหตุ/หมายเหตุ</Label>
                 <Input value={form.failReason} onChange={e => set('failReason', e.target.value)} placeholder="ระบุสาเหตุ" className="mt-1" />
               </div>
             </>
           )}
 
-          {/* Conditional: ยืม */}
-          {form.status === 'ยืม' && (
+          {form.status === 'DEMO/ยืม' && (
             <>
               <Separator />
               <div className="grid grid-cols-2 gap-3">
@@ -132,7 +127,6 @@ export default function Trica3DIntakeForm({ open, onOpenChange, onSubmit }: Tric
 
           <Separator />
 
-          {/* Additional */}
           <div className="grid grid-cols-2 gap-3">
             <div>
               <Label className="text-xs">Email Trica</Label>

@@ -7,7 +7,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
 import { toast } from 'sonner';
-import type { ND2StockItem, QcStatus, StockStatus, HrmSellOrKeep } from '@/data/qcMockData';
+import type { ND2StockItem, HrmSellOrKeep } from '@/data/qcMockData';
+import { unifiedStatuses, type UnifiedStockStatus } from '@/data/unifiedStockStatus';
 
 interface ND2IntakeFormProps {
   open: boolean;
@@ -18,17 +19,14 @@ interface ND2IntakeFormProps {
 export default function ND2IntakeForm({ open, onOpenChange, onSubmit }: ND2IntakeFormProps) {
   const [form, setForm] = useState({
     hntSerialNumber: '',
-    hfl1: '',
-    hfl2: '',
-    hsd1: '',
-    hsd2: '',
+    hfl1: '', hfl2: '',
+    hsd1: '', hsd2: '',
     hrm: '',
     hrmSellOrKeep: 'ขาย' as HrmSellOrKeep,
     upsStabilizer: '',
-    status: 'READY_TO_SELL' as StockStatus,
+    status: 'พร้อมขาย' as UnifiedStockStatus,
     reservedFor: '',
     clinic: '',
-    qcResult: 'PENDING_QC' as QcStatus,
     qcFailReason: '',
     notes: '',
     receivedDate: new Date().toISOString().split('T')[0],
@@ -51,11 +49,10 @@ export default function ND2IntakeForm({ open, onOpenChange, onSubmit }: ND2Intak
     onSubmit(newItem);
     toast.success(`รับเข้า Stock: ${form.hntSerialNumber}`);
     onOpenChange(false);
-    // Reset
     setForm({
       hntSerialNumber: '', hfl1: '', hfl2: '', hsd1: '', hsd2: '', hrm: '',
-      hrmSellOrKeep: 'ขาย', upsStabilizer: '', status: 'READY_TO_SELL', reservedFor: '',
-      clinic: '', qcResult: 'PENDING_QC', qcFailReason: '', notes: '',
+      hrmSellOrKeep: 'ขาย', upsStabilizer: '', status: 'พร้อมขาย', reservedFor: '',
+      clinic: '', qcFailReason: '', notes: '',
       receivedDate: new Date().toISOString().split('T')[0], inspectionDoc: '', storageLocation: '',
     });
   };
@@ -69,11 +66,10 @@ export default function ND2IntakeForm({ open, onOpenChange, onSubmit }: ND2Intak
         </DialogHeader>
 
         <div className="space-y-6 mt-2">
-          {/* Section: ตัวเครื่อง */}
+          {/* ตัวเครื่อง */}
           <div>
             <h3 className="text-sm font-semibold text-foreground mb-3 flex items-center gap-2">
-              <span className="h-1.5 w-1.5 rounded-full bg-primary" />
-              ตัวเครื่อง
+              <span className="h-1.5 w-1.5 rounded-full bg-primary" /> ตัวเครื่อง
             </h3>
             <div>
               <Label htmlFor="hnt" className="text-xs">HNT S/N ND2 <span className="text-destructive">*</span></Label>
@@ -84,11 +80,10 @@ export default function ND2IntakeForm({ open, onOpenChange, onSubmit }: ND2Intak
 
           <Separator />
 
-          {/* Section: Handpiece HFL */}
+          {/* HFL */}
           <div>
             <h3 className="text-sm font-semibold text-foreground mb-3 flex items-center gap-2">
-              <span className="h-1.5 w-1.5 rounded-full bg-blue-500" />
-              Handpiece — HFL
+              <span className="h-1.5 w-1.5 rounded-full bg-blue-500" /> Handpiece — HFL
             </h3>
             <div className="grid grid-cols-2 gap-3">
               <div>
@@ -104,11 +99,10 @@ export default function ND2IntakeForm({ open, onOpenChange, onSubmit }: ND2Intak
 
           <Separator />
 
-          {/* Section: Handpiece HSD */}
+          {/* HSD */}
           <div>
             <h3 className="text-sm font-semibold text-foreground mb-3 flex items-center gap-2">
-              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-              Handpiece — HSD
+              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" /> Handpiece — HSD
             </h3>
             <div className="grid grid-cols-2 gap-3">
               <div>
@@ -124,11 +118,10 @@ export default function ND2IntakeForm({ open, onOpenChange, onSubmit }: ND2Intak
 
           <Separator />
 
-          {/* Section: HRM */}
+          {/* HRM */}
           <div>
             <h3 className="text-sm font-semibold text-foreground mb-3 flex items-center gap-2">
-              <span className="h-1.5 w-1.5 rounded-full bg-amber-500" />
-              Handpiece — HRM
+              <span className="h-1.5 w-1.5 rounded-full bg-amber-500" /> Handpiece — HRM
             </h3>
             <div className="grid grid-cols-2 gap-3">
               <div>
@@ -150,11 +143,10 @@ export default function ND2IntakeForm({ open, onOpenChange, onSubmit }: ND2Intak
 
           <Separator />
 
-          {/* Section: อุปกรณ์เสริม */}
+          {/* อุปกรณ์เสริม */}
           <div>
             <h3 className="text-sm font-semibold text-foreground mb-3 flex items-center gap-2">
-              <span className="h-1.5 w-1.5 rounded-full bg-purple-500" />
-              อุปกรณ์เสริม
+              <span className="h-1.5 w-1.5 rounded-full bg-purple-500" /> อุปกรณ์เสริม
             </h3>
             <div>
               <Label className="text-xs">UPS / Stabilizer</Label>
@@ -164,11 +156,10 @@ export default function ND2IntakeForm({ open, onOpenChange, onSubmit }: ND2Intak
 
           <Separator />
 
-          {/* Section: สถานะ */}
+          {/* สถานะ */}
           <div>
             <h3 className="text-sm font-semibold text-foreground mb-3 flex items-center gap-2">
-              <span className="h-1.5 w-1.5 rounded-full bg-cyan-500" />
-              สถานะ
+              <span className="h-1.5 w-1.5 rounded-full bg-cyan-500" /> สถานะ
             </h3>
             <div className="grid grid-cols-2 gap-3">
               <div>
@@ -176,51 +167,27 @@ export default function ND2IntakeForm({ open, onOpenChange, onSubmit }: ND2Intak
                 <Select value={form.status} onValueChange={v => set('status', v)}>
                   <SelectTrigger className="mt-1"><SelectValue /></SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="READY_TO_SELL">พร้อมขาย</SelectItem>
-                    <SelectItem value="RESERVED">ติดจอง</SelectItem>
-                    <SelectItem value="INSTALLED">ติดตั้งแล้ว</SelectItem>
-                    <SelectItem value="SENT_FOR_REPAIR">ส่งซ่อม</SelectItem>
+                    {unifiedStatuses.map(s => (
+                      <SelectItem key={s} value={s}>{s}</SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
-              {form.status === 'RESERVED' && (
+              {form.status === 'ติดจอง' && (
                 <div>
                   <Label className="text-xs">ติดจองที่?</Label>
                   <Input value={form.reservedFor} onChange={e => set('reservedFor', e.target.value)} placeholder="ชื่อคลินิก" className="mt-1" />
                 </div>
               )}
-              {form.status === 'INSTALLED' && (
+              {form.status === 'ติดตั้งแล้ว' && (
                 <div>
                   <Label className="text-xs">Clinic</Label>
                   <Input value={form.clinic} onChange={e => set('clinic', e.target.value)} placeholder="ชื่อคลินิก" className="mt-1" />
                 </div>
               )}
-            </div>
-          </div>
-
-          <Separator />
-
-          {/* Section: QC */}
-          <div>
-            <h3 className="text-sm font-semibold text-foreground mb-3 flex items-center gap-2">
-              <span className="h-1.5 w-1.5 rounded-full bg-rose-500" />
-              QC
-            </h3>
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <Label className="text-xs">ผลตรวจ QC</Label>
-                <Select value={form.qcResult} onValueChange={v => set('qcResult', v)}>
-                  <SelectTrigger className="mt-1"><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="PENDING_QC">รอ QC</SelectItem>
-                    <SelectItem value="QC_PASSED">QC ผ่าน</SelectItem>
-                    <SelectItem value="QC_FAILED">QC ไม่ผ่าน</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              {form.qcResult === 'QC_FAILED' && (
+              {(form.status === 'รอซ่อม/รอ QC' || form.status === 'รอเคลม ตปท.') && (
                 <div>
-                  <Label className="text-xs">QC ไม่ผ่านเพราะ</Label>
+                  <Label className="text-xs">สาเหตุ/หมายเหตุ</Label>
                   <Input value={form.qcFailReason} onChange={e => set('qcFailReason', e.target.value)} placeholder="ระบุสาเหตุ" className="mt-1" />
                 </div>
               )}
@@ -229,11 +196,10 @@ export default function ND2IntakeForm({ open, onOpenChange, onSubmit }: ND2Intak
 
           <Separator />
 
-          {/* Section: ข้อมูลเพิ่มเติม */}
+          {/* ข้อมูลเพิ่มเติม */}
           <div>
             <h3 className="text-sm font-semibold text-foreground mb-3 flex items-center gap-2">
-              <span className="h-1.5 w-1.5 rounded-full bg-muted-foreground" />
-              ข้อมูลเพิ่มเติม
+              <span className="h-1.5 w-1.5 rounded-full bg-muted-foreground" /> ข้อมูลเพิ่มเติม
             </h3>
             <div className="grid grid-cols-2 gap-3">
               <div>
