@@ -337,7 +337,7 @@ export default function CreateQuotationWizard({ open, onOpenChange, onCreated }:
 
     const productName = productLines.map(p => `${p.name} x${p.qty}`).join(', ');
 
-    const { error } = await supabase.from('quotations').insert({
+    const { data: inserted, error } = await supabase.from('quotations').insert({
       qt_number: qtNumber || null,
       account_id: selectedAccount.id,
       product: productName,
@@ -352,13 +352,24 @@ export default function CreateQuotationWizard({ open, onOpenChange, onCreated }:
       sale_assigned: saleAssigned || null,
       approval_status: 'DRAFT',
       payment_status: 'UNPAID',
-    });
+    }).select('id').single();
 
     setSaving(false);
     if (error) {
       toast.error('เกิดข้อผิดพลาด: ' + error.message);
       return;
     }
+
+    // Store reservation mapping: quotation → inventory item IDs
+    if (inserted) {
+      const inventoryItemIds = productLines
+        .map(p => p.inventoryItemId)
+        .filter((id): id is string => !!id);
+      if (inventoryItemIds.length > 0) {
+        addReservation(inserted.id, inventoryItemIds);
+      }
+    }
+
     toast.success('สร้างใบเสนอราคาสำเร็จ');
     onOpenChange(false);
     onCreated();
