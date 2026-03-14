@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Search, Package, Cpu, Zap, MonitorSmartphone, DollarSign, Check, X, Pencil } from 'lucide-react';
 import { Input } from '@/components/ui/input';
@@ -12,6 +12,7 @@ import { mockCartridgeStock } from '@/data/cartridgeMockData';
 import { mockTrica3DStock } from '@/data/trica3dMockData';
 import { mockQuattroStock } from '@/data/quattroMockData';
 import { inventoryPrices, getPrice, setPrice } from '@/data/inventoryPricing';
+import { syncReservations } from '@/data/inventoryReservation';
 
 type ProductCategory = 'ALL' | 'ND2' | 'TRICA3D' | 'QUATTRO' | 'CARTRIDGE';
 
@@ -48,6 +49,8 @@ export default function InventoryPage() {
   const [editPrice, setEditPrice] = useState('');
   // force re-render after price save
   const [, setTick] = useState(0);
+  // Sync reservations on mount
+  useEffect(() => { syncReservations(); }, []);
 
   // Auto-sync: pull "พร้อมขาย" from all QC Stock sources
   const allItems = useMemo<InventoryItem[]>(() => {

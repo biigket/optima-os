@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Search, Plus, Package, Cpu, Zap, MonitorSmartphone } from 'lucide-react';
 import { Input } from '@/components/ui/input';
@@ -15,6 +15,7 @@ import ND2IntakeForm from '@/components/qc-stock/ND2IntakeForm';
 import CartridgeIntakeForm from '@/components/qc-stock/CartridgeIntakeForm';
 import Trica3DIntakeForm from '@/components/qc-stock/Trica3DIntakeForm';
 import QuattroIntakeForm from '@/components/qc-stock/QuattroIntakeForm';
+import { syncReservations } from '@/data/inventoryReservation';
 
 type FilterTab = 'ALL' | UnifiedStockStatus;
 
@@ -33,6 +34,9 @@ function StatusChip({ status }: { status: UnifiedStockStatus }) {
 
 export default function QcStockPage() {
   const navigate = useNavigate();
+  // Sync reservations from CUSTOMER_SIGNED quotations
+  useEffect(() => { syncReservations(); }, []);
+
   // ND2 state
   const [items, setItems] = useState<ND2StockItem[]>(mockND2Stock);
   const [search, setSearch] = useState('');

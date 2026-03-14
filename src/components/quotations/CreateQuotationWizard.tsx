@@ -22,6 +22,7 @@ import { mockTrica3DStock } from '@/data/trica3dMockData';
 import { mockQuattroStock } from '@/data/quattroMockData';
 import { mockCartridgeStock } from '@/data/cartridgeMockData';
 import { getPrice } from '@/data/inventoryPricing';
+import { addReservation } from '@/data/inventoryReservation';
 
 // === Constants ===
 
@@ -99,6 +100,7 @@ interface ProductLine {
   name: string;
   qty: number;
   unitPrice: number;
+  inventoryItemId?: string; // QC Stock item ID for reservation tracking
 }
 
 // Steps
@@ -282,7 +284,7 @@ export default function CreateQuotationWizard({ open, onOpenChange, onCreated }:
   }
 
   // Product line management
-  function addProduct(name: string, price: number) {
+  function addProduct(name: string, price: number, inventoryItemId?: string) {
     const exists = productLines.find(p => p.name === name);
     if (exists) {
       toast.error('สินค้านี้ถูกเพิ่มแล้ว');
@@ -293,6 +295,7 @@ export default function CreateQuotationWizard({ open, onOpenChange, onCreated }:
       name,
       qty: 1,
       unitPrice: price,
+      inventoryItemId,
     }]);
   }
 
@@ -334,7 +337,7 @@ export default function CreateQuotationWizard({ open, onOpenChange, onCreated }:
 
     const productName = productLines.map(p => `${p.name} x${p.qty}`).join(', ');
 
-    const { error } = await supabase.from('quotations').insert({
+    const { data: inserted, error } = await supabase.from('quotations').insert({
       qt_number: qtNumber || null,
       account_id: selectedAccount.id,
       product: productName,
@@ -349,13 +352,24 @@ export default function CreateQuotationWizard({ open, onOpenChange, onCreated }:
       sale_assigned: saleAssigned || null,
       approval_status: 'DRAFT',
       payment_status: 'UNPAID',
-    });
+    }).select('id').single();
 
     setSaving(false);
     if (error) {
       toast.error('เกิดข้อผิดพลาด: ' + error.message);
       return;
     }
+
+    // Store reservation mapping: quotation → inventory item IDs
+    if (inserted) {
+      const inventoryItemIds = productLines
+        .map(p => p.inventoryItemId)
+        .filter((id): id is string => !!id);
+      if (inventoryItemIds.length > 0) {
+        addReservation(inserted.id, inventoryItemIds);
+      }
+    }
+
     toast.success('สร้างใบเสนอราคาสำเร็จ');
     onOpenChange(false);
     onCreated();
@@ -490,7 +504,7 @@ export default function CreateQuotationWizard({ open, onOpenChange, onCreated }:
                       return (
                         <button
                           key={p.id}
-                          onClick={() => !added && addProduct(p.name, p.price)}
+                          onClick={() => !added && addProduct(p.name, p.price, p.id)}
                           disabled={added}
                           className={cn(
                             'w-full flex items-center gap-2 px-3 py-2 rounded-lg text-left text-sm border transition-colors',
