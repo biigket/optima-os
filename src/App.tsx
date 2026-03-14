@@ -35,6 +35,9 @@ import CustomerRegisterPage from "@/pages/CustomerRegisterPage";
 import QRCodePage from "@/pages/QRCodePage";
 import QcStockPage from "@/pages/QcStockPage";
 import QcStockDetailPage from "@/pages/QcStockDetailPage";
+import Trica3DDetailPage from "@/pages/Trica3DDetailPage";
+import QuattroDetailPage from "@/pages/QuattroDetailPage";
+import CartridgeDetailPage from "@/pages/CartridgeDetailPage";
 import { MockAuthProvider } from "@/hooks/useMockAuth";
 
 const queryClient = new QueryClient();
@@ -80,6 +83,9 @@ function AuthedAppRoutes() {
         <Route path="/qr-register" element={<QRCodePage />} />
          <Route path="/qc-stock" element={<QcStockPage />} />
          <Route path="/qc-stock/:id" element={<QcStockDetailPage />} />
+         <Route path="/qc-stock/trica3d/:id" element={<Trica3DDetailPage />} />
+         <Route path="/qc-stock/quattro/:id" element={<QuattroDetailPage />} />
+         <Route path="/qc-stock/cartridge/:id" element={<CartridgeDetailPage />} />
         {phase2Routes.map((path) => (
           <Route key={path} path={path} element={<Phase2Placeholder />} />
         ))}
