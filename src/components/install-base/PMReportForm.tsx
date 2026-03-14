@@ -190,8 +190,8 @@ export default function PMReportForm({ open, onOpenChange, installation, mainten
                     value={val}
                     onChange={setter}
                     options={versionStore[key]}
-                    onAddOption={opt => { if (!versionStore[key].includes(opt)) versionStore[key].push(opt); }}
-                    onRemoveOption={opt => { versionStore[key] = versionStore[key].filter(v => v !== opt); }}
+                    onAddOption={opt => { if (!versionStore[key].includes(opt)) { versionStore[key] = [...versionStore[key], opt]; forceUpdate(n => n + 1); } }}
+                    onRemoveOption={opt => { versionStore[key] = versionStore[key].filter(v => v !== opt); forceUpdate(n => n + 1); }}
                     placeholder="เลือก..."
                     className="h-8 text-xs w-full"
                   />
