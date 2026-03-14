@@ -251,7 +251,16 @@ export default function QcStockPage() {
             </Button>
           </div>
 
-          {/* Filters */}
+          {/* KPI Cards */}
+          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3">
+            {buildKpis(trica3dCounts).map(kpi => (
+              <div key={kpi.label} className={`rounded-xl border bg-gradient-to-br p-3 space-y-1 ${kpiColorMap[kpi.label] || ''}`}>
+                <span className="text-xs font-medium text-muted-foreground">{kpi.label}</span>
+                <p className={`text-2xl font-bold ${kpiTextMap[kpi.label] || 'text-foreground'}`}>{kpi.value}</p>
+              </div>
+            ))}
+          </div>
+
           <div className="flex flex-wrap items-center gap-3">
             <div className="relative max-w-sm flex-1">
               <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
