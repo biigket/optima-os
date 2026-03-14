@@ -59,6 +59,13 @@ export default function QcStockPage() {
     });
   }, [items, search, filter]);
 
+  // Counts helper
+  function makeCounts(data: { status: string }[]) {
+    const counts: Record<string, number> = { total: data.length };
+    unifiedStatuses.forEach(s => { counts[s] = data.filter(i => i.status === s).length; });
+    return counts;
+  }
+
   const nd2Counts = useMemo(() => makeCounts(items), [items]);
 
   // Cartridge filters
@@ -86,12 +93,6 @@ export default function QcStockPage() {
   const handleAddCartridge = (item: CartridgeStockItem) => { setCartridgeItems(prev => [item, ...prev]); };
   const handleAddTrica3d = (item: Trica3DStockItem) => { setTrica3dItems(prev => [item, ...prev]); };
 
-  // Counts for each tab
-  const makeCounts = (data: { status: string }[]) => {
-    const counts: Record<string, number> = { total: data.length };
-    unifiedStatuses.forEach(s => { counts[s] = data.filter(i => i.status === s).length; });
-    return counts;
-  };
   const cartridgeCounts = useMemo(() => makeCounts(cartridgeItems), [cartridgeItems]);
   const trica3dCounts = useMemo(() => makeCounts(trica3dItems), [trica3dItems]);
 
