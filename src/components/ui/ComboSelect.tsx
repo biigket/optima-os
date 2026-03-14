@@ -75,12 +75,20 @@ export default function ComboSelect({ value, onChange, options, onAddOption, onR
               key={opt}
               onClick={() => handleSelect(opt)}
               className={cn(
-                'w-full text-left px-2 py-1.5 text-xs rounded-sm hover:bg-accent flex items-center gap-2',
+                'w-full text-left px-2 py-1.5 text-xs rounded-sm hover:bg-accent flex items-center gap-2 group',
                 value === opt && 'bg-accent'
               )}
             >
               {value === opt && <Check className="h-3 w-3 text-primary" />}
-              <span className={value !== opt ? 'pl-5' : ''}>{opt}</span>
+              <span className={cn('flex-1', value !== opt && 'pl-5')}>{opt}</span>
+              {onRemoveOption && (
+                <span
+                  onClick={e => { e.stopPropagation(); onRemoveOption(opt); if (value === opt) onChange(''); }}
+                  className="opacity-0 group-hover:opacity-100 p-0.5 rounded hover:bg-destructive/10 text-destructive"
+                >
+                  <X className="h-3 w-3" />
+                </span>
+              )}
             </button>
           ))}
         </div>
