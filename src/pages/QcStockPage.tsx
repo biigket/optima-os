@@ -34,6 +34,9 @@ function StatusChip({ status }: { status: UnifiedStockStatus }) {
 
 export default function QcStockPage() {
   const navigate = useNavigate();
+  // Sync reservations from CUSTOMER_SIGNED quotations
+  useEffect(() => { syncReservations(); }, []);
+
   // ND2 state
   const [items, setItems] = useState<ND2StockItem[]>(mockND2Stock);
   const [search, setSearch] = useState('');
