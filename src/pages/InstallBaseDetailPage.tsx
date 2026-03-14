@@ -240,6 +240,27 @@ export default function InstallBaseDetailPage() {
         report={selectedReport}
         installation={inst}
       />
+
+      {/* Delete PM Confirmation Dialog */}
+      <AlertDialog open={pmToDelete !== null} onOpenChange={() => setPmToDelete(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>ยืนยันการลบ PM</AlertDialogTitle>
+            <AlertDialogDescription>
+              คุณต้องการลบ PM ครั้งที่ {pmToDelete} ที่ยังรอดำเนินการใช่หรือไม่? การดำเนินการนี้ไม่สามารถย้อนกลับได้
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setPmToDelete(null)}>ยกเลิก</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={() => pmToDelete && handleDeletePM(pmToDelete)}
+            >
+              ลบ PM
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
