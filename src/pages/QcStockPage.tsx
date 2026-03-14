@@ -157,10 +157,10 @@ export default function QcStockPage() {
 
           {/* KPI Cards */}
           <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3">
-            {kpis.map(kpi => (
-              <div key={kpi.label} className="rounded-lg border bg-card p-3 space-y-1">
-                <span className="text-xs text-muted-foreground">{kpi.label}</span>
-                <p className="text-2xl font-bold text-foreground">{kpi.value}</p>
+            {buildKpis(nd2Counts).map(kpi => (
+              <div key={kpi.label} className={`rounded-xl border bg-gradient-to-br p-3 space-y-1 ${kpiColorMap[kpi.label] || ''}`}>
+                <span className="text-xs font-medium text-muted-foreground">{kpi.label}</span>
+                <p className={`text-2xl font-bold ${kpiTextMap[kpi.label] || 'text-foreground'}`}>{kpi.value}</p>
               </div>
             ))}
           </div>
