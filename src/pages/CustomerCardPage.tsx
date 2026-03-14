@@ -499,7 +499,7 @@ export default function CustomerCardPage() {
                 <KpiMini label="เยี่ยมล่าสุด" value={lastVisit} />
                 <KpiMini label="ดีลที่เปิดอยู่" value={`${activeDeals} รายการ`} />
                 <KpiMini label="รายได้รวม" value={formatCurrency(realRevenue)} />
-                <KpiMini label="เครื่องที่ติดตั้ง" value={`${devices.length} เครื่อง`} />
+                <KpiMini label="เครื่องที่ติดตั้ง" value={`${devices.length + installBaseDevices.length} เครื่อง`} />
                 <KpiMini label="สั่ง Cartridge ล่าสุด" value={visits.length > 0 ? visits[0].date : '-'} />
                 <KpiMini label="แอคชั่นถัดไป" value={visits.length > 0 ? visits[0].nextStep : '-'} />
               </div>
