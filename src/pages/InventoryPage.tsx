@@ -186,6 +186,8 @@ export default function InventoryPage() {
     { label: 'ND2', count: kpis.counts.ND2, color: 'from-blue-500/15 to-blue-500/5 border-blue-500/20', textColor: 'text-blue-700' },
     { label: 'Trica 3D', count: kpis.counts.TRICA3D, color: 'from-purple-500/15 to-purple-500/5 border-purple-500/20', textColor: 'text-purple-700' },
     { label: 'Quattro', count: kpis.counts.QUATTRO, color: 'from-cyan-500/15 to-cyan-500/5 border-cyan-500/20', textColor: 'text-cyan-700' },
+    { label: 'Picohi', count: kpis.counts.PICOHI, color: 'from-pink-500/15 to-pink-500/5 border-pink-500/20', textColor: 'text-pink-700' },
+    { label: 'Freezero', count: kpis.counts.FREEZERO, color: 'from-sky-500/15 to-sky-500/5 border-sky-500/20', textColor: 'text-sky-700' },
     { label: 'Cartridge', count: kpis.counts.CARTRIDGE, color: 'from-amber-500/15 to-amber-500/5 border-amber-500/20', textColor: 'text-amber-700' },
     { label: 'ตั้งราคาแล้ว', count: kpis.priced, color: 'from-primary/15 to-primary/5 border-primary/20', textColor: 'text-primary' },
     { label: 'ยังไม่ตั้งราคา', count: kpis.unpriced, color: 'from-orange-500/15 to-orange-500/5 border-orange-500/20', textColor: 'text-orange-700' },
