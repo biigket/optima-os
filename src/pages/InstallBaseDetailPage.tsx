@@ -202,6 +202,16 @@ export default function InstallBaseDetailPage() {
                             <FileText size={14} className="mr-1" />{report ? 'แก้ไข' : 'กรอก PM Report'}
                           </Button>
                         )}
+                        {isPending && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                            onClick={() => setPmToDelete(pm.number)}
+                          >
+                            <Trash2 size={14} />
+                          </Button>
+                        )}
                       </div>
                     </TableCell>
                   </TableRow>
