@@ -11,6 +11,8 @@ import { mockND2Stock } from '@/data/qcMockData';
 import { mockCartridgeStock } from '@/data/cartridgeMockData';
 import { mockTrica3DStock } from '@/data/trica3dMockData';
 import { mockQuattroStock } from '@/data/quattroMockData';
+import { mockPicohiStock } from '@/data/picohiMockData';
+import { mockFreezeroStock } from '@/data/freezeroMockData';
 import { inventoryPrices, getPrice, setPrice } from '@/data/inventoryPricing';
 import { syncReservations } from '@/data/inventoryReservation';
 import type { UnifiedStockStatus } from '@/data/unifiedStockStatus';
