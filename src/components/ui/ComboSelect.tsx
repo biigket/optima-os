@@ -10,7 +10,7 @@ interface ComboSelectProps {
   onChange: (value: string) => void;
   options: string[];
   onAddOption?: (option: string) => void;
-  placeholder?: string;
+  onRemoveOption?: (option: string) => void;
   className?: string;
 }
 
