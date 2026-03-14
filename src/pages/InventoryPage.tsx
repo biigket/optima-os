@@ -56,12 +56,12 @@ export default function InventoryPage() {
   // Sync reservations on mount
   useEffect(() => { syncReservations(); }, []);
 
-  // Auto-sync: pull "พร้อมขาย" from all QC Stock sources
+  // Auto-sync: pull "พร้อมขาย" และ "ติดจอง" from all QC Stock sources
   const allItems = useMemo<InventoryItem[]>(() => {
     const items: InventoryItem[] = [];
 
     mockND2Stock
-      .filter(i => i.status === 'พร้อมขาย')
+      .filter(i => i.status === 'พร้อมขาย' || i.status === 'ติดจอง')
       .forEach(i => items.push({
         id: i.id,
         category: 'ND2',
@@ -70,10 +70,12 @@ export default function InventoryPage() {
         storageLocation: i.storageLocation || '—',
         receivedDate: i.receivedDate || '—',
         detailPath: `/qc-stock/${i.id}`,
+        status: i.status,
+        reservedFor: (i as any).reservedFor,
       }));
 
     mockTrica3DStock
-      .filter(i => i.status === 'พร้อมขาย')
+      .filter(i => i.status === 'พร้อมขาย' || i.status === 'ติดจอง')
       .forEach(i => items.push({
         id: i.id,
         category: 'TRICA3D',
@@ -82,10 +84,12 @@ export default function InventoryPage() {
         storageLocation: i.storageLocation || '—',
         receivedDate: i.receivedDate || '—',
         detailPath: `/qc-stock/trica3d/${i.id}`,
+        status: i.status,
+        reservedFor: (i as any).reservedFor,
       }));
 
     mockQuattroStock
-      .filter(i => i.status === 'พร้อมขาย')
+      .filter(i => i.status === 'พร้อมขาย' || i.status === 'ติดจอง')
       .forEach(i => items.push({
         id: i.id,
         category: 'QUATTRO',
@@ -94,10 +98,12 @@ export default function InventoryPage() {
         storageLocation: i.storageLocation || '—',
         receivedDate: i.receivedDate || '—',
         detailPath: `/qc-stock/quattro/${i.id}`,
+        status: i.status,
+        reservedFor: (i as any).reservedFor,
       }));
 
     mockCartridgeStock
-      .filter(i => i.status === 'พร้อมขาย')
+      .filter(i => i.status === 'พร้อมขาย' || i.status === 'ติดจอง')
       .forEach(i => items.push({
         id: i.id,
         category: 'CARTRIDGE',
@@ -106,6 +112,8 @@ export default function InventoryPage() {
         storageLocation: i.storageLocation || '—',
         receivedDate: i.receivedDate || '—',
         detailPath: `/qc-stock/cartridge/${i.id}`,
+        status: i.status,
+        reservedFor: (i as any).reservedFor,
       }));
 
     return items;
