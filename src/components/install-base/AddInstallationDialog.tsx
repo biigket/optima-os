@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -6,6 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { mockND2Stock } from '@/data/qcMockData';
 import { mockTrica3DStock } from '@/data/trica3dMockData';
 import { mockQuattroStock } from '@/data/quattroMockData';
@@ -13,7 +14,10 @@ import { mockPicohiStock } from '@/data/picohiMockData';
 import { mockFreezeroStock } from '@/data/freezeroMockData';
 import { mockInstallations, type Installation, type ProductCategory } from '@/data/installBaseMockData';
 import { unifiedStatusColor } from '@/data/unifiedStockStatus';
+import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
+import { Search, ChevronDown, Check } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 interface Props {
   open: boolean;
@@ -29,14 +33,36 @@ interface AvailableItem {
   reservedFor?: string;
 }
 
+interface AccountOption {
+  id: string;
+  clinic_name: string;
+}
+
 export default function AddInstallationDialog({ open, onOpenChange, onInstalled }: Props) {
   const [selectedItemId, setSelectedItemId] = useState('');
+  const [selectedAccountId, setSelectedAccountId] = useState('');
   const [clinic, setClinic] = useState('');
   const [installDate, setInstallDate] = useState(new Date().toISOString().split('T')[0]);
   const [warrantyDays, setWarrantyDays] = useState('365');
   const [province, setProvince] = useState('');
   const [region, setRegion] = useState('');
   const [notes, setNotes] = useState('');
+  const [accounts, setAccounts] = useState<AccountOption[]>([]);
+  const [accountSearch, setAccountSearch] = useState('');
+  const [accountPopoverOpen, setAccountPopoverOpen] = useState(false);
+
+  // Fetch accounts from Supabase
+  useEffect(() => {
+    if (!open) return;
+    supabase.from('accounts').select('id, clinic_name').order('clinic_name')
+      .then(({ data }) => { if (data) setAccounts(data); });
+  }, [open]);
+
+  const filteredAccounts = accountSearch
+    ? accounts.filter(a => a.clinic_name.toLowerCase().includes(accountSearch.toLowerCase()))
+    : accounts;
+
+  const selectedAccount = accounts.find(a => a.id === selectedAccountId);
 
   const availableItems = useMemo(() => {
     const items: AvailableItem[] = [];
@@ -72,7 +98,8 @@ export default function AddInstallationDialog({ open, onOpenChange, onInstalled 
   };
 
   function handleSubmit() {
-    if (!selectedItem || !clinic || !installDate) {
+    const clinicName = selectedAccount?.clinic_name || clinic;
+    if (!selectedItem || !clinicName || !installDate) {
       toast({ title: 'กรุณากรอกข้อมูลให้ครบ', variant: 'destructive' });
       return;
     }
@@ -86,7 +113,8 @@ export default function AddInstallationDialog({ open, onOpenChange, onInstalled 
       qcStockItemId: selectedItem.id,
       productCategory: selectedItem.category,
       serialNumber: selectedItem.serialNumber,
-      clinic,
+      clinic: clinicName,
+      accountId: selectedAccountId || undefined,
       installDate,
       warrantyDays: wDays,
       warrantyExpiry: expiry.toISOString().split('T')[0],
@@ -97,12 +125,12 @@ export default function AddInstallationDialog({ open, onOpenChange, onInstalled 
     };
 
     // Update QC stock item status to ติดตั้งแล้ว
-    updateStockStatus(selectedItem.id, selectedItem.category, clinic);
+    updateStockStatus(selectedItem.id, selectedItem.category, clinicName);
 
     onInstalled(newInst);
     onOpenChange(false);
     resetForm();
-    toast({ title: 'ลงติดตั้งเรียบร้อย', description: `${selectedItem.category} S/N: ${selectedItem.serialNumber} → ${clinic}` });
+    toast({ title: 'ลงติดตั้งเรียบร้อย', description: `${selectedItem.category} S/N: ${selectedItem.serialNumber} → ${clinicName}` });
   }
 
   function updateStockStatus(itemId: string, category: ProductCategory, clinicName: string) {
@@ -126,12 +154,14 @@ export default function AddInstallationDialog({ open, onOpenChange, onInstalled 
 
   function resetForm() {
     setSelectedItemId('');
+    setSelectedAccountId('');
     setClinic('');
     setInstallDate(new Date().toISOString().split('T')[0]);
     setWarrantyDays('365');
     setProvince('');
     setRegion('');
     setNotes('');
+    setAccountSearch('');
   }
 
   return (
@@ -170,9 +200,69 @@ export default function AddInstallationDialog({ open, onOpenChange, onInstalled 
             </div>
           )}
 
+          {/* Customer / Account selector */}
           <div>
             <Label>ชื่อคลินิก / ลูกค้า *</Label>
-            <Input value={clinic} onChange={e => setClinic(e.target.value)} placeholder="ชื่อคลินิก" />
+            <Popover open={accountPopoverOpen} onOpenChange={setAccountPopoverOpen}>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  role="combobox"
+                  className="w-full justify-between font-normal h-10"
+                >
+                  <span className={cn(!selectedAccount && !clinic && 'text-muted-foreground')}>
+                    {selectedAccount ? selectedAccount.clinic_name : clinic || 'เลือกหรือพิมพ์ชื่อคลินิก...'}
+                  </span>
+                  <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-2" align="start">
+                <div className="flex items-center gap-2 mb-2">
+                  <Search className="h-4 w-4 text-muted-foreground shrink-0" />
+                  <Input
+                    value={accountSearch}
+                    onChange={e => {
+                      setAccountSearch(e.target.value);
+                      // If typing, clear account selection and use free text
+                      if (selectedAccountId) {
+                        setSelectedAccountId('');
+                      }
+                      setClinic(e.target.value);
+                    }}
+                    placeholder="ค้นหาคลินิก..."
+                    className="h-8 text-sm border-0 shadow-none focus-visible:ring-0 p-0"
+                  />
+                </div>
+                <div className="max-h-[200px] overflow-y-auto space-y-0.5">
+                  {filteredAccounts.map(acc => (
+                    <button
+                      key={acc.id}
+                      onClick={() => {
+                        setSelectedAccountId(acc.id);
+                        setClinic(acc.clinic_name);
+                        setAccountSearch('');
+                        setAccountPopoverOpen(false);
+                      }}
+                      className={cn(
+                        'w-full text-left px-2 py-1.5 text-sm rounded-sm hover:bg-accent flex items-center gap-2',
+                        selectedAccountId === acc.id && 'bg-accent'
+                      )}
+                    >
+                      {selectedAccountId === acc.id && <Check className="h-3.5 w-3.5 text-primary shrink-0" />}
+                      <span className={selectedAccountId !== acc.id ? 'pl-5' : ''}>{acc.clinic_name}</span>
+                    </button>
+                  ))}
+                  {filteredAccounts.length === 0 && accountSearch && (
+                    <p className="text-xs text-muted-foreground text-center py-2">
+                      ไม่พบในระบบ — จะใช้ชื่อ "{accountSearch}" เป็นข้อความอิสระ
+                    </p>
+                  )}
+                </div>
+              </PopoverContent>
+            </Popover>
+            {selectedAccount && (
+              <p className="text-[11px] text-primary mt-1">✓ เชื่อมกับบัตรลูกค้า: {selectedAccount.clinic_name}</p>
+            )}
           </div>
 
           <div className="grid grid-cols-2 gap-3">
