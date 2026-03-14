@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { ArrowLeft, FileText, CheckCircle, Clock, AlertTriangle, Eye } from 'lucide-react';
+import { ArrowLeft, FileText, CheckCircle, Clock, AlertTriangle, Eye, Plus } from 'lucide-react';
 import { mockInstallations, generatePMSchedule, type PMReport } from '@/data/installBaseMockData';
 import PMReportForm from '@/components/install-base/PMReportForm';
 import PMReportViewDialog from '@/components/install-base/PMReportViewDialog';
