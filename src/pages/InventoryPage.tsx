@@ -195,11 +195,11 @@ export default function InventoryPage() {
     <div className="space-y-6 animate-fade-in">
       <div>
         <h1 className="text-2xl font-bold text-foreground">คลังสินค้า</h1>
-        <p className="text-sm text-muted-foreground">สินค้าพร้อมขายทั้งหมด {allItems.length} รายการ (ดึงจาก QC สินค้าอัตโนมัติ)</p>
+        <p className="text-sm text-muted-foreground">สินค้าทั้งหมด {allItems.length} รายการ (รวม พร้อมขาย + ติดจอง)</p>
       </div>
 
       {/* KPI Dashboard */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-3">
         {kpiCards.map(kpi => (
           <div key={kpi.label} className={`rounded-xl border bg-gradient-to-br ${kpi.color} p-3 text-center`}>
             <p className={`text-2xl font-bold ${kpi.textColor}`}>{kpi.count}</p>
