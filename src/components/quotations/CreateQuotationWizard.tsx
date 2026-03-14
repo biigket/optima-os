@@ -22,6 +22,7 @@ import { mockTrica3DStock } from '@/data/trica3dMockData';
 import { mockQuattroStock } from '@/data/quattroMockData';
 import { mockCartridgeStock } from '@/data/cartridgeMockData';
 import { getPrice } from '@/data/inventoryPricing';
+import { addReservation } from '@/data/inventoryReservation';
 
 // === Constants ===
 
