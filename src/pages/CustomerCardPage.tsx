@@ -32,6 +32,7 @@ import {
   getConsumablesForAccount, getServiceForAccount,
   getDocumentsForAccount, getMarketingForAccount
 } from '@/data/customerCardMockData';
+import { getInstallationsForAccount } from '@/data/installBaseMockData';
 import type { Opportunity, Activity } from '@/types';
 import HistoryTimeline from '@/components/opportunity-detail/HistoryTimeline';
 import { useOpportunityNotes, type OpportunityNote } from '@/hooks/useOpportunityNotes';
@@ -258,6 +259,7 @@ export default function CustomerCardPage() {
   const primaryContact = contacts[0];
   // revenue now calculated from real qtDocs below
   const devices = getDevicesForAccount(account.id);
+  const installBaseDevices = getInstallationsForAccount(account.id, account.clinic_name);
   const visits = getVisitsForAccount(account.id);
   const timeline = getTimelineForAccount(account.id);
   const reports = getReportsForAccount(account.id);
@@ -325,7 +327,7 @@ export default function CustomerCardPage() {
           </div>
           <div className="flex gap-3 overflow-x-auto pb-1 shrink-0">
             <QuickStat icon={DollarSign} label="รายได้รวม" value={formatCurrency(realRevenue)} />
-            <QuickStat icon={Monitor} label="เครื่อง" value={`${devices.length}`} />
+            <QuickStat icon={Monitor} label="เครื่อง" value={`${devices.length + installBaseDevices.length}`} />
             <QuickStat icon={Handshake} label="ดีลเปิด" value={`${activeDeals}`} />
             <QuickStat icon={MapPin} label="เยี่ยมล่าสุด" value={lastVisit} />
           </div>
@@ -497,7 +499,7 @@ export default function CustomerCardPage() {
                 <KpiMini label="เยี่ยมล่าสุด" value={lastVisit} />
                 <KpiMini label="ดีลที่เปิดอยู่" value={`${activeDeals} รายการ`} />
                 <KpiMini label="รายได้รวม" value={formatCurrency(realRevenue)} />
-                <KpiMini label="เครื่องที่ติดตั้ง" value={`${devices.length} เครื่อง`} />
+                <KpiMini label="เครื่องที่ติดตั้ง" value={`${devices.length + installBaseDevices.length} เครื่อง`} />
                 <KpiMini label="สั่ง Cartridge ล่าสุด" value={visits.length > 0 ? visits[0].date : '-'} />
                 <KpiMini label="แอคชั่นถัดไป" value={visits.length > 0 ? visits[0].nextStep : '-'} />
               </div>
@@ -737,6 +739,41 @@ export default function CustomerCardPage() {
             {/* ===== DEVICES ===== */}
             <TabsContent value="devices" className="mt-0">
               <div className="space-y-2.5">
+                {/* Install Base devices */}
+                {installBaseDevices.map(inst => {
+                  const isWarrantyActive = new Date(inst.warrantyExpiry) > new Date();
+                  const completedPMs = inst.pmReports.filter(pm => pm.status === 'COMPLETED').length;
+                  return (
+                    <div
+                      key={inst.id}
+                      onClick={() => navigate(`/install-base/${inst.id}`)}
+                      className="p-3 rounded-md bg-muted/30 border space-y-1.5 cursor-pointer hover:bg-muted/50 transition-colors"
+                    >
+                      <div className="flex justify-between items-start">
+                        <div className="flex items-center gap-2">
+                          <p className="text-sm font-medium text-foreground">{inst.productCategory}</p>
+                          <Badge variant="outline" className="text-[10px] h-5">Install Base</Badge>
+                        </div>
+                        <span className={`text-[10px] px-1.5 py-0.5 rounded-full ${isWarrantyActive ? 'bg-green-100 text-green-700' : 'bg-orange-100 text-orange-700'}`}>
+                          {isWarrantyActive ? 'รับประกัน' : 'หมดประกัน'}
+                        </span>
+                      </div>
+                      <p className="text-xs text-muted-foreground font-mono">SN: {inst.serialNumber}</p>
+                      <div className="flex gap-3 text-[11px] text-muted-foreground">
+                        <span>ติดตั้ง: {inst.installDate}</span>
+                        <span>ประกัน: {inst.warrantyExpiry}</span>
+                      </div>
+                      <div className="flex gap-3 text-[11px] text-muted-foreground">
+                        <span>PM เสร็จ: {completedPMs} ครั้ง</span>
+                        {inst.province && <span>จังหวัด: {inst.province}</span>}
+                      </div>
+                      <div className="flex items-center gap-1 text-[10px] text-primary">
+                        <ExternalLink size={10} /> ดูรายละเอียด PM
+                      </div>
+                    </div>
+                  );
+                })}
+                {/* Legacy mock devices */}
                 {devices.map(d => (
                   <div key={d.id} className="p-3 rounded-md bg-muted/30 border space-y-1.5">
                     <div className="flex justify-between items-start">
@@ -753,7 +790,7 @@ export default function CustomerCardPage() {
                     <p className="text-[11px] text-muted-foreground">ช่าง: {d.engineer}</p>
                   </div>
                 ))}
-                {devices.length === 0 && <Empty text="ยังไม่มีเครื่องที่ติดตั้ง" />}
+                {devices.length === 0 && installBaseDevices.length === 0 && <Empty text="ยังไม่มีเครื่องที่ติดตั้ง" />}
               </div>
             </TabsContent>
 
