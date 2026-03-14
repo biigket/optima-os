@@ -428,11 +428,93 @@ export default function QcStockPage() {
             </Table>
           </div>
         </TabsContent>
+
+        {/* ==================== Quattro Tab ==================== */}
+        <TabsContent value="quattro" className="space-y-4">
+          <div className="flex justify-end">
+            <Button onClick={() => setQuattroFormOpen(true)} className="gap-2">
+              <Plus size={16} />
+              รับ Quattro เข้า Stock
+            </Button>
+          </div>
+
+          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3">
+            {buildKpis(quattroCounts).map(kpi => (
+              <div key={kpi.label} className={`rounded-xl border bg-gradient-to-br p-3 space-y-1 ${kpiColorMap[kpi.label] || ''}`}>
+                <span className="text-xs font-medium text-muted-foreground">{kpi.label}</span>
+                <p className={`text-2xl font-bold ${kpiTextMap[kpi.label] || 'text-foreground'}`}>{kpi.value}</p>
+              </div>
+            ))}
+          </div>
+
+          <div className="flex flex-wrap items-center gap-3">
+            <div className="relative max-w-sm flex-1">
+              <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+              <Input placeholder="ค้นหา S/N, Handpiece..." value={quattroSearch} onChange={e => setQuattroSearch(e.target.value)} className="pl-9" />
+            </div>
+            <div className="flex gap-1 flex-wrap">
+              {filterTabs.map(tab => (
+                <Button
+                  key={tab.value}
+                  variant={quattroFilter === tab.value ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setQuattroFilter(tab.value)}
+                >
+                  {tab.label}
+                </Button>
+              ))}
+            </div>
+          </div>
+
+          <div className="rounded-lg border bg-card">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>S/N</TableHead>
+                  <TableHead>Handpiece</TableHead>
+                  <TableHead>STATUS</TableHead>
+                  <TableHead>เครื่องเสียเพราะ?</TableHead>
+                  <TableHead>วันที่รับเข้า Stock</TableHead>
+                  <TableHead>เก็บที่</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filteredQuattro.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={6} className="text-center text-muted-foreground py-12">
+                      ยังไม่มีข้อมูล Quattro — กด "รับ Quattro เข้า Stock" เพื่อเพิ่ม
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  filteredQuattro.map(item => (
+                    <TableRow key={item.id} className="cursor-pointer hover:bg-muted/50">
+                      <TableCell className="font-mono font-medium text-foreground">{item.serialNumber}</TableCell>
+                      <TableCell className="text-sm">{item.handpiece || '—'}</TableCell>
+                      <TableCell>
+                        <StatusChip status={item.status} />
+                      </TableCell>
+                      <TableCell className="text-sm text-muted-foreground max-w-[200px] truncate">
+                        {item.failReason || '—'}
+                      </TableCell>
+                      <TableCell className="text-sm text-muted-foreground">
+                        {item.receivedDate || '—'}
+                      </TableCell>
+                      <TableCell className="text-sm text-muted-foreground">
+                        {item.storageLocation || '—'}
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          </div>
+        </TabsContent>
       </Tabs>
 
       <ND2IntakeForm open={formOpen} onOpenChange={setFormOpen} onSubmit={handleAddItem} />
       <CartridgeIntakeForm open={cartridgeFormOpen} onOpenChange={setCartridgeFormOpen} onSubmit={handleAddCartridge} />
       <Trica3DIntakeForm open={trica3dFormOpen} onOpenChange={setTrica3dFormOpen} onSubmit={handleAddTrica3d} />
+      <QuattroIntakeForm open={quattroFormOpen} onOpenChange={setQuattroFormOpen} onSubmit={handleAddQuattro} />
     </div>
   );
 }
