@@ -180,3 +180,11 @@ export const mockInstallations: Installation[] = [
     pmReports: [],
   },
 ];
+
+// Get installations for a specific account (by accountId or clinic name match)
+export function getInstallationsForAccount(accountId: string, clinicName?: string): Installation[] {
+  return mockInstallations.filter(inst => 
+    inst.accountId === accountId || 
+    (clinicName && inst.clinic.toLowerCase() === clinicName.toLowerCase())
+  );
+}
