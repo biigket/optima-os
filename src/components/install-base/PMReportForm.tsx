@@ -11,6 +11,17 @@ import { Plus, Trash2, CheckCircle, XCircle, MinusCircle } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import type { PMReport, PMCheckItem, PMCartridgeEntry, Installation } from '@/data/installBaseMockData';
 import { getND2OperationChecklist, getND2SafetyChecklist, getND2CoolingChecklist } from '@/data/installBaseMockData';
+import ComboSelect from '@/components/ui/ComboSelect';
+
+// Shared version options that grow as users add new ones
+const versionStore: Record<string, string[]> = {
+  swVer: ['1.0.0', '1.1.0', '1.2.0', '2.0.0'],
+  fwVer: ['1.0.0', '1.1.0', '2.0.0'],
+  fwFlLr: ['1.0', '1.1', '2.0'],
+  fwSdLr: ['1.0', '1.1', '2.0'],
+  fwRm: ['1.0', '1.1', '2.0'],
+  fwAmp: ['1.0', '1.1', '2.0'],
+};
 
 interface Props {
   open: boolean;
@@ -162,14 +173,28 @@ export default function PMReportForm({ open, onOpenChange, installation, mainten
 
           {/* Firmware versions */}
           <div>
-            <h4 className="font-semibold text-sm mb-2">Firmware / Software Version</h4>
+           <h4 className="font-semibold text-sm mb-2">Firmware / Software Version</h4>
             <div className="grid grid-cols-3 md:grid-cols-6 gap-2">
-              <div><Label className="text-xs">SW Ver</Label><Input value={swVer} onChange={e => setSwVer(e.target.value)} className="h-8 text-xs" /></div>
-              <div><Label className="text-xs">FW Ver</Label><Input value={fwVer} onChange={e => setFwVer(e.target.value)} className="h-8 text-xs" /></div>
-              <div><Label className="text-xs">FW FL-LR</Label><Input value={fwFlLr} onChange={e => setFwFlLr(e.target.value)} className="h-8 text-xs" /></div>
-              <div><Label className="text-xs">FW SD-LR</Label><Input value={fwSdLr} onChange={e => setFwSdLr(e.target.value)} className="h-8 text-xs" /></div>
-              <div><Label className="text-xs">FW RM</Label><Input value={fwRm} onChange={e => setFwRm(e.target.value)} className="h-8 text-xs" /></div>
-              <div><Label className="text-xs">FW AMP</Label><Input value={fwAmp} onChange={e => setFwAmp(e.target.value)} className="h-8 text-xs" /></div>
+              {([
+                ['SW Ver', 'swVer', swVer, setSwVer],
+                ['FW Ver', 'fwVer', fwVer, setFwVer],
+                ['FW FL-LR', 'fwFlLr', fwFlLr, setFwFlLr],
+                ['FW SD-LR', 'fwSdLr', fwSdLr, setFwSdLr],
+                ['FW RM', 'fwRm', fwRm, setFwRm],
+                ['FW AMP', 'fwAmp', fwAmp, setFwAmp],
+              ] as [string, string, string, (v: string) => void][]).map(([label, key, val, setter]) => (
+                <div key={key}>
+                  <Label className="text-xs">{label}</Label>
+                  <ComboSelect
+                    value={val}
+                    onChange={setter}
+                    options={versionStore[key]}
+                    onAddOption={opt => { if (!versionStore[key].includes(opt)) versionStore[key].push(opt); }}
+                    placeholder="เลือก..."
+                    className="h-8 text-xs w-full"
+                  />
+                </div>
+              ))}
             </div>
           </div>
 
