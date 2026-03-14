@@ -11,11 +11,13 @@ import {
   getDevicesForAccount, getConsumablesForAccount, getServiceForAccount,
   getDocumentsForAccount, getMarketingForAccount,
 } from '@/data/customerCardMockData';
+import { getInstallationsForAccount } from '@/data/installBaseMockData';
 import { supabase } from '@/integrations/supabase/client';
 import StatusBadge from '@/components/ui/StatusBadge';
 
 interface Props {
   accountId: string;
+  clinicName?: string;
 }
 
 interface QuotationDoc {
