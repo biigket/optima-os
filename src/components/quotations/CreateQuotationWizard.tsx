@@ -34,14 +34,38 @@ const SELLER_INFO = {
   website: 'www.optimaaesthetic.com',
 };
 
-const MOCK_PRODUCTS = [
-  { name: 'Doublo Neo', price: 720000 },
-  { name: 'Doublo Full 3', price: 1220000 },
-  { name: 'Doublo Full 5', price: 1620000 },
-  { name: 'Trica3D', price: 420000 },
-  { name: 'Quattro', price: 420000 },
-  { name: 'PicoHi', price: 2500000 },
-];
+// Build inventory items (พร้อมขาย) from QC Stock
+interface InventoryProduct {
+  id: string;
+  name: string;
+  category: string;
+  serialNumber: string;
+  price: number;
+}
+
+function getInventoryProducts(): InventoryProduct[] {
+  const items: InventoryProduct[] = [];
+  mockND2Stock.filter(i => i.status === 'พร้อมขาย').forEach(i =>
+    items.push({ id: i.id, name: `ND2 (${i.hntSerialNumber})`, category: 'ND2', serialNumber: i.hntSerialNumber, price: getPrice(i.id) ?? 0 })
+  );
+  mockTrica3DStock.filter(i => i.status === 'พร้อมขาย').forEach(i =>
+    items.push({ id: i.id, name: `Trica 3D (${i.serialNumber})`, category: 'Trica 3D', serialNumber: i.serialNumber, price: getPrice(i.id) ?? 0 })
+  );
+  mockQuattroStock.filter(i => i.status === 'พร้อมขาย').forEach(i =>
+    items.push({ id: i.id, name: `Quattro (${i.serialNumber})`, category: 'Quattro', serialNumber: i.serialNumber, price: getPrice(i.id) ?? 0 })
+  );
+  mockCartridgeStock.filter(i => i.status === 'พร้อมขาย').forEach(i =>
+    items.push({ id: i.id, name: `Cartridge ${i.cartridgeType} (${i.serialNumber})`, category: 'Cartridge', serialNumber: i.serialNumber, price: getPrice(i.id) ?? 0 })
+  );
+  return items;
+}
+
+const categoryBadge: Record<string, string> = {
+  ND2: 'bg-blue-100 text-blue-800',
+  'Trica 3D': 'bg-purple-100 text-purple-800',
+  Quattro: 'bg-emerald-100 text-emerald-800',
+  Cartridge: 'bg-amber-100 text-amber-800',
+};
 
 const DEFAULT_SALES_TERMS = [
   'ราคานี้รวม VAT 7% แล้ว',
