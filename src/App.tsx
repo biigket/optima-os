@@ -35,6 +35,9 @@ import CustomerRegisterPage from "@/pages/CustomerRegisterPage";
 import QRCodePage from "@/pages/QRCodePage";
 import QcStockPage from "@/pages/QcStockPage";
 import QcStockDetailPage from "@/pages/QcStockDetailPage";
+import Trica3DDetailPage from "@/pages/Trica3DDetailPage";
+import QuattroDetailPage from "@/pages/QuattroDetailPage";
+import CartridgeDetailPage from "@/pages/CartridgeDetailPage";
 import { MockAuthProvider } from "@/hooks/useMockAuth";
 
 const queryClient = new QueryClient();
