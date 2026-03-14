@@ -18,7 +18,7 @@ import { syncReservations } from '@/data/inventoryReservation';
 import type { UnifiedStockStatus } from '@/data/unifiedStockStatus';
 import { unifiedStatusColor } from '@/data/unifiedStockStatus';
 
-type ProductCategory = 'ALL' | 'ND2' | 'TRICA3D' | 'QUATTRO' | 'CARTRIDGE';
+type ProductCategory = 'ALL' | 'ND2' | 'TRICA3D' | 'QUATTRO' | 'PICOHI' | 'FREEZERO' | 'CARTRIDGE';
 
 interface InventoryItem {
   id: string;
