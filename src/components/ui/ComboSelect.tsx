@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { ChevronDown, Plus, Check } from 'lucide-react';
+import { ChevronDown, Plus, Check, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface ComboSelectProps {
