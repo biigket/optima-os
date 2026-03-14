@@ -493,7 +493,7 @@ export default function CreateQuotationWizard({ open, onOpenChange, onCreated }:
                       return (
                         <button
                           key={p.id}
-                          onClick={() => !added && addProduct(p.name, p.price)}
+                          onClick={() => !added && addProduct(p.name, p.price, p.id)}
                           disabled={added}
                           className={cn(
                             'w-full flex items-center gap-2 px-3 py-2 rounded-lg text-left text-sm border transition-colors',
