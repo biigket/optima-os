@@ -117,6 +117,7 @@ export default function PMReportForm({ open, onOpenChange, installation, mainten
   const [customerName, setCustomerName] = useState(existingReport?.customerName || '');
   const [customerDate, setCustomerDate] = useState(existingReport?.customerDate || new Date().toISOString().split('T')[0]);
   const [customerTel, setCustomerTel] = useState(existingReport?.customerTel || '');
+  const [, forceUpdate] = useState(0);
 
   function addCartridge() {
     setCartridges([...cartridges, { type: 'A2.0', serialNumber: '', remainShot: 0, shotTestRemain: 0, shotTestTotal: 5, passFail: true }]);
@@ -189,8 +190,8 @@ export default function PMReportForm({ open, onOpenChange, installation, mainten
                     value={val}
                     onChange={setter}
                     options={versionStore[key]}
-                    onAddOption={opt => { if (!versionStore[key].includes(opt)) versionStore[key].push(opt); }}
-                    onRemoveOption={opt => { versionStore[key] = versionStore[key].filter(v => v !== opt); }}
+                    onAddOption={opt => { if (!versionStore[key].includes(opt)) { versionStore[key] = [...versionStore[key], opt]; forceUpdate(n => n + 1); } }}
+                    onRemoveOption={opt => { versionStore[key] = versionStore[key].filter(v => v !== opt); forceUpdate(n => n + 1); }}
                     placeholder="เลือก..."
                     className="h-8 text-xs w-full"
                   />
