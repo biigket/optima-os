@@ -165,8 +165,8 @@ export default function InventoryPage() {
 
   // KPI counts
   const kpis = useMemo(() => {
-    const counts: Record<ProductCategory, number> = { ALL: allItems.length, ND2: 0, TRICA3D: 0, QUATTRO: 0, CARTRIDGE: 0 };
-    const reservedCounts: Record<ProductCategory, number> = { ALL: 0, ND2: 0, TRICA3D: 0, QUATTRO: 0, CARTRIDGE: 0 };
+    const counts: Record<ProductCategory, number> = { ALL: allItems.length, ND2: 0, TRICA3D: 0, QUATTRO: 0, PICOHI: 0, FREEZERO: 0, CARTRIDGE: 0 };
+    const reservedCounts: Record<ProductCategory, number> = { ALL: 0, ND2: 0, TRICA3D: 0, QUATTRO: 0, PICOHI: 0, FREEZERO: 0, CARTRIDGE: 0 };
     
     allItems.forEach(i => { 
       counts[i.category]++; 
