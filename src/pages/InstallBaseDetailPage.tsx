@@ -75,6 +75,19 @@ export default function InstallBaseDetailPage() {
     setInst({ ...inst! });
   }
 
+  function handleDeletePM(pmNumber: number) {
+    setDeletedPMs(prev => [...prev, pmNumber]);
+    // Also remove any report for this PM if exists
+    const existingIndex = inst!.pmReports.findIndex(r => r.maintenanceNumber === pmNumber);
+    if (existingIndex >= 0) {
+      inst!.pmReports.splice(existingIndex, 1);
+      const sharedInst = mockInstallations.find(i => i.id === inst!.id);
+      if (sharedInst) sharedInst.pmReports = [...inst!.pmReports];
+      setInst({ ...inst! });
+    }
+    setPmToDelete(null);
+  }
+
   const categoryColors: Record<string, string> = {
     'ND2': 'bg-indigo-100 text-indigo-800',
     'Trica 3D': 'bg-violet-100 text-violet-800',
