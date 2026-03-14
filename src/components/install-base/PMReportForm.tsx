@@ -117,6 +117,7 @@ export default function PMReportForm({ open, onOpenChange, installation, mainten
   const [customerName, setCustomerName] = useState(existingReport?.customerName || '');
   const [customerDate, setCustomerDate] = useState(existingReport?.customerDate || new Date().toISOString().split('T')[0]);
   const [customerTel, setCustomerTel] = useState(existingReport?.customerTel || '');
+  const [, forceUpdate] = useState(0);
 
   function addCartridge() {
     setCartridges([...cartridges, { type: 'A2.0', serialNumber: '', remainShot: 0, shotTestRemain: 0, shotTestTotal: 5, passFail: true }]);
