@@ -7,9 +7,17 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
-import StatusBadge from '@/components/ui/StatusBadge';
 import { toast } from 'sonner';
-import { mockND2Stock, type ND2StockItem, type QcStatus, type StockStatus, type HrmSellOrKeep } from '@/data/qcMockData';
+import { mockND2Stock, type ND2StockItem, type HrmSellOrKeep } from '@/data/qcMockData';
+import { unifiedStatuses, unifiedStatusColor, type UnifiedStockStatus } from '@/data/unifiedStockStatus';
+
+function StatusChip({ status }: { status: UnifiedStockStatus }) {
+  return (
+    <span className={`inline-flex items-center rounded-full border px-2 py-0.5 text-xs font-medium ${unifiedStatusColor[status] || 'bg-muted text-muted-foreground'}`}>
+      {status}
+    </span>
+  );
+}
 
 export default function QcStockDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -34,7 +42,6 @@ export default function QcStockDetailPage() {
       toast.error('กรุณากรอก HNT S/N');
       return;
     }
-    // Update mock data in-place
     const idx = mockND2Stock.findIndex(i => i.id === id);
     if (idx !== -1) {
       Object.assign(mockND2Stock[idx], form);
@@ -92,9 +99,8 @@ export default function QcStockDetailPage() {
 
       {/* Status badges */}
       <div className="flex items-center gap-3">
-        <StatusBadge status={form.qcResult} />
-        <StatusBadge status={form.status} />
-        {form.qcResult === 'QC_FAILED' && form.qcFailReason && (
+        <StatusChip status={form.status} />
+        {form.qcFailReason && (
           <span className="text-xs text-destructive">({form.qcFailReason})</span>
         )}
       </div>
@@ -182,41 +188,25 @@ export default function QcStockDetailPage() {
             <div>
               <Label className="text-xs text-muted-foreground">STATUS</Label>
               {editing ? (
-                <Select value={form.status} onValueChange={v => set('status', v as StockStatus)}>
+                <Select value={form.status} onValueChange={v => set('status', v as UnifiedStockStatus)}>
                   <SelectTrigger className="mt-1"><SelectValue /></SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="READY_TO_SELL">พร้อมขาย</SelectItem>
-                    <SelectItem value="RESERVED">ติดจอง</SelectItem>
-                    <SelectItem value="INSTALLED">ติดตั้งแล้ว</SelectItem>
-                    <SelectItem value="SENT_FOR_REPAIR">ส่งซ่อม</SelectItem>
+                    {unifiedStatuses.map(s => (
+                      <SelectItem key={s} value={s}>{s}</SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               ) : (
-                <div className="mt-1"><StatusBadge status={form.status} /></div>
+                <div className="mt-1"><StatusChip status={form.status} /></div>
               )}
             </div>
-            <div>
-              <Label className="text-xs text-muted-foreground">ผลตรวจ QC</Label>
-              {editing ? (
-                <Select value={form.qcResult} onValueChange={v => set('qcResult', v as QcStatus)}>
-                  <SelectTrigger className="mt-1"><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="PENDING_QC">รอ QC</SelectItem>
-                    <SelectItem value="QC_PASSED">QC ผ่าน</SelectItem>
-                    <SelectItem value="QC_FAILED">QC ไม่ผ่าน</SelectItem>
-                  </SelectContent>
-                </Select>
-              ) : (
-                <div className="mt-1"><StatusBadge status={form.qcResult} /></div>
-              )}
-            </div>
-            {editing && form.qcResult === 'QC_FAILED' && (
-              <Field label="QC ไม่ผ่านเพราะ" value={form.qcFailReason} editKey="qcFailReason" />
+            {editing && (form.status === 'รอซ่อม/รอ QC' || form.status === 'รอเคลม ตปท.') && (
+              <Field label="สาเหตุ/หมายเหตุ" value={form.qcFailReason} editKey="qcFailReason" />
             )}
-            {editing && form.status === 'RESERVED' && (
+            {editing && form.status === 'ติดจอง' && (
               <Field label="ติดจองที่?" value={form.reservedFor} editKey="reservedFor" />
             )}
-            {editing && form.status === 'INSTALLED' && (
+            {editing && form.status === 'ติดตั้งแล้ว' && (
               <Field label="Clinic" value={form.clinic} editKey="clinic" />
             )}
           </div>
