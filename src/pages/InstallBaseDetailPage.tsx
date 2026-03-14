@@ -4,16 +4,28 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { ArrowLeft, FileText, CheckCircle, Clock, AlertTriangle, Eye, Plus } from 'lucide-react';
+import { ArrowLeft, FileText, CheckCircle, Clock, AlertTriangle, Eye, Plus, Trash2 } from 'lucide-react';
 import { mockInstallations, generatePMSchedule, type PMReport } from '@/data/installBaseMockData';
 import PMReportForm from '@/components/install-base/PMReportForm';
 import PMReportViewDialog from '@/components/install-base/PMReportViewDialog';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 export default function InstallBaseDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
   const [inst, setInst] = useState(() => mockInstallations.find(i => i.id === id));
   const [pmCount, setPmCount] = useState(2);
+  const [deletedPMs, setDeletedPMs] = useState<number[]>([]);
+  const [pmToDelete, setPmToDelete] = useState<number | null>(null);
   const [pmFormOpen, setPmFormOpen] = useState(false);
   const [pmViewOpen, setPmViewOpen] = useState(false);
   const [selectedPmNumber, setSelectedPmNumber] = useState(1);
@@ -29,7 +41,7 @@ export default function InstallBaseDetailPage() {
     );
   }
 
-  const pmSchedule = generatePMSchedule(inst.installDate, pmCount);
+  const pmSchedule = generatePMSchedule(inst.installDate, pmCount).filter(pm => !deletedPMs.includes(pm.number));
   const today = new Date().toISOString().split('T')[0];
   const warrantyExpired = inst.warrantyExpiry < today;
 
@@ -61,6 +73,19 @@ export default function InstallBaseDetailPage() {
     const sharedInst = mockInstallations.find(i => i.id === inst!.id);
     if (sharedInst) sharedInst.pmReports = [...inst!.pmReports];
     setInst({ ...inst! });
+  }
+
+  function handleDeletePM(pmNumber: number) {
+    setDeletedPMs(prev => [...prev, pmNumber]);
+    // Also remove any report for this PM if exists
+    const existingIndex = inst!.pmReports.findIndex(r => r.maintenanceNumber === pmNumber);
+    if (existingIndex >= 0) {
+      inst!.pmReports.splice(existingIndex, 1);
+      const sharedInst = mockInstallations.find(i => i.id === inst!.id);
+      if (sharedInst) sharedInst.pmReports = [...inst!.pmReports];
+      setInst({ ...inst! });
+    }
+    setPmToDelete(null);
   }
 
   const categoryColors: Record<string, string> = {
@@ -177,6 +202,16 @@ export default function InstallBaseDetailPage() {
                             <FileText size={14} className="mr-1" />{report ? 'แก้ไข' : 'กรอก PM Report'}
                           </Button>
                         )}
+                        {isPending && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                            onClick={() => setPmToDelete(pm.number)}
+                          >
+                            <Trash2 size={14} />
+                          </Button>
+                        )}
                       </div>
                     </TableCell>
                   </TableRow>
@@ -205,6 +240,27 @@ export default function InstallBaseDetailPage() {
         report={selectedReport}
         installation={inst}
       />
+
+      {/* Delete PM Confirmation Dialog */}
+      <AlertDialog open={pmToDelete !== null} onOpenChange={() => setPmToDelete(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>ยืนยันการลบ PM</AlertDialogTitle>
+            <AlertDialogDescription>
+              คุณต้องการลบ PM ครั้งที่ {pmToDelete} ที่ยังรอดำเนินการใช่หรือไม่? การดำเนินการนี้ไม่สามารถย้อนกลับได้
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setPmToDelete(null)}>ยกเลิก</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={() => pmToDelete && handleDeletePM(pmToDelete)}
+            >
+              ลบ PM
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
