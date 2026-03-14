@@ -40,6 +40,8 @@ import QuattroDetailPage from "@/pages/QuattroDetailPage";
 import CartridgeDetailPage from "@/pages/CartridgeDetailPage";
 import PicohiDetailPage from "@/pages/PicohiDetailPage";
 import FreezeroDetailPage from "@/pages/FreezeroDetailPage";
+import InstallBasePage from "@/pages/InstallBasePage";
+import InstallBaseDetailPage from "@/pages/InstallBaseDetailPage";
 import { MockAuthProvider } from "@/hooks/useMockAuth";
 
 const queryClient = new QueryClient();
@@ -71,6 +73,8 @@ function AuthedAppRoutes() {
         <Route path="/tasks" element={<TasksPage />} />
         <Route path="/calendar" element={<CalendarPage />} />
         <Route path="/devices" element={<DevicesPage />} />
+        <Route path="/install-base" element={<InstallBasePage />} />
+        <Route path="/install-base/:id" element={<InstallBaseDetailPage />} />
         <Route path="/consumables" element={<ConsumablesPage />} />
         <Route path="/maintenance" element={<MaintenancePage />} />
         <Route path="/forecast" element={<ForecastPage />} />

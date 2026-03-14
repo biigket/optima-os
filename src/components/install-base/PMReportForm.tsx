@@ -1,0 +1,263 @@
+import { useState } from 'react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Badge } from '@/components/ui/badge';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Plus, Trash2, CheckCircle, XCircle, MinusCircle } from 'lucide-react';
+import { toast } from '@/hooks/use-toast';
+import type { PMReport, PMCheckItem, PMCartridgeEntry, Installation } from '@/data/installBaseMockData';
+import { getND2OperationChecklist, getND2SafetyChecklist, getND2CoolingChecklist } from '@/data/installBaseMockData';
+
+interface Props {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  installation: Installation;
+  maintenanceNumber: number;
+  scheduledDate: string;
+  existingReport?: PMReport;
+  onSave: (report: PMReport) => void;
+}
+
+function ChecklistSection({ title, items, onChange }: { title: string; items: PMCheckItem[]; onChange: (items: PMCheckItem[]) => void }) {
+  function toggleItem(index: number, value: boolean | null) {
+    const updated = [...items];
+    updated[index] = { ...updated[index], pass: value };
+    onChange(updated);
+  }
+  function updateRemark(index: number, remark: string) {
+    const updated = [...items];
+    updated[index] = { ...updated[index], remark };
+    onChange(updated);
+  }
+
+  return (
+    <div>
+      <h4 className="font-semibold text-sm mb-2">{title}</h4>
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead className="w-[200px]">รายการ</TableHead>
+            <TableHead className="w-[60px] text-center">Pass</TableHead>
+            <TableHead className="w-[60px] text-center">Fail</TableHead>
+            <TableHead className="w-[60px] text-center">N/A</TableHead>
+            <TableHead>Remark</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {items.map((item, i) => (
+            <TableRow key={i}>
+              <TableCell className="text-sm">{item.name}</TableCell>
+              <TableCell className="text-center">
+                <button onClick={() => toggleItem(i, true)} className={`p-1 rounded ${item.pass === true ? 'text-emerald-600 bg-emerald-50' : 'text-muted-foreground/40'}`}>
+                  <CheckCircle size={18} />
+                </button>
+              </TableCell>
+              <TableCell className="text-center">
+                <button onClick={() => toggleItem(i, false)} className={`p-1 rounded ${item.pass === false ? 'text-red-600 bg-red-50' : 'text-muted-foreground/40'}`}>
+                  <XCircle size={18} />
+                </button>
+              </TableCell>
+              <TableCell className="text-center">
+                <button onClick={() => toggleItem(i, null)} className={`p-1 rounded ${item.pass === null ? 'text-gray-600 bg-gray-100' : 'text-muted-foreground/40'}`}>
+                  <MinusCircle size={18} />
+                </button>
+              </TableCell>
+              <TableCell>
+                <Input value={item.remark} onChange={e => updateRemark(i, e.target.value)} className="h-8 text-xs" placeholder="S/N หรือหมายเหตุ" />
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+    </div>
+  );
+}
+
+export default function PMReportForm({ open, onOpenChange, installation, maintenanceNumber, scheduledDate, existingReport, onSave }: Props) {
+  const [swVer, setSwVer] = useState(existingReport?.swVer || '');
+  const [fwVer, setFwVer] = useState(existingReport?.fwVer || '');
+  const [fwFlLr, setFwFlLr] = useState(existingReport?.fwFlLr || '');
+  const [fwSdLr, setFwSdLr] = useState(existingReport?.fwSdLr || '');
+  const [fwRm, setFwRm] = useState(existingReport?.fwRm || '');
+  const [fwAmp, setFwAmp] = useState(existingReport?.fwAmp || '');
+
+  const [operationChecklist, setOperationChecklist] = useState<PMCheckItem[]>(
+    existingReport?.operationChecklist || getND2OperationChecklist()
+  );
+  const [safetyChecklist, setSafetyChecklist] = useState<PMCheckItem[]>(
+    existingReport?.safetyChecklist || getND2SafetyChecklist()
+  );
+  const [coolingChecklist, setCoolingChecklist] = useState<PMCheckItem[]>(
+    existingReport?.coolingChecklist || getND2CoolingChecklist()
+  );
+
+  const [cartridges, setCartridges] = useState<PMCartridgeEntry[]>(
+    existingReport?.cartridges || []
+  );
+
+  const [remark, setRemark] = useState(existingReport?.remark || '');
+  const [serviceEngineer, setServiceEngineer] = useState(existingReport?.serviceEngineer || '');
+  const [serviceDate, setServiceDate] = useState(existingReport?.serviceDate || new Date().toISOString().split('T')[0]);
+  const [serviceTel, setServiceTel] = useState(existingReport?.serviceTel || '');
+  const [customerName, setCustomerName] = useState(existingReport?.customerName || '');
+  const [customerDate, setCustomerDate] = useState(existingReport?.customerDate || new Date().toISOString().split('T')[0]);
+  const [customerTel, setCustomerTel] = useState(existingReport?.customerTel || '');
+
+  function addCartridge() {
+    setCartridges([...cartridges, { type: 'A2.0', serialNumber: '', remainShot: 0, shotTestRemain: 0, shotTestTotal: 5, passFail: true }]);
+  }
+
+  function removeCartridge(index: number) {
+    setCartridges(cartridges.filter((_, i) => i !== index));
+  }
+
+  function updateCartridge(index: number, field: keyof PMCartridgeEntry, value: any) {
+    const updated = [...cartridges];
+    updated[index] = { ...updated[index], [field]: value };
+    setCartridges(updated);
+  }
+
+  function handleSave() {
+    const report: PMReport = {
+      id: existingReport?.id || `pm-${Date.now()}`,
+      installationId: installation.id,
+      maintenanceNumber,
+      scheduledDate,
+      actualDate: serviceDate,
+      status: 'COMPLETED',
+      swVer, fwVer, fwFlLr, fwSdLr, fwRm, fwAmp,
+      operationChecklist, safetyChecklist, coolingChecklist,
+      cartridges, remark,
+      serviceEngineer, serviceDate, serviceTel,
+      customerName, customerDate, customerTel,
+    };
+    onSave(report);
+    onOpenChange(false);
+    toast({ title: `บันทึก PM Report ครั้งที่ ${maintenanceNumber} เรียบร้อย` });
+  }
+
+  const cartridgeTypes = ['A2.0', 'A3.0', 'A4.5', 'A6.0', 'L1.5', 'L3.0', 'L4.5', 'L9.0'];
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <span>New Doublo 2.0 Maintenance Report</span>
+            <Badge variant="outline">PM ครั้งที่ {maintenanceNumber}</Badge>
+          </DialogTitle>
+        </DialogHeader>
+
+        <div className="space-y-6">
+          {/* Header info */}
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-3 p-3 rounded-md bg-muted/50">
+            <div><Label className="text-xs text-muted-foreground">Customer</Label><p className="text-sm font-medium">{installation.clinic}</p></div>
+            <div><Label className="text-xs text-muted-foreground">Serial Number</Label><p className="text-sm font-mono font-medium">{installation.serialNumber}</p></div>
+            <div><Label className="text-xs text-muted-foreground">กำหนดการ PM</Label><p className="text-sm">{scheduledDate}</p></div>
+          </div>
+
+          {/* Firmware versions */}
+          <div>
+            <h4 className="font-semibold text-sm mb-2">Firmware / Software Version</h4>
+            <div className="grid grid-cols-3 md:grid-cols-6 gap-2">
+              <div><Label className="text-xs">SW Ver</Label><Input value={swVer} onChange={e => setSwVer(e.target.value)} className="h-8 text-xs" /></div>
+              <div><Label className="text-xs">FW Ver</Label><Input value={fwVer} onChange={e => setFwVer(e.target.value)} className="h-8 text-xs" /></div>
+              <div><Label className="text-xs">FW FL-LR</Label><Input value={fwFlLr} onChange={e => setFwFlLr(e.target.value)} className="h-8 text-xs" /></div>
+              <div><Label className="text-xs">FW SD-LR</Label><Input value={fwSdLr} onChange={e => setFwSdLr(e.target.value)} className="h-8 text-xs" /></div>
+              <div><Label className="text-xs">FW RM</Label><Input value={fwRm} onChange={e => setFwRm(e.target.value)} className="h-8 text-xs" /></div>
+              <div><Label className="text-xs">FW AMP</Label><Input value={fwAmp} onChange={e => setFwAmp(e.target.value)} className="h-8 text-xs" /></div>
+            </div>
+          </div>
+
+          {/* 1. Operation System & Handpiece */}
+          <ChecklistSection title="1. Operation System and Handpiece" items={operationChecklist} onChange={setOperationChecklist} />
+
+          {/* 2. Safety System */}
+          <ChecklistSection title="2. Safety System" items={safetyChecklist} onChange={setSafetyChecklist} />
+
+          {/* 3. Cooling System */}
+          <ChecklistSection title="3. Cooling System" items={coolingChecklist} onChange={setCoolingChecklist} />
+
+          {/* 4. Cartridge */}
+          <div>
+            <div className="flex items-center justify-between mb-2">
+              <h4 className="font-semibold text-sm">4. Cartridge</h4>
+              <Button variant="outline" size="sm" onClick={addCartridge}><Plus size={14} className="mr-1" />เพิ่ม Cartridge</Button>
+            </div>
+            {cartridges.length > 0 && (
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Type</TableHead>
+                      <TableHead>Serial No.</TableHead>
+                      <TableHead>Remain Shot</TableHead>
+                      <TableHead>Shot Test Remain</TableHead>
+                      <TableHead>Shot Test Total</TableHead>
+                      <TableHead>Pass/Fail</TableHead>
+                      <TableHead className="w-[40px]"></TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {cartridges.map((c, i) => (
+                      <TableRow key={i}>
+                        <TableCell>
+                          <select className="border rounded px-2 py-1 text-xs bg-background" value={c.type} onChange={e => updateCartridge(i, 'type', e.target.value)}>
+                            {cartridgeTypes.map(t => <option key={t} value={t}>{t}</option>)}
+                          </select>
+                        </TableCell>
+                        <TableCell><Input value={c.serialNumber} onChange={e => updateCartridge(i, 'serialNumber', e.target.value)} className="h-7 text-xs w-36" /></TableCell>
+                        <TableCell><Input type="number" value={c.remainShot} onChange={e => updateCartridge(i, 'remainShot', parseInt(e.target.value) || 0)} className="h-7 text-xs w-24" /></TableCell>
+                        <TableCell><Input type="number" value={c.shotTestRemain} onChange={e => updateCartridge(i, 'shotTestRemain', parseInt(e.target.value) || 0)} className="h-7 text-xs w-24" /></TableCell>
+                        <TableCell><Input type="number" value={c.shotTestTotal} onChange={e => updateCartridge(i, 'shotTestTotal', parseInt(e.target.value) || 0)} className="h-7 text-xs w-20" /></TableCell>
+                        <TableCell>
+                          <button onClick={() => updateCartridge(i, 'passFail', !c.passFail)} className={`px-2 py-1 rounded text-xs font-medium ${c.passFail ? 'bg-emerald-100 text-emerald-800' : 'bg-red-100 text-red-800'}`}>
+                            {c.passFail ? 'Pass' : 'Fail'}
+                          </button>
+                        </TableCell>
+                        <TableCell>
+                          <button onClick={() => removeCartridge(i)} className="text-red-500 hover:text-red-700"><Trash2 size={14} /></button>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            )}
+          </div>
+
+          {/* Remark */}
+          <div>
+            <Label>Remark</Label>
+            <Textarea value={remark} onChange={e => setRemark(e.target.value)} rows={3} />
+          </div>
+
+          {/* Signatures */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="p-3 rounded-md border space-y-2">
+              <h4 className="font-semibold text-sm">Service Engineer</h4>
+              <div><Label className="text-xs">ชื่อ</Label><Input value={serviceEngineer} onChange={e => setServiceEngineer(e.target.value)} className="h-8" /></div>
+              <div><Label className="text-xs">วันที่</Label><Input type="date" value={serviceDate} onChange={e => setServiceDate(e.target.value)} className="h-8" /></div>
+              <div><Label className="text-xs">โทร</Label><Input value={serviceTel} onChange={e => setServiceTel(e.target.value)} className="h-8" /></div>
+            </div>
+            <div className="p-3 rounded-md border space-y-2">
+              <h4 className="font-semibold text-sm">Customer</h4>
+              <div><Label className="text-xs">ชื่อ</Label><Input value={customerName} onChange={e => setCustomerName(e.target.value)} className="h-8" /></div>
+              <div><Label className="text-xs">วันที่</Label><Input type="date" value={customerDate} onChange={e => setCustomerDate(e.target.value)} className="h-8" /></div>
+              <div><Label className="text-xs">โทร</Label><Input value={customerTel} onChange={e => setCustomerTel(e.target.value)} className="h-8" /></div>
+            </div>
+          </div>
+
+          <div className="flex justify-end gap-2 pt-2">
+            <Button variant="outline" onClick={() => onOpenChange(false)}>ยกเลิก</Button>
+            <Button onClick={handleSave}>บันทึก PM Report</Button>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
