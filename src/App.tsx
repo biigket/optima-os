@@ -40,6 +40,8 @@ import QuattroDetailPage from "@/pages/QuattroDetailPage";
 import CartridgeDetailPage from "@/pages/CartridgeDetailPage";
 import PicohiDetailPage from "@/pages/PicohiDetailPage";
 import FreezeroDetailPage from "@/pages/FreezeroDetailPage";
+import InstallBasePage from "@/pages/InstallBasePage";
+import InstallBaseDetailPage from "@/pages/InstallBaseDetailPage";
 import { MockAuthProvider } from "@/hooks/useMockAuth";
 
 const queryClient = new QueryClient();
