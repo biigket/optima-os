@@ -14,7 +14,7 @@ interface ComboSelectProps {
   className?: string;
 }
 
-export default function ComboSelect({ value, onChange, options, onAddOption, placeholder = 'เลือก...', className }: ComboSelectProps) {
+export default function ComboSelect({ value, onChange, options, onAddOption, onRemoveOption, placeholder = 'เลือก...', className }: ComboSelectProps) {
   const [open, setOpen] = useState(false);
   const [newValue, setNewValue] = useState('');
   const inputRef = useRef<HTMLInputElement>(null);
