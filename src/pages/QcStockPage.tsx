@@ -15,6 +15,7 @@ import ND2IntakeForm from '@/components/qc-stock/ND2IntakeForm';
 import CartridgeIntakeForm from '@/components/qc-stock/CartridgeIntakeForm';
 import Trica3DIntakeForm from '@/components/qc-stock/Trica3DIntakeForm';
 import QuattroIntakeForm from '@/components/qc-stock/QuattroIntakeForm';
+import { syncReservations } from '@/data/inventoryReservation';
 
 type FilterTab = 'ALL' | UnifiedStockStatus;
 
