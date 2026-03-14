@@ -5,6 +5,7 @@ export interface Trica3DStockItem {
   serialNumber: string;
   clinic: string;
   status: UnifiedStockStatus;
+  reservedFor?: string;
   receivedDate: string;
   installDate: string;
   failReason: string;

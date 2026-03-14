@@ -13,6 +13,8 @@ import { mockTrica3DStock } from '@/data/trica3dMockData';
 import { mockQuattroStock } from '@/data/quattroMockData';
 import { inventoryPrices, getPrice, setPrice } from '@/data/inventoryPricing';
 import { syncReservations } from '@/data/inventoryReservation';
+import type { UnifiedStockStatus } from '@/data/unifiedStockStatus';
+import { unifiedStatusColor } from '@/data/unifiedStockStatus';
 
 type ProductCategory = 'ALL' | 'ND2' | 'TRICA3D' | 'QUATTRO' | 'CARTRIDGE';
 
@@ -20,10 +22,12 @@ interface InventoryItem {
   id: string;
   category: ProductCategory;
   serialNumber: string;
-  subInfo: string; // handpiece, cartridge type, etc.
+  subInfo: string;
   storageLocation: string;
   receivedDate: string;
   detailPath: string;
+  status: UnifiedStockStatus;
+  reservedFor?: string;
 }
 
 const categoryTabs: { label: string; value: ProductCategory; icon: React.ReactNode }[] = [
@@ -52,12 +56,12 @@ export default function InventoryPage() {
   // Sync reservations on mount
   useEffect(() => { syncReservations(); }, []);
 
-  // Auto-sync: pull "พร้อมขาย" from all QC Stock sources
+  // Auto-sync: pull "พร้อมขาย" และ "ติดจอง" from all QC Stock sources
   const allItems = useMemo<InventoryItem[]>(() => {
     const items: InventoryItem[] = [];
 
     mockND2Stock
-      .filter(i => i.status === 'พร้อมขาย')
+      .filter(i => i.status === 'พร้อมขาย' || i.status === 'ติดจอง')
       .forEach(i => items.push({
         id: i.id,
         category: 'ND2',
@@ -66,10 +70,12 @@ export default function InventoryPage() {
         storageLocation: i.storageLocation || '—',
         receivedDate: i.receivedDate || '—',
         detailPath: `/qc-stock/${i.id}`,
+        status: i.status,
+        reservedFor: (i as any).reservedFor,
       }));
 
     mockTrica3DStock
-      .filter(i => i.status === 'พร้อมขาย')
+      .filter(i => i.status === 'พร้อมขาย' || i.status === 'ติดจอง')
       .forEach(i => items.push({
         id: i.id,
         category: 'TRICA3D',
@@ -78,10 +84,12 @@ export default function InventoryPage() {
         storageLocation: i.storageLocation || '—',
         receivedDate: i.receivedDate || '—',
         detailPath: `/qc-stock/trica3d/${i.id}`,
+        status: i.status,
+        reservedFor: (i as any).reservedFor,
       }));
 
     mockQuattroStock
-      .filter(i => i.status === 'พร้อมขาย')
+      .filter(i => i.status === 'พร้อมขาย' || i.status === 'ติดจอง')
       .forEach(i => items.push({
         id: i.id,
         category: 'QUATTRO',
@@ -90,10 +98,12 @@ export default function InventoryPage() {
         storageLocation: i.storageLocation || '—',
         receivedDate: i.receivedDate || '—',
         detailPath: `/qc-stock/quattro/${i.id}`,
+        status: i.status,
+        reservedFor: (i as any).reservedFor,
       }));
 
     mockCartridgeStock
-      .filter(i => i.status === 'พร้อมขาย')
+      .filter(i => i.status === 'พร้อมขาย' || i.status === 'ติดจอง')
       .forEach(i => items.push({
         id: i.id,
         category: 'CARTRIDGE',
@@ -102,6 +112,8 @@ export default function InventoryPage() {
         storageLocation: i.storageLocation || '—',
         receivedDate: i.receivedDate || '—',
         detailPath: `/qc-stock/cartridge/${i.id}`,
+        status: i.status,
+        reservedFor: (i as any).reservedFor,
       }));
 
     return items;
@@ -120,11 +132,19 @@ export default function InventoryPage() {
   // KPI counts
   const kpis = useMemo(() => {
     const counts: Record<ProductCategory, number> = { ALL: allItems.length, ND2: 0, TRICA3D: 0, QUATTRO: 0, CARTRIDGE: 0 };
-    allItems.forEach(i => { counts[i.category]++; });
+    const reservedCounts: Record<ProductCategory, number> = { ALL: 0, ND2: 0, TRICA3D: 0, QUATTRO: 0, CARTRIDGE: 0 };
+    
+    allItems.forEach(i => { 
+      counts[i.category]++; 
+      if (i.status === 'ติดจอง') {
+        reservedCounts[i.category]++;
+        reservedCounts.ALL++;
+      }
+    });
 
     const priced = allItems.filter(i => getPrice(i.id) !== null).length;
     const unpriced = allItems.length - priced;
-    return { counts, priced, unpriced };
+    return { counts, priced, unpriced, reservedCounts };
   }, [allItems]);
 
   const kpiCards = [
@@ -135,6 +155,7 @@ export default function InventoryPage() {
     { label: 'Cartridge', count: kpis.counts.CARTRIDGE, color: 'from-amber-500/15 to-amber-500/5 border-amber-500/20', textColor: 'text-amber-700' },
     { label: 'ตั้งราคาแล้ว', count: kpis.priced, color: 'from-primary/15 to-primary/5 border-primary/20', textColor: 'text-primary' },
     { label: 'ยังไม่ตั้งราคา', count: kpis.unpriced, color: 'from-orange-500/15 to-orange-500/5 border-orange-500/20', textColor: 'text-orange-700' },
+    { label: 'ติดจอง', count: kpis.reservedCounts.ALL, color: 'from-amber-500/20 to-amber-500/10 border-amber-500/30', textColor: 'text-amber-700' },
   ];
 
   const handleStartEdit = (id: string) => {
@@ -174,11 +195,11 @@ export default function InventoryPage() {
     <div className="space-y-6 animate-fade-in">
       <div>
         <h1 className="text-2xl font-bold text-foreground">คลังสินค้า</h1>
-        <p className="text-sm text-muted-foreground">สินค้าพร้อมขายทั้งหมด {allItems.length} รายการ (ดึงจาก QC สินค้าอัตโนมัติ)</p>
+        <p className="text-sm text-muted-foreground">สินค้าทั้งหมด {allItems.length} รายการ (รวม พร้อมขาย + ติดจอง)</p>
       </div>
 
       {/* KPI Dashboard */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-3">
         {kpiCards.map(kpi => (
           <div key={kpi.label} className={`rounded-xl border bg-gradient-to-br ${kpi.color} p-3 text-center`}>
             <p className={`text-2xl font-bold ${kpi.textColor}`}>{kpi.count}</p>
@@ -216,6 +237,7 @@ export default function InventoryPage() {
         <Table>
           <TableHeader>
             <TableRow>
+              <TableHead>สถานะ</TableHead>
               <TableHead>ประเภท</TableHead>
               <TableHead>S/N</TableHead>
               <TableHead>ข้อมูลเพิ่มเติม</TableHead>
@@ -228,16 +250,29 @@ export default function InventoryPage() {
           <TableBody>
             {filtered.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={7} className="text-center text-muted-foreground py-12">
-                  ไม่พบสินค้าพร้อมขาย
+                <TableCell colSpan={8} className="text-center text-muted-foreground py-12">
+                  ไม่พบสินค้า
                 </TableCell>
               </TableRow>
             ) : (
               filtered.map(item => {
                 const price = getPrice(item.id);
                 const isEditing = editingId === item.id;
+                const isReserved = item.status === 'ติดจอง';
                 return (
-                  <TableRow key={item.id} className="cursor-pointer hover:bg-muted/50" onClick={() => !isEditing && navigate(item.detailPath)}>
+                  <TableRow 
+                    key={item.id} 
+                    className={`cursor-pointer hover:bg-muted/50 ${isReserved ? 'bg-amber-50/50' : ''}`} 
+                    onClick={() => !isEditing && navigate(item.detailPath)}
+                  >
+                    <TableCell>
+                      <span className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[11px] font-semibold ${unifiedStatusColor[item.status]}`}>
+                        {item.status === 'ติดจอง' ? 'ติดจอง' : 'พร้อมขาย'}
+                      </span>
+                      {item.reservedFor && (
+                        <span className="ml-1.5 text-[10px] text-muted-foreground">({item.reservedFor})</span>
+                      )}
+                    </TableCell>
                     <TableCell>
                       <span className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[11px] font-semibold ${categoryColor[item.category]}`}>
                         {item.category === 'TRICA3D' ? 'Trica 3D' : item.category === 'CARTRIDGE' ? 'Cartridge' : item.category}
@@ -276,7 +311,7 @@ export default function InventoryPage() {
                       )}
                     </TableCell>
                     <TableCell onClick={e => e.stopPropagation()}>
-                      {!isEditing && (
+                      {!isEditing && !isReserved && (
                         <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => handleStartEdit(item.id)}>
                           <Pencil size={14} className="text-muted-foreground" />
                         </Button>

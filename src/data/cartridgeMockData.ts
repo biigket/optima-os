@@ -7,6 +7,7 @@ export interface CartridgeStockItem {
   serialNumber: string;
   cartridgeType: CartridgeType;
   status: UnifiedStockStatus;
+  reservedFor?: string;
   qcFailReason: string;
   receivedDate: string;
   storageLocation: string;

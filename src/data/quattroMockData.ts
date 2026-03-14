@@ -5,6 +5,7 @@ export interface QuattroStockItem {
   serialNumber: string;
   handpiece: string;
   status: UnifiedStockStatus;
+  reservedFor?: string;
   failReason: string;
   receivedDate: string;
   storageLocation: string;

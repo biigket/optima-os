@@ -34,13 +34,13 @@ function updateItemStatus(itemId: string, status: UnifiedStockStatus, reservedFo
   if (nd2) { nd2.status = status; if (reservedFor) nd2.reservedFor = reservedFor; return; }
 
   const trica = mockTrica3DStock.find(i => i.id === itemId);
-  if (trica) { trica.status = status; return; }
+  if (trica) { trica.status = status; if (reservedFor) trica.reservedFor = reservedFor; return; }
 
   const quattro = mockQuattroStock.find(i => i.id === itemId);
-  if (quattro) { quattro.status = status; return; }
+  if (quattro) { quattro.status = status; if (reservedFor) quattro.reservedFor = reservedFor; return; }
 
   const cart = mockCartridgeStock.find(i => i.id === itemId);
-  if (cart) { cart.status = status; return; }
+  if (cart) { cart.status = status; if (reservedFor) cart.reservedFor = reservedFor; return; }
 }
 
 // Sync: check all tracked quotations, if CUSTOMER_SIGNED → items become ติดจอง
