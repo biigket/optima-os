@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { ArrowLeft, FileText, CheckCircle, Clock, AlertTriangle, Eye } from 'lucide-react';
+import { ArrowLeft, FileText, CheckCircle, Clock, AlertTriangle, Eye, Plus } from 'lucide-react';
 import { mockInstallations, generatePMSchedule, type PMReport } from '@/data/installBaseMockData';
 import PMReportForm from '@/components/install-base/PMReportForm';
 import PMReportViewDialog from '@/components/install-base/PMReportViewDialog';
@@ -13,6 +13,7 @@ export default function InstallBaseDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
   const [inst, setInst] = useState(() => mockInstallations.find(i => i.id === id));
+  const [pmCount, setPmCount] = useState(2);
   const [pmFormOpen, setPmFormOpen] = useState(false);
   const [pmViewOpen, setPmViewOpen] = useState(false);
   const [selectedPmNumber, setSelectedPmNumber] = useState(1);
@@ -28,7 +29,7 @@ export default function InstallBaseDetailPage() {
     );
   }
 
-  const pmSchedule = generatePMSchedule(inst.installDate);
+  const pmSchedule = generatePMSchedule(inst.installDate, pmCount);
   const today = new Date().toISOString().split('T')[0];
   const warrantyExpired = inst.warrantyExpiry < today;
 
@@ -117,8 +118,11 @@ export default function InstallBaseDetailPage() {
 
       {/* PM Schedule */}
       <Card>
-        <CardHeader>
+        <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle className="text-base">ตาราง Preventive Maintenance (ทุก 6 เดือน)</CardTitle>
+          <Button size="sm" variant="outline" onClick={() => setPmCount(prev => prev + 2)}>
+            <Plus size={14} className="mr-1" />เพิ่ม PM (+2 ครั้ง)
+          </Button>
         </CardHeader>
         <CardContent className="p-0">
           <Table>

@@ -61,7 +61,7 @@ export interface Installation {
 }
 
 // Helper: generate PM schedule every 6 months from install date
-export function generatePMSchedule(installDate: string, count: number = 4): { number: number; date: string }[] {
+export function generatePMSchedule(installDate: string, count: number = 2): { number: number; date: string }[] {
   const schedule: { number: number; date: string }[] = [];
   const base = new Date(installDate);
   for (let i = 1; i <= count; i++) {
