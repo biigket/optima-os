@@ -59,11 +59,7 @@ export default function QcStockPage() {
     });
   }, [items, search, filter]);
 
-  const nd2Counts = useMemo(() => {
-    const counts: Record<string, number> = { total: items.length };
-    unifiedStatuses.forEach(s => { counts[s] = items.filter(i => i.status === s).length; });
-    return counts;
-  }, [items]);
+  const nd2Counts = useMemo(() => makeCounts(items), [items]);
 
   // Cartridge filters
   const filteredCartridges = useMemo(() => {
@@ -90,9 +86,37 @@ export default function QcStockPage() {
   const handleAddCartridge = (item: CartridgeStockItem) => { setCartridgeItems(prev => [item, ...prev]); };
   const handleAddTrica3d = (item: Trica3DStockItem) => { setTrica3dItems(prev => [item, ...prev]); };
 
-  const kpis = [
-    { label: 'ทั้งหมด', value: nd2Counts.total, color: 'text-primary' },
-    ...unifiedStatuses.map(s => ({ label: s, value: nd2Counts[s] || 0, color: '' })),
+  // Counts for each tab
+  const makeCounts = (data: { status: string }[]) => {
+    const counts: Record<string, number> = { total: data.length };
+    unifiedStatuses.forEach(s => { counts[s] = data.filter(i => i.status === s).length; });
+    return counts;
+  };
+  const cartridgeCounts = useMemo(() => makeCounts(cartridgeItems), [cartridgeItems]);
+  const trica3dCounts = useMemo(() => makeCounts(trica3dItems), [trica3dItems]);
+
+  const kpiColorMap: Record<string, string> = {
+    'ทั้งหมด': 'from-primary/15 to-primary/5 border-primary/20',
+    'พร้อมขาย': 'from-emerald-500/15 to-emerald-500/5 border-emerald-500/20',
+    'ติดตั้งแล้ว': 'from-slate-400/15 to-slate-400/5 border-slate-400/20',
+    'ติดจอง': 'from-amber-500/15 to-amber-500/5 border-amber-500/20',
+    'DEMO/ยืม': 'from-blue-500/15 to-blue-500/5 border-blue-500/20',
+    'รอซ่อม/รอ QC': 'from-orange-500/15 to-orange-500/5 border-orange-500/20',
+    'รอเคลม ตปท.': 'from-purple-500/15 to-purple-500/5 border-purple-500/20',
+  };
+  const kpiTextMap: Record<string, string> = {
+    'ทั้งหมด': 'text-primary',
+    'พร้อมขาย': 'text-emerald-700',
+    'ติดตั้งแล้ว': 'text-slate-600',
+    'ติดจอง': 'text-amber-700',
+    'DEMO/ยืม': 'text-blue-700',
+    'รอซ่อม/รอ QC': 'text-orange-700',
+    'รอเคลม ตปท.': 'text-purple-700',
+  };
+
+  const buildKpis = (counts: Record<string, number>) => [
+    { label: 'ทั้งหมด', value: counts.total },
+    ...unifiedStatuses.map(s => ({ label: s, value: counts[s] || 0 })),
   ];
 
   return (
@@ -129,10 +153,10 @@ export default function QcStockPage() {
 
           {/* KPI Cards */}
           <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3">
-            {kpis.map(kpi => (
-              <div key={kpi.label} className="rounded-lg border bg-card p-3 space-y-1">
-                <span className="text-xs text-muted-foreground">{kpi.label}</span>
-                <p className="text-2xl font-bold text-foreground">{kpi.value}</p>
+            {buildKpis(nd2Counts).map(kpi => (
+              <div key={kpi.label} className={`rounded-xl border bg-gradient-to-br p-3 space-y-1 ${kpiColorMap[kpi.label] || ''}`}>
+                <span className="text-xs font-medium text-muted-foreground">{kpi.label}</span>
+                <p className={`text-2xl font-bold ${kpiTextMap[kpi.label] || 'text-foreground'}`}>{kpi.value}</p>
               </div>
             ))}
           </div>
@@ -223,7 +247,16 @@ export default function QcStockPage() {
             </Button>
           </div>
 
-          {/* Filters */}
+          {/* KPI Cards */}
+          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3">
+            {buildKpis(trica3dCounts).map(kpi => (
+              <div key={kpi.label} className={`rounded-xl border bg-gradient-to-br p-3 space-y-1 ${kpiColorMap[kpi.label] || ''}`}>
+                <span className="text-xs font-medium text-muted-foreground">{kpi.label}</span>
+                <p className={`text-2xl font-bold ${kpiTextMap[kpi.label] || 'text-foreground'}`}>{kpi.value}</p>
+              </div>
+            ))}
+          </div>
+
           <div className="flex flex-wrap items-center gap-3">
             <div className="relative max-w-sm flex-1">
               <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
@@ -295,7 +328,16 @@ export default function QcStockPage() {
             </Button>
           </div>
 
-          {/* Filters */}
+          {/* KPI Cards */}
+          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3">
+            {buildKpis(cartridgeCounts).map(kpi => (
+              <div key={kpi.label} className={`rounded-xl border bg-gradient-to-br p-3 space-y-1 ${kpiColorMap[kpi.label] || ''}`}>
+                <span className="text-xs font-medium text-muted-foreground">{kpi.label}</span>
+                <p className={`text-2xl font-bold ${kpiTextMap[kpi.label] || 'text-foreground'}`}>{kpi.value}</p>
+              </div>
+            ))}
+          </div>
+
           <div className="flex flex-wrap items-center gap-3">
             <div className="relative max-w-sm flex-1">
               <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
