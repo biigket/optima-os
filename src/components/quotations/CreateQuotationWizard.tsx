@@ -17,6 +17,11 @@ import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import QuickNoteButtons from '@/components/ui/QuickNoteButtons';
 import PaymentConditionSelector, { getPaymentConditionLabel } from './PaymentConditionSelector';
+import { mockND2Stock } from '@/data/qcMockData';
+import { mockTrica3DStock } from '@/data/trica3dMockData';
+import { mockQuattroStock } from '@/data/quattroMockData';
+import { mockCartridgeStock } from '@/data/cartridgeMockData';
+import { getPrice } from '@/data/inventoryPricing';
 
 // === Constants ===
 
