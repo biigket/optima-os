@@ -473,31 +473,46 @@ export default function CreateQuotationWizard({ open, onOpenChange, onCreated }:
           </div>
         )}
 
-        {/* Step 1: Products */}
+        {/* Step 1: Products — pull from คลังสินค้า (พร้อมขาย) */}
         {step === 1 && (
           <div className="space-y-4">
             <div>
-              <Label className="text-xs text-muted-foreground mb-2 block">เลือกสินค้าจากรายการ</Label>
-              <div className="flex flex-wrap gap-1.5">
-                {MOCK_PRODUCTS.map(p => {
-                  const added = productLines.some(l => l.name === p.name);
-                  return (
-                    <button
-                      key={p.name}
-                      onClick={() => !added && addProduct(p.name, p.price)}
-                      disabled={added}
-                      className={cn(
-                        'px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors',
-                        added
-                          ? 'bg-primary/10 text-primary border-primary/30 cursor-not-allowed'
-                          : 'bg-background text-foreground border-input hover:border-primary/50 hover:bg-muted/30'
-                      )}
-                    >
-                      {added ? '✓ ' : '+ '}{p.name}
-                    </button>
-                  );
-                })}
-              </div>
+              <Label className="text-xs text-muted-foreground mb-2 block">เลือกสินค้าจากคลังสินค้า (พร้อมขาย)</Label>
+              {(() => {
+                const inventoryItems = getInventoryProducts();
+                if (inventoryItems.length === 0) {
+                  return <p className="text-sm text-muted-foreground py-4 text-center">ไม่มีสินค้าพร้อมขายในคลัง</p>;
+                }
+                return (
+                  <div className="space-y-1.5 max-h-[200px] overflow-y-auto rounded-lg border p-2">
+                    {inventoryItems.map(p => {
+                      const added = productLines.some(l => l.name === p.name);
+                      return (
+                        <button
+                          key={p.id}
+                          onClick={() => !added && addProduct(p.name, p.price)}
+                          disabled={added}
+                          className={cn(
+                            'w-full flex items-center gap-2 px-3 py-2 rounded-lg text-left text-sm border transition-colors',
+                            added
+                              ? 'bg-primary/10 border-primary/30 cursor-not-allowed'
+                              : 'bg-background border-input hover:border-primary/50 hover:bg-muted/30'
+                          )}
+                        >
+                          <span className={cn('inline-flex items-center rounded-full px-1.5 py-0.5 text-[10px] font-semibold', categoryBadge[p.category] || 'bg-muted text-muted-foreground')}>
+                            {p.category}
+                          </span>
+                          <span className="font-mono text-xs text-foreground flex-1 truncate">{p.serialNumber}</span>
+                          <span className="text-xs text-muted-foreground shrink-0">
+                            {p.price > 0 ? `฿${p.price.toLocaleString()}` : 'ยังไม่ตั้งราคา'}
+                          </span>
+                          <span className="text-xs shrink-0">{added ? '✓' : '+'}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                );
+              })()}
             </div>
 
             {productLines.length > 0 && (
