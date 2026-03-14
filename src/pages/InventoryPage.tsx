@@ -108,6 +108,34 @@ export default function InventoryPage() {
         reservedFor: (i as any).reservedFor,
       }));
 
+    mockPicohiStock
+      .filter(i => i.status === 'พร้อมขาย' || i.status === 'ติดจอง')
+      .forEach(i => items.push({
+        id: i.id,
+        category: 'PICOHI',
+        serialNumber: i.serialNumber,
+        subInfo: `HP: ${i.handpiece || '—'}`,
+        storageLocation: i.storageLocation || '—',
+        receivedDate: i.receivedDate || '—',
+        detailPath: `/qc-stock/picohi/${i.id}`,
+        status: i.status,
+        reservedFor: (i as any).reservedFor,
+      }));
+
+    mockFreezeroStock
+      .filter(i => i.status === 'พร้อมขาย' || i.status === 'ติดจอง')
+      .forEach(i => items.push({
+        id: i.id,
+        category: 'FREEZERO',
+        serialNumber: i.serialNumber,
+        subInfo: `HP: ${i.handpiece || '—'}`,
+        storageLocation: i.storageLocation || '—',
+        receivedDate: i.receivedDate || '—',
+        detailPath: `/qc-stock/freezero/${i.id}`,
+        status: i.status,
+        reservedFor: (i as any).reservedFor,
+      }));
+
     mockCartridgeStock
       .filter(i => i.status === 'พร้อมขาย' || i.status === 'ติดจอง')
       .forEach(i => items.push({
