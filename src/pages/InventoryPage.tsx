@@ -132,11 +132,19 @@ export default function InventoryPage() {
   // KPI counts
   const kpis = useMemo(() => {
     const counts: Record<ProductCategory, number> = { ALL: allItems.length, ND2: 0, TRICA3D: 0, QUATTRO: 0, CARTRIDGE: 0 };
-    allItems.forEach(i => { counts[i.category]++; });
+    const reservedCounts: Record<ProductCategory, number> = { ALL: 0, ND2: 0, TRICA3D: 0, QUATTRO: 0, CARTRIDGE: 0 };
+    
+    allItems.forEach(i => { 
+      counts[i.category]++; 
+      if (i.status === 'ติดจอง') {
+        reservedCounts[i.category]++;
+        reservedCounts.ALL++;
+      }
+    });
 
     const priced = allItems.filter(i => getPrice(i.id) !== null).length;
     const unpriced = allItems.length - priced;
-    return { counts, priced, unpriced };
+    return { counts, priced, unpriced, reservedCounts };
   }, [allItems]);
 
   const kpiCards = [
@@ -147,6 +155,7 @@ export default function InventoryPage() {
     { label: 'Cartridge', count: kpis.counts.CARTRIDGE, color: 'from-amber-500/15 to-amber-500/5 border-amber-500/20', textColor: 'text-amber-700' },
     { label: 'ตั้งราคาแล้ว', count: kpis.priced, color: 'from-primary/15 to-primary/5 border-primary/20', textColor: 'text-primary' },
     { label: 'ยังไม่ตั้งราคา', count: kpis.unpriced, color: 'from-orange-500/15 to-orange-500/5 border-orange-500/20', textColor: 'text-orange-700' },
+    { label: 'ติดจอง', count: kpis.reservedCounts.ALL, color: 'from-amber-500/20 to-amber-500/10 border-amber-500/30', textColor: 'text-amber-700' },
   ];
 
   const handleStartEdit = (id: string) => {
