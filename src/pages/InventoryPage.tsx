@@ -250,16 +250,29 @@ export default function InventoryPage() {
           <TableBody>
             {filtered.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={7} className="text-center text-muted-foreground py-12">
-                  ไม่พบสินค้าพร้อมขาย
+                <TableCell colSpan={8} className="text-center text-muted-foreground py-12">
+                  ไม่พบสินค้า
                 </TableCell>
               </TableRow>
             ) : (
               filtered.map(item => {
                 const price = getPrice(item.id);
                 const isEditing = editingId === item.id;
+                const isReserved = item.status === 'ติดจอง';
                 return (
-                  <TableRow key={item.id} className="cursor-pointer hover:bg-muted/50" onClick={() => !isEditing && navigate(item.detailPath)}>
+                  <TableRow 
+                    key={item.id} 
+                    className={`cursor-pointer hover:bg-muted/50 ${isReserved ? 'bg-amber-50/50' : ''}`} 
+                    onClick={() => !isEditing && navigate(item.detailPath)}
+                  >
+                    <TableCell>
+                      <span className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[11px] font-semibold ${unifiedStatusColor[item.status]}`}>
+                        {item.status === 'ติดจอง' ? 'ติดจอง' : 'พร้อมขาย'}
+                      </span>
+                      {item.reservedFor && (
+                        <span className="ml-1.5 text-[10px] text-muted-foreground">({item.reservedFor})</span>
+                      )}
+                    </TableCell>
                     <TableCell>
                       <span className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[11px] font-semibold ${categoryColor[item.category]}`}>
                         {item.category === 'TRICA3D' ? 'Trica 3D' : item.category === 'CARTRIDGE' ? 'Cartridge' : item.category}
@@ -298,7 +311,7 @@ export default function InventoryPage() {
                       )}
                     </TableCell>
                     <TableCell onClick={e => e.stopPropagation()}>
-                      {!isEditing && (
+                      {!isEditing && !isReserved && (
                         <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => handleStartEdit(item.id)}>
                           <Pencil size={14} className="text-muted-foreground" />
                         </Button>
