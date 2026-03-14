@@ -97,12 +97,24 @@ export default function QcStockPage() {
     });
   }, [trica3dItems, trica3dSearch, trica3dFilter]);
 
+  // Quattro filters
+  const filteredQuattro = useMemo(() => {
+    return quattroItems.filter(item => {
+      const matchSearch = item.serialNumber.toLowerCase().includes(quattroSearch.toLowerCase()) ||
+        item.handpiece.toLowerCase().includes(quattroSearch.toLowerCase());
+      const matchFilter = quattroFilter === 'ALL' || item.status === quattroFilter;
+      return matchSearch && matchFilter;
+    });
+  }, [quattroItems, quattroSearch, quattroFilter]);
+
   const handleAddItem = (item: ND2StockItem) => { setItems(prev => [item, ...prev]); };
   const handleAddCartridge = (item: CartridgeStockItem) => { setCartridgeItems(prev => [item, ...prev]); };
   const handleAddTrica3d = (item: Trica3DStockItem) => { setTrica3dItems(prev => [item, ...prev]); };
+  const handleAddQuattro = (item: QuattroStockItem) => { setQuattroItems(prev => [item, ...prev]); };
 
   const cartridgeCounts = useMemo(() => makeCounts(cartridgeItems), [cartridgeItems]);
   const trica3dCounts = useMemo(() => makeCounts(trica3dItems), [trica3dItems]);
+  const quattroCounts = useMemo(() => makeCounts(quattroItems), [quattroItems]);
 
   const kpiColorMap: Record<string, string> = {
     'ทั้งหมด': 'from-primary/15 to-primary/5 border-primary/20',
