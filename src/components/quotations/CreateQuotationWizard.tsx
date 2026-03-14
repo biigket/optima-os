@@ -60,6 +60,12 @@ function getInventoryProducts(): InventoryProduct[] {
   mockCartridgeStock.filter(i => i.status === 'พร้อมขาย').forEach(i =>
     items.push({ id: i.id, name: `Cartridge ${i.cartridgeType} (${i.serialNumber})`, category: 'Cartridge', serialNumber: i.serialNumber, price: getPrice(i.id) ?? 0 })
   );
+  mockPicohiStock.filter(i => i.status === 'พร้อมขาย').forEach(i =>
+    items.push({ id: i.id, name: `Picohi (${i.serialNumber})`, category: 'Picohi', serialNumber: i.serialNumber, price: getPrice(i.id) ?? 0 })
+  );
+  mockFreezeroStock.filter(i => i.status === 'พร้อมขาย').forEach(i =>
+    items.push({ id: i.id, name: `Freezero (${i.serialNumber})`, category: 'Freezero', serialNumber: i.serialNumber, price: getPrice(i.id) ?? 0 })
+  );
   return items;
 }
 
