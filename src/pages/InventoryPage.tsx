@@ -311,7 +311,7 @@ export default function InventoryPage() {
                     </TableCell>
                     <TableCell>
                       <span className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[11px] font-semibold ${categoryColor[item.category]}`}>
-                        {item.category === 'TRICA3D' ? 'Trica 3D' : item.category === 'CARTRIDGE' ? 'Cartridge' : item.category}
+                        {item.category === 'TRICA3D' ? 'Trica 3D' : item.category === 'CARTRIDGE' ? 'Cartridge' : item.category === 'PICOHI' ? 'Picohi' : item.category === 'FREEZERO' ? 'Freezero' : item.category}
                       </span>
                     </TableCell>
                     <TableCell className="font-mono font-medium text-foreground">{item.serialNumber}</TableCell>
