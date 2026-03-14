@@ -100,6 +100,7 @@ interface ProductLine {
   name: string;
   qty: number;
   unitPrice: number;
+  inventoryItemId?: string; // QC Stock item ID for reservation tracking
 }
 
 // Steps
