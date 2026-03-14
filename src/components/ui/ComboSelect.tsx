@@ -11,6 +11,7 @@ interface ComboSelectProps {
   options: string[];
   onAddOption?: (option: string) => void;
   onRemoveOption?: (option: string) => void;
+  placeholder?: string;
   className?: string;
 }
 
