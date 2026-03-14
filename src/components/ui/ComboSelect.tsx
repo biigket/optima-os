@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { ChevronDown, Plus, Check } from 'lucide-react';
+import { ChevronDown, Plus, Check, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface ComboSelectProps {
@@ -10,11 +10,12 @@ interface ComboSelectProps {
   onChange: (value: string) => void;
   options: string[];
   onAddOption?: (option: string) => void;
+  onRemoveOption?: (option: string) => void;
   placeholder?: string;
   className?: string;
 }
 
-export default function ComboSelect({ value, onChange, options, onAddOption, placeholder = 'เลือก...', className }: ComboSelectProps) {
+export default function ComboSelect({ value, onChange, options, onAddOption, onRemoveOption, placeholder = 'เลือก...', className }: ComboSelectProps) {
   const [open, setOpen] = useState(false);
   const [newValue, setNewValue] = useState('');
   const inputRef = useRef<HTMLInputElement>(null);
@@ -75,12 +76,20 @@ export default function ComboSelect({ value, onChange, options, onAddOption, pla
               key={opt}
               onClick={() => handleSelect(opt)}
               className={cn(
-                'w-full text-left px-2 py-1.5 text-xs rounded-sm hover:bg-accent flex items-center gap-2',
+                'w-full text-left px-2 py-1.5 text-xs rounded-sm hover:bg-accent flex items-center gap-2 group',
                 value === opt && 'bg-accent'
               )}
             >
               {value === opt && <Check className="h-3 w-3 text-primary" />}
-              <span className={value !== opt ? 'pl-5' : ''}>{opt}</span>
+              <span className={cn('flex-1', value !== opt && 'pl-5')}>{opt}</span>
+              {onRemoveOption && (
+                <span
+                  onClick={e => { e.stopPropagation(); onRemoveOption(opt); if (value === opt) onChange(''); }}
+                  className="opacity-0 group-hover:opacity-100 p-0.5 rounded hover:bg-destructive/10 text-destructive"
+                >
+                  <X className="h-3 w-3" />
+                </span>
+              )}
             </button>
           ))}
         </div>
