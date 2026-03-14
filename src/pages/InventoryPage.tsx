@@ -13,6 +13,8 @@ import { mockTrica3DStock } from '@/data/trica3dMockData';
 import { mockQuattroStock } from '@/data/quattroMockData';
 import { inventoryPrices, getPrice, setPrice } from '@/data/inventoryPricing';
 import { syncReservations } from '@/data/inventoryReservation';
+import type { UnifiedStockStatus } from '@/data/unifiedStockStatus';
+import { unifiedStatusColor } from '@/data/unifiedStockStatus';
 
 type ProductCategory = 'ALL' | 'ND2' | 'TRICA3D' | 'QUATTRO' | 'CARTRIDGE';
 
@@ -20,10 +22,12 @@ interface InventoryItem {
   id: string;
   category: ProductCategory;
   serialNumber: string;
-  subInfo: string; // handpiece, cartridge type, etc.
+  subInfo: string;
   storageLocation: string;
   receivedDate: string;
   detailPath: string;
+  status: UnifiedStockStatus;
+  reservedFor?: string;
 }
 
 const categoryTabs: { label: string; value: ProductCategory; icon: React.ReactNode }[] = [
