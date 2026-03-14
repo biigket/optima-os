@@ -11,6 +11,17 @@ import { Plus, Trash2, CheckCircle, XCircle, MinusCircle } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import type { PMReport, PMCheckItem, PMCartridgeEntry, Installation } from '@/data/installBaseMockData';
 import { getND2OperationChecklist, getND2SafetyChecklist, getND2CoolingChecklist } from '@/data/installBaseMockData';
+import ComboSelect from '@/components/ui/ComboSelect';
+
+// Shared version options that grow as users add new ones
+const versionStore: Record<string, string[]> = {
+  swVer: ['1.0.0', '1.1.0', '1.2.0', '2.0.0'],
+  fwVer: ['1.0.0', '1.1.0', '2.0.0'],
+  fwFlLr: ['1.0', '1.1', '2.0'],
+  fwSdLr: ['1.0', '1.1', '2.0'],
+  fwRm: ['1.0', '1.1', '2.0'],
+  fwAmp: ['1.0', '1.1', '2.0'],
+};
 
 interface Props {
   open: boolean;
