@@ -1,10 +1,10 @@
-export type Trica3DStatus = 'พร้อมขาย' | 'ติดตั้งแล้ว' | 'ติดจอง' | 'DEMO' | 'ยืม' | 'เครื่องเสีย';
+import type { UnifiedStockStatus } from './unifiedStockStatus';
 
 export interface Trica3DStockItem {
   id: string;
   serialNumber: string;
   clinic: string;
-  status: Trica3DStatus;
+  status: UnifiedStockStatus;
   receivedDate: string;
   installDate: string;
   failReason: string;
@@ -14,8 +14,6 @@ export interface Trica3DStockItem {
   notes: string;
   storageLocation: string;
 }
-
-export const trica3dStatuses: Trica3DStatus[] = ['พร้อมขาย', 'ติดตั้งแล้ว', 'ติดจอง', 'DEMO', 'ยืม', 'เครื่องเสีย'];
 
 export const mockTrica3DStock: Trica3DStockItem[] = [
   { id: 'trica-1', serialNumber: 'A0FD10LRBK00AH2216', clinic: 'นิติธรรม พิษณุโลก', status: 'ติดตั้งแล้ว', receivedDate: '2025-05-12', installDate: '2024-10-05', failReason: '', borrowFrom: '', borrowTo: '', emailTrica: '', notes: '', storageLocation: '' },
@@ -31,13 +29,13 @@ export const mockTrica3DStock: Trica3DStockItem[] = [
   { id: 'trica-11', serialNumber: 'A0FD10LRCK00BF2823', clinic: 'Anton House Clinic จ.แพร่', status: 'ติดตั้งแล้ว', receivedDate: '2025-05-12', installDate: '2025-08-20', failReason: '', borrowFrom: '', borrowTo: '', emailTrica: '', notes: 'Error 00073 - แก้ไขแล้ว ใช้ได้ปกติ', storageLocation: 'โกดัง' },
   { id: 'trica-12', serialNumber: 'A0FD10LRCK00BF2825', clinic: 'The Hazel Clinic', status: 'ติดตั้งแล้ว', receivedDate: '2025-05-12', installDate: '2025-10-11', failReason: '', borrowFrom: '', borrowTo: '', emailTrica: 'thehazeltrica@gmail.com', notes: '', storageLocation: 'โกดัง' },
   { id: 'trica-13', serialNumber: 'A0FD10YRCK00CA0811', clinic: 'Mellow Clinic', status: 'ติดตั้งแล้ว', receivedDate: '2026-03-02', installDate: '', failReason: '', borrowFrom: '', borrowTo: '', emailTrica: '', notes: '', storageLocation: '' },
-  { id: 'trica-14', serialNumber: 'A0FD10LRBK00AH1406', clinic: '', status: 'DEMO', receivedDate: '', installDate: '', failReason: '', borrowFrom: '2025-01-09', borrowTo: '2025-04-30', emailTrica: '', notes: 'Upgrade แสงเหมือนเครื่องขายใหม่แล้ว', storageLocation: 'โกดัง' },
-  { id: 'trica-15', serialNumber: 'A0FD10LBAK00AG1802', clinic: '', status: 'DEMO', receivedDate: '', installDate: '', failReason: '', borrowFrom: '2025-07-24', borrowTo: '', emailTrica: '', notes: 'Upgrade แสงเหมือนเครื่องขายใหม่แล้ว', storageLocation: 'โกดัง' },
-  { id: 'trica-16', serialNumber: 'A0FD10DRBK00AI0703', clinic: 'โรงพยาบาลรามาธิบดี', status: 'ยืม', receivedDate: '', installDate: '', failReason: '', borrowFrom: '2025-06-20', borrowTo: '', emailTrica: '', notes: '', storageLocation: '' },
-  { id: 'trica-17', serialNumber: 'A0FD10LRBK00AH2206', clinic: 'โรงพยาบาลยาสูบ', status: 'ยืม', receivedDate: '', installDate: '', failReason: '', borrowFrom: '2025-06-30', borrowTo: '', emailTrica: '', notes: 'เครื่องเสียเก็บมาจากนิติธรรม แต่ยังใช้ได้ กล้องถ่ายติดบ้างไม่ติดบ้าง ต้อง Restart ถึงจะติด', storageLocation: '' },
-  { id: 'trica-18', serialNumber: 'AXXXXXXXXXXXXXXX', clinic: 'ใช้เป็นคอมทำเอกสาร Service', status: 'เครื่องเสีย', receivedDate: '', installDate: '', failReason: 'เครื่องเสีย กล้องขึ้นไฟแดง แกะแยกชิ้นส่วนแล้ว', borrowFrom: '', borrowTo: '', emailTrica: '', notes: '', storageLocation: 'โกดัง' },
+  { id: 'trica-14', serialNumber: 'A0FD10LRBK00AH1406', clinic: '', status: 'DEMO/ยืม', receivedDate: '', installDate: '', failReason: '', borrowFrom: '2025-01-09', borrowTo: '2025-04-30', emailTrica: '', notes: 'Upgrade แสงเหมือนเครื่องขายใหม่แล้ว', storageLocation: 'โกดัง' },
+  { id: 'trica-15', serialNumber: 'A0FD10LBAK00AG1802', clinic: '', status: 'DEMO/ยืม', receivedDate: '', installDate: '', failReason: '', borrowFrom: '2025-07-24', borrowTo: '', emailTrica: '', notes: 'Upgrade แสงเหมือนเครื่องขายใหม่แล้ว', storageLocation: 'โกดัง' },
+  { id: 'trica-16', serialNumber: 'A0FD10DRBK00AI0703', clinic: 'โรงพยาบาลรามาธิบดี', status: 'DEMO/ยืม', receivedDate: '', installDate: '', failReason: '', borrowFrom: '2025-06-20', borrowTo: '', emailTrica: '', notes: '', storageLocation: '' },
+  { id: 'trica-17', serialNumber: 'A0FD10LRBK00AH2206', clinic: 'โรงพยาบาลยาสูบ', status: 'DEMO/ยืม', receivedDate: '', installDate: '', failReason: '', borrowFrom: '2025-06-30', borrowTo: '', emailTrica: '', notes: 'เครื่องเสียเก็บมาจากนิติธรรม แต่ยังใช้ได้ กล้องถ่ายติดบ้างไม่ติดบ้าง ต้อง Restart ถึงจะติด', storageLocation: '' },
+  { id: 'trica-18', serialNumber: 'AXXXXXXXXXXXXXXX', clinic: 'ใช้เป็นคอมทำเอกสาร Service', status: 'รอซ่อม/รอ QC', receivedDate: '', installDate: '', failReason: 'เครื่องเสีย กล้องขึ้นไฟแดง แกะแยกชิ้นส่วนแล้ว', borrowFrom: '', borrowTo: '', emailTrica: '', notes: '', storageLocation: 'โกดัง' },
   { id: 'trica-19', serialNumber: 'A0FD10YRCK00CA0817', clinic: 'Rakta Clinic', status: 'ติดจอง', receivedDate: '2026-03-02', installDate: '', failReason: '', borrowFrom: '', borrowTo: '', emailTrica: '', notes: '', storageLocation: '' },
   { id: 'trica-20', serialNumber: 'A0FD10YRCK00CA0821', clinic: 'Rakta Clinic', status: 'ติดจอง', receivedDate: '2026-03-02', installDate: '', failReason: '', borrowFrom: '', borrowTo: '', emailTrica: '', notes: '', storageLocation: '' },
   { id: 'trica-21', serialNumber: 'A0FD10YRCK00CA0829', clinic: 'Doctor B Clinic', status: 'ติดจอง', receivedDate: '2026-03-02', installDate: '', failReason: '', borrowFrom: '', borrowTo: '', emailTrica: '', notes: '', storageLocation: '' },
-  { id: 'trica-22', serialNumber: 'A0FD10AD09001', clinic: 'ศิริราช', status: 'DEMO', receivedDate: '', installDate: '', failReason: '', borrowFrom: '', borrowTo: '', emailTrica: '', notes: 'ตัวที่ต้องนำไปศิริราชทุกครั้ง', storageLocation: 'Office' },
+  { id: 'trica-22', serialNumber: 'A0FD10AD09001', clinic: 'ศิริราช', status: 'DEMO/ยืม', receivedDate: '', installDate: '', failReason: '', borrowFrom: '', borrowTo: '', emailTrica: '', notes: 'ตัวที่ต้องนำไปศิริราชทุกครั้ง', storageLocation: 'Office' },
 ];
