@@ -51,6 +51,12 @@ export default function QcStockPage() {
   const [trica3dFilter, setTrica3dFilter] = useState<FilterTab>('ALL');
   const [trica3dFormOpen, setTrica3dFormOpen] = useState(false);
 
+  // Quattro state
+  const [quattroItems, setQuattroItems] = useState<QuattroStockItem[]>(mockQuattroStock);
+  const [quattroSearch, setQuattroSearch] = useState('');
+  const [quattroFilter, setQuattroFilter] = useState<FilterTab>('ALL');
+  const [quattroFormOpen, setQuattroFormOpen] = useState(false);
+
   // ND2 filters
   const filtered = useMemo(() => {
     return items.filter(item => {
