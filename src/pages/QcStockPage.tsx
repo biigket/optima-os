@@ -404,10 +404,7 @@ export default function QcStockPage() {
                   </TableRow>
                 ) : (
                   filteredCartridges.map(item => (
-                    <TableRow key={item.id} className="cursor-pointer hover:bg-muted/50">
-                      <TableCell className="font-mono font-medium text-foreground">{item.serialNumber}</TableCell>
-                      <TableCell>
-                        <Badge variant="outline" className="font-mono">{item.cartridgeType}</Badge>
+                    <TableRow key={item.id} className="cursor-pointer hover:bg-muted/50" onClick={() => navigate(`/qc-stock/cartridge/${item.id}`)}>
                       </TableCell>
                       <TableCell>
                         <StatusChip status={item.status} />
