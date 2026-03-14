@@ -119,9 +119,9 @@ export default function QcStockPage() {
   const kpiColorMap: Record<string, string> = {
     'ทั้งหมด': 'from-primary/15 to-primary/5 border-primary/20',
     'พร้อมขาย': 'from-emerald-500/15 to-emerald-500/5 border-emerald-500/20',
-    'ติดตั้งแล้ว': 'from-slate-400/15 to-slate-400/5 border-slate-400/20',
     'ติดจอง': 'from-amber-500/15 to-amber-500/5 border-amber-500/20',
-    'DEMO/ยืม': 'from-blue-500/15 to-blue-500/5 border-blue-500/20',
+    'ติดตั้งแล้ว': 'from-blue-500/15 to-blue-500/5 border-blue-500/20',
+    'DEMO/ยืม': 'from-yellow-500/15 to-yellow-500/5 border-yellow-500/20',
     'รอซ่อม/รอ QC': 'from-orange-500/15 to-orange-500/5 border-orange-500/20',
     'รอเคลม ตปท.': 'from-purple-500/15 to-purple-500/5 border-purple-500/20',
   };
