@@ -38,6 +38,8 @@ import QcStockDetailPage from "@/pages/QcStockDetailPage";
 import Trica3DDetailPage from "@/pages/Trica3DDetailPage";
 import QuattroDetailPage from "@/pages/QuattroDetailPage";
 import CartridgeDetailPage from "@/pages/CartridgeDetailPage";
+import PicohiDetailPage from "@/pages/PicohiDetailPage";
+import FreezeroDetailPage from "@/pages/FreezeroDetailPage";
 import { MockAuthProvider } from "@/hooks/useMockAuth";
 
 const queryClient = new QueryClient();
@@ -86,6 +88,8 @@ function AuthedAppRoutes() {
          <Route path="/qc-stock/trica3d/:id" element={<Trica3DDetailPage />} />
          <Route path="/qc-stock/quattro/:id" element={<QuattroDetailPage />} />
          <Route path="/qc-stock/cartridge/:id" element={<CartridgeDetailPage />} />
+         <Route path="/qc-stock/picohi/:id" element={<PicohiDetailPage />} />
+         <Route path="/qc-stock/freezero/:id" element={<FreezeroDetailPage />} />
         {phase2Routes.map((path) => (
           <Route key={path} path={path} element={<Phase2Placeholder />} />
         ))}

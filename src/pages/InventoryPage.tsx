@@ -11,12 +11,14 @@ import { mockND2Stock } from '@/data/qcMockData';
 import { mockCartridgeStock } from '@/data/cartridgeMockData';
 import { mockTrica3DStock } from '@/data/trica3dMockData';
 import { mockQuattroStock } from '@/data/quattroMockData';
+import { mockPicohiStock } from '@/data/picohiMockData';
+import { mockFreezeroStock } from '@/data/freezeroMockData';
 import { inventoryPrices, getPrice, setPrice } from '@/data/inventoryPricing';
 import { syncReservations } from '@/data/inventoryReservation';
 import type { UnifiedStockStatus } from '@/data/unifiedStockStatus';
 import { unifiedStatusColor } from '@/data/unifiedStockStatus';
 
-type ProductCategory = 'ALL' | 'ND2' | 'TRICA3D' | 'QUATTRO' | 'CARTRIDGE';
+type ProductCategory = 'ALL' | 'ND2' | 'TRICA3D' | 'QUATTRO' | 'PICOHI' | 'FREEZERO' | 'CARTRIDGE';
 
 interface InventoryItem {
   id: string;
@@ -35,6 +37,8 @@ const categoryTabs: { label: string; value: ProductCategory; icon: React.ReactNo
   { label: 'ND2', value: 'ND2', icon: <Cpu size={14} /> },
   { label: 'Trica 3D', value: 'TRICA3D', icon: <MonitorSmartphone size={14} /> },
   { label: 'Quattro', value: 'QUATTRO', icon: <Zap size={14} /> },
+  { label: 'Picohi', value: 'PICOHI', icon: <Zap size={14} /> },
+  { label: 'Freezero', value: 'FREEZERO', icon: <Zap size={14} /> },
   { label: 'Cartridge', value: 'CARTRIDGE', icon: <DollarSign size={14} /> },
 ];
 
@@ -42,6 +46,8 @@ const categoryColor: Record<string, string> = {
   ND2: 'bg-blue-100 text-blue-800 border-blue-200',
   TRICA3D: 'bg-purple-100 text-purple-800 border-purple-200',
   QUATTRO: 'bg-emerald-100 text-emerald-800 border-emerald-200',
+  PICOHI: 'bg-pink-100 text-pink-800 border-pink-200',
+  FREEZERO: 'bg-cyan-100 text-cyan-800 border-cyan-200',
   CARTRIDGE: 'bg-amber-100 text-amber-800 border-amber-200',
 };
 
@@ -102,6 +108,34 @@ export default function InventoryPage() {
         reservedFor: (i as any).reservedFor,
       }));
 
+    mockPicohiStock
+      .filter(i => i.status === 'พร้อมขาย' || i.status === 'ติดจอง')
+      .forEach(i => items.push({
+        id: i.id,
+        category: 'PICOHI',
+        serialNumber: i.serialNumber,
+        subInfo: `HP: ${i.handpiece || '—'}`,
+        storageLocation: i.storageLocation || '—',
+        receivedDate: i.receivedDate || '—',
+        detailPath: `/qc-stock/picohi/${i.id}`,
+        status: i.status,
+        reservedFor: (i as any).reservedFor,
+      }));
+
+    mockFreezeroStock
+      .filter(i => i.status === 'พร้อมขาย' || i.status === 'ติดจอง')
+      .forEach(i => items.push({
+        id: i.id,
+        category: 'FREEZERO',
+        serialNumber: i.serialNumber,
+        subInfo: `HP: ${i.handpiece || '—'}`,
+        storageLocation: i.storageLocation || '—',
+        receivedDate: i.receivedDate || '—',
+        detailPath: `/qc-stock/freezero/${i.id}`,
+        status: i.status,
+        reservedFor: (i as any).reservedFor,
+      }));
+
     mockCartridgeStock
       .filter(i => i.status === 'พร้อมขาย' || i.status === 'ติดจอง')
       .forEach(i => items.push({
@@ -131,8 +165,8 @@ export default function InventoryPage() {
 
   // KPI counts
   const kpis = useMemo(() => {
-    const counts: Record<ProductCategory, number> = { ALL: allItems.length, ND2: 0, TRICA3D: 0, QUATTRO: 0, CARTRIDGE: 0 };
-    const reservedCounts: Record<ProductCategory, number> = { ALL: 0, ND2: 0, TRICA3D: 0, QUATTRO: 0, CARTRIDGE: 0 };
+    const counts: Record<ProductCategory, number> = { ALL: allItems.length, ND2: 0, TRICA3D: 0, QUATTRO: 0, PICOHI: 0, FREEZERO: 0, CARTRIDGE: 0 };
+    const reservedCounts: Record<ProductCategory, number> = { ALL: 0, ND2: 0, TRICA3D: 0, QUATTRO: 0, PICOHI: 0, FREEZERO: 0, CARTRIDGE: 0 };
     
     allItems.forEach(i => { 
       counts[i.category]++; 
@@ -152,6 +186,8 @@ export default function InventoryPage() {
     { label: 'ND2', count: kpis.counts.ND2, color: 'from-blue-500/15 to-blue-500/5 border-blue-500/20', textColor: 'text-blue-700' },
     { label: 'Trica 3D', count: kpis.counts.TRICA3D, color: 'from-purple-500/15 to-purple-500/5 border-purple-500/20', textColor: 'text-purple-700' },
     { label: 'Quattro', count: kpis.counts.QUATTRO, color: 'from-cyan-500/15 to-cyan-500/5 border-cyan-500/20', textColor: 'text-cyan-700' },
+    { label: 'Picohi', count: kpis.counts.PICOHI, color: 'from-pink-500/15 to-pink-500/5 border-pink-500/20', textColor: 'text-pink-700' },
+    { label: 'Freezero', count: kpis.counts.FREEZERO, color: 'from-sky-500/15 to-sky-500/5 border-sky-500/20', textColor: 'text-sky-700' },
     { label: 'Cartridge', count: kpis.counts.CARTRIDGE, color: 'from-amber-500/15 to-amber-500/5 border-amber-500/20', textColor: 'text-amber-700' },
     { label: 'ตั้งราคาแล้ว', count: kpis.priced, color: 'from-primary/15 to-primary/5 border-primary/20', textColor: 'text-primary' },
     { label: 'ยังไม่ตั้งราคา', count: kpis.unpriced, color: 'from-orange-500/15 to-orange-500/5 border-orange-500/20', textColor: 'text-orange-700' },
@@ -275,7 +311,7 @@ export default function InventoryPage() {
                     </TableCell>
                     <TableCell>
                       <span className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[11px] font-semibold ${categoryColor[item.category]}`}>
-                        {item.category === 'TRICA3D' ? 'Trica 3D' : item.category === 'CARTRIDGE' ? 'Cartridge' : item.category}
+                        {item.category === 'TRICA3D' ? 'Trica 3D' : item.category === 'CARTRIDGE' ? 'Cartridge' : item.category === 'PICOHI' ? 'Picohi' : item.category === 'FREEZERO' ? 'Freezero' : item.category}
                       </span>
                     </TableCell>
                     <TableCell className="font-mono font-medium text-foreground">{item.serialNumber}</TableCell>
