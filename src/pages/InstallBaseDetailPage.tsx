@@ -118,8 +118,11 @@ export default function InstallBaseDetailPage() {
 
       {/* PM Schedule */}
       <Card>
-        <CardHeader>
+        <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle className="text-base">ตาราง Preventive Maintenance (ทุก 6 เดือน)</CardTitle>
+          <Button size="sm" variant="outline" onClick={() => setPmCount(prev => prev + 2)}>
+            <Plus size={14} className="mr-1" />เพิ่ม PM (+2 ครั้ง)
+          </Button>
         </CardHeader>
         <CardContent className="p-0">
           <Table>
