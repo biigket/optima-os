@@ -41,7 +41,7 @@ export default function InstallBaseDetailPage() {
     );
   }
 
-  const pmSchedule = generatePMSchedule(inst.installDate, pmCount);
+  const pmSchedule = generatePMSchedule(inst.installDate, pmCount).filter(pm => !deletedPMs.includes(pm.number));
   const today = new Date().toISOString().split('T')[0];
   const warrantyExpired = inst.warrantyExpiry < today;
 
