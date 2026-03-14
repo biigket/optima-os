@@ -49,6 +49,8 @@ export default function InventoryPage() {
   const [editPrice, setEditPrice] = useState('');
   // force re-render after price save
   const [, setTick] = useState(0);
+  // Sync reservations on mount
+  useEffect(() => { syncReservations(); }, []);
 
   // Auto-sync: pull "พร้อมขาย" from all QC Stock sources
   const allItems = useMemo<InventoryItem[]>(() => {
