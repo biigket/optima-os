@@ -38,6 +38,8 @@ import QcStockDetailPage from "@/pages/QcStockDetailPage";
 import Trica3DDetailPage from "@/pages/Trica3DDetailPage";
 import QuattroDetailPage from "@/pages/QuattroDetailPage";
 import CartridgeDetailPage from "@/pages/CartridgeDetailPage";
+import PicohiDetailPage from "@/pages/PicohiDetailPage";
+import FreezeroDetailPage from "@/pages/FreezeroDetailPage";
 import { MockAuthProvider } from "@/hooks/useMockAuth";
 
 const queryClient = new QueryClient();
