@@ -59,11 +59,7 @@ export default function QcStockPage() {
     });
   }, [items, search, filter]);
 
-  const nd2Counts = useMemo(() => {
-    const counts: Record<string, number> = { total: items.length };
-    unifiedStatuses.forEach(s => { counts[s] = items.filter(i => i.status === s).length; });
-    return counts;
-  }, [items]);
+  const nd2Counts = useMemo(() => makeCounts(items), [items]);
 
   // Cartridge filters
   const filteredCartridges = useMemo(() => {
