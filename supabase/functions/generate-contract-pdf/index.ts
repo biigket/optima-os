@@ -415,16 +415,7 @@ function generateHTML(contract: any, account: any, contacts: any[]): string {
 
 <!-- PAGE 6 -->
 <div class="page">
-  <div class="header">
-    <div class="header-right">
-      <div class="th">${SELLER.company_th}</div>
-      <div class="th">65 ถนนวิชิตสงคราม ตำบลตลาดเหนือ</div>
-      <div class="th">อำเภอเมือง จังหวัดภูเก็ต 83000</div>
-      <div class="en">${SELLER.company_en}</div>
-      <div class="en">${SELLER.address_en}</div>
-    </div>
-  </div>
-  <div class="contract-no">สัญญาเลขที่ ${contractNumber}</div>
+  ${pageHeader(contractNumber)}
   
   <div class="body-text indent">
     "ผู้ซื้อ" จะต้องเป็นรับผิดฝ่ายเดียว และจำต้องแจ้งให้ "ผู้ขาย" ทราบทันที และ "ผู้ซื้อ" ตกลงจะยอมจ่ายค่าฟ้อง ต้องเอา
