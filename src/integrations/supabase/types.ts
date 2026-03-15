@@ -178,6 +178,147 @@ export type Database = {
           },
         ]
       }
+      contracts: {
+        Row: {
+          account_id: string | null
+          additional_notes: string | null
+          appendix_items: Json | null
+          buyer_address: string | null
+          buyer_company_name: string | null
+          buyer_id_expiry: string | null
+          buyer_id_number: string | null
+          buyer_phone: string | null
+          buyer_representative_name: string | null
+          buyer_signature: string | null
+          contract_date: string
+          contract_number: string
+          created_at: string
+          created_by: string | null
+          delivery_address: string | null
+          delivery_days: number | null
+          deposit_amount: number | null
+          deposit_date: string | null
+          id: string
+          installment_count: number | null
+          payment_details: Json | null
+          payment_method: string | null
+          product_accessories: Json | null
+          product_brand: string | null
+          product_name: string | null
+          product_origin: string | null
+          product_quantity: number | null
+          product_type: string
+          qt_number: string | null
+          quotation_id: string | null
+          remaining_amount: number | null
+          seller_representative_name: string | null
+          seller_signature: string | null
+          signed_at: string | null
+          status: string
+          total_price: number | null
+          warranty_details: Json | null
+          warranty_years: number | null
+          witness_name: string | null
+        }
+        Insert: {
+          account_id?: string | null
+          additional_notes?: string | null
+          appendix_items?: Json | null
+          buyer_address?: string | null
+          buyer_company_name?: string | null
+          buyer_id_expiry?: string | null
+          buyer_id_number?: string | null
+          buyer_phone?: string | null
+          buyer_representative_name?: string | null
+          buyer_signature?: string | null
+          contract_date?: string
+          contract_number: string
+          created_at?: string
+          created_by?: string | null
+          delivery_address?: string | null
+          delivery_days?: number | null
+          deposit_amount?: number | null
+          deposit_date?: string | null
+          id?: string
+          installment_count?: number | null
+          payment_details?: Json | null
+          payment_method?: string | null
+          product_accessories?: Json | null
+          product_brand?: string | null
+          product_name?: string | null
+          product_origin?: string | null
+          product_quantity?: number | null
+          product_type?: string
+          qt_number?: string | null
+          quotation_id?: string | null
+          remaining_amount?: number | null
+          seller_representative_name?: string | null
+          seller_signature?: string | null
+          signed_at?: string | null
+          status?: string
+          total_price?: number | null
+          warranty_details?: Json | null
+          warranty_years?: number | null
+          witness_name?: string | null
+        }
+        Update: {
+          account_id?: string | null
+          additional_notes?: string | null
+          appendix_items?: Json | null
+          buyer_address?: string | null
+          buyer_company_name?: string | null
+          buyer_id_expiry?: string | null
+          buyer_id_number?: string | null
+          buyer_phone?: string | null
+          buyer_representative_name?: string | null
+          buyer_signature?: string | null
+          contract_date?: string
+          contract_number?: string
+          created_at?: string
+          created_by?: string | null
+          delivery_address?: string | null
+          delivery_days?: number | null
+          deposit_amount?: number | null
+          deposit_date?: string | null
+          id?: string
+          installment_count?: number | null
+          payment_details?: Json | null
+          payment_method?: string | null
+          product_accessories?: Json | null
+          product_brand?: string | null
+          product_name?: string | null
+          product_origin?: string | null
+          product_quantity?: number | null
+          product_type?: string
+          qt_number?: string | null
+          quotation_id?: string | null
+          remaining_amount?: number | null
+          seller_representative_name?: string | null
+          seller_signature?: string | null
+          signed_at?: string | null
+          status?: string
+          total_price?: number | null
+          warranty_details?: Json | null
+          warranty_years?: number | null
+          witness_name?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contracts_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contracts_quotation_id_fkey"
+            columns: ["quotation_id"]
+            isOneToOne: false
+            referencedRelation: "quotations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       demos: {
         Row: {
           account_id: string | null
