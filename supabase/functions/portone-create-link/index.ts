@@ -138,7 +138,7 @@ Deno.serve(async (req) => {
       ],
       send_immediately: false,
       chosen_payment_methods: [
-        { payment_channel: "GBPRIMEPAY", payment_method: "GBPRIMEPAY_CREDIT_CARD" },
+        { payment_channel: pmt_channel || "GBPRIMEPAY", payment_method: pmt_method || "GBPRIMEPAY_CREDIT_CARD" },
       ],
       environment: "live",
     };
