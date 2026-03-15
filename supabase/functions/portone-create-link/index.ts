@@ -40,30 +40,23 @@ Deno.serve(async (req) => {
       .single();
 
     // Step 1: Get auth token
-    console.log('Requesting PortOne auth token...');
     const tokenRes = await fetch('https://api.portone.cloud/api/merchant/auth-token', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-      body: JSON.stringify({
-        portone_key: PORTONE_KEY,
-        portone_secret: PORTONE_SECRET,
-      }),
+      body: JSON.stringify({ portone_key: PORTONE_KEY, portone_secret: PORTONE_SECRET }),
     });
     const tokenText = await tokenRes.text();
-    console.log('PortOne auth response status:', tokenRes.status, 'body:', tokenText);
+    console.log('PortOne auth status:', tokenRes.status);
     let tokenData: any;
-    try { tokenData = JSON.parse(tokenText); } catch { throw new Error(`PortOne auth returned non-JSON: ${tokenText}`); }
-    if (!tokenRes.ok) {
-      throw new Error(`PortOne auth failed [${tokenRes.status}]: ${tokenText}`);
-    }
-    const bearerToken = tokenData?.content?.token || tokenData?.data?.token || tokenData?.token || tokenData?.access_token;
-    if (!bearerToken) throw new Error(`Failed to extract token from response: ${tokenText}`);
+    try { tokenData = JSON.parse(tokenText); } catch { throw new Error(`PortOne auth non-JSON: ${tokenText}`); }
+    if (!tokenRes.ok) throw new Error(`PortOne auth failed [${tokenRes.status}]: ${tokenText}`);
+    const bearerToken = tokenData?.content?.token || tokenData?.data?.token || tokenData?.token;
+    if (!bearerToken) throw new Error(`No token in response: ${tokenText}`);
 
-    // Step 2: Create payment link
+    // Step 2: Generate signature hash (HMAC-SHA256)
     const merchantOrderId = `${qt.qt_number || 'QT'}-${Date.now()}`;
     const amount = qt.price || 0;
 
-    // Generate signature hash (HMAC-SHA256)
     const sigParams: Record<string, string> = {
       amount: String(amount),
       client_key: PORTONE_KEY,
@@ -78,21 +71,20 @@ Deno.serve(async (req) => {
     const cryptoKey = await crypto.subtle.importKey('raw', keyData, { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']);
     const sigBuffer = await crypto.subtle.sign('HMAC', cryptoKey, msgData);
     const signatureHash = btoa(String.fromCharCode(...new Uint8Array(sigBuffer)));
-    console.log('Signature message:', sigMessage, 'hash:', signatureHash);
 
-    // Build chosen payment methods for credit card
-    const chosenPaymentMethods: any[] = [
-      { payment_channel: "GBPRIMEPAY", payment_method: "GBPRIMEPAY_CREDIT_CARD" },
-    ];
-
-    // Set expiry 30 days from now
+    // Step 3: Create payment link
     const expiry = new Date();
     expiry.setDate(expiry.getDate() + 30);
 
     const successUrl = `${SUPABASE_URL}/functions/v1/portone-webhook?status=success&quotation_id=${quotation_id}`;
     const failureUrl = `${SUPABASE_URL}/functions/v1/portone-webhook?status=failure&quotation_id=${quotation_id}`;
 
-    const linkBody: any = {
+    let description = `ชำระเงินสำหรับ ${qt.product || 'สินค้า'} - ${qt.qt_number || ''}`;
+    if (installment_months && installment_months > 1) {
+      description += ` (ผ่อน ${installment_months} เดือน)`;
+    }
+
+    const linkBody = {
       portone_key: PORTONE_KEY,
       merchant_details: {
         name: "Optima Medical",
@@ -103,7 +95,7 @@ Deno.serve(async (req) => {
         shipping_charges: 0,
       },
       source: "default",
-      description: `ชำระเงินสำหรับ ${qt.product || 'สินค้า'} - ${qt.qt_number || ''}`,
+      description,
       signature_hash: signatureHash,
       amount,
       currency: "THB",
@@ -141,53 +133,13 @@ Deno.serve(async (req) => {
         { key: "qt_number", value: qt.qt_number || "" },
       ],
       send_immediately: false,
-      chosen_payment_methods: chosenPaymentMethods,
-      environment: "live",
-    };
-      currency: "THB",
-      country_code: "TH",
-      merchant_order_id: merchantOrderId,
-      show_shipping_details: false,
-      billing_details: {
-        billing_name: account?.clinic_name || "Customer",
-        billing_email: account?.email || "",
-        billing_phone: account?.phone || "",
-        billing_address: {
-          city: "",
-          country_code: "TH",
-          locale: "TH",
-          line_1: "",
-          line_2: "",
-          postal_code: "",
-          state: "",
-        },
-      },
-      is_checkout_embed: false,
-      success_url: successUrl,
-      failure_url: failureUrl,
-      pending_url: successUrl,
-      expiry_date: expiry.toISOString(),
-      customer_details: {
-        name: account?.clinic_name || "Customer",
-        email_address: account?.email || "",
-        phone_number: account?.phone || "",
-      },
-      notify_by_email: !!(account?.email),
-      notify_by_phone: !!(account?.phone),
-      notes: [
-        { key: "quotation_id", value: quotation_id },
-        { key: "qt_number", value: qt.qt_number || "" },
+      chosen_payment_methods: [
+        { payment_channel: "GBPRIMEPAY", payment_method: "GBPRIMEPAY_CREDIT_CARD" },
       ],
-      send_immediately: false,
-      chosen_payment_methods: chosenPaymentMethods,
       environment: "live",
     };
 
-    // Add installment info if provided
-    if (installment_months && installment_months > 1) {
-      linkBody.description += ` (ผ่อน ${installment_months} เดือน)`;
-    }
-
+    console.log('Creating payment link...');
     const linkRes = await fetch('https://api.portone.cloud/api/paymentLink', {
       method: 'POST',
       headers: {
@@ -197,13 +149,14 @@ Deno.serve(async (req) => {
       },
       body: JSON.stringify(linkBody),
     });
-    const linkData = await linkRes.json();
-    if (!linkRes.ok) {
-      throw new Error(`PortOne create link failed [${linkRes.status}]: ${JSON.stringify(linkData)}`);
-    }
+    const linkText = await linkRes.text();
+    console.log('PortOne link response:', linkRes.status, linkText);
+    let linkData: any;
+    try { linkData = JSON.parse(linkText); } catch { throw new Error(`PortOne link non-JSON: ${linkText}`); }
+    if (!linkRes.ok) throw new Error(`PortOne create link failed [${linkRes.status}]: ${linkText}`);
 
-    const paymentLinkUrl = linkData?.data?.payment_link || linkData?.payment_link || '';
-    const paymentLinkRef = linkData?.data?.payment_link_ref || linkData?.payment_link_ref || '';
+    const paymentLinkUrl = linkData?.data?.payment_link || linkData?.content?.payment_link || linkData?.payment_link || '';
+    const paymentLinkRef = linkData?.data?.payment_link_ref || linkData?.content?.payment_link_ref || linkData?.payment_link_ref || '';
 
     // Save to quotation
     await supabase
