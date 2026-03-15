@@ -12,6 +12,7 @@ import CreateContractWizard from '@/components/contracts/CreateContractWizard';
 export default function ContractsPage() {
   const [search, setSearch] = useState('');
   const [wizardOpen, setWizardOpen] = useState(false);
+  const [editingContract, setEditingContract] = useState<any>(null);
 
   const handleViewPdf = async (contractId: string) => {
     const projectId = import.meta.env.VITE_SUPABASE_PROJECT_ID;
