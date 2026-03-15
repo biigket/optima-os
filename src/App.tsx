@@ -22,9 +22,7 @@ import AnalyticsPage from "@/pages/AnalyticsPage";
 import QuotationsPage from "@/pages/QuotationsPage";
 import QuotationDetailPage from "@/pages/QuotationDetailPage";
 import CustomerSignQuotationPage from "@/pages/CustomerSignQuotationPage";
-import SalesOrdersPage from "@/pages/SalesOrdersPage";
 import InventoryPage from "@/pages/InventoryPage";
-import InvoicesPage from "@/pages/InvoicesPage";
 import PaymentsPage from "@/pages/PaymentsPage";
 import PaymentDetailPage from "@/pages/PaymentDetailPage";
 import Phase2Placeholder from "@/pages/Phase2Placeholder";
@@ -79,19 +77,17 @@ function AuthedAppRoutes() {
         <Route path="/analytics" element={<AnalyticsPage />} />
         <Route path="/quotations" element={<QuotationsPage />} />
         <Route path="/quotations/:id" element={<QuotationDetailPage />} />
-        <Route path="/sales-orders" element={<SalesOrdersPage />} />
         <Route path="/inventory" element={<InventoryPage />} />
-        <Route path="/invoices" element={<InvoicesPage />} />
         <Route path="/payments" element={<PaymentsPage />} />
         <Route path="/payments/:quotationId" element={<PaymentDetailPage />} />
         <Route path="/qr-register" element={<QRCodePage />} />
-         <Route path="/qc-stock" element={<QcStockPage />} />
-         <Route path="/qc-stock/:id" element={<QcStockDetailPage />} />
-         <Route path="/qc-stock/trica3d/:id" element={<Trica3DDetailPage />} />
-         <Route path="/qc-stock/quattro/:id" element={<QuattroDetailPage />} />
-         <Route path="/qc-stock/cartridge/:id" element={<CartridgeDetailPage />} />
-         <Route path="/qc-stock/picohi/:id" element={<PicohiDetailPage />} />
-         <Route path="/qc-stock/freezero/:id" element={<FreezeroDetailPage />} />
+        <Route path="/qc-stock" element={<QcStockPage />} />
+        <Route path="/qc-stock/:id" element={<QcStockDetailPage />} />
+        <Route path="/qc-stock/trica3d/:id" element={<Trica3DDetailPage />} />
+        <Route path="/qc-stock/quattro/:id" element={<QuattroDetailPage />} />
+        <Route path="/qc-stock/cartridge/:id" element={<CartridgeDetailPage />} />
+        <Route path="/qc-stock/picohi/:id" element={<PicohiDetailPage />} />
+        <Route path="/qc-stock/freezero/:id" element={<FreezeroDetailPage />} />
         {phase2Routes.map((path) => (
           <Route key={path} path={path} element={<Phase2Placeholder />} />
         ))}
