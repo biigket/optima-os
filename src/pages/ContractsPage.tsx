@@ -88,8 +88,6 @@ export default function ContractsPage() {
           ) : (
             <div className="space-y-2">
               {filtered.map((c: any) => {
-                const st = STATUS_MAP[c.status] || STATUS_MAP.DRAFT;
-                return (
                   <div
                     key={c.id}
                     className="flex items-center justify-between p-3 rounded-lg border hover:bg-muted/50 transition-colors"
