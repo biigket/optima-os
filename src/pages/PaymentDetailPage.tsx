@@ -441,43 +441,6 @@ export default function PaymentDetailPage() {
                       </div>
                       <p className="text-[10px] text-muted-foreground">หากไม่กรอก จะใช้ยอดจากใบเสนอราคา (฿{(qt.price || 0).toLocaleString()})</p>
                     </div>
-                    <div className="space-y-1.5">
-                      <p className="text-sm font-medium text-foreground">แจ้งเตือนลูกค้า</p>
-                      <div className="flex items-center gap-4">
-                        <label className="flex items-center gap-1.5 text-sm cursor-pointer">
-                          <input type="checkbox" checked={notifyEmail} onChange={e => setNotifyEmail(e.target.checked)} className="rounded border-input" />
-                          แจ้งเตือนทางอีเมล
-                        </label>
-                        <label className="flex items-center gap-1.5 text-sm cursor-pointer">
-                          <input type="checkbox" checked={notifyPhone} onChange={e => setNotifyPhone(e.target.checked)} className="rounded border-input" />
-                          แจ้งเตือนทาง SMS
-                        </label>
-                      </div>
-                      {notifyPhone && (
-                        <div className="flex items-center gap-2 mt-1">
-                          <span className="text-sm text-muted-foreground whitespace-nowrap">เบอร์ SMS</span>
-                          <input
-                            type="tel"
-                            placeholder={account?.phone || '08x-xxx-xxxx'}
-                            value={smsPhone}
-                            onChange={e => setSmsPhone(e.target.value)}
-                            className="flex h-9 w-56 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                          />
-                        </div>
-                      )}
-                    </div>
-                    <div className="space-y-1.5">
-                      <p className="text-sm font-medium text-foreground">ช่องทางชำระ</p>
-                      <select value={`${pmtChannel}|${pmtMethod}`} onChange={e => { const [c, m] = e.target.value.split('|'); setPmtChannel(c); setPmtMethod(m); }} className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
-                        <optgroup label="บัตรเครดิต">
-                          <option value="GBPRIMEPAY|GBPRIMEPAY_CREDIT_CARD">💳 บัตรเครดิต (เต็มจำนวน)</option>
-                        </optgroup>
-                        <optgroup label="ผ่อนชำระ (Installment)">
-                          <option value="GBPRIMEPAY|GBPRIMEPAY_INSTALLMENT">📦 ผ่อนชำระผ่านบัตรเครดิต (ทุกธนาคาร)</option>
-                        </optgroup>
-                      </select>
-                    </div>
-                  </div>
                   <div className="text-center">
                     <Button className="gap-1.5" disabled={creatingLink} onClick={async () => {
                       const amt = Number(customAmount) || undefined;
