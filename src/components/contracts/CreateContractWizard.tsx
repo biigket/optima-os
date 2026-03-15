@@ -63,10 +63,11 @@ interface Props {
   editContract?: any; // existing contract to edit
 }
 
-export default function CreateContractWizard({ open, onOpenChange, onCreated }: Props) {
+export default function CreateContractWizard({ open, onOpenChange, onCreated, editContract }: Props) {
   const navigate = useNavigate();
   const { currentUser } = useMockAuth();
-  const [step, setStep] = useState(0);
+  const isEditMode = !!editContract;
+  const [step, setStep] = useState(isEditMode ? 1 : 0);
   const [search, setSearch] = useState('');
   const [quotations, setQuotations] = useState<QuotationOption[]>([]);
   const [loading, setLoading] = useState(false);
