@@ -72,7 +72,6 @@ const navGroups = [
     items: [
       { to: '/quotations', icon: FileSpreadsheet, label: 'ใบเสนอราคา' },
       { to: '/payments', icon: CreditCard, label: 'การชำระเงิน' },
-      { to: '/inventory', icon: Warehouse, label: 'คลังสินค้า' },
     ],
   },
   {
