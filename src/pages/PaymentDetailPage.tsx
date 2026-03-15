@@ -55,7 +55,13 @@ export default function PaymentDetailPage() {
         .eq('quotation_id', quotationId!)
         .order('installment_number', { ascending: true });
 
-      return { qt, account, installments: installments || [] };
+      const { data: paymentLinks } = await supabase
+        .from('payment_links' as any)
+        .select('*')
+        .eq('quotation_id', quotationId!)
+        .order('created_at', { ascending: false });
+
+      return { qt, account, installments: installments || [], paymentLinks: (paymentLinks || []) as any[] };
     },
     enabled: !!quotationId,
   });
@@ -120,7 +126,7 @@ export default function PaymentDetailPage() {
     );
   }
 
-  const { qt, account, installments } = data;
+  const { qt, account, installments, paymentLinks } = data;
   const depositAmount = summary.depositAmount;
   const hasDeposit = qt.deposit_type && qt.deposit_type !== 'NONE' && (qt.deposit_value || 0) > 0;
 
@@ -488,6 +494,63 @@ export default function PaymentDetailPage() {
               )}
             </CardContent>
           </Card>
+
+          {/* Payment Links History */}
+          {paymentLinks && paymentLinks.length > 0 && (
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-sm flex items-center gap-1.5">
+                  <CreditCard size={14} /> ประวัติลิงก์ชำระเงิน ({paymentLinks.length} รายการ)
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-0">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>วันที่สร้าง</TableHead>
+                      <TableHead className="text-right">ยอดเงิน</TableHead>
+                      <TableHead>ผ่อนชำระ</TableHead>
+                      <TableHead>สถานะ</TableHead>
+                      <TableHead className="text-right">ลิงก์</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {paymentLinks.map((link: any) => (
+                      <TableRow key={link.id}>
+                        <TableCell className="text-sm">
+                          {format(new Date(link.created_at), 'd MMM yyyy HH:mm', { locale: th })}
+                        </TableCell>
+                        <TableCell className="text-right font-medium">
+                          ฿{Number(link.amount || 0).toLocaleString()}
+                        </TableCell>
+                        <TableCell className="text-sm">
+                          {link.installment_months > 0 ? `${link.installment_months} เดือน` : 'เต็มจำนวน'}
+                        </TableCell>
+                        <TableCell>
+                          <StatusBadge status={link.status || 'ACTIVE'} />
+                        </TableCell>
+                        <TableCell className="text-right">
+                          {link.payment_link_url && (
+                            <div className="flex justify-end gap-1">
+                              <Button size="sm" variant="ghost" className="h-7 gap-1 text-xs" onClick={() => {
+                                navigator.clipboard.writeText(link.payment_link_url);
+                                toast.success('คัดลอกลิงก์แล้ว');
+                              }}>
+                                <Copy size={12} />
+                              </Button>
+                              <Button size="sm" variant="ghost" className="h-7 gap-1 text-xs" onClick={() => window.open(link.payment_link_url, '_blank')}>
+                                <ExternalLink size={12} />
+                              </Button>
+                            </div>
+                          )}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
+          )}
 
           {/* Installments Table */}
           <Card>

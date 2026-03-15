@@ -172,6 +172,19 @@ Deno.serve(async (req) => {
       })
       .eq('id', quotation_id);
 
+    // Save to payment_links history
+    await supabase
+      .from('payment_links')
+      .insert({
+        quotation_id,
+        amount,
+        installment_months: installment_months || 0,
+        payment_link_url: paymentLinkUrl,
+        payment_link_ref: paymentLinkRef,
+        portone_order_id: merchantOrderId,
+        status: 'ACTIVE',
+      });
+
     return new Response(JSON.stringify({
       success: true,
       payment_link_url: paymentLinkUrl,
