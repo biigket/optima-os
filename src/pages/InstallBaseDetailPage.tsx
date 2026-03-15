@@ -73,6 +73,11 @@ export default function InstallBaseDetailPage() {
 
   const hasLoaner = !!inst.loanerSerialNumber;
   const pmSchedule = generatePMSchedule(inst.installDate, pmCount).filter(pm => !deletedPMs.includes(pm.number));
+
+  // Lookup QC stock item for handpiece data
+  const qcItem = inst.productCategory === 'ND2'
+    ? mockND2Stock.find(q => q.id === inst.qcStockItemId)
+    : null;
   const today = new Date().toISOString().split('T')[0];
   const warrantyExpired = inst.warrantyExpiry < today;
 
