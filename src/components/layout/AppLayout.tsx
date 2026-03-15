@@ -44,6 +44,14 @@ const navGroups = [
     ],
   },
   {
+    label: 'ATTENDANCE',
+    phase: 1,
+    items: [
+      { to: '/work-checkin', icon: Fingerprint, label: 'เช็คอินทำงาน' },
+      { to: '/attendance', icon: BarChart, label: 'สรุปการเข้างาน' },
+    ],
+  },
+  {
     label: 'OPERATION',
     phase: 1,
     items: [
