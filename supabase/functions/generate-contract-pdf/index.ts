@@ -149,12 +149,36 @@ function generateHTML(contract: any, account: any, contacts: any[]): string {
 
   // Payment installment details
   let paymentHTML = "";
-  if (installmentCount > 1) {
+  const clauseData = paymentDetails as any;
+  const depositText = numberToThaiText(depositAmount).replace("บาทถ้วน","");
+  const remainingText = numberToThaiText(remainingAmount);
+  
+  if (clauseData?.clause_2_1 || clauseData?.clause_2_2) {
+    // Use custom editable clauses
+    const render21 = (clauseData.clause_2_1 || "")
+      .replace(/\{deposit\}/g, fmtInt(depositAmount))
+      .replace(/\{deposit_text\}/g, depositText)
+      .replace(/\{remaining\}/g, fmtInt(remainingAmount))
+      .replace(/\{remaining_text\}/g, remainingText);
+    const render22 = (clauseData.clause_2_2 || "")
+      .replace(/\{deposit\}/g, fmtInt(depositAmount))
+      .replace(/\{deposit_text\}/g, depositText)
+      .replace(/\{remaining\}/g, fmtInt(remainingAmount))
+      .replace(/\{remaining_text\}/g, remainingText);
+    
+    const lines21 = render21.split("\n").map((l: string) => `<div style="margin-bottom:4px;">${l}</div>`).join("");
+    const lines22 = render22.split("\n").map((l: string) => `<div style="margin-bottom:4px;">${l}</div>`).join("");
+    
     paymentHTML = `
-      <div style="margin-top:8px;margin-bottom:4px;"><strong>2.1</strong>&nbsp;&nbsp;&nbsp;&nbsp;ชำระค่าเครื่องมือแพทย์ตามข้อ 1. ให้ "ผู้ขาย" งวดที่ 1 เป็นจำนวนเงิน <strong>${fmtInt(depositAmount)}.-</strong> บาท <strong>(${numberToThaiText(depositAmount).replace("บาทถ้วน","")})</strong></div>
+      <div style="margin-top:8px;"><strong>2.1</strong>&nbsp;&nbsp;&nbsp;&nbsp;${lines21}</div>
+      ${render22 ? `<div style="margin-top:8px;"><strong>2.2</strong>&nbsp;&nbsp;&nbsp;&nbsp;${lines22}</div>` : ""}
+    `;
+  } else if (installmentCount > 1) {
+    paymentHTML = `
+      <div style="margin-top:8px;margin-bottom:4px;"><strong>2.1</strong>&nbsp;&nbsp;&nbsp;&nbsp;ชำระค่าเครื่องมือแพทย์ตามข้อ 1. ให้ "ผู้ขาย" งวดที่ 1 เป็นจำนวนเงิน <strong>${fmtInt(depositAmount)}.-</strong> บาท <strong>(${depositText})</strong></div>
       <div style="margin-left:0;margin-bottom:4px;">โดยชำระด้วยการโอนเงินเข้าบัญชีในนาม <strong>บริษัท ออปติม่าแอสเทติค จำกัด เลขที่บัญชี 411-0-748-56-8 (ธนาคารไทยพาณิชย์)</strong></div>
       <div style="margin-top:8px;margin-bottom:4px;"><strong>2.2</strong>&nbsp;&nbsp;&nbsp;&nbsp;ผู้ซื้อจะดำเนินการชำระเงินค่าสินค้าประเภทเครื่องมือแพทย์ในส่วนที่เหลือเป็นจำนวนเงิน <strong>${fmtInt(remainingAmount)}</strong> บาท</div>
-      <div style="margin-bottom:4px;"><strong>(${numberToThaiText(remainingAmount).replace("บาทถ้วน","บาทถ้วน")})</strong> ผ่านบัตรเครดิต</div>
+      <div style="margin-bottom:4px;"><strong>(${remainingText})</strong> ผ่านบัตรเครดิต</div>
     `;
   } else {
     paymentHTML = `
