@@ -676,6 +676,18 @@ export default function CreateContractWizard({ open, onOpenChange, onCreated, ed
               <Input value={paymentMethod} onChange={e => setPaymentMethod(e.target.value)} placeholder="เช่น ผ่านบัตรเครดิต, โอนเงิน" />
             </div>
 
+            <div>
+              <Label className="text-xs">ข้อ 2.1 — เงื่อนไขการชำระมัดจำ</Label>
+              <Textarea value={paymentClause21} onChange={e => setPaymentClause21(e.target.value)} rows={3} placeholder="ข้อความข้อ 2.1 ในสัญญา" />
+              <p className="text-[10px] text-muted-foreground mt-1">ใช้ {'{deposit}'} แทนจำนวนเงินมัดจำ, {'{deposit_text}'} แทนตัวอักษร</p>
+            </div>
+
+            <div>
+              <Label className="text-xs">ข้อ 2.2 — เงื่อนไขการชำระส่วนที่เหลือ</Label>
+              <Textarea value={paymentClause22} onChange={e => setPaymentClause22(e.target.value)} rows={3} placeholder="ข้อความข้อ 2.2 ในสัญญา" />
+              <p className="text-[10px] text-muted-foreground mt-1">ใช้ {'{remaining}'} แทนจำนวนเงินคงเหลือ, {'{remaining_text}'} แทนตัวอักษร</p>
+            </div>
+
             <Separator />
             <div className="text-sm font-medium">การส่งมอบและติดตั้ง</div>
 
