@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
-  Search, Building2, ChevronLeft, ChevronRight, FileText, CheckCircle2, Edit3
+  Search, Building2, ChevronLeft, ChevronRight, FileText, CheckCircle2, Edit3, Plus, Trash2
 } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
@@ -28,16 +28,26 @@ const DEFAULT_ACCESSORIES = [
 ];
 
 const DEFAULT_WARRANTY = [
-  { item: 'Cartridge FL 2.0,3.0,4.5,4.5,6.0mm', warranty: 'รับประกัน 24,000 นัดหรือ 1 ปี', note: 'ขึ้นกับระยะใดระยะหนึ่งถึงก่อน' },
-  { item: 'Cartridge SD 1.5,3.0,4.5mm', warranty: 'รับประกัน 240,000 นัดหรือ 1 ปี', note: 'ขึ้นกับระยะใดระยะหนึ่งถึงก่อน' },
+  { item: 'Cartridge FL 2.0 mm', warranty: 'รับประกัน 24,000 นัดหรือ 1 ปี', note: 'ขึ้นกับระยะใดถึงก่อน' },
+  { item: 'Cartridge FL 3.0 mm', warranty: 'รับประกัน 24,000 นัดหรือ 1 ปี', note: 'ขึ้นกับระยะใดถึงก่อน' },
+  { item: 'Cartridge FL 4.5 mm', warranty: 'รับประกัน 24,000 นัดหรือ 1 ปี', note: 'ขึ้นกับระยะใดถึงก่อน' },
+  { item: 'Cartridge FL 6.0 mm', warranty: 'รับประกัน 24,000 นัดหรือ 1 ปี', note: 'ขึ้นกับระยะใดถึงก่อน' },
+  { item: 'Cartridge SD 1.5 mm', warranty: 'รับประกัน 240,000 นัดหรือ 1 ปี', note: 'ขึ้นกับระยะใดถึงก่อน' },
+  { item: 'Cartridge SD 3.0 mm', warranty: 'รับประกัน 240,000 นัดหรือ 1 ปี', note: 'ขึ้นกับระยะใดถึงก่อน' },
+  { item: 'Cartridge SD 4.5 mm', warranty: 'รับประกัน 240,000 นัดหรือ 1 ปี', note: 'ขึ้นกับระยะใดถึงก่อน' },
   { item: 'Handpiece Focused Linear Ultrasound', warranty: 'รับประกัน 1 ปี', note: '' },
   { item: 'Handpiece Synergy Dotting', warranty: 'รับประกัน 1 ปี', note: '' },
   { item: '[ACC] Foot Switch', warranty: 'รับประกัน 1 ปี', note: '' },
 ];
 
 const DEFAULT_APPENDIX_ITEMS = [
-  { name: 'Cartridge FL : 2.0,3.0,4.5,4.5,6.0 mm', detail: 'จำนวน อย่างละ 1 (หนึ่ง) อัน โดยไม่คิดมูลค่า' },
-  { name: 'Cartridge SD : 1.5,3.0,4.5 mm', detail: 'จำนวน อย่างละ 1 (หนึ่ง) อัน โดยไม่คิดมูลค่า' },
+  { name: 'Cartridge FL 2.0 mm', detail: 'จำนวน 1 (หนึ่ง) หัว โดยไม่คิดมูลค่า' },
+  { name: 'Cartridge FL 3.0 mm', detail: 'จำนวน 1 (หนึ่ง) หัว โดยไม่คิดมูลค่า' },
+  { name: 'Cartridge FL 4.5 mm', detail: 'จำนวน 1 (หนึ่ง) หัว โดยไม่คิดมูลค่า' },
+  { name: 'Cartridge FL 6.0 mm', detail: 'จำนวน 1 (หนึ่ง) หัว โดยไม่คิดมูลค่า' },
+  { name: 'Cartridge SD 1.5 mm', detail: 'จำนวน 1 (หนึ่ง) หัว โดยไม่คิดมูลค่า' },
+  { name: 'Cartridge SD 3.0 mm', detail: 'จำนวน 1 (หนึ่ง) หัว โดยไม่คิดมูลค่า' },
+  { name: 'Cartridge SD 4.5 mm', detail: 'จำนวน 1 (หนึ่ง) หัว โดยไม่คิดมูลค่า' },
 ];
 
 interface QuotationOption {
@@ -560,6 +570,71 @@ export default function CreateContractWizard({ open, onOpenChange, onCreated, ed
               onClick={() => setAccessories([...accessories, { name: '', quantity: 1, unit: 'อัน' }])}
             >
               + เพิ่มอุปกรณ์
+            </Button>
+
+            <Separator />
+            <div className="text-sm font-medium">รายการรับประกัน Cartridge</div>
+            {warrantyDetails.map((w, i) => (
+              <div key={i} className="grid grid-cols-[1fr_1fr_1fr_auto] gap-2 items-start">
+                <Input className="text-xs" placeholder="รายการ" value={w.item} onChange={e => {
+                  const updated = [...warrantyDetails];
+                  updated[i] = { ...updated[i], item: e.target.value };
+                  setWarrantyDetails(updated);
+                }} />
+                <Input className="text-xs" placeholder="รับประกัน" value={w.warranty} onChange={e => {
+                  const updated = [...warrantyDetails];
+                  updated[i] = { ...updated[i], warranty: e.target.value };
+                  setWarrantyDetails(updated);
+                }} />
+                <Input className="text-xs" placeholder="หมายเหตุ" value={w.note} onChange={e => {
+                  const updated = [...warrantyDetails];
+                  updated[i] = { ...updated[i], note: e.target.value };
+                  setWarrantyDetails(updated);
+                }} />
+                <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => {
+                  setWarrantyDetails(warrantyDetails.filter((_, idx) => idx !== i));
+                }}>
+                  <Trash2 size={14} />
+                </Button>
+              </div>
+            ))}
+            <Button
+              variant="outline"
+              size="sm"
+              className="text-xs"
+              onClick={() => setWarrantyDetails([...warrantyDetails, { item: '', warranty: 'รับประกัน 1 ปี', note: '' }])}
+            >
+              <Plus size={12} className="mr-1" /> เพิ่มรายการรับประกัน
+            </Button>
+
+            <Separator />
+            <div className="text-sm font-medium">รายการแนบท้ายสัญญา (ของแถม)</div>
+            {appendixItems.map((a, i) => (
+              <div key={i} className="grid grid-cols-[1fr_1fr_auto] gap-2 items-start">
+                <Input className="text-xs" placeholder="รายการ" value={a.name} onChange={e => {
+                  const updated = [...appendixItems];
+                  updated[i] = { ...updated[i], name: e.target.value };
+                  setAppendixItems(updated);
+                }} />
+                <Input className="text-xs" placeholder="รายละเอียด" value={a.detail} onChange={e => {
+                  const updated = [...appendixItems];
+                  updated[i] = { ...updated[i], detail: e.target.value };
+                  setAppendixItems(updated);
+                }} />
+                <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => {
+                  setAppendixItems(appendixItems.filter((_, idx) => idx !== i));
+                }}>
+                  <Trash2 size={14} />
+                </Button>
+              </div>
+            ))}
+            <Button
+              variant="outline"
+              size="sm"
+              className="text-xs"
+              onClick={() => setAppendixItems([...appendixItems, { name: '', detail: '' }])}
+            >
+              <Plus size={12} className="mr-1" /> เพิ่มรายการแนบท้าย
             </Button>
 
             <Separator />
