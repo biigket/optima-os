@@ -63,6 +63,23 @@ Deno.serve(async (req) => {
     const merchantOrderId = `${qt.qt_number || 'QT'}-${Date.now()}`;
     const amount = qt.price || 0;
 
+    // Generate signature hash (HMAC-SHA256)
+    const sigParams: Record<string, string> = {
+      amount: String(amount),
+      client_key: PORTONE_KEY,
+      currency: 'THB',
+      merchant_order_id: merchantOrderId,
+    };
+    const sortedKeys = Object.keys(sigParams).sort();
+    const sigMessage = sortedKeys.map(k => `${k}=${encodeURIComponent(sigParams[k])}`).join('&');
+    const encoder = new TextEncoder();
+    const keyData = encoder.encode(PORTONE_SECRET);
+    const msgData = encoder.encode(sigMessage);
+    const cryptoKey = await crypto.subtle.importKey('raw', keyData, { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']);
+    const sigBuffer = await crypto.subtle.sign('HMAC', cryptoKey, msgData);
+    const signatureHash = btoa(String.fromCharCode(...new Uint8Array(sigBuffer)));
+    console.log('Signature message:', sigMessage, 'hash:', signatureHash);
+
     // Build chosen payment methods for credit card
     const chosenPaymentMethods: any[] = [
       { payment_channel: "GBPRIMEPAY", payment_method: "GBPRIMEPAY_CREDIT_CARD" },
@@ -87,8 +104,46 @@ Deno.serve(async (req) => {
       },
       source: "default",
       description: `ชำระเงินสำหรับ ${qt.product || 'สินค้า'} - ${qt.qt_number || ''}`,
-      signature_hash: "signature_hash",
+      signature_hash: signatureHash,
       amount,
+      currency: "THB",
+      country_code: "TH",
+      merchant_order_id: merchantOrderId,
+      show_shipping_details: false,
+      billing_details: {
+        billing_name: account?.clinic_name || "Customer",
+        billing_email: account?.email || "",
+        billing_phone: account?.phone || "",
+        billing_address: {
+          city: "",
+          country_code: "TH",
+          locale: "TH",
+          line_1: "",
+          line_2: "",
+          postal_code: "",
+          state: "",
+        },
+      },
+      is_checkout_embed: false,
+      success_url: successUrl,
+      failure_url: failureUrl,
+      pending_url: successUrl,
+      expiry_date: expiry.toISOString(),
+      customer_details: {
+        name: account?.clinic_name || "Customer",
+        email_address: account?.email || "",
+        phone_number: account?.phone || "",
+      },
+      notify_by_email: !!(account?.email),
+      notify_by_phone: !!(account?.phone),
+      notes: [
+        { key: "quotation_id", value: quotation_id },
+        { key: "qt_number", value: qt.qt_number || "" },
+      ],
+      send_immediately: false,
+      chosen_payment_methods: chosenPaymentMethods,
+      environment: "live",
+    };
       currency: "THB",
       country_code: "TH",
       merchant_order_id: merchantOrderId,
