@@ -31,6 +31,7 @@ export default function PaymentDetailPage() {
   const [depositTarget, setDepositTarget] = useState<any>(null);
   const [creatingLink, setCreatingLink] = useState(false);
   const [installmentMonths, setInstallmentMonths] = useState<number>(0);
+  const [customAmount, setCustomAmount] = useState<string>('');
 
   const { data, isLoading } = useQuery({
     queryKey: ['payment-detail', quotationId],
