@@ -427,10 +427,20 @@ export default function PaymentDetailPage() {
                     <div className="space-y-1">
                       <p className="text-[10px] font-medium text-foreground">ช่องทางชำระ</p>
                       <select value={`${pmtChannel}|${pmtMethod}`} onChange={e => { const [c, m] = e.target.value.split('|'); setPmtChannel(c); setPmtMethod(m); }} className="flex h-7 w-full rounded-md border border-input bg-background px-2 text-[11px] ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
-                        <option value="GBPRIMEPAY|GBPRIMEPAY_CREDIT_CARD">บัตรเครดิต (GBPrimePay)</option>
-                        <option value="GBPRIMEPAY|GBPRIMEPAY_QR_CODE">QR Code (GBPrimePay)</option>
-                        <option value="GBPRIMEPAY|GBPRIMEPAY_DIRECT_DEBIT">Direct Debit (GBPrimePay)</option>
-                        <option value="GBPRIMEPAY|GBPRIMEPAY_BILL_PAYMENT">Bill Payment (GBPrimePay)</option>
+                        <optgroup label="บัตรเครดิต / เดบิต">
+                          <option value="GBPRIMEPAY|GBPRIMEPAY_CREDIT_CARD">💳 บัตรเครดิต</option>
+                          <option value="GBPRIMEPAY|GBPRIMEPAY_DEBIT_CARD">💳 บัตรเดบิต</option>
+                        </optgroup>
+                        <optgroup label="ผ่อนชำระ (Installment)">
+                          <option value="GBPRIMEPAY|GBPRIMEPAY_INSTALLMENT">📦 ผ่อนชำระ (ทุกธนาคาร)</option>
+                        </optgroup>
+                        <optgroup label="QR / Wallet / อื่นๆ">
+                          <option value="GBPRIMEPAY|GBPRIMEPAY_QRCASH">🏦 PromptPay QR</option>
+                          <option value="GBPRIMEPAY|GBPRIMEPAY_QRCREDIT">🏦 QR Credit</option>
+                          <option value="GBPRIMEPAY|GBPRIMEPAY_TRUEMONEY_WALLET">💰 TrueMoney Wallet</option>
+                          <option value="GBPRIMEPAY|GBPRIMEPAY_RABBIT_LINEPAY_WALLET">🐰 Rabbit LINE Pay</option>
+                          <option value="GBPRIMEPAY|GBPRIMEPAY_SHOPEEPAY_WALLET">🛒 ShopeePay</option>
+                        </optgroup>
                       </select>
                     </div>
                     <Button size="sm" variant="outline" className="gap-1.5 text-xs w-full" disabled={creatingLink} onClick={async () => {
