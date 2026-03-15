@@ -147,7 +147,6 @@ export default function WorkCheckinPage() {
     const uploadedUrl = await uploadPhoto(photoUrl, 'checkin');
     const { error } = await supabase.from('work_checkins').insert({
       user_name: currentUser.name,
-      department: currentUser.department || null,
       work_type: workType,
       check_in_lat: location?.lat || null,
       check_in_lng: location?.lng || null,
