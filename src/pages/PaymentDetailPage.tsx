@@ -32,7 +32,8 @@ export default function PaymentDetailPage() {
   const [creatingLink, setCreatingLink] = useState(false);
   const [installmentMonths, setInstallmentMonths] = useState<number>(0);
   const [customAmount, setCustomAmount] = useState<string>('');
-
+  const [notifyEmail, setNotifyEmail] = useState(true);
+  const [notifyPhone, setNotifyPhone] = useState(true);
   const { data, isLoading } = useQuery({
     queryKey: ['payment-detail', quotationId],
     queryFn: async () => {
