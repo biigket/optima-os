@@ -26,7 +26,7 @@ import CustomerSignQuotationPage from "@/pages/CustomerSignQuotationPage";
 import InventoryPage from "@/pages/InventoryPage";
 import PaymentsPage from "@/pages/PaymentsPage";
 import PaymentDetailPage from "@/pages/PaymentDetailPage";
-import Phase2Placeholder from "@/pages/Phase2Placeholder";
+
 import NotFound from "@/pages/NotFound";
 import MockLoginPage from "@/pages/MockLoginPage";
 import CustomerRegisterPage from "@/pages/CustomerRegisterPage";
