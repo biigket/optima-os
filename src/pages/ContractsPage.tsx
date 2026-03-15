@@ -121,13 +121,19 @@ export default function ContractsPage() {
                         </span>
                       </div>
                     </div>
-                    <div className="text-right">
-                      <div className="text-sm font-medium">
-                        {c.total_price?.toLocaleString()} บาท
+                    <div className="flex items-center gap-3">
+                      <div className="text-right">
+                        <div className="text-sm font-medium">
+                          {c.total_price?.toLocaleString()} บาท
+                        </div>
+                        <div className="text-xs text-muted-foreground">
+                          QT: {c.qt_number || '-'}
+                        </div>
                       </div>
-                      <div className="text-xs text-muted-foreground">
-                        QT: {c.qt_number || '-'}
-                      </div>
+                      <Button size="sm" variant="outline" onClick={() => handleViewPdf(c.id)}>
+                        <Eye size={14} className="mr-1" />
+                        ดูสัญญา
+                      </Button>
                     </div>
                   </div>
                 ))}
