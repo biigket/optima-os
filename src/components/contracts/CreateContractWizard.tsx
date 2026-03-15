@@ -84,7 +84,7 @@ export default function CreateContractWizard({ open, onOpenChange, onCreated, ed
   const [buyerIdExpiry, setBuyerIdExpiry] = useState('');
   const [buyerAddress, setBuyerAddress] = useState('');
   const [buyerPhone, setBuyerPhone] = useState('');
-  const [sellerRepresentative, setSellerRepresentative] = useState('นายแพทย์คุณวุฒิ ลิ้มเวฆา');
+  const [sellerRepresentative, setSellerRepresentative] = useState('นายแพทย์ฐิติคมน์ ลิ้มรัตนเมฆา');
   const [productName, setProductName] = useState('NEW DOUBLO 2.0');
   const [productBrand, setProductBrand] = useState('HIRONIC');
   const [productOrigin, setProductOrigin] = useState('ประเทศเกาหลี');
