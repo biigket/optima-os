@@ -664,6 +664,50 @@ export type Database = {
           },
         ]
       }
+      payment_links: {
+        Row: {
+          amount: number
+          created_at: string
+          id: string
+          installment_months: number | null
+          payment_link_ref: string | null
+          payment_link_url: string | null
+          portone_order_id: string | null
+          quotation_id: string
+          status: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          id?: string
+          installment_months?: number | null
+          payment_link_ref?: string | null
+          payment_link_url?: string | null
+          portone_order_id?: string | null
+          quotation_id: string
+          status?: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          id?: string
+          installment_months?: number | null
+          payment_link_ref?: string | null
+          payment_link_url?: string | null
+          portone_order_id?: string | null
+          quotation_id?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payment_links_quotation_id_fkey"
+            columns: ["quotation_id"]
+            isOneToOne: false
+            referencedRelation: "quotations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       products: {
         Row: {
           base_price: number | null
