@@ -80,8 +80,10 @@ function numberToThaiText(num: number): string {
 function pageHeader(contractNumber: string): string {
   return `
   <div class="header">
-    <div class="header-right">
+    <div class="header-left">
       <img src="${SELLER.logo}" class="logo" alt="Optima" />
+    </div>
+    <div class="header-right">
       <div class="th">${SELLER.company_th}</div>
       <div class="th">65 ถนนวิชิตสงคราม ตำบลตลาดเหนือ</div>
       <div class="th">อำเภอเมือง จังหวัดภูเก็ต 83000</div>
