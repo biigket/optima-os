@@ -384,8 +384,8 @@ export default function CreateContractWizard({ open, onOpenChange, onCreated, ed
     <Dialog open={open} onOpenChange={v => { if (!v) resetForm(); onOpenChange(v); }}>
       <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>สร้างหนังสือสัญญาซื้อขาย (ND2)</DialogTitle>
-          <DialogDescription>เลือกใบเสนอราคาที่ลูกค้าเซ็นแล้วเพื่อออกสัญญา</DialogDescription>
+          <DialogTitle>{isEditMode ? 'แก้ไขหนังสือสัญญาซื้อขาย' : 'สร้างหนังสือสัญญาซื้อขาย (ND2)'}</DialogTitle>
+          <DialogDescription>{isEditMode ? `แก้ไขข้อมูลสัญญา ${editContract?.contract_number}` : 'เลือกใบเสนอราคาที่ลูกค้าเซ็นแล้วเพื่อออกสัญญา'}</DialogDescription>
         </DialogHeader>
 
         {/* Stepper */}
