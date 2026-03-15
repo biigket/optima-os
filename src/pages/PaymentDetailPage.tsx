@@ -498,6 +498,15 @@ export default function PaymentDetailPage() {
                         </label>
                       </div>
                     </div>
+                    <div className="space-y-1.5">
+                      <p className="text-sm font-medium text-foreground">ช่องทางชำระ</p>
+                      <select value={`${pmtChannel}|${pmtMethod}`} onChange={e => { const [c, m] = e.target.value.split('|'); setPmtChannel(c); setPmtMethod(m); }} className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+                        <option value="GBPRIMEPAY|GBPRIMEPAY_CREDIT_CARD">บัตรเครดิต (GBPrimePay)</option>
+                        <option value="GBPRIMEPAY|GBPRIMEPAY_QR_CODE">QR Code (GBPrimePay)</option>
+                        <option value="GBPRIMEPAY|GBPRIMEPAY_DIRECT_DEBIT">Direct Debit (GBPrimePay)</option>
+                        <option value="GBPRIMEPAY|GBPRIMEPAY_BILL_PAYMENT">Bill Payment (GBPrimePay)</option>
+                      </select>
+                    </div>
                   </div>
                   <div className="text-center">
                     <Button className="gap-1.5" disabled={creatingLink} onClick={async () => {
@@ -508,7 +517,7 @@ export default function PaymentDetailPage() {
                         const res = await fetch(fnUrl, {
                           method: 'POST',
                           headers: { 'Content-Type': 'application/json', 'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY },
-                          body: JSON.stringify({ quotation_id: qt.id, installment_months: installmentMonths || undefined, custom_amount: amt, notify_by_email: notifyEmail, notify_by_phone: notifyPhone }),
+                          body: JSON.stringify({ quotation_id: qt.id, installment_months: installmentMonths || undefined, custom_amount: amt, notify_by_email: notifyEmail, notify_by_phone: notifyPhone, pmt_channel: pmtChannel, pmt_method: pmtMethod }),
                         });
                         const result = await res.json();
                         if (result.success) {
