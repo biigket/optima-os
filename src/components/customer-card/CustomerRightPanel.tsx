@@ -13,6 +13,7 @@ import {
 } from '@/data/customerCardMockData';
 import { getInstallationsForAccount } from '@/data/installBaseMockData';
 import { supabase } from '@/integrations/supabase/client';
+import { getPaymentConditionLabel } from '@/components/quotations/PaymentConditionSelector';
 import StatusBadge from '@/components/ui/StatusBadge';
 
 interface Props {
