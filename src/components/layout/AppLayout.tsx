@@ -13,6 +13,13 @@ import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 
 const navGroups = [
   {
+    label: 'ANALYTICS',
+    phase: 1,
+    items: [
+      { to: '/', icon: LayoutDashboard, label: 'แดชบอร์ด' },
+    ],
+  },
+  {
     label: 'CRM',
     phase: 1,
     items: [
