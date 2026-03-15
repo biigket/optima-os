@@ -102,7 +102,10 @@ Deno.serve(async (req) => {
     const normalizedPhone = normalizeThaiPhone(sms_phone || account?.phone);
     console.log('Phone raw:', sms_phone || account?.phone, '-> normalized:', normalizedPhone);
 
-    let description = `ชำระเงินสำหรับ ${qt.product || 'สินค้า'} - ${qt.qt_number || ''}`;
+    let description = `ชำระเงิน ${qt.qt_number || ''}`;
+    if (remark) {
+      description += ` - ${remark}`;
+    }
     if (installment_months && installment_months > 1) {
       description += ` (ผ่อน ${installment_months} เดือน)`;
     }
