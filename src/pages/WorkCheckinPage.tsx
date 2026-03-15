@@ -195,7 +195,7 @@ export default function WorkCheckinPage() {
         <h1 className="text-2xl font-bold text-foreground">เช็คอินทำงาน</h1>
         <p className="text-4xl font-mono font-bold text-primary">{timeStr}</p>
         <p className="text-sm text-muted-foreground">{dateStr}</p>
-        <p className="text-sm font-medium text-foreground">{currentUser?.name} • {currentUser?.department || 'ไม่ระบุแผนก'}</p>
+        <p className="text-sm font-medium text-foreground">{currentUser?.name}</p>
       </div>
 
       {/* Today's status */}
