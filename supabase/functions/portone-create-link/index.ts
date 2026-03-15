@@ -130,8 +130,8 @@ Deno.serve(async (req) => {
         email_address: account?.email || "",
         phone_number: account?.phone || "",
       },
-      notify_by_email: !!(account?.email),
-      notify_by_phone: !!(account?.phone),
+      notify_by_email: notify_by_email !== undefined ? notify_by_email : !!(account?.email),
+      notify_by_phone: notify_by_phone !== undefined ? notify_by_phone : !!(account?.phone),
       notes: [
         { key: "quotation_id", value: quotation_id },
         { key: "qt_number", value: qt.qt_number || "" },
