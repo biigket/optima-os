@@ -15,7 +15,6 @@ import VisitReportsPage from "@/pages/VisitReportsPage";
 import DemosPage from "@/pages/DemosPage";
 import TasksPage from "@/pages/TasksPage";
 import CalendarPage from "@/pages/CalendarPage";
-import DevicesPage from "@/pages/DevicesPage";
 import ConsumablesPage from "@/pages/ConsumablesPage";
 import MaintenancePage from "@/pages/MaintenancePage";
 import ForecastPage from "@/pages/ForecastPage";
