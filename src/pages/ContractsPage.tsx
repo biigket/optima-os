@@ -150,8 +150,9 @@ export default function ContractsPage() {
 
       <CreateContractWizard
         open={wizardOpen}
-        onOpenChange={setWizardOpen}
+        onOpenChange={(v) => { setWizardOpen(v); if (!v) setEditingContract(null); }}
         onCreated={() => refetch()}
+        editContract={editingContract}
       />
     </div>
   );
