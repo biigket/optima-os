@@ -472,26 +472,6 @@ export default function PaymentDetailPage() {
                       <p className="text-[10px] text-muted-foreground">หากไม่กรอก จะใช้ยอดจากใบเสนอราคา (฿{(qt.price || 0).toLocaleString()})</p>
                     </div>
                     <div className="space-y-1.5">
-                      <p className="text-sm font-medium text-foreground">เลือกรูปแบบชำระ</p>
-                      <div className="flex flex-wrap gap-2">
-                        {[
-                          { value: 0, label: 'เต็มจำนวน' },
-                          { value: 3, label: 'ผ่อน 3 เดือน' },
-                          { value: 6, label: 'ผ่อน 6 เดือน' },
-                          { value: 10, label: 'ผ่อน 10 เดือน' },
-                        ].map(opt => (
-                          <Button key={opt.value} size="sm" variant={installmentMonths === opt.value ? 'default' : 'outline'} className="text-xs" onClick={() => setInstallmentMonths(opt.value)}>
-                            {opt.label}
-                          </Button>
-                        ))}
-                      </div>
-                      {installmentMonths > 0 && (
-                        <p className="text-xs text-primary font-medium mt-1">
-                          ยอดต่อเดือน ≈ ฿{Math.ceil((Number(customAmount) || qt.price || 0) / installmentMonths).toLocaleString()} / เดือน
-                        </p>
-                      )}
-                    </div>
-                    <div className="space-y-1.5">
                       <p className="text-sm font-medium text-foreground">แจ้งเตือนลูกค้า</p>
                       <div className="flex items-center gap-4">
                         <label className="flex items-center gap-1.5 text-sm cursor-pointer">
