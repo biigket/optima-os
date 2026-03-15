@@ -327,16 +327,7 @@ function generateHTML(contract: any, account: any, contacts: any[]): string {
 
 <!-- PAGE 4 -->
 <div class="page">
-  <div class="header">
-    <div class="header-right">
-      <div class="th">${SELLER.company_th}</div>
-      <div class="th">65 ถนนวิชิตสงคราม ตำบลตลาดเหนือ</div>
-      <div class="en">อำเภอเมือง จังหวัดภูเก็ต 83000</div>
-      <div class="en">${SELLER.company_en}</div>
-      <div class="en">${SELLER.address_en}</div>
-    </div>
-  </div>
-  <div class="contract-no">สัญญาเลขที่ ${contractNumber}</div>
+  ${pageHeader(contractNumber)}
   
   <div class="body-text indent">
     นอกจากนี้ ผู้ซื้อตกลงยินยอมและให้คำมั่นสัญญาว่า ผู้ซื้อจะไม่ขาย จำหน่ายจ่ายโอน ยักย้ายถ่ายเทเปลี่ยนแปลง
