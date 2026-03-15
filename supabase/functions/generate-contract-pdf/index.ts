@@ -535,16 +535,7 @@ function generateHTML(contract: any, account: any, contacts: any[]): string {
 
 <!-- PAGE 10: Appendix -->
 <div class="page">
-  <div class="header">
-    <div class="header-right">
-      <div class="th">${SELLER.company_th}</div>
-      <div class="th">65 ถนนวิชิตสงคราม ตำบลตลาดเหนือ</div>
-      <div class="th">อำเภอเมือง จังหวัดภูเก็ต 83000</div>
-      <div class="en">${SELLER.company_en}</div>
-      <div class="en">${SELLER.address_en}</div>
-    </div>
-  </div>
-  <div class="contract-no">สัญญาเลขที่ ${contractNumber}</div>
+  ${pageHeader(contractNumber)}
   
   <div class="body-text">
     <strong>ข้อ1.</strong> อ้างถึงสัญญาซื้อขายเลขที่ <strong>${contractNumber}</strong> ลงวันที่ <strong>${fmtDateThai(contractDate)}</strong> ตามที่ ${SELLER.company_th}
