@@ -32,9 +32,6 @@ export default function PaymentDetailPage() {
   const [creatingLink, setCreatingLink] = useState(false);
   const [installmentMonths, setInstallmentMonths] = useState<number>(0);
   const [customAmount, setCustomAmount] = useState<string>('');
-  const [notifyEmail, setNotifyEmail] = useState(true);
-  const [notifyPhone, setNotifyPhone] = useState(true);
-  const [smsPhone, setSmsPhone] = useState('');
   const [syncingLinks, setSyncingLinks] = useState(false);
   const [pmtChannel, setPmtChannel] = useState('GBPRIMEPAY');
   const [pmtMethod, setPmtMethod] = useState('GBPRIMEPAY_CREDIT_CARD');
