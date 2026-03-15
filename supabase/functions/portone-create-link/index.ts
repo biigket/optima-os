@@ -20,7 +20,7 @@ Deno.serve(async (req) => {
       throw new Error('PortOne credentials not configured');
     }
 
-    const { quotation_id, installment_months, custom_amount, notify_by_email, notify_by_phone } = await req.json();
+    const { quotation_id, installment_months, custom_amount, notify_by_email, notify_by_phone, pmt_channel, pmt_method } = await req.json();
     if (!quotation_id) throw new Error('quotation_id is required');
 
     const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
@@ -138,7 +138,7 @@ Deno.serve(async (req) => {
       ],
       send_immediately: false,
       chosen_payment_methods: [
-        { payment_channel: "GBPRIMEPAY", payment_method: "GBPRIMEPAY_CREDIT_CARD" },
+        { payment_channel: pmt_channel || "GBPRIMEPAY", payment_method: pmt_method || "GBPRIMEPAY_CREDIT_CARD" },
       ],
       environment: "live",
     };
