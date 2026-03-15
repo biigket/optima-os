@@ -41,6 +41,19 @@ export default function ConsumablesPage() {
     mockConsumableInstallations.push(item);
   }
 
+  function handleToggleDepleted(id: string) {
+    setItems(prev => prev.map(item => {
+      if (item.id === id) {
+        const updated = { ...item, depleted: !item.depleted };
+        // sync mock
+        const idx = mockConsumableInstallations.findIndex(m => m.id === id);
+        if (idx !== -1) mockConsumableInstallations[idx] = updated;
+        return updated;
+      }
+      return item;
+    }));
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
