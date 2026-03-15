@@ -359,28 +359,63 @@ export default function PaymentDetailPage() {
                   <p className="text-xs text-muted-foreground">
                     Ref: {(qt as any).payment_link_ref || '-'} • สามารถส่งลิงก์นี้ให้ลูกค้าเพื่อชำระผ่านบัตรเครดิตได้โดยตรง
                   </p>
-                  <Button size="sm" variant="outline" className="gap-1.5 text-xs" disabled={creatingLink} onClick={async () => {
-                    setCreatingLink(true);
-                    try {
-                      const fnUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/portone-create-link`;
-                      const res = await fetch(fnUrl, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json', 'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY },
-                        body: JSON.stringify({ quotation_id: qt.id }),
-                      });
-                      const result = await res.json();
-                      if (result.success) {
-                        toast.success('สร้างลิงก์ใหม่สำเร็จ');
-                        refetch();
-                      } else {
-                        toast.error(result.error || 'สร้างลิงก์ไม่สำเร็จ');
-                      }
-                    } catch (e) { toast.error('เกิดข้อผิดพลาด'); }
-                    setCreatingLink(false);
-                  }}>
-                    {creatingLink ? <Loader2 size={12} className="animate-spin" /> : <Link2 size={12} />}
-                    สร้างลิงก์ใหม่
-                  </Button>
+                   {/* Regenerate link with custom amount */}
+                  <div className="space-y-2 mt-2 p-3 rounded-lg bg-muted/50 border border-border">
+                    <p className="text-xs font-medium text-foreground">สร้างลิงก์ใหม่</p>
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs text-muted-foreground whitespace-nowrap">ยอดเงิน</span>
+                      <input
+                        type="number"
+                        min="1"
+                        placeholder={String(qt.price || 0)}
+                        value={customAmount}
+                        onChange={e => setCustomAmount(e.target.value)}
+                        className="flex h-8 w-32 rounded-md border border-input bg-background px-2 py-1 text-xs ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                      />
+                      <span className="text-xs text-muted-foreground">฿</span>
+                    </div>
+                    <div className="flex flex-wrap gap-1.5">
+                      {[
+                        { value: 0, label: 'เต็มจำนวน' },
+                        { value: 3, label: '3 เดือน' },
+                        { value: 6, label: '6 เดือน' },
+                        { value: 10, label: '10 เดือน' },
+                      ].map(opt => (
+                        <Button key={opt.value} size="sm" variant={installmentMonths === opt.value ? 'default' : 'outline'} className="text-[10px] h-6 px-2" onClick={() => setInstallmentMonths(opt.value)}>
+                          {opt.label}
+                        </Button>
+                      ))}
+                    </div>
+                    {installmentMonths > 0 && (
+                      <p className="text-[10px] text-primary font-medium">
+                        ≈ ฿{Math.ceil((Number(customAmount) || qt.price || 0) / installmentMonths).toLocaleString()} / เดือน
+                      </p>
+                    )}
+                    <Button size="sm" variant="outline" className="gap-1.5 text-xs w-full" disabled={creatingLink} onClick={async () => {
+                      const amt = Number(customAmount) || undefined;
+                      setCreatingLink(true);
+                      try {
+                        const fnUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/portone-create-link`;
+                        const res = await fetch(fnUrl, {
+                          method: 'POST',
+                          headers: { 'Content-Type': 'application/json', 'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY },
+                          body: JSON.stringify({ quotation_id: qt.id, installment_months: installmentMonths || undefined, custom_amount: amt }),
+                        });
+                        const result = await res.json();
+                        if (result.success) {
+                          toast.success('สร้างลิงก์ใหม่สำเร็จ');
+                          setCustomAmount('');
+                          refetch();
+                        } else {
+                          toast.error(result.error || 'สร้างลิงก์ไม่สำเร็จ');
+                        }
+                      } catch (e) { toast.error('เกิดข้อผิดพลาด'); }
+                      setCreatingLink(false);
+                    }}>
+                      {creatingLink ? <Loader2 size={12} className="animate-spin" /> : <Link2 size={12} />}
+                      สร้างลิงก์ใหม่
+                    </Button>
+                  </div>
                 </div>
               ) : (
                 <div className="space-y-4 py-2">
