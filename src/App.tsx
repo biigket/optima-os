@@ -44,6 +44,7 @@ import InstallBaseDetailPage from "@/pages/InstallBaseDetailPage";
 import PaymentResultPage from "@/pages/PaymentResultPage";
 import WorkCheckinPage from "@/pages/WorkCheckinPage";
 import AttendanceSummaryPage from "@/pages/AttendanceSummaryPage";
+import SettingsPage from "@/pages/SettingsPage";
 import { MockAuthProvider } from "@/hooks/useMockAuth";
 
 const queryClient = new QueryClient();
