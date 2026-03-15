@@ -488,7 +488,7 @@ export default function PaymentDetailPage() {
                         const res = await fetch(fnUrl, {
                           method: 'POST',
                           headers: { 'Content-Type': 'application/json', 'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY },
-                          body: JSON.stringify({ quotation_id: qt.id, installment_months: installmentMonths || undefined, custom_amount: amt, notify_by_email: false, notify_by_phone: false, pmt_channel: pmtChannel, pmt_method: pmtMethod }),
+                          body: JSON.stringify({ quotation_id: qt.id, installment_months: installmentMonths || undefined, custom_amount: amt, notify_by_email: false, notify_by_phone: false, pmt_channel: pmtChannel, pmt_method: pmtMethod, remark: linkRemark || undefined }),
                         });
                         const result = await res.json();
                         if (result.success) {
