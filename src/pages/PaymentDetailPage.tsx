@@ -31,6 +31,7 @@ export default function PaymentDetailPage() {
   const [depositTarget, setDepositTarget] = useState<any>(null);
   const [creatingLink, setCreatingLink] = useState(false);
   const [installmentMonths, setInstallmentMonths] = useState<number>(0);
+  const [linkRemark, setLinkRemark] = useState('');
   const [customAmount, setCustomAmount] = useState<string>('');
   const [syncingLinks, setSyncingLinks] = useState(false);
   const [pmtChannel, setPmtChannel] = useState('GBPRIMEPAY');
@@ -401,6 +402,16 @@ export default function PaymentDetailPage() {
                         </optgroup>
                       </select>
                     </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs text-muted-foreground whitespace-nowrap">หมายเหตุ</span>
+                      <input
+                        type="text"
+                        placeholder="เช่น รูดครั้งที่ 1, มัดจำ"
+                        value={linkRemark}
+                        onChange={e => setLinkRemark(e.target.value)}
+                        className="flex h-8 w-full rounded-md border border-input bg-background px-2 py-1 text-xs ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                      />
+                    </div>
                     <Button size="sm" variant="outline" className="gap-1.5 text-xs w-full" disabled={creatingLink} onClick={async () => {
                       const amt = Number(customAmount) || undefined;
                       setCreatingLink(true);
@@ -409,7 +420,7 @@ export default function PaymentDetailPage() {
                         const res = await fetch(fnUrl, {
                           method: 'POST',
                           headers: { 'Content-Type': 'application/json', 'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY },
-                          body: JSON.stringify({ quotation_id: qt.id, installment_months: installmentMonths || undefined, custom_amount: amt, notify_by_email: false, notify_by_phone: false, pmt_channel: pmtChannel, pmt_method: pmtMethod }),
+                          body: JSON.stringify({ quotation_id: qt.id, installment_months: installmentMonths || undefined, custom_amount: amt, notify_by_email: false, notify_by_phone: false, pmt_channel: pmtChannel, pmt_method: pmtMethod, remark: linkRemark || undefined }),
                         });
                         const result = await res.json();
                         if (result.success) {
@@ -457,6 +468,16 @@ export default function PaymentDetailPage() {
                         </optgroup>
                       </select>
                     </div>
+                    <div className="space-y-1.5">
+                      <p className="text-sm font-medium text-foreground">หมายเหตุ</p>
+                      <input
+                        type="text"
+                        placeholder="เช่น รูดครั้งที่ 1, มัดจำ"
+                        value={linkRemark}
+                        onChange={e => setLinkRemark(e.target.value)}
+                        className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                      />
+                    </div>
                   </div>
                   <div className="text-center">
                     <Button className="gap-1.5" disabled={creatingLink} onClick={async () => {
@@ -467,7 +488,7 @@ export default function PaymentDetailPage() {
                         const res = await fetch(fnUrl, {
                           method: 'POST',
                           headers: { 'Content-Type': 'application/json', 'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY },
-                          body: JSON.stringify({ quotation_id: qt.id, installment_months: installmentMonths || undefined, custom_amount: amt, notify_by_email: false, notify_by_phone: false, pmt_channel: pmtChannel, pmt_method: pmtMethod }),
+                          body: JSON.stringify({ quotation_id: qt.id, installment_months: installmentMonths || undefined, custom_amount: amt, notify_by_email: false, notify_by_phone: false, pmt_channel: pmtChannel, pmt_method: pmtMethod, remark: linkRemark || undefined }),
                         });
                         const result = await res.json();
                         if (result.success) {
