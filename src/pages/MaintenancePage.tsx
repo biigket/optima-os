@@ -1,50 +1,180 @@
-import { Wrench, Building2, Calendar, User } from 'lucide-react';
+import { useState, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import StatusBadge from '@/components/ui/StatusBadge';
-import { mockWorkItems, getAccountById, getUserById } from '@/data/mockData';
+import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import {
+  Wrench, Search, Plus, AlertTriangle, Clock, CheckCircle, PauseCircle,
+  Building2, Calendar,
+} from 'lucide-react';
+import {
+  mockServiceTickets, type ServiceTicket,
+  ticketStatusLabels, ticketStatusColors,
+  ticketPriorityLabels, ticketPriorityColors,
+  type TicketStatus,
+} from '@/data/serviceTicketMockData';
+import CreateTicketWizard from '@/components/maintenance/CreateTicketWizard';
+
+const statusIcons: Record<TicketStatus, React.ReactNode> = {
+  OPEN: <AlertTriangle size={14} />,
+  IN_PROGRESS: <Clock size={14} />,
+  WAITING_PART: <PauseCircle size={14} />,
+  RESOLVED: <CheckCircle size={14} />,
+  CLOSED: <CheckCircle size={14} />,
+};
 
 export default function MaintenancePage() {
-  const tickets = mockWorkItems.filter(w => w.type === 'SERVICE_TICKET' || w.type === 'INSTALLATION');
+  const navigate = useNavigate();
+  const [tickets, setTickets] = useState<ServiceTicket[]>(mockServiceTickets);
+  const [search, setSearch] = useState('');
+  const [statusFilter, setStatusFilter] = useState('ALL');
+  const [showWizard, setShowWizard] = useState(false);
+
+  const filtered = useMemo(() => {
+    return tickets.filter(t => {
+      const matchSearch = !search ||
+        t.clinic.toLowerCase().includes(search.toLowerCase()) ||
+        t.ticketNumber.toLowerCase().includes(search.toLowerCase()) ||
+        t.serialNumber.toLowerCase().includes(search.toLowerCase()) ||
+        t.itemName.toLowerCase().includes(search.toLowerCase());
+      const matchStatus = statusFilter === 'ALL' || t.status === statusFilter;
+      return matchSearch && matchStatus;
+    });
+  }, [tickets, search, statusFilter]);
+
+  const openCount = tickets.filter(t => t.status === 'OPEN').length;
+  const inProgressCount = tickets.filter(t => t.status === 'IN_PROGRESS' || t.status === 'WAITING_PART').length;
+  const resolvedCount = tickets.filter(t => t.status === 'RESOLVED' || t.status === 'CLOSED').length;
+  const urgentCount = tickets.filter(t => t.priority === 'URGENT' || t.priority === 'HIGH').length;
+
+  const kpis = [
+    { label: 'เปิดอยู่', value: openCount, icon: <AlertTriangle size={20} />, color: 'text-blue-600 bg-blue-50' },
+    { label: 'กำลังดำเนินการ', value: inProgressCount, icon: <Clock size={20} />, color: 'text-amber-600 bg-amber-50' },
+    { label: 'แก้ไขแล้ว/ปิด', value: resolvedCount, icon: <CheckCircle size={20} />, color: 'text-emerald-600 bg-emerald-50' },
+    { label: 'ด่วน/สูง', value: urgentCount, icon: <AlertTriangle size={20} />, color: 'text-destructive bg-destructive/10' },
+  ];
 
   return (
     <div className="space-y-6 animate-fade-in">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-foreground">ซ่อมบำรุง</h1>
-          <p className="text-sm text-muted-foreground">งานซ่อมบำรุงและติดตั้ง {tickets.length} รายการ</p>
+          <p className="text-sm text-muted-foreground">จัดการใบแจ้งซ่อมทั้งหมด {tickets.length} รายการ</p>
         </div>
-        <Button size="sm" className="gap-1.5"><Wrench size={14} /> เปิดใบแจ้งซ่อม</Button>
+        <Button size="sm" className="gap-1.5" onClick={() => setShowWizard(true)}>
+          <Plus size={14} /> เปิดใบแจ้งซ่อม
+        </Button>
       </div>
 
-      <div className="space-y-3">
-        {tickets.map(ticket => {
-          const account = getAccountById(ticket.linkedAccountId);
-          const assignee = getUserById(ticket.assigneeUserId);
-          return (
-            <div key={ticket.workItemId} className="rounded-lg border bg-card p-4 flex items-start gap-4 hover:shadow-sm transition-shadow">
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-destructive/10 text-destructive shrink-0">
-                <Wrench size={20} />
+      {/* KPI Cards */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        {kpis.map(k => (
+          <Card key={k.label}>
+            <CardContent className="p-4 flex items-center gap-3">
+              <div className={`h-10 w-10 rounded-lg flex items-center justify-center ${k.color}`}>{k.icon}</div>
+              <div>
+                <p className="text-2xl font-bold">{k.value}</p>
+                <p className="text-xs text-muted-foreground">{k.label}</p>
               </div>
-              <div className="flex-1 min-w-0 space-y-2">
-                <div className="flex items-start justify-between">
-                  <div>
-                    <p className="text-sm font-semibold text-foreground">{ticket.title}</p>
-                    <div className="flex items-center gap-2 mt-1">
-                      <StatusBadge status={ticket.status} />
-                      <StatusBadge status={ticket.priority} />
-                    </div>
-                  </div>
-                </div>
-                <div className="flex items-center gap-4 text-xs text-muted-foreground">
-                  <span className="flex items-center gap-1"><Building2 size={12} /> {account?.clinic_name}</span>
-                  <span className="flex items-center gap-1"><User size={12} /> {assignee?.name}</span>
-                  <span className="flex items-center gap-1"><Calendar size={12} /> {new Date(ticket.dueDateTime).toLocaleDateString('th-TH')}</span>
-                </div>
-              </div>
-            </div>
-          );
-        })}
+            </CardContent>
+          </Card>
+        ))}
       </div>
+
+      {/* Filters */}
+      <div className="flex flex-col sm:flex-row gap-3">
+        <div className="relative flex-1">
+          <Search size={14} className="absolute left-3 top-3 text-muted-foreground" />
+          <Input
+            placeholder="ค้นหา Ticket, คลินิก, S/N..."
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            className="pl-9"
+          />
+        </div>
+        <Select value={statusFilter} onValueChange={setStatusFilter}>
+          <SelectTrigger className="w-full sm:w-48">
+            <SelectValue placeholder="สถานะ" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="ALL">ทุกสถานะ</SelectItem>
+            <SelectItem value="OPEN">เปิด</SelectItem>
+            <SelectItem value="IN_PROGRESS">กำลังดำเนินการ</SelectItem>
+            <SelectItem value="WAITING_PART">รออะไหล่</SelectItem>
+            <SelectItem value="RESOLVED">แก้ไขแล้ว</SelectItem>
+            <SelectItem value="CLOSED">ปิด</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
+      {/* Ticket Table */}
+      <Card>
+        <CardContent className="p-0">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>เลขที่</TableHead>
+                <TableHead>คลินิก</TableHead>
+                <TableHead className="hidden md:table-cell">อุปกรณ์</TableHead>
+                <TableHead className="hidden md:table-cell">S/N</TableHead>
+                <TableHead>สถานะ</TableHead>
+                <TableHead className="hidden sm:table-cell">ความเร่งด่วน</TableHead>
+                <TableHead className="hidden lg:table-cell">วันที่เปิด</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {filtered.length === 0 && (
+                <TableRow>
+                  <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">ไม่พบ Ticket</TableCell>
+                </TableRow>
+              )}
+              {filtered.map(t => (
+                <TableRow
+                  key={t.id}
+                  className="cursor-pointer hover:bg-accent/50"
+                  onClick={() => navigate(`/maintenance/${t.id}`)}
+                >
+                  <TableCell className="font-mono text-xs">{t.ticketNumber}</TableCell>
+                  <TableCell>
+                    <div className="flex items-center gap-1.5">
+                      <Building2 size={13} className="text-muted-foreground shrink-0" />
+                      <span className="text-sm">{t.clinic}</span>
+                    </div>
+                  </TableCell>
+                  <TableCell className="hidden md:table-cell text-sm">{t.itemName}</TableCell>
+                  <TableCell className="hidden md:table-cell font-mono text-xs">{t.serialNumber}</TableCell>
+                  <TableCell>
+                    <Badge className={`gap-1 text-xs ${ticketStatusColors[t.status]}`} variant="secondary">
+                      {statusIcons[t.status]}
+                      {ticketStatusLabels[t.status]}
+                    </Badge>
+                  </TableCell>
+                  <TableCell className="hidden sm:table-cell">
+                    <Badge className={`text-xs ${ticketPriorityColors[t.priority]}`} variant="secondary">
+                      {ticketPriorityLabels[t.priority]}
+                    </Badge>
+                  </TableCell>
+                  <TableCell className="hidden lg:table-cell text-xs text-muted-foreground">
+                    <div className="flex items-center gap-1">
+                      <Calendar size={12} />
+                      {new Date(t.createdAt).toLocaleDateString('th-TH')}
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
+
+      <CreateTicketWizard
+        open={showWizard}
+        onOpenChange={setShowWizard}
+        onCreated={(ticket) => setTickets(prev => [...prev, ticket])}
+      />
     </div>
   );
 }
