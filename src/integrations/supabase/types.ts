@@ -905,6 +905,30 @@ export type Database = {
           },
         ]
       }
+      role_permissions: {
+        Row: {
+          can_view: boolean
+          created_at: string | null
+          id: string
+          module_key: string
+          role_key: string
+        }
+        Insert: {
+          can_view?: boolean
+          created_at?: string | null
+          id?: string
+          module_key: string
+          role_key: string
+        }
+        Update: {
+          can_view?: boolean
+          created_at?: string | null
+          id?: string
+          module_key?: string
+          role_key?: string
+        }
+        Relationships: []
+      }
       visit_plans: {
         Row: {
           account_id: string

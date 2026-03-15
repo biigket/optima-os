@@ -5,102 +5,100 @@ import {
   ListTodo, Calendar, Cpu, Package, Wrench, ChevronLeft, ChevronRight, Bell,
   FileSpreadsheet, ShoppingCart, Warehouse, Receipt, CreditCard,
   TrendingUp, BarChart3,
-  Lock, LogOut, Menu, X, ClipboardCheck, Fingerprint, BarChart
+  Lock, LogOut, Menu, X, ClipboardCheck, Fingerprint, BarChart, Settings
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useMockAuth } from '@/hooks/useMockAuth';
-import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import { useRolePermissions, ROLE_LABELS } from '@/hooks/useRolePermissions';
+import { Sheet, SheetContent } from '@/components/ui/sheet';
 
 const navGroups = [
   {
     label: 'ANALYTICS',
-    phase: 1,
     items: [
-      { to: '/', icon: LayoutDashboard, label: 'แดชบอร์ด' },
+      { to: '/', icon: LayoutDashboard, label: 'แดชบอร์ด', moduleKey: 'dashboard' },
     ],
   },
   {
     label: 'CRM',
-    phase: 1,
     items: [
-      { to: '/leads', icon: Users, label: 'ลูกค้า' },
-      { to: '/opportunities', icon: Target, label: 'โอกาสขาย' },
+      { to: '/leads', icon: Users, label: 'ลูกค้า', moduleKey: 'leads' },
+      { to: '/opportunities', icon: Target, label: 'โอกาสขาย', moduleKey: 'opportunities' },
     ],
   },
   {
     label: 'PRE-CRM',
-    phase: 1,
     items: [
-      { to: '/weekly-plan', icon: CalendarDays, label: 'แผนเยี่ยมรายสัปดาห์' },
-      { to: '/visit-checkin', icon: MapPin, label: 'เช็คอินเยี่ยมลูกค้า' },
-      { to: '/visit-reports', icon: FileText, label: 'รายงานเยี่ยมลูกค้า' },
+      { to: '/weekly-plan', icon: CalendarDays, label: 'แผนเยี่ยมรายสัปดาห์', moduleKey: 'weekly-plan' },
+      { to: '/visit-checkin', icon: MapPin, label: 'เช็คอินเยี่ยมลูกค้า', moduleKey: 'visit-checkin' },
+      { to: '/visit-reports', icon: FileText, label: 'รายงานเยี่ยมลูกค้า', moduleKey: 'visit-reports' },
     ],
   },
   {
     label: 'SALES OPERATION',
-    phase: 1,
     items: [
-      { to: '/demos', icon: Presentation, label: 'สาธิตสินค้า' },
+      { to: '/demos', icon: Presentation, label: 'สาธิตสินค้า', moduleKey: 'demos' },
     ],
   },
   {
     label: 'ATTENDANCE',
-    phase: 1,
     items: [
-      { to: '/work-checkin', icon: Fingerprint, label: 'เช็คอินทำงาน' },
-      { to: '/attendance', icon: BarChart, label: 'สรุปการเข้างาน' },
+      { to: '/work-checkin', icon: Fingerprint, label: 'เช็คอินทำงาน', moduleKey: 'work-checkin' },
+      { to: '/attendance', icon: BarChart, label: 'สรุปการเข้างาน', moduleKey: 'attendance' },
     ],
   },
   {
     label: 'OPERATION',
-    phase: 1,
     items: [
-      { to: '/tasks', icon: ListTodo, label: 'งาน' },
-      { to: '/calendar', icon: Calendar, label: 'ปฏิทิน' },
+      { to: '/tasks', icon: ListTodo, label: 'งาน', moduleKey: 'tasks' },
+      { to: '/calendar', icon: Calendar, label: 'ปฏิทิน', moduleKey: 'calendar' },
     ],
   },
   {
     label: 'INSTALLED BASE',
-    phase: 1,
     items: [
-      { to: '/install-base', icon: Cpu, label: 'Install Base' },
-      { to: '/consumables', icon: Package, label: 'วัสดุสิ้นเปลือง' },
+      { to: '/install-base', icon: Cpu, label: 'Install Base', moduleKey: 'install-base' },
+      { to: '/consumables', icon: Package, label: 'วัสดุสิ้นเปลือง', moduleKey: 'consumables' },
     ],
   },
   {
     label: 'SERVICE',
-    phase: 1,
     items: [
-      { to: '/maintenance', icon: Wrench, label: 'ซ่อมบำรุง' },
-      { to: '/qc-stock', icon: ClipboardCheck, label: 'QC สินค้า/สถานะสินค้า' },
+      { to: '/maintenance', icon: Wrench, label: 'ซ่อมบำรุง', moduleKey: 'maintenance' },
+      { to: '/qc-stock', icon: ClipboardCheck, label: 'QC สินค้า/สถานะสินค้า', moduleKey: 'qc-stock' },
     ],
   },
   {
     label: 'ERP',
-    phase: 1,
     items: [
-      { to: '/quotations', icon: FileSpreadsheet, label: 'ใบเสนอราคา' },
-      { to: '/payments', icon: CreditCard, label: 'การชำระเงิน' },
-      { to: '/inventory', icon: Warehouse, label: 'คลังสินค้า' },
+      { to: '/quotations', icon: FileSpreadsheet, label: 'ใบเสนอราคา', moduleKey: 'quotations' },
+      { to: '/payments', icon: CreditCard, label: 'การชำระเงิน', moduleKey: 'payments' },
+      { to: '/inventory', icon: Warehouse, label: 'คลังสินค้า', moduleKey: 'inventory' },
     ],
   },
   {
     label: 'INTELLIGENCE',
-    phase: 1,
     items: [
-      { to: '/forecast', icon: TrendingUp, label: 'พยากรณ์' },
-      { to: '/analytics', icon: BarChart3, label: 'วิเคราะห์' },
+      { to: '/forecast', icon: TrendingUp, label: 'พยากรณ์', moduleKey: 'forecast' },
+      { to: '/analytics', icon: BarChart3, label: 'วิเคราะห์', moduleKey: 'analytics' },
+    ],
+  },
+  {
+    label: 'SYSTEM',
+    items: [
+      { to: '/settings', icon: Settings, label: 'ตั้งค่า', moduleKey: 'settings' },
     ],
   },
 ];
 
-function SidebarNav({ collapsed, onNavigate }: { collapsed: boolean; onNavigate?: () => void }) {
+function SidebarNav({ collapsed, onNavigate, canView }: { collapsed: boolean; onNavigate?: () => void; canView: (key: string) => boolean }) {
   const location = useLocation();
 
   return (
     <nav className="flex-1 overflow-y-auto py-3 px-2 space-y-4">
-      {navGroups.map((group, gi) => {
-        const prevGroup = navGroups[gi - 1];
+      {navGroups.map((group) => {
+        const visibleItems = group.items.filter((item) => canView(item.moduleKey));
+        if (visibleItems.length === 0) return null;
 
         return (
           <div key={group.label}>
@@ -110,31 +108,22 @@ function SidebarNav({ collapsed, onNavigate }: { collapsed: boolean; onNavigate?
               </p>
             )}
             <div className="space-y-0.5">
-              {group.items.map((item) => {
+              {visibleItems.map((item) => {
                 const isActive = location.pathname === item.to;
-                const isLocked = 'locked' in item && item.locked;
                 return (
                   <NavLink
                     key={item.to}
                     to={item.to}
                     className={cn(
                       'flex items-center gap-3 rounded-md px-2.5 py-2 text-sm font-medium transition-colors',
-                      isLocked
-                        ? 'text-sidebar-muted/40 cursor-default'
-                        : isActive
-                          ? 'bg-sidebar-accent text-sidebar-primary'
-                          : 'text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground'
+                      isActive
+                        ? 'bg-sidebar-accent text-sidebar-primary'
+                        : 'text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground'
                     )}
-                    onClick={(e) => {
-                      if (isLocked) { e.preventDefault(); return; }
-                      onNavigate?.();
-                    }}
+                    onClick={() => onNavigate?.()}
                   >
                     <item.icon size={18} />
-                    {!collapsed && (
-                      <span className="flex-1">{item.label}</span>
-                    )}
-                    {!collapsed && isLocked && <Lock size={12} className="text-sidebar-muted/40" />}
+                    {!collapsed && <span className="flex-1">{item.label}</span>}
                   </NavLink>
                 );
               })}
@@ -150,8 +139,10 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const { currentUser, logout } = useMockAuth();
+  const { canView, loading: permLoading } = useRolePermissions();
   const displayName = currentUser?.name || 'Guest';
   const initials = displayName.slice(0, 2).toUpperCase();
+  const positionLabel = currentUser?.position ? ROLE_LABELS[currentUser.position] || currentUser.position : '';
 
   return (
     <div className="flex h-screen overflow-hidden">
@@ -176,7 +167,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           </button>
         </div>
 
-        <SidebarNav collapsed={collapsed} />
+        <SidebarNav collapsed={collapsed} canView={canView} />
 
         <div className="border-t border-sidebar-border p-2">
           <div className={cn('flex items-center gap-3 rounded-md px-2.5 py-2', collapsed && 'justify-center')}>
@@ -187,6 +178,9 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
               <>
                 <div className="flex-1 min-w-0">
                   <p className="text-xs font-medium text-sidebar-accent-foreground truncate">{displayName}</p>
+                  {positionLabel && (
+                    <p className="text-[10px] text-sidebar-muted truncate">{positionLabel}</p>
+                  )}
                 </div>
                 <button onClick={logout} className="p-1 rounded hover:bg-sidebar-accent text-sidebar-muted" title="ออกจากระบบ">
                   <LogOut size={14} />
@@ -212,7 +206,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             </button>
           </div>
 
-          <SidebarNav collapsed={false} onNavigate={() => setMobileOpen(false)} />
+          <SidebarNav collapsed={false} onNavigate={() => setMobileOpen(false)} canView={canView} />
 
           <div className="border-t border-sidebar-border p-2">
             <div className="flex items-center gap-3 rounded-md px-2.5 py-2">
@@ -221,6 +215,9 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-xs font-medium text-sidebar-accent-foreground truncate">{displayName}</p>
+                {positionLabel && (
+                  <p className="text-[10px] text-sidebar-muted truncate">{positionLabel}</p>
+                )}
               </div>
               <button onClick={() => { logout(); setMobileOpen(false); }} className="p-1 rounded hover:bg-sidebar-accent text-sidebar-muted" title="ออกจากระบบ">
                 <LogOut size={14} />
