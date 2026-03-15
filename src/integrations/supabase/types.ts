@@ -674,6 +674,7 @@ export type Database = {
           payment_link_url: string | null
           portone_order_id: string | null
           quotation_id: string
+          remark: string | null
           status: string
         }
         Insert: {
@@ -685,6 +686,7 @@ export type Database = {
           payment_link_url?: string | null
           portone_order_id?: string | null
           quotation_id: string
+          remark?: string | null
           status?: string
         }
         Update: {
@@ -696,6 +698,7 @@ export type Database = {
           payment_link_url?: string | null
           portone_order_id?: string | null
           quotation_id?: string
+          remark?: string | null
           status?: string
         }
         Relationships: [
