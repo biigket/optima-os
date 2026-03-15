@@ -96,7 +96,7 @@ export default function ContractsPage() {
                     <div className="flex-1">
                       <div className="flex items-center gap-2">
                         <span className="font-medium text-sm">{c.contract_number}</span>
-                        <StatusBadge status={st.label} variant={st.variant as any} />
+                        <StatusBadge status={c.status || 'DRAFT'} />
                       </div>
                       <div className="flex items-center gap-3 mt-1 text-xs text-muted-foreground">
                         <span className="flex items-center gap-1">
