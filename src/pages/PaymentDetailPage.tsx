@@ -510,6 +510,18 @@ export default function PaymentDetailPage() {
                           แจ้งเตือนทาง SMS
                         </label>
                       </div>
+                      {notifyPhone && (
+                        <div className="flex items-center gap-2 mt-1">
+                          <span className="text-sm text-muted-foreground whitespace-nowrap">เบอร์ SMS</span>
+                          <input
+                            type="tel"
+                            placeholder={account?.phone || '08x-xxx-xxxx'}
+                            value={smsPhone}
+                            onChange={e => setSmsPhone(e.target.value)}
+                            className="flex h-9 w-56 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                          />
+                        </div>
+                      )}
                     </div>
                     <div className="space-y-1.5">
                       <p className="text-sm font-medium text-foreground">ช่องทางชำระ</p>
