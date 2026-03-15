@@ -31,6 +31,7 @@ export default function PaymentDetailPage() {
   const [depositTarget, setDepositTarget] = useState<any>(null);
   const [creatingLink, setCreatingLink] = useState(false);
   const [installmentMonths, setInstallmentMonths] = useState<number>(0);
+  const [linkRemark, setLinkRemark] = useState('');
   const [customAmount, setCustomAmount] = useState<string>('');
   const [syncingLinks, setSyncingLinks] = useState(false);
   const [pmtChannel, setPmtChannel] = useState('GBPRIMEPAY');
