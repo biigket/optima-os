@@ -22,6 +22,13 @@ Deno.serve(async (req) => {
     // Handle redirect callback (GET from PortOne redirect)
     if (req.method === 'GET' && quotationId) {
       if (status === 'success') {
+        // Fetch quotation to get amount info
+        const { data: qtData } = await supabase
+          .from('quotations')
+          .select('id, qt_number, price, account_id')
+          .eq('id', quotationId)
+          .single();
+
         // Update payment status
         await supabase
           .from('quotations')
@@ -39,6 +46,38 @@ Deno.serve(async (req) => {
             verified_by: 'PortOne',
           })
           .eq('quotation_id', quotationId);
+
+        // Update payment_links status to COMPLETED
+        await supabase
+          .from('payment_links')
+          .update({ status: 'COMPLETED' })
+          .eq('quotation_id', quotationId)
+          .eq('status', 'ACTIVE');
+
+        // Log to timeline via opportunity_notes if account_id available
+        if (qtData?.account_id) {
+          // Find opportunity linked to this account
+          const { data: opp } = await supabase
+            .from('opportunities')
+            .select('id')
+            .eq('account_id', qtData.account_id)
+            .order('created_at', { ascending: false })
+            .limit(1)
+            .single();
+
+          if (opp) {
+            const amount = qtData.price || 0;
+            await supabase
+              .from('opportunity_notes')
+              .insert({
+                opportunity_id: opp.id,
+                account_id: qtData.account_id,
+                content: `💳 ชำระเงินออนไลน์สำเร็จ — ฿${Number(amount).toLocaleString()} (${qtData.qt_number || 'ใบเสนอราคา'}) ผ่านบัตรเครดิต PortOne`,
+                created_by: 'ระบบอัตโนมัติ',
+                is_pinned: false,
+              });
+          }
+        }
       }
 
       // Redirect to payment result page
@@ -66,6 +105,13 @@ Deno.serve(async (req) => {
           .single();
 
         if (qt && (paymentStatus === 'SUCCESS' || paymentStatus === 'COMPLETED' || paymentStatus === 'Successful')) {
+          // Fetch full quotation details
+          const { data: qtFull } = await supabase
+            .from('quotations')
+            .select('id, qt_number, price, account_id')
+            .eq('id', qt.id)
+            .single();
+
           await supabase
             .from('quotations')
             .update({ payment_status: 'PAID' })
@@ -82,7 +128,37 @@ Deno.serve(async (req) => {
             })
             .eq('quotation_id', qt.id);
 
-          // Log payment in activity / timeline via notes or future activity log
+          // Update payment_links status
+          await supabase
+            .from('payment_links')
+            .update({ status: 'COMPLETED' })
+            .eq('quotation_id', qt.id)
+            .eq('status', 'ACTIVE');
+
+          // Log to timeline
+          if (qtFull?.account_id) {
+            const { data: opp } = await supabase
+              .from('opportunities')
+              .select('id')
+              .eq('account_id', qtFull.account_id)
+              .order('created_at', { ascending: false })
+              .limit(1)
+              .single();
+
+            if (opp) {
+              const amount = qtFull.price || 0;
+              await supabase
+                .from('opportunity_notes')
+                .insert({
+                  opportunity_id: opp.id,
+                  account_id: qtFull.account_id,
+                  content: `💳 ชำระเงินออนไลน์สำเร็จ — ฿${Number(amount).toLocaleString()} (${qtFull.qt_number || 'ใบเสนอราคา'}) ผ่านบัตรเครดิต PortOne`,
+                  created_by: 'ระบบอัตโนมัติ',
+                  is_pinned: false,
+                });
+            }
+          }
+
           console.log(`Payment completed for quotation ${qt.id} via PortOne`);
         }
       }

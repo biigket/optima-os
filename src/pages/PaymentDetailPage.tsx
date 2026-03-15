@@ -104,6 +104,13 @@ export default function PaymentDetailPage() {
       if (i.reject_reason) events.push({ date: i.verified_at || i.created_at, icon: 'reject', label: `ปฏิเสธสลิปงวดที่ ${i.installment_number}`, detail: i.reject_reason || undefined });
     });
 
+    // Payment links completed
+    (data.paymentLinks || []).forEach((link: any) => {
+      if (link.status === 'COMPLETED' && link.created_at) {
+        events.push({ date: link.created_at, icon: 'portone', label: '💳 ชำระเงินออนไลน์สำเร็จ', detail: `฿${Number(link.amount || 0).toLocaleString()}${link.installment_months > 0 ? ` (ผ่อน ${link.installment_months} เดือน)` : ' (เต็มจำนวน)'}` });
+      }
+    });
+
     return events.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
   }, [data, summary]);
 
@@ -116,6 +123,7 @@ export default function PaymentDetailPage() {
       case 'upload': return <Upload size={14} className="text-warning" />;
       case 'verify': return <CheckCircle2 size={14} className="text-success" />;
       case 'reject': return <XCircle size={14} className="text-destructive" />;
+      case 'portone': return <CreditCard size={14} className="text-success" />;
       default: return <Clock size={14} className="text-muted-foreground" />;
     }
   };
