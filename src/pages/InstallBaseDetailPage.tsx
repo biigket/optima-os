@@ -321,7 +321,8 @@ export default function InstallBaseDetailPage() {
       )}
 
       {/* Info cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {/* Installation info + Handpiece in one card */}
         <Card>
           <CardHeader className="pb-2"><CardTitle className="text-sm">ข้อมูลการติดตั้ง</CardTitle></CardHeader>
           <CardContent className="space-y-2 text-sm">
@@ -335,18 +336,60 @@ export default function InstallBaseDetailPage() {
                   <Label className="text-xs">วันติดตั้ง</Label>
                   <Input type="date" value={editForm.installDate} onChange={e => setEditForm(f => ({ ...f, installDate: e.target.value }))} />
                 </div>
-                <div className="space-y-1">
-                  <Label className="text-xs">จังหวัด</Label>
-                  <Input value={editForm.province} onChange={e => setEditForm(f => ({ ...f, province: e.target.value }))} />
-                </div>
-                <div className="space-y-1">
-                  <Label className="text-xs">ภูมิภาค</Label>
-                  <Input value={editForm.region} onChange={e => setEditForm(f => ({ ...f, region: e.target.value }))} />
+                <div className="grid grid-cols-2 gap-2">
+                  <div className="space-y-1">
+                    <Label className="text-xs">จังหวัด</Label>
+                    <Input value={editForm.province} onChange={e => setEditForm(f => ({ ...f, province: e.target.value }))} />
+                  </div>
+                  <div className="space-y-1">
+                    <Label className="text-xs">ภูมิภาค</Label>
+                    <Input value={editForm.region} onChange={e => setEditForm(f => ({ ...f, region: e.target.value }))} />
+                  </div>
                 </div>
                 <div className="space-y-1">
                   <Label className="text-xs">หมายเหตุ</Label>
                   <Textarea value={editForm.notes} onChange={e => setEditForm(f => ({ ...f, notes: e.target.value }))} rows={2} />
                 </div>
+
+                {/* Handpiece edit */}
+                {inst.productCategory === 'ND2' && (
+                  <>
+                    <Separator className="my-2" />
+                    <p className="text-xs font-medium text-muted-foreground">Handpiece</p>
+                    <div className="grid grid-cols-2 gap-2">
+                      <div className="space-y-1">
+                        <Label className="text-xs">HFL #1</Label>
+                        <Input className="font-mono text-xs" value={editForm.hfl1} onChange={e => setEditForm(f => ({ ...f, hfl1: e.target.value }))} />
+                      </div>
+                      <div className="space-y-1">
+                        <Label className="text-xs">HFL #2</Label>
+                        <Input className="font-mono text-xs" value={editForm.hfl2} onChange={e => setEditForm(f => ({ ...f, hfl2: e.target.value }))} />
+                      </div>
+                      <div className="space-y-1">
+                        <Label className="text-xs">HSD #1</Label>
+                        <Input className="font-mono text-xs" value={editForm.hsd1} onChange={e => setEditForm(f => ({ ...f, hsd1: e.target.value }))} />
+                      </div>
+                      <div className="space-y-1">
+                        <Label className="text-xs">HSD #2</Label>
+                        <Input className="font-mono text-xs" value={editForm.hsd2} onChange={e => setEditForm(f => ({ ...f, hsd2: e.target.value }))} />
+                      </div>
+                      <div className="space-y-1">
+                        <Label className="text-xs">HRM</Label>
+                        <Input className="font-mono text-xs" value={editForm.hrm} onChange={e => setEditForm(f => ({ ...f, hrm: e.target.value }))} />
+                      </div>
+                      <div className="space-y-1">
+                        <Label className="text-xs">HRM (ขาย/เก็บ)</Label>
+                        <Select value={editForm.hrmSellOrKeep} onValueChange={v => setEditForm(f => ({ ...f, hrmSellOrKeep: v }))}>
+                          <SelectTrigger className="text-xs"><SelectValue /></SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="ขาย">ขาย</SelectItem>
+                            <SelectItem value="เก็บ">เก็บ</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+                  </>
+                )}
               </>
             ) : (
               <>
@@ -354,26 +397,36 @@ export default function InstallBaseDetailPage() {
                 <p><span className="text-muted-foreground">จังหวัด:</span> {inst.province || '-'}</p>
                 <p><span className="text-muted-foreground">ภูมิภาค:</span> {inst.region || '-'}</p>
                 {inst.notes && <p><span className="text-muted-foreground">หมายเหตุ:</span> {inst.notes}</p>}
+
+                {/* Handpiece table */}
                 {qcItem && (
                   <>
-                    <Separator className="my-2" />
-                    <div className="grid grid-cols-3 gap-2 text-xs">
-                      <div>
-                        <p className="font-medium text-muted-foreground mb-1">HFL</p>
-                        <p className="font-mono">{qcItem.hfl1}</p>
-                        <p className="font-mono">{qcItem.hfl2}</p>
-                      </div>
-                      <div>
-                        <p className="font-medium text-muted-foreground mb-1">HSD</p>
-                        <p className="font-mono">{qcItem.hsd1}</p>
-                        <p className="font-mono">{qcItem.hsd2}</p>
-                      </div>
-                      <div>
-                        <p className="font-medium text-muted-foreground mb-1">HRM</p>
-                        <p className="font-mono">{qcItem.hrm}</p>
-                        <p className="text-muted-foreground">({qcItem.hrmSellOrKeep})</p>
-                      </div>
-                    </div>
+                    <Separator className="my-3" />
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead className="text-xs px-2 py-1.5 h-auto">HFL</TableHead>
+                          <TableHead className="text-xs px-2 py-1.5 h-auto">HSD</TableHead>
+                          <TableHead className="text-xs px-2 py-1.5 h-auto">HRM</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        <TableRow>
+                          <TableCell className="font-mono text-xs px-2 py-1.5 align-top whitespace-nowrap">
+                            <div>{qcItem.hfl1}</div>
+                            <div>{qcItem.hfl2}</div>
+                          </TableCell>
+                          <TableCell className="font-mono text-xs px-2 py-1.5 align-top whitespace-nowrap">
+                            <div>{qcItem.hsd1}</div>
+                            <div>{qcItem.hsd2}</div>
+                          </TableCell>
+                          <TableCell className="font-mono text-xs px-2 py-1.5 align-top whitespace-nowrap">
+                            <div>{qcItem.hrm}</div>
+                            <div className="text-muted-foreground">({qcItem.hrmSellOrKeep})</div>
+                          </TableCell>
+                        </TableRow>
+                      </TableBody>
+                    </Table>
                   </>
                 )}
               </>
