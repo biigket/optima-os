@@ -491,19 +491,11 @@ export default function PaymentDetailPage() {
                     <div className="space-y-1.5">
                       <p className="text-sm font-medium text-foreground">ช่องทางชำระ</p>
                       <select value={`${pmtChannel}|${pmtMethod}`} onChange={e => { const [c, m] = e.target.value.split('|'); setPmtChannel(c); setPmtMethod(m); }} className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
-                        <optgroup label="บัตรเครดิต / เดบิต">
-                          <option value="GBPRIMEPAY|GBPRIMEPAY_CREDIT_CARD">💳 บัตรเครดิต</option>
-                          <option value="GBPRIMEPAY|GBPRIMEPAY_DEBIT_CARD">💳 บัตรเดบิต</option>
+                        <optgroup label="บัตรเครดิต">
+                          <option value="GBPRIMEPAY|GBPRIMEPAY_CREDIT_CARD">💳 บัตรเครดิต (เต็มจำนวน)</option>
                         </optgroup>
                         <optgroup label="ผ่อนชำระ (Installment)">
-                          <option value="GBPRIMEPAY|GBPRIMEPAY_INSTALLMENT">📦 ผ่อนชำระ (ทุกธนาคาร)</option>
-                        </optgroup>
-                        <optgroup label="QR / Wallet / อื่นๆ">
-                          <option value="GBPRIMEPAY|GBPRIMEPAY_QRCASH">🏦 PromptPay QR</option>
-                          <option value="GBPRIMEPAY|GBPRIMEPAY_QRCREDIT">🏦 QR Credit</option>
-                          <option value="GBPRIMEPAY|GBPRIMEPAY_TRUEMONEY_WALLET">💰 TrueMoney Wallet</option>
-                          <option value="GBPRIMEPAY|GBPRIMEPAY_RABBIT_LINEPAY_WALLET">🐰 Rabbit LINE Pay</option>
-                          <option value="GBPRIMEPAY|GBPRIMEPAY_SHOPEEPAY_WALLET">🛒 ShopeePay</option>
+                          <option value="GBPRIMEPAY|GBPRIMEPAY_INSTALLMENT">📦 ผ่อนชำระผ่านบัตรเครดิต (ทุกธนาคาร)</option>
                         </optgroup>
                       </select>
                     </div>
