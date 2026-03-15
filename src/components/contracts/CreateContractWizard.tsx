@@ -292,6 +292,7 @@ export default function CreateContractWizard({ open, onOpenChange, onCreated, ed
         deposit_amount: depositAmount,
         remaining_amount: remainingAmount,
         payment_method: paymentMethod,
+        payment_details: { clause_2_1: paymentClause21, clause_2_2: paymentClause22 },
         delivery_address: deliveryAddress,
         delivery_days: deliveryDays,
         warranty_years: warrantyYears,
