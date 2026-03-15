@@ -205,6 +205,7 @@ Deno.serve(async (req) => {
         payment_link_ref: paymentLinkRef,
         portone_order_id: merchantOrderId,
         status: 'ACTIVE',
+        remark: remark || null,
       });
 
     return new Response(JSON.stringify({

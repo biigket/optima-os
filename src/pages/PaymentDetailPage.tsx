@@ -557,7 +557,8 @@ export default function PaymentDetailPage() {
                     {paymentLinks.map((link: any) => (
                       <TableRow key={link.id}>
                         <TableCell className="text-sm">
-                          {format(new Date(link.created_at), 'd MMM yyyy HH:mm', { locale: th })}
+                          <div>{format(new Date(link.created_at), 'd MMM yyyy HH:mm', { locale: th })}</div>
+                          {link.remark && <div className="text-xs text-muted-foreground mt-0.5">{link.remark}</div>}
                         </TableCell>
                         <TableCell className="text-right font-medium">
                           ฿{Number(link.amount || 0).toLocaleString()}
