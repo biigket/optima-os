@@ -133,6 +133,7 @@ export const mockInstallations: Installation[] = [
     province: 'กรุงเทพฯ',
     region: 'กลาง',
     notes: '',
+    replacementHistory: [],
     pmReports: [
       {
         id: 'pm-1-1',
