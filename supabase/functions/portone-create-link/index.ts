@@ -40,20 +40,24 @@ Deno.serve(async (req) => {
       .single();
 
     // Step 1: Get auth token
+    console.log('Requesting PortOne auth token...');
     const tokenRes = await fetch('https://api.portone.cloud/api/merchant/auth-token', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
       body: JSON.stringify({
         portone_key: PORTONE_KEY,
         portone_secret: PORTONE_SECRET,
       }),
     });
-    const tokenData = await tokenRes.json();
+    const tokenText = await tokenRes.text();
+    console.log('PortOne auth response status:', tokenRes.status, 'body:', tokenText);
+    let tokenData: any;
+    try { tokenData = JSON.parse(tokenText); } catch { throw new Error(`PortOne auth returned non-JSON: ${tokenText}`); }
     if (!tokenRes.ok) {
-      throw new Error(`PortOne auth failed [${tokenRes.status}]: ${JSON.stringify(tokenData)}`);
+      throw new Error(`PortOne auth failed [${tokenRes.status}]: ${tokenText}`);
     }
-    const bearerToken = tokenData?.data?.token || tokenData?.token;
-    if (!bearerToken) throw new Error('Failed to get PortOne token');
+    const bearerToken = tokenData?.data?.token || tokenData?.token || tokenData?.access_token || tokenData?.data?.access_token;
+    if (!bearerToken) throw new Error(`Failed to extract token from response: ${tokenText}`);
 
     // Step 2: Create payment link
     const merchantOrderId = `${qt.qt_number || 'QT'}-${Date.now()}`;
