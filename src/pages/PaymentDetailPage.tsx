@@ -402,6 +402,16 @@ export default function PaymentDetailPage() {
                         </optgroup>
                       </select>
                     </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs text-muted-foreground whitespace-nowrap">หมายเหตุ</span>
+                      <input
+                        type="text"
+                        placeholder="เช่น รูดครั้งที่ 1, มัดจำ"
+                        value={linkRemark}
+                        onChange={e => setLinkRemark(e.target.value)}
+                        className="flex h-8 w-full rounded-md border border-input bg-background px-2 py-1 text-xs ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                      />
+                    </div>
                     <Button size="sm" variant="outline" className="gap-1.5 text-xs w-full" disabled={creatingLink} onClick={async () => {
                       const amt = Number(customAmount) || undefined;
                       setCreatingLink(true);
