@@ -76,40 +76,6 @@ const navGroups = [
       { to: '/inventory', icon: Warehouse, label: 'คลังสินค้า' },
     ],
   },
-  {
-    label: 'MARKETING',
-    phase: 2,
-    items: [
-      { to: '/campaigns', icon: Megaphone, label: 'แคมเปญ', locked: true },
-      { to: '/promotions', icon: Gift, label: 'โปรโมชัน', locked: true },
-      { to: '/kol', icon: Star, label: 'KOL', locked: true },
-    ],
-  },
-  {
-    label: 'EDUCATION',
-    phase: 2,
-    items: [
-      { to: '/training', icon: GraduationCap, label: 'อบรม', locked: true },
-      { to: '/lms', icon: BookOpen, label: 'LMS', locked: true },
-    ],
-  },
-  {
-    label: 'INTELLIGENCE',
-    phase: 1,
-    items: [
-      { to: '/forecast', icon: TrendingUp, label: 'พยากรณ์' },
-      { to: '/analytics', icon: BarChart3, label: 'วิเคราะห์' },
-    ],
-  },
-  {
-    label: 'AI AUTOMATION',
-    phase: 3,
-    items: [
-      { to: '/ai-pipeline', icon: Brain, label: 'AI วิเคราะห์ Pipeline', locked: true },
-      { to: '/ai-reorder', icon: Zap, label: 'AI ทำนาย Reorder', locked: true },
-      { to: '/ai-marketing', icon: Bot, label: 'AI แนะนำ Marketing', locked: true },
-    ],
-  },
 ];
 
 function SidebarNav({ collapsed, onNavigate }: { collapsed: boolean; onNavigate?: () => void }) {
