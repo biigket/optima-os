@@ -5,7 +5,7 @@ import {
   ListTodo, Calendar, Cpu, Package, Wrench, ChevronLeft, ChevronRight, Bell,
   FileSpreadsheet, ShoppingCart, Warehouse, Receipt, CreditCard,
   TrendingUp, BarChart3,
-  Lock, LogOut, Menu, X, ClipboardCheck
+  Lock, LogOut, Menu, X, ClipboardCheck, Fingerprint, BarChart
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useMockAuth } from '@/hooks/useMockAuth';
