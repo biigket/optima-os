@@ -385,23 +385,6 @@ export default function PaymentDetailPage() {
                       />
                       <span className="text-xs text-muted-foreground">฿</span>
                     </div>
-                    <div className="flex flex-wrap gap-1.5">
-                      {[
-                        { value: 0, label: 'เต็มจำนวน' },
-                        { value: 3, label: '3 เดือน' },
-                        { value: 6, label: '6 เดือน' },
-                        { value: 10, label: '10 เดือน' },
-                      ].map(opt => (
-                        <Button key={opt.value} size="sm" variant={installmentMonths === opt.value ? 'default' : 'outline'} className="text-[10px] h-6 px-2" onClick={() => setInstallmentMonths(opt.value)}>
-                          {opt.label}
-                        </Button>
-                      ))}
-                    </div>
-                    {installmentMonths > 0 && (
-                      <p className="text-[10px] text-primary font-medium">
-                        ≈ ฿{Math.ceil((Number(customAmount) || qt.price || 0) / installmentMonths).toLocaleString()} / เดือน
-                      </p>
-                    )}
                     <div className="flex items-center gap-4">
                       <label className="flex items-center gap-1.5 text-xs cursor-pointer">
                         <input type="checkbox" checked={notifyEmail} onChange={e => setNotifyEmail(e.target.checked)} className="rounded border-input" />
