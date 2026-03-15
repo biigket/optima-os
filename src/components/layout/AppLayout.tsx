@@ -64,6 +64,7 @@ const navGroups = [
     phase: 1,
     items: [
       { to: '/maintenance', icon: Wrench, label: 'ซ่อมบำรุง' },
+      { to: '/qc-stock', icon: ClipboardCheck, label: 'QC สินค้า/สถานะสินค้า' },
     ],
   },
   {
@@ -72,6 +73,7 @@ const navGroups = [
     items: [
       { to: '/quotations', icon: FileSpreadsheet, label: 'ใบเสนอราคา' },
       { to: '/payments', icon: CreditCard, label: 'การชำระเงิน' },
+      { to: '/inventory', icon: Warehouse, label: 'คลังสินค้า' },
     ],
   },
   {
