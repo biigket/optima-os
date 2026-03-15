@@ -798,19 +798,65 @@ export default function CustomerCardPage() {
 
             {/* ===== CONSUMABLES ===== */}
             <TabsContent value="consumables" className="mt-0">
-              <div className="space-y-2.5">
-                {consumables.map(c => (
-                  <div key={c.id} className="p-3 rounded-md bg-muted/30 border space-y-1.5">
-                    <p className="text-sm font-medium text-foreground">{c.cartridgeType}</p>
-                    <div className="grid grid-cols-2 gap-1 text-[11px] text-muted-foreground">
-                      <span>ใช้ไปแล้ว: {c.totalUsed} ชิ้น</span>
-                      <span>ราคา/ชิ้น: {formatCurrency(c.unitPrice)}</span>
-                      <span>สั่งล่าสุด: {c.lastOrderDate}</span>
-                      <span>คาดว่าสั่งใหม่: {c.estimatedReorderDate}</span>
+              <div className="space-y-3">
+                {/* Delivered Cartridges from Consumable Base */}
+                {consumableBase.length > 0 && (
+                  <div>
+                    <p className="text-xs font-semibold text-muted-foreground mb-2">Cartridge ที่ส่งมอบแล้ว ({consumableBase.length})</p>
+                    <div className="rounded-md border overflow-x-auto">
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead className="text-xs">ประเภท</TableHead>
+                            <TableHead className="text-xs">S/N</TableHead>
+                            <TableHead className="text-xs hidden sm:table-cell">วันส่งมอบ</TableHead>
+                            <TableHead className="text-xs">การรับประกัน</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {consumableBase.map(c => {
+                            const today = new Date().toISOString().split('T')[0];
+                            const isExpired = c.warrantyExpiry < today;
+                            return (
+                              <TableRow key={c.id}>
+                                <TableCell className="text-xs font-medium">{c.cartridgeType}</TableCell>
+                                <TableCell className="text-xs font-mono">{c.serialNumber}</TableCell>
+                                <TableCell className="text-xs text-muted-foreground hidden sm:table-cell">{c.deliveryDate}</TableCell>
+                                <TableCell>
+                                  <Badge variant="secondary" className={`text-[10px] ${isExpired ? 'bg-destructive/10 text-destructive' : 'bg-emerald-100 text-emerald-800'}`}>
+                                    {isExpired ? 'หมดประกัน' : `ถึง ${c.warrantyExpiry}`}
+                                  </Badge>
+                                </TableCell>
+                              </TableRow>
+                            );
+                          })}
+                        </TableBody>
+                      </Table>
                     </div>
                   </div>
-                ))}
-                {consumables.length === 0 && <Empty text="ไม่มีข้อมูล" />}
+                )}
+
+                {/* Legacy consumable usage data */}
+                {consumables.length > 0 && (
+                  <div>
+                    <p className="text-xs font-semibold text-muted-foreground mb-2">สถิติการใช้งาน</p>
+                    <div className="space-y-2">
+                      {consumables.map(c => (
+                        <div key={c.id} className="p-3 rounded-md bg-muted/30 border space-y-1.5">
+                          <p className="text-sm font-medium text-foreground">{c.cartridgeType}</p>
+                          <div className="grid grid-cols-2 gap-1 text-[11px] text-muted-foreground">
+                            <span>ใช้ไปแล้ว: {c.totalUsed} ชิ้น</span>
+                            <span>ราคา/ชิ้น: {formatCurrency(c.unitPrice)}</span>
+                            <span>สั่งล่าสุด: {c.lastOrderDate}</span>
+                            <span>คาดว่าสั่งใหม่: {c.estimatedReorderDate}</span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {consumableBase.length === 0 && consumables.length === 0 && <Empty text="ไม่มีข้อมูลวัสดุสิ้นเปลือง" />}
               </div>
             </TabsContent>
 
