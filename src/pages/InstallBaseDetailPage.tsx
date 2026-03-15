@@ -434,52 +434,54 @@ export default function InstallBaseDetailPage() {
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader className="pb-2"><CardTitle className="text-sm">ประกัน</CardTitle></CardHeader>
-          <CardContent className="space-y-2 text-sm">
-            {editing ? (
-              <>
-                <div className="space-y-1">
-                  <Label className="text-xs">ระยะประกัน (วัน)</Label>
-                  <Input type="number" value={editForm.warrantyDays} onChange={e => setEditForm(f => ({ ...f, warrantyDays: e.target.value }))} />
-                </div>
-                <div className="space-y-1">
-                  <Label className="text-xs">วันหมดประกัน</Label>
-                  <Input type="date" value={editForm.warrantyExpiry} onChange={e => setEditForm(f => ({ ...f, warrantyExpiry: e.target.value }))} />
-                </div>
-              </>
-            ) : (
-              <>
-                <p><span className="text-muted-foreground">ระยะประกัน:</span> {inst.warrantyDays} วัน</p>
-                <p>
-                  <span className="text-muted-foreground">หมดประกัน:</span>{' '}
-                  <span className={warrantyExpired ? 'text-destructive font-medium' : 'text-emerald-600 font-medium'}>
-                    {inst.warrantyExpiry} {warrantyExpired ? '(หมดแล้ว)' : '(ยังไม่หมด)'}
-                  </span>
-                </p>
-              </>
-            )}
-          </CardContent>
-        </Card>
+        <div className="space-y-4">
+          <Card>
+            <CardHeader className="pb-2"><CardTitle className="text-sm">ประกัน</CardTitle></CardHeader>
+            <CardContent className="space-y-2 text-sm">
+              {editing ? (
+                <>
+                  <div className="space-y-1">
+                    <Label className="text-xs">ระยะประกัน (วัน)</Label>
+                    <Input type="number" value={editForm.warrantyDays} onChange={e => setEditForm(f => ({ ...f, warrantyDays: e.target.value }))} />
+                  </div>
+                  <div className="space-y-1">
+                    <Label className="text-xs">วันหมดประกัน</Label>
+                    <Input type="date" value={editForm.warrantyExpiry} onChange={e => setEditForm(f => ({ ...f, warrantyExpiry: e.target.value }))} />
+                  </div>
+                </>
+              ) : (
+                <>
+                  <p><span className="text-muted-foreground">ระยะประกัน:</span> {inst.warrantyDays} วัน</p>
+                  <p>
+                    <span className="text-muted-foreground">หมดประกัน:</span>{' '}
+                    <span className={warrantyExpired ? 'text-destructive font-medium' : 'text-emerald-600 font-medium'}>
+                      {inst.warrantyExpiry} {warrantyExpired ? '(หมดแล้ว)' : '(ยังไม่หมด)'}
+                    </span>
+                  </p>
+                </>
+              )}
+            </CardContent>
+          </Card>
 
-        <Card>
-          <CardHeader className="pb-2"><CardTitle className="text-sm">เครื่องทดแทน</CardTitle></CardHeader>
-          <CardContent className="space-y-2">
-            {!editing && (
-              <>
-                <Button size="sm" variant="outline" className="w-full gap-1 text-xs" onClick={() => openReplaceDialog('SWAP')}>
-                  <ArrowRightLeft size={14} /> เปลี่ยนเครื่องถาวร (Swap)
-                </Button>
-                {!hasLoaner && (
-                  <Button size="sm" variant="outline" className="w-full gap-1 text-xs" onClick={() => openReplaceDialog('LOANER')}>
-                    <RefreshCw size={14} /> ให้เครื่องยืมชั่วคราว (Loaner)
+          <Card>
+            <CardHeader className="pb-2"><CardTitle className="text-sm">เครื่องทดแทน</CardTitle></CardHeader>
+            <CardContent className="space-y-2">
+              {!editing && (
+                <>
+                  <Button size="sm" variant="outline" className="w-full gap-1 text-xs" onClick={() => openReplaceDialog('SWAP')}>
+                    <ArrowRightLeft size={14} /> เปลี่ยนเครื่องถาวร (Swap)
                   </Button>
-                )}
-                <p className="text-[11px] text-muted-foreground mt-1">ประวัติเปลี่ยน: {(inst.replacementHistory || []).length} ครั้ง</p>
-              </>
-            )}
-          </CardContent>
-        </Card>
+                  {!hasLoaner && (
+                    <Button size="sm" variant="outline" className="w-full gap-1 text-xs" onClick={() => openReplaceDialog('LOANER')}>
+                      <RefreshCw size={14} /> ให้เครื่องยืมชั่วคราว (Loaner)
+                    </Button>
+                  )}
+                  <p className="text-[11px] text-muted-foreground mt-1">ประวัติเปลี่ยน: {(inst.replacementHistory || []).length} ครั้ง</p>
+                </>
+              )}
+            </CardContent>
+          </Card>
+        </div>
       </div>
 
       {/* Edit actions */}
