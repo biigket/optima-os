@@ -15,7 +15,6 @@ import VisitReportsPage from "@/pages/VisitReportsPage";
 import DemosPage from "@/pages/DemosPage";
 import TasksPage from "@/pages/TasksPage";
 import CalendarPage from "@/pages/CalendarPage";
-import DevicesPage from "@/pages/DevicesPage";
 import ConsumablesPage from "@/pages/ConsumablesPage";
 import MaintenancePage from "@/pages/MaintenancePage";
 import ForecastPage from "@/pages/ForecastPage";
@@ -72,7 +71,6 @@ function AuthedAppRoutes() {
         <Route path="/demos" element={<DemosPage />} />
         <Route path="/tasks" element={<TasksPage />} />
         <Route path="/calendar" element={<CalendarPage />} />
-        <Route path="/devices" element={<DevicesPage />} />
         <Route path="/install-base" element={<InstallBasePage />} />
         <Route path="/install-base/:id" element={<InstallBaseDetailPage />} />
         <Route path="/consumables" element={<ConsumablesPage />} />

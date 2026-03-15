@@ -51,7 +51,6 @@ const navGroups = [
     phase: 1,
     items: [
       { to: '/install-base', icon: Cpu, label: 'Install Base' },
-      { to: '/devices', icon: Cpu, label: 'เครื่องมือ' },
       { to: '/consumables', icon: Package, label: 'วัสดุสิ้นเปลือง' },
     ],
   },
