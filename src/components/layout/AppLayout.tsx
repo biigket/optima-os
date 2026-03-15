@@ -4,10 +4,8 @@ import {
   LayoutDashboard, Users, Target, MapPin, FileText, Presentation, CalendarDays,
   ListTodo, Calendar, Cpu, Package, Wrench, ChevronLeft, ChevronRight, Bell,
   FileSpreadsheet, ShoppingCart, Warehouse, Receipt, CreditCard,
-  Megaphone, Gift, Star,
-  GraduationCap, BookOpen,
   TrendingUp, BarChart3,
-  Lock, Bot, Brain, Zap, LogOut, Menu, X, ClipboardCheck
+  Lock, LogOut, Menu, X, ClipboardCheck
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useMockAuth } from '@/hooks/useMockAuth';
