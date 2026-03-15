@@ -130,6 +130,23 @@ export default function InstallBaseDetailPage() {
       notes: editForm.notes,
     };
     syncToMock(updated);
+
+    // Sync handpiece data back to QC stock
+    if (inst!.productCategory === 'ND2') {
+      const qcIdx = mockND2Stock.findIndex(q => q.id === inst!.qcStockItemId);
+      if (qcIdx !== -1) {
+        mockND2Stock[qcIdx] = {
+          ...mockND2Stock[qcIdx],
+          hfl1: editForm.hfl1,
+          hfl2: editForm.hfl2,
+          hsd1: editForm.hsd1,
+          hsd2: editForm.hsd2,
+          hrm: editForm.hrm,
+          hrmSellOrKeep: editForm.hrmSellOrKeep as 'ขาย' | 'เก็บ',
+        };
+      }
+    }
+
     setEditing(false);
     toast({ title: 'บันทึกการแก้ไขแล้ว' });
   }
