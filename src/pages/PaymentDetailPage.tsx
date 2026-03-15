@@ -473,6 +473,19 @@ export default function PaymentDetailPage() {
                         </p>
                       )}
                     </div>
+                    <div className="space-y-1.5">
+                      <p className="text-sm font-medium text-foreground">แจ้งเตือนลูกค้า</p>
+                      <div className="flex items-center gap-4">
+                        <label className="flex items-center gap-1.5 text-sm cursor-pointer">
+                          <input type="checkbox" checked={notifyEmail} onChange={e => setNotifyEmail(e.target.checked)} className="rounded border-input" />
+                          แจ้งเตือนทางอีเมล
+                        </label>
+                        <label className="flex items-center gap-1.5 text-sm cursor-pointer">
+                          <input type="checkbox" checked={notifyPhone} onChange={e => setNotifyPhone(e.target.checked)} className="rounded border-input" />
+                          แจ้งเตือนทาง SMS
+                        </label>
+                      </div>
+                    </div>
                   </div>
                   <div className="text-center">
                     <Button className="gap-1.5" disabled={creatingLink} onClick={async () => {
