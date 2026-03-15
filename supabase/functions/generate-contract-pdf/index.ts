@@ -209,17 +209,7 @@ function generateHTML(contract: any, account: any, contacts: any[]): string {
 
 <!-- PAGE 1 -->
 <div class="page">
-  <div class="header">
-    <div class="header-right">
-      <div class="th">${SELLER.company_th}</div>
-      <div class="th">${SELLER.address_th.split(" ตำบล")[0]}</div>
-      <div class="th">อำเภอเมือง จังหวัดภูเก็ต 83000</div>
-      <div class="en">${SELLER.company_en}</div>
-      <div class="en">${SELLER.address_en}</div>
-    </div>
-  </div>
-  
-  <div class="contract-no">สัญญาเลขที่ ${contractNumber}</div>
+  ${pageHeader(contractNumber)}
   
   <h2>สัญญาซื้อขายเครื่องมือแพทย์</h2>
   <div class="date-line">วันที่ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ${thaiYear}</div>
