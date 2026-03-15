@@ -45,16 +45,6 @@ import { MockAuthProvider } from "@/hooks/useMockAuth";
 
 const queryClient = new QueryClient();
 
-const phase2Routes = [
-  "/campaigns",
-  "/promotions",
-  "/kol",
-  "/training",
-  "/lms",
-  "/ai-pipeline",
-  "/ai-reorder",
-  "/ai-marketing",
-];
 
 function AuthedAppRoutes() {
   return (
