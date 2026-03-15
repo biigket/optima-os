@@ -53,6 +53,12 @@ export default function InstallBaseDetailPage() {
     province: '',
     region: '',
     notes: '',
+    hfl1: '',
+    hfl2: '',
+    hsd1: '',
+    hsd2: '',
+    hrm: '',
+    hrmSellOrKeep: '' as string,
   });
 
   // Replacement dialog
