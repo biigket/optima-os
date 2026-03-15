@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { FileText, Plus, Search, Building2, Calendar } from 'lucide-react';
+import { FileText, Plus, Search, Building2, Calendar, Eye } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -12,6 +12,23 @@ import CreateContractWizard from '@/components/contracts/CreateContractWizard';
 export default function ContractsPage() {
   const [search, setSearch] = useState('');
   const [wizardOpen, setWizardOpen] = useState(false);
+
+  const handleViewPdf = async (contractId: string) => {
+    const projectId = import.meta.env.VITE_SUPABASE_PROJECT_ID;
+    const url = `https://${projectId}.supabase.co/functions/v1/generate-contract-pdf`;
+    const w = window.open('about:blank', '_blank');
+    if (w) {
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ contract_id: contractId }),
+      });
+      const html = await res.text();
+      w.document.open();
+      w.document.write(html);
+      w.document.close();
+    }
+  };
 
   const { data: contracts, isLoading, refetch } = useQuery({
     queryKey: ['contracts'],

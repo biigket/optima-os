@@ -208,7 +208,7 @@ export default function CreateContractWizard({ open, onOpenChange, onCreated }: 
     try {
       const contractNumber = await generateContractNumber();
 
-      const { error } = await supabase.from('contracts').insert({
+      const { data, error } = await supabase.from('contracts').insert({
         contract_number: contractNumber,
         quotation_id: selectedQt.id,
         account_id: selectedQt.account_id,
@@ -241,13 +241,32 @@ export default function CreateContractWizard({ open, onOpenChange, onCreated }: 
         additional_notes: additionalNotes,
         status: 'DRAFT',
         created_by: currentUser?.name || '',
-      } as any);
+      } as any).select();
 
       if (error) throw error;
 
       toast.success(`สร้างสัญญา ${contractNumber} สำเร็จ`);
       onOpenChange(false);
       onCreated?.();
+      
+      // Open PDF in new tab
+      if (data && data[0]?.id) {
+        const projectId = import.meta.env.VITE_SUPABASE_PROJECT_ID;
+        const url = `https://${projectId}.supabase.co/functions/v1/generate-contract-pdf`;
+        const w = window.open('about:blank', '_blank');
+        if (w) {
+          fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ contract_id: data[0].id }),
+          }).then(r => r.text()).then(html => {
+            w.document.open();
+            w.document.write(html);
+            w.document.close();
+          });
+        }
+      }
+      
       resetForm();
     } catch (err: any) {
       toast.error('ไม่สามารถสร้างสัญญาได้: ' + err.message);
