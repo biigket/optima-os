@@ -88,21 +88,8 @@ function SidebarNav({ collapsed, onNavigate }: { collapsed: boolean; onNavigate?
 
         return (
           <div key={group.label}>
-            {showDivider && !collapsed && (
-              <div className="flex items-center gap-2 px-2 mb-3 mt-2">
-                <div className="flex-1 border-t border-sidebar-border" />
-                <span className="text-[9px] font-semibold tracking-widest text-sidebar-muted/60 uppercase">{dividerLabel}</span>
-                <div className="flex-1 border-t border-sidebar-border" />
-              </div>
-            )}
-            {showDivider && collapsed && (
-              <div className="border-t border-sidebar-border mx-2 mb-3 mt-2" />
-            )}
             {!collapsed && (
-              <p className={cn(
-                'px-2 mb-1 text-[10px] font-semibold tracking-widest uppercase',
-                isLockedGroup ? 'text-sidebar-muted/50' : 'text-sidebar-muted'
-              )}>
+              <p className="px-2 mb-1 text-[10px] font-semibold tracking-widest uppercase text-sidebar-muted">
                 {group.label}
               </p>
             )}
