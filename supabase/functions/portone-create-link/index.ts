@@ -20,7 +20,7 @@ Deno.serve(async (req) => {
       throw new Error('PortOne credentials not configured');
     }
 
-    const { quotation_id, installment_months, custom_amount, notify_by_email, notify_by_phone, pmt_channel, pmt_method, sms_phone } = await req.json();
+    const { quotation_id, installment_months, custom_amount, notify_by_email, notify_by_phone, pmt_channel, pmt_method, sms_phone, remark } = await req.json();
     if (!quotation_id) throw new Error('quotation_id is required');
 
     // Helper: normalize Thai phone to E.164 format (+66...)
