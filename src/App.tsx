@@ -67,6 +67,7 @@ function AuthedAppRoutes() {
         <Route path="/calendar" element={<CalendarPage />} />
         <Route path="/work-checkin" element={<WorkCheckinPage />} />
         <Route path="/attendance" element={<AttendanceSummaryPage />} />
+        <Route path="/settings" element={<SettingsPage />} />
         <Route path="/install-base" element={<InstallBasePage />} />
         <Route path="/install-base/:id" element={<InstallBaseDetailPage />} />
         <Route path="/consumables" element={<ConsumablesPage />} />
