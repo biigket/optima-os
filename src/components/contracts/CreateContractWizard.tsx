@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
-  Search, Building2, ChevronLeft, ChevronRight, FileText, CheckCircle2, Edit3
+  Search, Building2, ChevronLeft, ChevronRight, FileText, CheckCircle2, Edit3, Plus, Trash2
 } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
