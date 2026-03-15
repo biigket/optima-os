@@ -60,12 +60,14 @@ interface Props {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onCreated?: () => void;
+  editContract?: any; // existing contract to edit
 }
 
-export default function CreateContractWizard({ open, onOpenChange, onCreated }: Props) {
+export default function CreateContractWizard({ open, onOpenChange, onCreated, editContract }: Props) {
   const navigate = useNavigate();
   const { currentUser } = useMockAuth();
-  const [step, setStep] = useState(0);
+  const isEditMode = !!editContract;
+  const [step, setStep] = useState(isEditMode ? 1 : 0);
   const [search, setSearch] = useState('');
   const [quotations, setQuotations] = useState<QuotationOption[]>([]);
   const [loading, setLoading] = useState(false);
@@ -82,7 +84,7 @@ export default function CreateContractWizard({ open, onOpenChange, onCreated }: 
   const [buyerIdExpiry, setBuyerIdExpiry] = useState('');
   const [buyerAddress, setBuyerAddress] = useState('');
   const [buyerPhone, setBuyerPhone] = useState('');
-  const [sellerRepresentative, setSellerRepresentative] = useState('นายแพทย์คุณวุฒิ ลิ้มเวฆา');
+  const [sellerRepresentative, setSellerRepresentative] = useState('นายแพทย์ฐิติคมน์ ลิ้มรัตนเมฆา');
   const [productName, setProductName] = useState('NEW DOUBLO 2.0');
   const [productBrand, setProductBrand] = useState('HIRONIC');
   const [productOrigin, setProductOrigin] = useState('ประเทศเกาหลี');
@@ -99,11 +101,62 @@ export default function CreateContractWizard({ open, onOpenChange, onCreated }: 
   const [warrantyDetails, setWarrantyDetails] = useState(DEFAULT_WARRANTY);
   const [appendixItems, setAppendixItems] = useState(DEFAULT_APPENDIX_ITEMS);
 
+  // Load existing contract data when editing
+  useEffect(() => {
+    if (!open || !editContract) return;
+    setStep(1);
+    setBuyerCompany(editContract.buyer_company_name || '');
+    setBuyerRepresentative(editContract.buyer_representative_name || '');
+    setBuyerIdNumber(editContract.buyer_id_number || '');
+    setBuyerIdExpiry(editContract.buyer_id_expiry || '');
+    setBuyerAddress(editContract.buyer_address || '');
+    setBuyerPhone(editContract.buyer_phone || '');
+    setSellerRepresentative(editContract.seller_representative_name || 'นายแพทย์ฐิติคมน์ ลิ้มรัตนเมฆา');
+    setContractDate(editContract.contract_date || format(new Date(), 'yyyy-MM-dd'));
+    setProductName(editContract.product_name || 'NEW DOUBLO 2.0');
+    setProductBrand(editContract.product_brand || 'HIRONIC');
+    setProductOrigin(editContract.product_origin || 'ประเทศเกาหลี');
+    setProductQuantity(editContract.product_quantity || 1);
+    setTotalPrice(editContract.total_price || 0);
+    setDepositAmount(editContract.deposit_amount || 0);
+    setRemainingAmount(editContract.remaining_amount || 0);
+    setPaymentMethod(editContract.payment_method || '');
+    setDeliveryAddress(editContract.delivery_address || '');
+    setDeliveryDays(editContract.delivery_days || 60);
+    setWarrantyYears(editContract.warranty_years || 1);
+    setAdditionalNotes(editContract.additional_notes || '');
+    if (editContract.product_accessories && Array.isArray(editContract.product_accessories)) {
+      setAccessories(editContract.product_accessories as any[]);
+    }
+    if (editContract.warranty_details && Array.isArray(editContract.warranty_details)) {
+      setWarrantyDetails(editContract.warranty_details as any[]);
+    }
+    if (editContract.appendix_items && Array.isArray(editContract.appendix_items)) {
+      setAppendixItems(editContract.appendix_items as any[]);
+    }
+    // Set a virtual selectedQt for display
+    setSelectedQt({
+      id: editContract.quotation_id || '',
+      qt_number: editContract.qt_number || '',
+      product: editContract.product_name || '',
+      price: editContract.total_price || 0,
+      account_id: editContract.account_id || '',
+      clinic_name: editContract.buyer_company_name || '',
+      company_name: editContract.buyer_company_name || '',
+      payment_condition: editContract.payment_method || '',
+      sale_assigned: '',
+      has_installments: (editContract.installment_count || 1) > 1,
+      installment_count: editContract.installment_count || 1,
+      deposit_value: editContract.deposit_amount || 0,
+      deposit_type: 'NONE',
+    });
+  }, [open, editContract]);
+
   // Load signed quotations
   useEffect(() => {
-    if (!open) return;
+    if (!open || editContract) return;
     loadQuotations();
-  }, [open]);
+  }, [open, editContract]);
 
   async function loadQuotations() {
     setLoading(true);
@@ -206,14 +259,8 @@ export default function CreateContractWizard({ open, onOpenChange, onCreated }: 
     if (!selectedQt) return;
     setSaving(true);
     try {
-      const contractNumber = await generateContractNumber();
-
-      const { data, error } = await supabase.from('contracts').insert({
-        contract_number: contractNumber,
-        quotation_id: selectedQt.id,
-        account_id: selectedQt.account_id,
+      const contractPayload = {
         contract_date: contractDate,
-        product_type: 'ND2',
         buyer_company_name: buyerCompany,
         buyer_representative_name: buyerRepresentative,
         buyer_id_number: buyerIdNumber,
@@ -228,29 +275,49 @@ export default function CreateContractWizard({ open, onOpenChange, onCreated }: 
         product_accessories: accessories,
         total_price: totalPrice,
         deposit_amount: depositAmount,
-        deposit_date: null,
         remaining_amount: remainingAmount,
         payment_method: paymentMethod,
-        installment_count: selectedQt.installment_count || 1,
-        qt_number: selectedQt.qt_number,
         delivery_address: deliveryAddress,
         delivery_days: deliveryDays,
         warranty_years: warrantyYears,
         warranty_details: warrantyDetails,
         appendix_items: appendixItems,
         additional_notes: additionalNotes,
-        status: 'DRAFT',
-        created_by: currentUser?.name || '',
-      } as any).select();
+      } as any;
 
-      if (error) throw error;
+      let contractId: string;
 
-      toast.success(`สร้างสัญญา ${contractNumber} สำเร็จ`);
+      if (isEditMode && editContract?.id) {
+        // UPDATE existing contract
+        const { error } = await supabase.from('contracts').update(contractPayload).eq('id', editContract.id);
+        if (error) throw error;
+        contractId = editContract.id;
+        toast.success(`แก้ไขสัญญา ${editContract.contract_number} สำเร็จ`);
+      } else {
+        // CREATE new contract
+        const contractNumber = await generateContractNumber();
+        const { data, error } = await supabase.from('contracts').insert({
+          ...contractPayload,
+          contract_number: contractNumber,
+          quotation_id: selectedQt.id,
+          account_id: selectedQt.account_id,
+          product_type: 'ND2',
+          deposit_date: null,
+          installment_count: selectedQt.installment_count || 1,
+          qt_number: selectedQt.qt_number,
+          status: 'DRAFT',
+          created_by: currentUser?.name || '',
+        }).select();
+        if (error) throw error;
+        contractId = data?.[0]?.id;
+        toast.success(`สร้างสัญญา ${contractNumber} สำเร็จ`);
+      }
+
       onOpenChange(false);
       onCreated?.();
       
       // Open PDF in new tab
-      if (data && data[0]?.id) {
+      if (contractId) {
         const projectId = import.meta.env.VITE_SUPABASE_PROJECT_ID;
         const url = `https://${projectId}.supabase.co/functions/v1/generate-contract-pdf`;
         const w = window.open('about:blank', '_blank');
@@ -258,7 +325,7 @@ export default function CreateContractWizard({ open, onOpenChange, onCreated }: 
           fetch(url, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ contract_id: data[0].id }),
+            body: JSON.stringify({ contract_id: contractId }),
           }).then(r => r.text()).then(html => {
             w.document.open();
             w.document.write(html);
@@ -317,8 +384,8 @@ export default function CreateContractWizard({ open, onOpenChange, onCreated }: 
     <Dialog open={open} onOpenChange={v => { if (!v) resetForm(); onOpenChange(v); }}>
       <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>สร้างหนังสือสัญญาซื้อขาย (ND2)</DialogTitle>
-          <DialogDescription>เลือกใบเสนอราคาที่ลูกค้าเซ็นแล้วเพื่อออกสัญญา</DialogDescription>
+          <DialogTitle>{isEditMode ? 'แก้ไขหนังสือสัญญาซื้อขาย' : 'สร้างหนังสือสัญญาซื้อขาย (ND2)'}</DialogTitle>
+          <DialogDescription>{isEditMode ? `แก้ไขข้อมูลสัญญา ${editContract?.contract_number}` : 'เลือกใบเสนอราคาที่ลูกค้าเซ็นแล้วเพื่อออกสัญญา'}</DialogDescription>
         </DialogHeader>
 
         {/* Stepper */}
@@ -554,9 +621,12 @@ export default function CreateContractWizard({ open, onOpenChange, onCreated }: 
             />
 
             <div className="flex justify-between pt-2">
-              <Button variant="outline" size="sm" onClick={() => setStep(0)}>
-                <ChevronLeft size={14} className="mr-1" /> กลับ
-              </Button>
+              {!isEditMode && (
+                <Button variant="outline" size="sm" onClick={() => setStep(0)}>
+                  <ChevronLeft size={14} className="mr-1" /> กลับ
+                </Button>
+              )}
+              {isEditMode && <div />}
               <Button size="sm" onClick={() => setStep(2)}>
                 ถัดไป <ChevronRight size={14} className="ml-1" />
               </Button>
@@ -636,7 +706,7 @@ export default function CreateContractWizard({ open, onOpenChange, onCreated }: 
                 <ChevronLeft size={14} className="mr-1" /> แก้ไข
               </Button>
               <Button size="sm" onClick={handleCreate} disabled={saving}>
-                {saving ? 'กำลังสร้าง...' : 'สร้างสัญญาซื้อขาย'}
+                {saving ? (isEditMode ? 'กำลังบันทึก...' : 'กำลังสร้าง...') : (isEditMode ? 'บันทึกการแก้ไข' : 'สร้างสัญญาซื้อขาย')}
               </Button>
             </div>
           </div>

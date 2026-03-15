@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { FileText, Plus, Search, Building2, Calendar, Eye } from 'lucide-react';
+import { FileText, Plus, Search, Building2, Calendar, Eye, Edit3 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -12,6 +12,7 @@ import CreateContractWizard from '@/components/contracts/CreateContractWizard';
 export default function ContractsPage() {
   const [search, setSearch] = useState('');
   const [wizardOpen, setWizardOpen] = useState(false);
+  const [editingContract, setEditingContract] = useState<any>(null);
 
   const handleViewPdf = async (contractId: string) => {
     const projectId = import.meta.env.VITE_SUPABASE_PROJECT_ID;
@@ -130,6 +131,10 @@ export default function ContractsPage() {
                           QT: {c.qt_number || '-'}
                         </div>
                       </div>
+                      <Button size="sm" variant="ghost" onClick={() => { setEditingContract(c); setWizardOpen(true); }}>
+                        <Edit3 size={14} className="mr-1" />
+                        แก้ไข
+                      </Button>
                       <Button size="sm" variant="outline" onClick={() => handleViewPdf(c.id)}>
                         <Eye size={14} className="mr-1" />
                         ดูสัญญา
@@ -145,8 +150,9 @@ export default function ContractsPage() {
 
       <CreateContractWizard
         open={wizardOpen}
-        onOpenChange={setWizardOpen}
+        onOpenChange={(v) => { setWizardOpen(v); if (!v) setEditingContract(null); }}
         onCreated={() => refetch()}
+        editContract={editingContract}
       />
     </div>
   );
