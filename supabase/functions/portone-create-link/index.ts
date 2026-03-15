@@ -42,36 +42,53 @@ Deno.serve(async (req) => {
     // Step 1: Get auth token
     const tokenRes = await fetch('https://api.portone.cloud/api/merchant/auth-token', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        portone_key: PORTONE_KEY,
-        portone_secret: PORTONE_SECRET,
-      }),
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+      body: JSON.stringify({ portone_key: PORTONE_KEY, portone_secret: PORTONE_SECRET }),
     });
-    const tokenData = await tokenRes.json();
-    if (!tokenRes.ok) {
-      throw new Error(`PortOne auth failed [${tokenRes.status}]: ${JSON.stringify(tokenData)}`);
-    }
-    const bearerToken = tokenData?.data?.token || tokenData?.token;
-    if (!bearerToken) throw new Error('Failed to get PortOne token');
+    const tokenText = await tokenRes.text();
+    console.log('PortOne auth status:', tokenRes.status);
+    let tokenData: any;
+    try { tokenData = JSON.parse(tokenText); } catch { throw new Error(`PortOne auth non-JSON: ${tokenText}`); }
+    if (!tokenRes.ok) throw new Error(`PortOne auth failed [${tokenRes.status}]: ${tokenText}`);
+    const bearerToken = tokenData?.content?.token || tokenData?.data?.token || tokenData?.token;
+    if (!bearerToken) throw new Error(`No token in response: ${tokenText}`);
 
-    // Step 2: Create payment link
+    // Step 2: Build URLs and generate signature
     const merchantOrderId = `${qt.qt_number || 'QT'}-${Date.now()}`;
     const amount = qt.price || 0;
-
-    // Build chosen payment methods for credit card
-    const chosenPaymentMethods: any[] = [
-      { payment_channel: "GBPRIMEPAY", payment_method: "GBPRIMEPAY_CREDIT_CARD" },
-    ];
-
-    // Set expiry 30 days from now
+    
     const expiry = new Date();
     expiry.setDate(expiry.getDate() + 30);
 
     const successUrl = `${SUPABASE_URL}/functions/v1/portone-webhook?status=success&quotation_id=${quotation_id}`;
     const failureUrl = `${SUPABASE_URL}/functions/v1/portone-webhook?status=failure&quotation_id=${quotation_id}`;
 
-    const linkBody: any = {
+    // Generate signature hash (HMAC-SHA256) with all required params
+    const sigParams: Record<string, string> = {
+      amount: String(amount),
+      client_key: PORTONE_KEY,
+      currency: 'THB',
+      failure_url: failureUrl,
+      merchant_order_id: merchantOrderId,
+      success_url: successUrl,
+    };
+    // url.Values.Encode() sorts alphabetically and uses QueryEscape
+    const sortedKeys = Object.keys(sigParams).sort();
+    const sigMessage = sortedKeys.map(k => `${encodeURIComponent(k)}=${encodeURIComponent(sigParams[k])}`).join('&');
+    const encoder = new TextEncoder();
+    const keyData = encoder.encode(PORTONE_SECRET);
+    const msgData = encoder.encode(sigMessage);
+    const cryptoKey = await crypto.subtle.importKey('raw', keyData, { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']);
+    const sigBuffer = await crypto.subtle.sign('HMAC', cryptoKey, msgData);
+    const signatureHash = btoa(String.fromCharCode(...new Uint8Array(sigBuffer)));
+    console.log('Sig message:', sigMessage);
+
+    let description = `ชำระเงินสำหรับ ${qt.product || 'สินค้า'} - ${qt.qt_number || ''}`;
+    if (installment_months && installment_months > 1) {
+      description += ` (ผ่อน ${installment_months} เดือน)`;
+    }
+
+    const linkBody = {
       portone_key: PORTONE_KEY,
       merchant_details: {
         name: "Optima Medical",
@@ -82,8 +99,8 @@ Deno.serve(async (req) => {
         shipping_charges: 0,
       },
       source: "default",
-      description: `ชำระเงินสำหรับ ${qt.product || 'สินค้า'} - ${qt.qt_number || ''}`,
-      signature_hash: "signature_hash",
+      description,
+      signature_hash: signatureHash,
       amount,
       currency: "THB",
       country_code: "TH",
@@ -120,15 +137,13 @@ Deno.serve(async (req) => {
         { key: "qt_number", value: qt.qt_number || "" },
       ],
       send_immediately: false,
-      chosen_payment_methods: chosenPaymentMethods,
+      chosen_payment_methods: [
+        { payment_channel: "GBPRIMEPAY", payment_method: "GBPRIMEPAY_CREDIT_CARD" },
+      ],
       environment: "live",
     };
 
-    // Add installment info if provided
-    if (installment_months && installment_months > 1) {
-      linkBody.description += ` (ผ่อน ${installment_months} เดือน)`;
-    }
-
+    console.log('Creating payment link...');
     const linkRes = await fetch('https://api.portone.cloud/api/paymentLink', {
       method: 'POST',
       headers: {
@@ -138,13 +153,14 @@ Deno.serve(async (req) => {
       },
       body: JSON.stringify(linkBody),
     });
-    const linkData = await linkRes.json();
-    if (!linkRes.ok) {
-      throw new Error(`PortOne create link failed [${linkRes.status}]: ${JSON.stringify(linkData)}`);
-    }
+    const linkText = await linkRes.text();
+    console.log('PortOne link response:', linkRes.status, linkText);
+    let linkData: any;
+    try { linkData = JSON.parse(linkText); } catch { throw new Error(`PortOne link non-JSON: ${linkText}`); }
+    if (!linkRes.ok) throw new Error(`PortOne create link failed [${linkRes.status}]: ${linkText}`);
 
-    const paymentLinkUrl = linkData?.data?.payment_link || linkData?.payment_link || '';
-    const paymentLinkRef = linkData?.data?.payment_link_ref || linkData?.payment_link_ref || '';
+    const paymentLinkUrl = linkData?.data?.payment_link || linkData?.content?.payment_link || linkData?.payment_link || '';
+    const paymentLinkRef = linkData?.data?.payment_link_ref || linkData?.content?.payment_link_ref || linkData?.payment_link_ref || '';
 
     // Save to quotation
     await supabase
