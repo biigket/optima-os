@@ -524,9 +524,32 @@ export default function PaymentDetailPage() {
           {paymentLinks && paymentLinks.length > 0 && (
             <Card>
               <CardHeader className="pb-3">
-                <CardTitle className="text-sm flex items-center gap-1.5">
-                  <CreditCard size={14} /> ประวัติลิงก์ชำระเงิน ({paymentLinks.length} รายการ)
-                </CardTitle>
+                <div className="flex items-center justify-between">
+                  <CardTitle className="text-sm flex items-center gap-1.5">
+                    <CreditCard size={14} /> ประวัติลิงก์ชำระเงิน ({paymentLinks.length} รายการ)
+                  </CardTitle>
+                  <Button size="sm" variant="ghost" className="h-7 gap-1 text-xs" disabled={syncingLinks} onClick={async () => {
+                    setSyncingLinks(true);
+                    try {
+                      const fnUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/portone-check-link-status`;
+                      const res = await fetch(fnUrl, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', 'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY },
+                        body: JSON.stringify({ quotation_id: qt.id }),
+                      });
+                      const result = await res.json();
+                      if (result.success) {
+                        toast.success('อัปเดตสถานะลิงก์สำเร็จ');
+                        refetch();
+                      } else {
+                        toast.error(result.error || 'ไม่สามารถอัปเดตสถานะได้');
+                      }
+                    } catch (e) { toast.error('เกิดข้อผิดพลาด'); }
+                    setSyncingLinks(false);
+                  }}>
+                    <RefreshCw size={12} className={syncingLinks ? 'animate-spin' : ''} /> ซิงค์สถานะ
+                  </Button>
+                </div>
               </CardHeader>
               <CardContent className="p-0">
                 <Table>
