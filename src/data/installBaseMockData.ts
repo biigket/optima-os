@@ -182,10 +182,8 @@ export const mockInstallations: Installation[] = [
     province: 'กรุงเทพฯ',
     region: 'กลาง',
     notes: '',
+    replacementHistory: [],
     pmReports: [],
-  },
-  {
-    id: 'inst-3',
     qcStockItemId: 'qc-3',
     productCategory: 'ND2',
     serialNumber: 'HNT01240067',
