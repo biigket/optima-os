@@ -621,9 +621,12 @@ export default function CreateContractWizard({ open, onOpenChange, onCreated, ed
             />
 
             <div className="flex justify-between pt-2">
-              <Button variant="outline" size="sm" onClick={() => setStep(0)}>
-                <ChevronLeft size={14} className="mr-1" /> กลับ
-              </Button>
+              {!isEditMode && (
+                <Button variant="outline" size="sm" onClick={() => setStep(0)}>
+                  <ChevronLeft size={14} className="mr-1" /> กลับ
+                </Button>
+              )}
+              {isEditMode && <div />}
               <Button size="sm" onClick={() => setStep(2)}>
                 ถัดไป <ChevronRight size={14} className="ml-1" />
               </Button>
