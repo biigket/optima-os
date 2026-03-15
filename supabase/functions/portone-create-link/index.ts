@@ -99,6 +99,8 @@ Deno.serve(async (req) => {
     const sigBuffer = await crypto.subtle.sign('HMAC', cryptoKey, msgData);
     const signatureHash = btoa(String.fromCharCode(...new Uint8Array(sigBuffer)));
     console.log('Sig message:', sigMessage);
+    const normalizedPhone = normalizeThaiPhone(sms_phone || account?.phone);
+    console.log('Phone raw:', sms_phone || account?.phone, '-> normalized:', normalizedPhone);
 
     let description = `ชำระเงินสำหรับ ${qt.product || 'สินค้า'} - ${qt.qt_number || ''}`;
     if (installment_months && installment_months > 1) {
