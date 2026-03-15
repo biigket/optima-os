@@ -17,6 +17,7 @@ import TasksPage from "@/pages/TasksPage";
 import CalendarPage from "@/pages/CalendarPage";
 import ConsumablesPage from "@/pages/ConsumablesPage";
 import MaintenancePage from "@/pages/MaintenancePage";
+import ServiceTicketDetailPage from "@/pages/ServiceTicketDetailPage";
 import ForecastPage from "@/pages/ForecastPage";
 import AnalyticsPage from "@/pages/AnalyticsPage";
 import QuotationsPage from "@/pages/QuotationsPage";
