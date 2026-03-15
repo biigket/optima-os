@@ -80,8 +80,10 @@ function numberToThaiText(num: number): string {
 function pageHeader(contractNumber: string): string {
   return `
   <div class="header">
-    <div class="header-right">
+    <div class="header-left">
       <img src="${SELLER.logo}" class="logo" alt="Optima" />
+    </div>
+    <div class="header-right">
       <div class="th">${SELLER.company_th}</div>
       <div class="th">65 ถนนวิชิตสงคราม ตำบลตลาดเหนือ</div>
       <div class="th">อำเภอเมือง จังหวัดภูเก็ต 83000</div>
@@ -111,7 +113,7 @@ function generateHTML(contract: any, account: any, contacts: any[]): string {
   const buyerIdExpiry = contract.buyer_id_expiry || "";
   const buyerAddress = contract.buyer_address || account?.address || "";
   const buyerPhone = contract.buyer_phone || account?.phone || "";
-  const sellerRep = contract.seller_representative_name || "นายแพทย์คุณวุฒิ ลิ้มรัตนเมฆา";
+  const sellerRep = contract.seller_representative_name || "นายแพทย์ฐิติคมน์ ลิ้มรัตนเมฆา";
   
   const productName = contract.product_name || "NEW DOUBLO 2.0";
   const productBrand = contract.product_brand || "HIRONIC";
@@ -170,9 +172,10 @@ function generateHTML(contract: any, account: any, contacts: any[]): string {
     .page:last-child { page-break-after: auto; }
     @media print { body { background: white; } .page { margin: 0; padding: 12mm 18mm 18mm 22mm; box-shadow: none; } .no-print { display: none !important; } @page { size: A4; margin: 0; } }
     @media screen { .page { box-shadow: 0 4px 24px rgba(0,0,0,0.15); margin-top: 20px; margin-bottom: 20px; } .page:first-child { margin-top: 50px; } }
-    .header { display: flex; justify-content: flex-end; align-items: flex-start; margin-bottom: 6px; }
+    .header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 6px; }
+    .header-left { }
+    .header-left .logo { height: 80px; }
     .header-right { text-align: right; line-height: 1.5; font-size: 14px; }
-    .header-right .logo { height: 50px; margin-bottom: 4px; }
     .header-right .th { color: #1a1a1a; font-weight: 400; }
     .header-right .en { color: #444; font-size: 13px; }
     .contract-no { text-align: right; font-size: 15px; margin-bottom: 16px; margin-top: 4px; }
@@ -212,7 +215,7 @@ function generateHTML(contract: any, account: any, contacts: any[]): string {
   ${pageHeader(contractNumber)}
   
   <h2>สัญญาซื้อขายเครื่องมือแพทย์</h2>
-  <div class="date-line">วันที่ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ${thaiYear}</div>
+  <div class="date-line">วันที่ ${fmtDateThai(contractDate)}</div>
   
   <div class="body-text indent">
     สัญญาซื้อขายฉบับนี้ทำขึ้นระหว่าง
@@ -372,16 +375,7 @@ function generateHTML(contract: any, account: any, contacts: any[]): string {
 
 <!-- PAGE 5 -->
 <div class="page">
-  <div class="header">
-    <div class="header-right">
-      <div class="th">${SELLER.company_th}</div>
-      <div class="th">65 ถนนวิชิตสงคราม ตำบลตลาดเหนือ</div>
-      <div class="en">อำเภอเมือง จังหวัดภูเก็ต 83000</div>
-      <div class="en">${SELLER.company_en}</div>
-      <div class="en">${SELLER.address_en}</div>
-    </div>
-  </div>
-  <div class="contract-no">สัญญาเลขที่ ${contractNumber}</div>
+  ${pageHeader(contractNumber)}
 
   <div class="body-text indent">
     โดยตกลงยินยอมให้เป็นหน้าที่ของผู้ขาย ที่ต้องทำการซ่อมแก้ หรือหากไม่สามารถซ่อมแก้ได้ให้ทำการเปลี่ยนอะไหล่ให้
@@ -530,12 +524,13 @@ function generateHTML(contract: any, account: any, contacts: any[]): string {
     </div>
   </div>
   
-  <div style="text-align:center;margin-top:60px;font-weight:700;">เอกสารแนบท้ายสัญญา</div>
 </div>
 
 <!-- PAGE 10: Appendix -->
 <div class="page">
   ${pageHeader(contractNumber)}
+  
+  <h2 style="margin-bottom:24px;">เอกสารแนบท้ายสัญญา</h2>
   
   <div class="body-text">
     <strong>ข้อ1.</strong> อ้างถึงสัญญาซื้อขายเลขที่ <strong>${contractNumber}</strong> ลงวันที่ <strong>${fmtDateThai(contractDate)}</strong> ตามที่ ${SELLER.company_th}
