@@ -28,16 +28,26 @@ const DEFAULT_ACCESSORIES = [
 ];
 
 const DEFAULT_WARRANTY = [
-  { item: 'Cartridge FL 2.0,3.0,4.5,4.5,6.0mm', warranty: 'รับประกัน 24,000 นัดหรือ 1 ปี', note: 'ขึ้นกับระยะใดระยะหนึ่งถึงก่อน' },
-  { item: 'Cartridge SD 1.5,3.0,4.5mm', warranty: 'รับประกัน 240,000 นัดหรือ 1 ปี', note: 'ขึ้นกับระยะใดระยะหนึ่งถึงก่อน' },
+  { item: 'Cartridge FL 2.0 mm', warranty: 'รับประกัน 24,000 นัดหรือ 1 ปี', note: 'ขึ้นกับระยะใดถึงก่อน' },
+  { item: 'Cartridge FL 3.0 mm', warranty: 'รับประกัน 24,000 นัดหรือ 1 ปี', note: 'ขึ้นกับระยะใดถึงก่อน' },
+  { item: 'Cartridge FL 4.5 mm', warranty: 'รับประกัน 24,000 นัดหรือ 1 ปี', note: 'ขึ้นกับระยะใดถึงก่อน' },
+  { item: 'Cartridge FL 6.0 mm', warranty: 'รับประกัน 24,000 นัดหรือ 1 ปี', note: 'ขึ้นกับระยะใดถึงก่อน' },
+  { item: 'Cartridge SD 1.5 mm', warranty: 'รับประกัน 240,000 นัดหรือ 1 ปี', note: 'ขึ้นกับระยะใดถึงก่อน' },
+  { item: 'Cartridge SD 3.0 mm', warranty: 'รับประกัน 240,000 นัดหรือ 1 ปี', note: 'ขึ้นกับระยะใดถึงก่อน' },
+  { item: 'Cartridge SD 4.5 mm', warranty: 'รับประกัน 240,000 นัดหรือ 1 ปี', note: 'ขึ้นกับระยะใดถึงก่อน' },
   { item: 'Handpiece Focused Linear Ultrasound', warranty: 'รับประกัน 1 ปี', note: '' },
   { item: 'Handpiece Synergy Dotting', warranty: 'รับประกัน 1 ปี', note: '' },
   { item: '[ACC] Foot Switch', warranty: 'รับประกัน 1 ปี', note: '' },
 ];
 
 const DEFAULT_APPENDIX_ITEMS = [
-  { name: 'Cartridge FL : 2.0,3.0,4.5,4.5,6.0 mm', detail: 'จำนวน อย่างละ 1 (หนึ่ง) อัน โดยไม่คิดมูลค่า' },
-  { name: 'Cartridge SD : 1.5,3.0,4.5 mm', detail: 'จำนวน อย่างละ 1 (หนึ่ง) อัน โดยไม่คิดมูลค่า' },
+  { name: 'Cartridge FL 2.0 mm', detail: 'จำนวน 1 (หนึ่ง) หัว โดยไม่คิดมูลค่า' },
+  { name: 'Cartridge FL 3.0 mm', detail: 'จำนวน 1 (หนึ่ง) หัว โดยไม่คิดมูลค่า' },
+  { name: 'Cartridge FL 4.5 mm', detail: 'จำนวน 1 (หนึ่ง) หัว โดยไม่คิดมูลค่า' },
+  { name: 'Cartridge FL 6.0 mm', detail: 'จำนวน 1 (หนึ่ง) หัว โดยไม่คิดมูลค่า' },
+  { name: 'Cartridge SD 1.5 mm', detail: 'จำนวน 1 (หนึ่ง) หัว โดยไม่คิดมูลค่า' },
+  { name: 'Cartridge SD 3.0 mm', detail: 'จำนวน 1 (หนึ่ง) หัว โดยไม่คิดมูลค่า' },
+  { name: 'Cartridge SD 4.5 mm', detail: 'จำนวน 1 (หนึ่ง) หัว โดยไม่คิดมูลค่า' },
 ];
 
 interface QuotationOption {
