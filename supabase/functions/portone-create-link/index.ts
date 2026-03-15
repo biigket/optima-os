@@ -53,31 +53,35 @@ Deno.serve(async (req) => {
     const bearerToken = tokenData?.content?.token || tokenData?.data?.token || tokenData?.token;
     if (!bearerToken) throw new Error(`No token in response: ${tokenText}`);
 
-    // Step 2: Generate signature hash (HMAC-SHA256)
+    // Step 2: Build URLs and generate signature
     const merchantOrderId = `${qt.qt_number || 'QT'}-${Date.now()}`;
     const amount = qt.price || 0;
+    
+    const expiry = new Date();
+    expiry.setDate(expiry.getDate() + 30);
 
+    const successUrl = `${SUPABASE_URL}/functions/v1/portone-webhook?status=success&quotation_id=${quotation_id}`;
+    const failureUrl = `${SUPABASE_URL}/functions/v1/portone-webhook?status=failure&quotation_id=${quotation_id}`;
+
+    // Generate signature hash (HMAC-SHA256) with all required params
     const sigParams: Record<string, string> = {
       amount: String(amount),
       client_key: PORTONE_KEY,
       currency: 'THB',
+      failure_url: failureUrl,
       merchant_order_id: merchantOrderId,
+      success_url: successUrl,
     };
+    // url.Values.Encode() sorts alphabetically and uses QueryEscape
     const sortedKeys = Object.keys(sigParams).sort();
-    const sigMessage = sortedKeys.map(k => `${k}=${encodeURIComponent(sigParams[k])}`).join('&');
+    const sigMessage = sortedKeys.map(k => `${encodeURIComponent(k)}=${encodeURIComponent(sigParams[k])}`).join('&');
     const encoder = new TextEncoder();
     const keyData = encoder.encode(PORTONE_SECRET);
     const msgData = encoder.encode(sigMessage);
     const cryptoKey = await crypto.subtle.importKey('raw', keyData, { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']);
     const sigBuffer = await crypto.subtle.sign('HMAC', cryptoKey, msgData);
     const signatureHash = btoa(String.fromCharCode(...new Uint8Array(sigBuffer)));
-
-    // Step 3: Create payment link
-    const expiry = new Date();
-    expiry.setDate(expiry.getDate() + 30);
-
-    const successUrl = `${SUPABASE_URL}/functions/v1/portone-webhook?status=success&quotation_id=${quotation_id}`;
-    const failureUrl = `${SUPABASE_URL}/functions/v1/portone-webhook?status=failure&quotation_id=${quotation_id}`;
+    console.log('Sig message:', sigMessage);
 
     let description = `ชำระเงินสำหรับ ${qt.product || 'สินค้า'} - ${qt.qt_number || ''}`;
     if (installment_months && installment_months > 1) {
