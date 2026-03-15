@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Plus, Search, Package, CheckCircle, AlertTriangle } from 'lucide-react';
+import { Plus, Search, Package, CheckCircle, AlertTriangle, CircleOff } from 'lucide-react';
 import { mockConsumableInstallations, type ConsumableInstallation } from '@/data/consumableBaseMockData';
 import { cartridgeTypes } from '@/data/cartridgeMockData';
 import AddConsumableDialog from '@/components/consumables/AddConsumableDialog';

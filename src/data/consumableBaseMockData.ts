@@ -13,6 +13,7 @@ export interface ConsumableInstallation {
   warrantyDays: number;
   warrantyExpiry: string;
   notes: string;
+  depleted?: boolean; // ช็อตหมดแล้ว
 }
 
 // Pre-populated from cartridge stock items with status ติดตั้งแล้ว
