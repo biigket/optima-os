@@ -78,6 +78,7 @@ function AuthedAppRoutes() {
         <Route path="/analytics" element={<AnalyticsPage />} />
         <Route path="/quotations" element={<QuotationsPage />} />
         <Route path="/quotations/:id" element={<QuotationDetailPage />} />
+        <Route path="/contracts" element={<ContractsPage />} />
         <Route path="/inventory" element={<InventoryPage />} />
         <Route path="/payments" element={<PaymentsPage />} />
         <Route path="/payments/:quotationId" element={<PaymentDetailPage />} />
