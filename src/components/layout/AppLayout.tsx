@@ -68,13 +68,6 @@ const navGroups = [
     ],
   },
   {
-    label: 'ANALYTICS',
-    phase: 1,
-    items: [
-      { to: '/', icon: LayoutDashboard, label: 'แดชบอร์ด' },
-    ],
-  },
-  {
     label: 'ERP',
     phase: 1,
     items: [
