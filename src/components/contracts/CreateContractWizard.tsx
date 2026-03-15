@@ -101,11 +101,62 @@ export default function CreateContractWizard({ open, onOpenChange, onCreated, ed
   const [warrantyDetails, setWarrantyDetails] = useState(DEFAULT_WARRANTY);
   const [appendixItems, setAppendixItems] = useState(DEFAULT_APPENDIX_ITEMS);
 
+  // Load existing contract data when editing
+  useEffect(() => {
+    if (!open || !editContract) return;
+    setStep(1);
+    setBuyerCompany(editContract.buyer_company_name || '');
+    setBuyerRepresentative(editContract.buyer_representative_name || '');
+    setBuyerIdNumber(editContract.buyer_id_number || '');
+    setBuyerIdExpiry(editContract.buyer_id_expiry || '');
+    setBuyerAddress(editContract.buyer_address || '');
+    setBuyerPhone(editContract.buyer_phone || '');
+    setSellerRepresentative(editContract.seller_representative_name || 'นายแพทย์ฐิติคมน์ ลิ้มรัตนเมฆา');
+    setContractDate(editContract.contract_date || format(new Date(), 'yyyy-MM-dd'));
+    setProductName(editContract.product_name || 'NEW DOUBLO 2.0');
+    setProductBrand(editContract.product_brand || 'HIRONIC');
+    setProductOrigin(editContract.product_origin || 'ประเทศเกาหลี');
+    setProductQuantity(editContract.product_quantity || 1);
+    setTotalPrice(editContract.total_price || 0);
+    setDepositAmount(editContract.deposit_amount || 0);
+    setRemainingAmount(editContract.remaining_amount || 0);
+    setPaymentMethod(editContract.payment_method || '');
+    setDeliveryAddress(editContract.delivery_address || '');
+    setDeliveryDays(editContract.delivery_days || 60);
+    setWarrantyYears(editContract.warranty_years || 1);
+    setAdditionalNotes(editContract.additional_notes || '');
+    if (editContract.product_accessories && Array.isArray(editContract.product_accessories)) {
+      setAccessories(editContract.product_accessories as any[]);
+    }
+    if (editContract.warranty_details && Array.isArray(editContract.warranty_details)) {
+      setWarrantyDetails(editContract.warranty_details as any[]);
+    }
+    if (editContract.appendix_items && Array.isArray(editContract.appendix_items)) {
+      setAppendixItems(editContract.appendix_items as any[]);
+    }
+    // Set a virtual selectedQt for display
+    setSelectedQt({
+      id: editContract.quotation_id || '',
+      qt_number: editContract.qt_number || '',
+      product: editContract.product_name || '',
+      price: editContract.total_price || 0,
+      account_id: editContract.account_id || '',
+      clinic_name: editContract.buyer_company_name || '',
+      company_name: editContract.buyer_company_name || '',
+      payment_condition: editContract.payment_method || '',
+      sale_assigned: '',
+      has_installments: (editContract.installment_count || 1) > 1,
+      installment_count: editContract.installment_count || 1,
+      deposit_value: editContract.deposit_amount || 0,
+      deposit_type: 'NONE',
+    });
+  }, [open, editContract]);
+
   // Load signed quotations
   useEffect(() => {
-    if (!open) return;
+    if (!open || editContract) return;
     loadQuotations();
-  }, [open]);
+  }, [open, editContract]);
 
   async function loadQuotations() {
     setLoading(true);
