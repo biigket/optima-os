@@ -241,7 +241,7 @@ export default function CreateContractWizard({ open, onOpenChange, onCreated }: 
         additional_notes: additionalNotes,
         status: 'DRAFT',
         created_by: currentUser?.name || '',
-      } as any);
+      } as any).select();
 
       if (error) throw error;
 
