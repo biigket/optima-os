@@ -109,7 +109,7 @@ Deno.serve(async (req) => {
       billing_details: {
         billing_name: account?.clinic_name || "Customer",
         billing_email: account?.email || "",
-        billing_phone: account?.phone || "",
+        billing_phone: sms_phone || account?.phone || "",
         billing_address: {
           city: "",
           country_code: "TH",
