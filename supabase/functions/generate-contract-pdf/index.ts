@@ -375,16 +375,7 @@ function generateHTML(contract: any, account: any, contacts: any[]): string {
 
 <!-- PAGE 5 -->
 <div class="page">
-  <div class="header">
-    <div class="header-right">
-      <div class="th">${SELLER.company_th}</div>
-      <div class="th">65 ถนนวิชิตสงคราม ตำบลตลาดเหนือ</div>
-      <div class="en">อำเภอเมือง จังหวัดภูเก็ต 83000</div>
-      <div class="en">${SELLER.company_en}</div>
-      <div class="en">${SELLER.address_en}</div>
-    </div>
-  </div>
-  <div class="contract-no">สัญญาเลขที่ ${contractNumber}</div>
+  ${pageHeader(contractNumber)}
 
   <div class="body-text indent">
     โดยตกลงยินยอมให้เป็นหน้าที่ของผู้ขาย ที่ต้องทำการซ่อมแก้ หรือหากไม่สามารถซ่อมแก้ได้ให้ทำการเปลี่ยนอะไหล่ให้
