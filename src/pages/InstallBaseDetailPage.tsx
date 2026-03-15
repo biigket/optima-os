@@ -18,6 +18,7 @@ import {
   mockInstallations, generatePMSchedule,
   type PMReport, type Installation, type ReplacementRecord, type ReplacementType,
 } from '@/data/installBaseMockData';
+import { mockND2Stock } from '@/data/qcMockData';
 import PMReportForm from '@/components/install-base/PMReportForm';
 import PMReportViewDialog from '@/components/install-base/PMReportViewDialog';
 import {
