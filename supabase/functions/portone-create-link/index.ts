@@ -56,7 +56,7 @@ Deno.serve(async (req) => {
     if (!tokenRes.ok) {
       throw new Error(`PortOne auth failed [${tokenRes.status}]: ${tokenText}`);
     }
-    const bearerToken = tokenData?.data?.token || tokenData?.token || tokenData?.access_token || tokenData?.data?.access_token;
+    const bearerToken = tokenData?.content?.token || tokenData?.data?.token || tokenData?.token || tokenData?.access_token;
     if (!bearerToken) throw new Error(`Failed to extract token from response: ${tokenText}`);
 
     // Step 2: Create payment link
