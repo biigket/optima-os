@@ -331,6 +331,86 @@ export default function PaymentDetailPage() {
             </Card>
           )}
 
+          {/* PortOne Payment Link */}
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-sm flex items-center gap-1.5">
+                <Link2 size={14} /> ลิงก์ชำระเงินออนไลน์ (บัตรเครดิต)
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {(qt as any).payment_link_url ? (
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2 p-3 rounded-md bg-muted/50 border">
+                    <Link2 size={14} className="text-primary shrink-0" />
+                    <p className="text-xs font-mono text-foreground truncate flex-1">{(qt as any).payment_link_url}</p>
+                    <Button size="sm" variant="ghost" className="h-7 gap-1 text-xs shrink-0" onClick={() => {
+                      navigator.clipboard.writeText((qt as any).payment_link_url);
+                      toast.success('คัดลอกลิงก์แล้ว');
+                    }}>
+                      <Copy size={12} /> คัดลอก
+                    </Button>
+                    <Button size="sm" variant="ghost" className="h-7 gap-1 text-xs shrink-0" onClick={() => window.open((qt as any).payment_link_url, '_blank')}>
+                      <ExternalLink size={12} /> เปิด
+                    </Button>
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Ref: {(qt as any).payment_link_ref || '-'} • สามารถส่งลิงก์นี้ให้ลูกค้าเพื่อชำระผ่านบัตรเครดิตได้โดยตรง
+                  </p>
+                  <Button size="sm" variant="outline" className="gap-1.5 text-xs" disabled={creatingLink} onClick={async () => {
+                    setCreatingLink(true);
+                    try {
+                      const fnUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/portone-create-link`;
+                      const res = await fetch(fnUrl, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', 'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY },
+                        body: JSON.stringify({ quotation_id: qt.id }),
+                      });
+                      const result = await res.json();
+                      if (result.success) {
+                        toast.success('สร้างลิงก์ใหม่สำเร็จ');
+                        refetch();
+                      } else {
+                        toast.error(result.error || 'สร้างลิงก์ไม่สำเร็จ');
+                      }
+                    } catch (e) { toast.error('เกิดข้อผิดพลาด'); }
+                    setCreatingLink(false);
+                  }}>
+                    {creatingLink ? <Loader2 size={12} className="animate-spin" /> : <Link2 size={12} />}
+                    สร้างลิงก์ใหม่
+                  </Button>
+                </div>
+              ) : (
+                <div className="text-center py-4 space-y-3">
+                  <p className="text-sm text-muted-foreground">ยังไม่ได้สร้างลิงก์ชำระเงินออนไลน์</p>
+                  <Button className="gap-1.5" disabled={creatingLink} onClick={async () => {
+                    setCreatingLink(true);
+                    try {
+                      const fnUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/portone-create-link`;
+                      const res = await fetch(fnUrl, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', 'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY },
+                        body: JSON.stringify({ quotation_id: qt.id }),
+                      });
+                      const result = await res.json();
+                      if (result.success) {
+                        toast.success('สร้างลิงก์ชำระเงินสำเร็จ');
+                        refetch();
+                      } else {
+                        toast.error(result.error || 'สร้างลิงก์ไม่สำเร็จ');
+                      }
+                    } catch (e) { toast.error('เกิดข้อผิดพลาด'); }
+                    setCreatingLink(false);
+                  }}>
+                    {creatingLink ? <Loader2 size={14} className="animate-spin" /> : <CreditCard size={14} />}
+                    สร้างลิงก์ชำระเงิน (บัตรเครดิต)
+                  </Button>
+                  <p className="text-xs text-muted-foreground">ลูกค้าสามารถชำระผ่านบัตรเครดิตพร้อมผ่อนชำระได้</p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
           {/* Installments Table */}
           <Card>
             <CardHeader className="pb-3">
