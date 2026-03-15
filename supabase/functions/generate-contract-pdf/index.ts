@@ -77,6 +77,21 @@ function numberToThaiText(num: number): string {
   return result + "บาทถ้วน";
 }
 
+function pageHeader(contractNumber: string): string {
+  return `
+  <div class="header">
+    <div class="header-right">
+      <img src="${SELLER.logo}" class="logo" alt="Optima" />
+      <div class="th">${SELLER.company_th}</div>
+      <div class="th">65 ถนนวิชิตสงคราม ตำบลตลาดเหนือ</div>
+      <div class="th">อำเภอเมือง จังหวัดภูเก็ต 83000</div>
+      <div class="en">${SELLER.company_en}</div>
+      <div class="en">${SELLER.address_en}</div>
+    </div>
+  </div>
+  <div class="contract-no">สัญญาเลขที่ ${contractNumber}</div>`;
+}
+
 function generateHTML(contract: any, account: any, contacts: any[]): string {
   const accessories = (contract.product_accessories || []) as any[];
   const warrantyDetails = (contract.warranty_details || []) as any[];
