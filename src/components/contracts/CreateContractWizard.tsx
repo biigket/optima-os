@@ -703,7 +703,7 @@ export default function CreateContractWizard({ open, onOpenChange, onCreated, ed
                 <ChevronLeft size={14} className="mr-1" /> แก้ไข
               </Button>
               <Button size="sm" onClick={handleCreate} disabled={saving}>
-                {saving ? 'กำลังสร้าง...' : 'สร้างสัญญาซื้อขาย'}
+                {saving ? (isEditMode ? 'กำลังบันทึก...' : 'กำลังสร้าง...') : (isEditMode ? 'บันทึกการแก้ไข' : 'สร้างสัญญาซื้อขาย')}
               </Button>
             </div>
           </div>
