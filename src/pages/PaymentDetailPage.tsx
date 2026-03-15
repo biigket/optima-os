@@ -29,6 +29,7 @@ export default function PaymentDetailPage() {
   const [uploadTarget, setUploadTarget] = useState<any>(null);
   const [verifyTarget, setVerifyTarget] = useState<any>(null);
   const [depositTarget, setDepositTarget] = useState<any>(null);
+  const [creatingLink, setCreatingLink] = useState(false);
 
   const { data, isLoading } = useQuery({
     queryKey: ['payment-detail', quotationId],
