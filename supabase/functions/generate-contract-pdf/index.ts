@@ -150,25 +150,26 @@ function generateHTML(contract: any, account: any, contacts: any[]): string {
   const pageStyle = `
     @import url('https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;700&display=swap');
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { font-family: 'Sarabun', sans-serif; font-size: 14px; color: #333; background: #f0f0f0; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-    .page { width: 210mm; min-height: 297mm; margin: 0 auto; background: white; padding: 18mm 22mm; position: relative; page-break-after: always; }
+    body { font-family: 'Sarabun', sans-serif; font-size: 15px; color: #1a1a1a; background: #e8e8e8; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .page { width: 210mm; min-height: 297mm; margin: 0 auto; background: white; padding: 15mm 20mm 20mm 25mm; position: relative; page-break-after: always; }
     .page:last-child { page-break-after: auto; }
-    @media print { body { background: white; } .page { margin: 0; padding: 14mm 20mm; box-shadow: none; } .no-print { display: none !important; } @page { size: A4; margin: 0; } }
-    @media screen { .page { box-shadow: 0 2px 20px rgba(0,0,0,0.12); margin-top: 20px; margin-bottom: 20px; } .page:first-child { margin-top: 50px; } }
-    .header { display: flex; justify-content: flex-end; margin-bottom: 10px; font-size: 13px; }
-    .header-right { text-align: right; line-height: 1.6; }
-    .header-right .th { color: #333; }
-    .header-right .en { color: #555; }
-    .contract-no { text-align: right; font-size: 14px; margin-bottom: 20px; }
-    h2 { text-align: center; font-size: 18px; font-weight: 700; margin-bottom: 6px; }
-    .date-line { text-align: center; margin-bottom: 20px; font-size: 14px; }
-    .body-text { line-height: 2; text-align: justify; font-size: 14px; margin-bottom: 8px; }
-    .indent { text-indent: 40px; }
-    .section-title { font-weight: 700; text-decoration: underline; margin-top: 16px; margin-bottom: 8px; }
-    .sig-section { margin-top: 50px; }
-    .sig-row { display: flex; justify-content: space-between; margin-bottom: 40px; }
-    .sig-box { text-align: center; width: 45%; }
-    .sig-line { margin-top: 50px; }
+    @media print { body { background: white; } .page { margin: 0; padding: 12mm 18mm 18mm 22mm; box-shadow: none; } .no-print { display: none !important; } @page { size: A4; margin: 0; } }
+    @media screen { .page { box-shadow: 0 4px 24px rgba(0,0,0,0.15); margin-top: 20px; margin-bottom: 20px; } .page:first-child { margin-top: 50px; } }
+    .header { display: flex; justify-content: flex-end; align-items: flex-start; margin-bottom: 6px; }
+    .header-right { text-align: right; line-height: 1.5; font-size: 14px; }
+    .header-right .logo { height: 50px; margin-bottom: 4px; }
+    .header-right .th { color: #1a1a1a; font-weight: 400; }
+    .header-right .en { color: #444; font-size: 13px; }
+    .contract-no { text-align: right; font-size: 15px; margin-bottom: 16px; margin-top: 4px; }
+    h2 { text-align: center; font-size: 20px; font-weight: 700; margin-bottom: 4px; letter-spacing: 0.5px; }
+    .date-line { text-align: center; margin-bottom: 18px; font-size: 15px; }
+    .body-text { line-height: 2; text-align: justify; font-size: 15px; margin-bottom: 6px; }
+    .indent { text-indent: 48px; }
+    .section-title { font-weight: 700; text-decoration: underline; margin-top: 14px; margin-bottom: 8px; font-size: 15px; }
+    .sig-section { margin-top: 40px; }
+    .sig-row { display: flex; justify-content: space-between; margin-bottom: 36px; }
+    .sig-box { text-align: center; width: 44%; }
+    .sig-line { margin-top: 44px; }
     .sig-dots { letter-spacing: 2px; }
     .print-bar { position: fixed; top: 0; left: 0; right: 0; background: #e67e22; padding: 10px 24px; display: flex; justify-content: center; gap: 12px; z-index: 100; }
     .print-bar button { padding: 8px 24px; border: none; border-radius: 6px; font-family: 'Sarabun', sans-serif; font-size: 14px; font-weight: 600; cursor: pointer; }
