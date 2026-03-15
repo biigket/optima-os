@@ -81,6 +81,9 @@ Deno.serve(async (req) => {
               verified_by: 'PortOne',
             })
             .eq('quotation_id', qt.id);
+
+          // Log payment in activity / timeline via notes or future activity log
+          console.log(`Payment completed for quotation ${qt.id} via PortOne`);
         }
       }
 

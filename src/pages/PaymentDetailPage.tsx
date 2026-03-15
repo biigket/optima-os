@@ -382,31 +382,60 @@ export default function PaymentDetailPage() {
                   </Button>
                 </div>
               ) : (
-                <div className="text-center py-4 space-y-3">
-                  <p className="text-sm text-muted-foreground">ยังไม่ได้สร้างลิงก์ชำระเงินออนไลน์</p>
-                  <Button className="gap-1.5" disabled={creatingLink} onClick={async () => {
-                    setCreatingLink(true);
-                    try {
-                      const fnUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/portone-create-link`;
-                      const res = await fetch(fnUrl, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json', 'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY },
-                        body: JSON.stringify({ quotation_id: qt.id }),
-                      });
-                      const result = await res.json();
-                      if (result.success) {
-                        toast.success('สร้างลิงก์ชำระเงินสำเร็จ');
-                        refetch();
-                      } else {
-                        toast.error(result.error || 'สร้างลิงก์ไม่สำเร็จ');
-                      }
-                    } catch (e) { toast.error('เกิดข้อผิดพลาด'); }
-                    setCreatingLink(false);
-                  }}>
-                    {creatingLink ? <Loader2 size={14} className="animate-spin" /> : <CreditCard size={14} />}
-                    สร้างลิงก์ชำระเงิน (บัตรเครดิต)
-                  </Button>
-                  <p className="text-xs text-muted-foreground">ลูกค้าสามารถชำระผ่านบัตรเครดิตพร้อมผ่อนชำระได้</p>
+                <div className="space-y-4 py-2">
+                  <p className="text-sm text-muted-foreground text-center">ยังไม่ได้สร้างลิงก์ชำระเงินออนไลน์</p>
+                  {/* Installment month selector */}
+                  <div className="space-y-2 p-3 rounded-lg bg-muted/50 border border-border">
+                    <p className="text-sm font-medium text-foreground">เลือกรูปแบบชำระ</p>
+                    <div className="flex flex-wrap gap-2">
+                      {[
+                        { value: 0, label: 'เต็มจำนวน' },
+                        { value: 3, label: 'ผ่อน 3 เดือน' },
+                        { value: 6, label: 'ผ่อน 6 เดือน' },
+                        { value: 10, label: 'ผ่อน 10 เดือน' },
+                      ].map(opt => (
+                        <Button
+                          key={opt.value}
+                          size="sm"
+                          variant={installmentMonths === opt.value ? 'default' : 'outline'}
+                          className="text-xs"
+                          onClick={() => setInstallmentMonths(opt.value)}
+                        >
+                          {opt.label}
+                        </Button>
+                      ))}
+                    </div>
+                    {installmentMonths > 0 && (
+                      <p className="text-xs text-primary font-medium mt-1">
+                        ยอดต่อเดือน ≈ ฿{Math.ceil((qt.price || 0) / installmentMonths).toLocaleString()} / เดือน
+                      </p>
+                    )}
+                  </div>
+                  <div className="text-center">
+                    <Button className="gap-1.5" disabled={creatingLink} onClick={async () => {
+                      setCreatingLink(true);
+                      try {
+                        const fnUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/portone-create-link`;
+                        const res = await fetch(fnUrl, {
+                          method: 'POST',
+                          headers: { 'Content-Type': 'application/json', 'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY },
+                          body: JSON.stringify({ quotation_id: qt.id, installment_months: installmentMonths || undefined }),
+                        });
+                        const result = await res.json();
+                        if (result.success) {
+                          toast.success('สร้างลิงก์ชำระเงินสำเร็จ');
+                          refetch();
+                        } else {
+                          toast.error(result.error || 'สร้างลิงก์ไม่สำเร็จ');
+                        }
+                      } catch (e) { toast.error('เกิดข้อผิดพลาด'); }
+                      setCreatingLink(false);
+                    }}>
+                      {creatingLink ? <Loader2 size={14} className="animate-spin" /> : <CreditCard size={14} />}
+                      สร้างลิงก์ชำระเงิน (บัตรเครดิต)
+                    </Button>
+                  </div>
+                  <p className="text-xs text-muted-foreground text-center">ลูกค้าสามารถชำระผ่านบัตรเครดิตพร้อมผ่อนชำระได้</p>
                 </div>
               )}
             </CardContent>
