@@ -377,16 +377,6 @@ export default function InstallBaseDetailPage() {
                         <Label className="text-xs">HRM</Label>
                         <Input className="font-mono text-xs" value={editForm.hrm} onChange={e => setEditForm(f => ({ ...f, hrm: e.target.value }))} />
                       </div>
-                      <div className="space-y-1">
-                        <Label className="text-xs">HRM (ขาย/เก็บ)</Label>
-                        <Select value={editForm.hrmSellOrKeep} onValueChange={v => setEditForm(f => ({ ...f, hrmSellOrKeep: v }))}>
-                          <SelectTrigger className="text-xs"><SelectValue /></SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="ขาย">ขาย</SelectItem>
-                            <SelectItem value="เก็บ">เก็บ</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
                     </div>
                   </>
                 )}
