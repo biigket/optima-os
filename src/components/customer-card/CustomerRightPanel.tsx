@@ -287,9 +287,17 @@ export default function CustomerRightPanel({ accountId, clinicName }: Props) {
                       <StatusBadge status={p.payment_status || 'UNPAID'} />
                     </div>
                   </div>
-                  <div className="flex items-center gap-2 text-[11px] text-muted-foreground">
+                  <div className="flex items-center gap-2 text-[11px] text-muted-foreground flex-wrap">
                     <CreditCard size={10} />
-                    <span>{p.payment_condition || '-'}</span>
+                    <span>{getPaymentConditionLabel(p.payment_condition)}</span>
+                    {p.has_installments && p.installment_count > 0 && (
+                      <span className="text-primary">({p.installment_count} งวด)</span>
+                    )}
+                    {channelsByQt[p.id] && channelsByQt[p.id].has('CREDIT_CARD_PORTONE') && (
+                      <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded bg-primary/10 text-primary text-[10px] font-medium">
+                        💳 PortOne
+                      </span>
+                    )}
                     <span>•</span>
                     <span>{p.sale_assigned || '-'}</span>
                     <ExternalLink size={10} className="ml-auto text-primary" />
