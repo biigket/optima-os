@@ -259,14 +259,8 @@ export default function CreateContractWizard({ open, onOpenChange, onCreated, ed
     if (!selectedQt) return;
     setSaving(true);
     try {
-      const contractNumber = await generateContractNumber();
-
-      const { data, error } = await supabase.from('contracts').insert({
-        contract_number: contractNumber,
-        quotation_id: selectedQt.id,
-        account_id: selectedQt.account_id,
+      const contractPayload = {
         contract_date: contractDate,
-        product_type: 'ND2',
         buyer_company_name: buyerCompany,
         buyer_representative_name: buyerRepresentative,
         buyer_id_number: buyerIdNumber,
@@ -281,29 +275,49 @@ export default function CreateContractWizard({ open, onOpenChange, onCreated, ed
         product_accessories: accessories,
         total_price: totalPrice,
         deposit_amount: depositAmount,
-        deposit_date: null,
         remaining_amount: remainingAmount,
         payment_method: paymentMethod,
-        installment_count: selectedQt.installment_count || 1,
-        qt_number: selectedQt.qt_number,
         delivery_address: deliveryAddress,
         delivery_days: deliveryDays,
         warranty_years: warrantyYears,
         warranty_details: warrantyDetails,
         appendix_items: appendixItems,
         additional_notes: additionalNotes,
-        status: 'DRAFT',
-        created_by: currentUser?.name || '',
-      } as any).select();
+      } as any;
 
-      if (error) throw error;
+      let contractId: string;
 
-      toast.success(`สร้างสัญญา ${contractNumber} สำเร็จ`);
+      if (isEditMode && editContract?.id) {
+        // UPDATE existing contract
+        const { error } = await supabase.from('contracts').update(contractPayload).eq('id', editContract.id);
+        if (error) throw error;
+        contractId = editContract.id;
+        toast.success(`แก้ไขสัญญา ${editContract.contract_number} สำเร็จ`);
+      } else {
+        // CREATE new contract
+        const contractNumber = await generateContractNumber();
+        const { data, error } = await supabase.from('contracts').insert({
+          ...contractPayload,
+          contract_number: contractNumber,
+          quotation_id: selectedQt.id,
+          account_id: selectedQt.account_id,
+          product_type: 'ND2',
+          deposit_date: null,
+          installment_count: selectedQt.installment_count || 1,
+          qt_number: selectedQt.qt_number,
+          status: 'DRAFT',
+          created_by: currentUser?.name || '',
+        }).select();
+        if (error) throw error;
+        contractId = data?.[0]?.id;
+        toast.success(`สร้างสัญญา ${contractNumber} สำเร็จ`);
+      }
+
       onOpenChange(false);
       onCreated?.();
       
       // Open PDF in new tab
-      if (data && data[0]?.id) {
+      if (contractId) {
         const projectId = import.meta.env.VITE_SUPABASE_PROJECT_ID;
         const url = `https://${projectId}.supabase.co/functions/v1/generate-contract-pdf`;
         const w = window.open('about:blank', '_blank');
@@ -311,7 +325,7 @@ export default function CreateContractWizard({ open, onOpenChange, onCreated, ed
           fetch(url, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ contract_id: data[0].id }),
+            body: JSON.stringify({ contract_id: contractId }),
           }).then(r => r.text()).then(html => {
             w.document.open();
             w.document.write(html);
