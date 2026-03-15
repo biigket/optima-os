@@ -102,12 +102,17 @@ export default function CustomerRightPanel({ accountId, clinicName }: Props) {
       if (qtIds.length > 0) {
         const { data: installments } = await supabase
           .from('payment_installments')
-          .select('quotation_id, amount, slip_status')
+          .select('quotation_id, amount, slip_status, payment_channel')
           .in('quotation_id', qtIds);
         if (installments) {
           for (const inst of installments) {
             if (inst.slip_status === 'VERIFIED') {
               instPaidMap[inst.quotation_id] = (instPaidMap[inst.quotation_id] || 0) + (inst.amount || 0);
+            }
+            // Track payment channels per quotation
+            if (inst.payment_channel) {
+              if (!channelMap[inst.quotation_id]) channelMap[inst.quotation_id] = new Set();
+              channelMap[inst.quotation_id].add(inst.payment_channel);
             }
           }
         }
