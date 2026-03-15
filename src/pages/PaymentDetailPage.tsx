@@ -550,7 +550,7 @@ export default function PaymentDetailPage() {
                 </Table>
               </CardContent>
             </Card>
-          )
+          )}
 
           {/* Installments Table */}
           <Card>
