@@ -533,12 +533,13 @@ function generateHTML(contract: any, account: any, contacts: any[]): string {
     </div>
   </div>
   
-  <div style="text-align:center;margin-top:60px;font-weight:700;">เอกสารแนบท้ายสัญญา</div>
 </div>
 
 <!-- PAGE 10: Appendix -->
 <div class="page">
   ${pageHeader(contractNumber)}
+  
+  <h2 style="margin-bottom:24px;">เอกสารแนบท้ายสัญญา</h2>
   
   <div class="body-text">
     <strong>ข้อ1.</strong> อ้างถึงสัญญาซื้อขายเลขที่ <strong>${contractNumber}</strong> ลงวันที่ <strong>${fmtDateThai(contractDate)}</strong> ตามที่ ${SELLER.company_th}
