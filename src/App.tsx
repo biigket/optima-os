@@ -45,6 +45,7 @@ import PaymentResultPage from "@/pages/PaymentResultPage";
 import WorkCheckinPage from "@/pages/WorkCheckinPage";
 import AttendanceSummaryPage from "@/pages/AttendanceSummaryPage";
 import SettingsPage from "@/pages/SettingsPage";
+import ContractsPage from "@/pages/ContractsPage";
 import { MockAuthProvider } from "@/hooks/useMockAuth";
 
 const queryClient = new QueryClient();
@@ -77,6 +78,7 @@ function AuthedAppRoutes() {
         <Route path="/analytics" element={<AnalyticsPage />} />
         <Route path="/quotations" element={<QuotationsPage />} />
         <Route path="/quotations/:id" element={<QuotationDetailPage />} />
+        <Route path="/contracts" element={<ContractsPage />} />
         <Route path="/inventory" element={<InventoryPage />} />
         <Route path="/payments" element={<PaymentsPage />} />
         <Route path="/payments/:quotationId" element={<PaymentDetailPage />} />

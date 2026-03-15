@@ -41,6 +41,7 @@ export const MODULE_LABELS: Record<string, string> = {
   analytics: 'วิเคราะห์',
   settings: 'ตั้งค่า',
   'approve-qt': 'อนุมัติใบเสนอราคา',
+  contracts: 'หนังสือสัญญาซื้อขาย',
 };
 
 export const ALL_ROLES = ['OWNER', 'SALES_MANAGER', 'SALES', 'PRODUCT', 'SERVICE', 'FINANCE'];

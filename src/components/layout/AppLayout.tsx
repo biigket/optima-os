@@ -72,6 +72,7 @@ const navGroups = [
     label: 'ERP',
     items: [
       { to: '/quotations', icon: FileSpreadsheet, label: 'ใบเสนอราคา', moduleKey: 'quotations' },
+      { to: '/contracts', icon: Receipt, label: 'หนังสือสัญญาซื้อขาย', moduleKey: 'contracts' },
       { to: '/payments', icon: CreditCard, label: 'การชำระเงิน', moduleKey: 'payments' },
       { to: '/inventory', icon: Warehouse, label: 'คลังสินค้า', moduleKey: 'inventory' },
     ],
