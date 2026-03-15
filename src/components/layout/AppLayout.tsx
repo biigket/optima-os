@@ -76,6 +76,14 @@ const navGroups = [
       { to: '/inventory', icon: Warehouse, label: 'คลังสินค้า' },
     ],
   },
+  {
+    label: 'INTELLIGENCE',
+    phase: 1,
+    items: [
+      { to: '/forecast', icon: TrendingUp, label: 'พยากรณ์' },
+      { to: '/analytics', icon: BarChart3, label: 'วิเคราะห์' },
+    ],
+  },
 ];
 
 function SidebarNav({ collapsed, onNavigate }: { collapsed: boolean; onNavigate?: () => void }) {
