@@ -34,6 +34,7 @@ export default function PaymentDetailPage() {
   const [customAmount, setCustomAmount] = useState<string>('');
   const [notifyEmail, setNotifyEmail] = useState(true);
   const [notifyPhone, setNotifyPhone] = useState(true);
+  const [smsPhone, setSmsPhone] = useState('');
   const [syncingLinks, setSyncingLinks] = useState(false);
   const [pmtChannel, setPmtChannel] = useState('GBPRIMEPAY');
   const [pmtMethod, setPmtMethod] = useState('GBPRIMEPAY_CREDIT_CARD');
@@ -411,6 +412,18 @@ export default function PaymentDetailPage() {
                         แจ้งเตือนทาง SMS
                       </label>
                     </div>
+                    {notifyPhone && (
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs text-muted-foreground whitespace-nowrap">เบอร์ SMS</span>
+                        <input
+                          type="tel"
+                          placeholder={account?.phone || '08x-xxx-xxxx'}
+                          value={smsPhone}
+                          onChange={e => setSmsPhone(e.target.value)}
+                          className="flex h-8 w-48 rounded-md border border-input bg-background px-2 py-1 text-xs ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                        />
+                      </div>
+                    )}
                     <div className="space-y-1">
                       <p className="text-[10px] font-medium text-foreground">ช่องทางชำระ</p>
                       <select value={`${pmtChannel}|${pmtMethod}`} onChange={e => { const [c, m] = e.target.value.split('|'); setPmtChannel(c); setPmtMethod(m); }} className="flex h-7 w-full rounded-md border border-input bg-background px-2 text-[11px] ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
@@ -428,7 +441,7 @@ export default function PaymentDetailPage() {
                         const res = await fetch(fnUrl, {
                           method: 'POST',
                           headers: { 'Content-Type': 'application/json', 'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY },
-                          body: JSON.stringify({ quotation_id: qt.id, installment_months: installmentMonths || undefined, custom_amount: amt, notify_by_email: notifyEmail, notify_by_phone: notifyPhone, pmt_channel: pmtChannel, pmt_method: pmtMethod }),
+                          body: JSON.stringify({ quotation_id: qt.id, installment_months: installmentMonths || undefined, custom_amount: amt, notify_by_email: notifyEmail, notify_by_phone: notifyPhone, pmt_channel: pmtChannel, pmt_method: pmtMethod, sms_phone: smsPhone || undefined }),
                         });
                         const result = await res.json();
                         if (result.success) {
@@ -497,6 +510,18 @@ export default function PaymentDetailPage() {
                           แจ้งเตือนทาง SMS
                         </label>
                       </div>
+                      {notifyPhone && (
+                        <div className="flex items-center gap-2 mt-1">
+                          <span className="text-sm text-muted-foreground whitespace-nowrap">เบอร์ SMS</span>
+                          <input
+                            type="tel"
+                            placeholder={account?.phone || '08x-xxx-xxxx'}
+                            value={smsPhone}
+                            onChange={e => setSmsPhone(e.target.value)}
+                            className="flex h-9 w-56 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                          />
+                        </div>
+                      )}
                     </div>
                     <div className="space-y-1.5">
                       <p className="text-sm font-medium text-foreground">ช่องทางชำระ</p>
@@ -517,7 +542,7 @@ export default function PaymentDetailPage() {
                         const res = await fetch(fnUrl, {
                           method: 'POST',
                           headers: { 'Content-Type': 'application/json', 'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY },
-                          body: JSON.stringify({ quotation_id: qt.id, installment_months: installmentMonths || undefined, custom_amount: amt, notify_by_email: notifyEmail, notify_by_phone: notifyPhone, pmt_channel: pmtChannel, pmt_method: pmtMethod }),
+                          body: JSON.stringify({ quotation_id: qt.id, installment_months: installmentMonths || undefined, custom_amount: amt, notify_by_email: notifyEmail, notify_by_phone: notifyPhone, pmt_channel: pmtChannel, pmt_method: pmtMethod, sms_phone: smsPhone || undefined }),
                         });
                         const result = await res.json();
                         if (result.success) {

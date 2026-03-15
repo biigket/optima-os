@@ -20,7 +20,7 @@ Deno.serve(async (req) => {
       throw new Error('PortOne credentials not configured');
     }
 
-    const { quotation_id, installment_months, custom_amount, notify_by_email, notify_by_phone, pmt_channel, pmt_method } = await req.json();
+    const { quotation_id, installment_months, custom_amount, notify_by_email, notify_by_phone, pmt_channel, pmt_method, sms_phone } = await req.json();
     if (!quotation_id) throw new Error('quotation_id is required');
 
     const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
@@ -109,7 +109,7 @@ Deno.serve(async (req) => {
       billing_details: {
         billing_name: account?.clinic_name || "Customer",
         billing_email: account?.email || "",
-        billing_phone: account?.phone || "",
+        billing_phone: sms_phone || account?.phone || "",
         billing_address: {
           city: "",
           country_code: "TH",
@@ -128,7 +128,7 @@ Deno.serve(async (req) => {
       customer_details: {
         name: account?.clinic_name || "Customer",
         email_address: account?.email || "",
-        phone_number: account?.phone || "",
+        phone_number: sms_phone || account?.phone || "",
       },
       notify_by_email: notify_by_email !== undefined ? notify_by_email : !!(account?.email),
       notify_by_phone: notify_by_phone !== undefined ? notify_by_phone : !!(account?.phone),
