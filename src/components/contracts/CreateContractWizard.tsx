@@ -248,6 +248,25 @@ export default function CreateContractWizard({ open, onOpenChange, onCreated }: 
       toast.success(`สร้างสัญญา ${contractNumber} สำเร็จ`);
       onOpenChange(false);
       onCreated?.();
+      
+      // Open PDF in new tab
+      if (data && data[0]?.id) {
+        const projectId = import.meta.env.VITE_SUPABASE_PROJECT_ID;
+        const url = `https://${projectId}.supabase.co/functions/v1/generate-contract-pdf`;
+        const w = window.open('about:blank', '_blank');
+        if (w) {
+          fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ contract_id: data[0].id }),
+          }).then(r => r.text()).then(html => {
+            w.document.open();
+            w.document.write(html);
+            w.document.close();
+          });
+        }
+      }
+      
       resetForm();
     } catch (err: any) {
       toast.error('ไม่สามารถสร้างสัญญาได้: ' + err.message);
