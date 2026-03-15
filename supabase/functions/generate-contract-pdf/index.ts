@@ -567,16 +567,7 @@ function generateHTML(contract: any, account: any, contacts: any[]): string {
 
 <!-- PAGE 11: Appendix signatures -->
 <div class="page">
-  <div class="header">
-    <div class="header-right">
-      <div class="th">${SELLER.company_th}</div>
-      <div class="th">65 ถนนวิชิตสงคราม ตำบลตลาดเหนือ</div>
-      <div class="th">อำเภอเมือง จังหวัดภูเก็ต 83000</div>
-      <div class="en">${SELLER.company_en}</div>
-      <div class="en">${SELLER.address_en}</div>
-    </div>
-  </div>
-  <div class="contract-no">สัญญาเลขที่ ${contractNumber}</div>
+  ${pageHeader(contractNumber)}
   
   <div class="body-text">
     เอกสารแนบท้ายสัญญานี้ทำขึ้นเป็นสองฉบับ ข้อความถูกต้องตรงกันทุกประการ และต่างฝ่ายต่างเก็บไว้ฝ่ายละฉบับ
