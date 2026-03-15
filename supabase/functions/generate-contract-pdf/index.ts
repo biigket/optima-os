@@ -473,16 +473,7 @@ function generateHTML(contract: any, account: any, contacts: any[]): string {
 
 <!-- PAGE 8 -->
 <div class="page">
-  <div class="header">
-    <div class="header-right">
-      <div class="th">${SELLER.company_th}</div>
-      <div class="th">65 ถนนวิชิตสงคราม ตำบลตลาดเหนือ</div>
-      <div class="th">อำเภอเมือง จังหวัดภูเก็ต 83000</div>
-      <div class="en">${SELLER.company_en}</div>
-      <div class="en">${SELLER.address_en}</div>
-    </div>
-  </div>
-  <div class="contract-no">สัญญาเลขที่ ${contractNumber}</div>
+  ${pageHeader(contractNumber)}
   
   <div class="body-text">
     <strong>ข้อ 15.</strong> ในกรณีที่ผู้ซื้อได้ชำระเงินให้กับผู้ขายครบถ้วนแล้วแต่ยังไม่ได้ลงนามรับเครื่องมือแพทย์ตามข้อ 4. หากผู้ขาย
