@@ -125,29 +125,44 @@ export default function ConsumablesPage() {
                 <TableHead>วันส่งมอบ</TableHead>
                 <TableHead>ประกันหมด</TableHead>
                 <TableHead>หมายเหตุ</TableHead>
+                <TableHead className="text-center w-24">สถานะ</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {filtered.map(item => {
                 const warrantyExp = item.warrantyExpiry < today;
+                const isDepleted = !!item.depleted;
                 return (
-                  <TableRow key={item.id}>
-                    <TableCell><Badge variant="outline" className="bg-amber-100 text-amber-800">{item.cartridgeType}</Badge></TableCell>
-                    <TableCell className="font-mono text-sm">{item.serialNumber}</TableCell>
-                    <TableCell className="font-medium">{item.clinic}</TableCell>
-                    <TableCell className="text-sm">{item.deliveryDate}</TableCell>
+                  <TableRow key={item.id} className={isDepleted ? 'opacity-60' : ''}>
                     <TableCell>
-                      <span className={`text-sm ${warrantyExp ? 'text-destructive font-medium' : ''}`}>
+                      <Badge variant="outline" className={`bg-amber-100 text-amber-800 ${isDepleted ? 'line-through' : ''}`}>{item.cartridgeType}</Badge>
+                    </TableCell>
+                    <TableCell className={`font-mono text-sm ${isDepleted ? 'line-through' : ''}`}>{item.serialNumber}</TableCell>
+                    <TableCell className={`font-medium ${isDepleted ? 'line-through' : ''}`}>{item.clinic}</TableCell>
+                    <TableCell className={`text-sm ${isDepleted ? 'line-through' : ''}`}>{item.deliveryDate}</TableCell>
+                    <TableCell>
+                      <span className={`text-sm ${isDepleted ? 'line-through ' : ''}${warrantyExp ? 'text-destructive font-medium' : ''}`}>
                         {item.warrantyExpiry}
                         {warrantyExp && ' (หมดแล้ว)'}
                       </span>
                     </TableCell>
-                    <TableCell className="text-sm text-muted-foreground">{item.notes || '-'}</TableCell>
+                    <TableCell className={`text-sm text-muted-foreground ${isDepleted ? 'line-through' : ''}`}>{item.notes || '-'}</TableCell>
+                    <TableCell className="text-center">
+                      {isDepleted ? (
+                        <Button size="sm" variant="ghost" className="gap-1 text-xs text-muted-foreground" onClick={() => handleToggleDepleted(item.id)}>
+                          <CircleOff size={13} /> ช็อตหมด
+                        </Button>
+                      ) : (
+                        <Button size="sm" variant="outline" className="gap-1 text-xs" onClick={() => handleToggleDepleted(item.id)}>
+                          <CheckCircle size={13} /> Mark done
+                        </Button>
+                      )}
+                    </TableCell>
                   </TableRow>
                 );
               })}
               {filtered.length === 0 && (
-                <TableRow><TableCell colSpan={6} className="text-center py-8 text-muted-foreground">ไม่พบข้อมูล</TableCell></TableRow>
+                <TableRow><TableCell colSpan={7} className="text-center py-8 text-muted-foreground">ไม่พบข้อมูล</TableCell></TableRow>
               )}
             </TableBody>
           </Table>
