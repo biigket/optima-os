@@ -398,6 +398,16 @@ export default function PaymentDetailPage() {
                         ≈ ฿{Math.ceil((Number(customAmount) || qt.price || 0) / installmentMonths).toLocaleString()} / เดือน
                       </p>
                     )}
+                    <div className="flex items-center gap-4">
+                      <label className="flex items-center gap-1.5 text-xs cursor-pointer">
+                        <input type="checkbox" checked={notifyEmail} onChange={e => setNotifyEmail(e.target.checked)} className="rounded border-input" />
+                        แจ้งเตือนทางอีเมล
+                      </label>
+                      <label className="flex items-center gap-1.5 text-xs cursor-pointer">
+                        <input type="checkbox" checked={notifyPhone} onChange={e => setNotifyPhone(e.target.checked)} className="rounded border-input" />
+                        แจ้งเตือนทาง SMS
+                      </label>
+                    </div>
                     <Button size="sm" variant="outline" className="gap-1.5 text-xs w-full" disabled={creatingLink} onClick={async () => {
                       const amt = Number(customAmount) || undefined;
                       setCreatingLink(true);
