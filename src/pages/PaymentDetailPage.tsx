@@ -468,6 +468,16 @@ export default function PaymentDetailPage() {
                         </optgroup>
                       </select>
                     </div>
+                    <div className="space-y-1.5">
+                      <p className="text-sm font-medium text-foreground">หมายเหตุ</p>
+                      <input
+                        type="text"
+                        placeholder="เช่น รูดครั้งที่ 1, มัดจำ"
+                        value={linkRemark}
+                        onChange={e => setLinkRemark(e.target.value)}
+                        className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                      />
+                    </div>
                   </div>
                   <div className="text-center">
                     <Button className="gap-1.5" disabled={creatingLink} onClick={async () => {
