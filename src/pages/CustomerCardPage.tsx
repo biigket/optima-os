@@ -265,6 +265,7 @@ export default function CustomerCardPage() {
   const timeline = getTimelineForAccount(account.id);
   const reports = getReportsForAccount(account.id);
   const consumables = getConsumablesForAccount(account.id);
+  const consumableBase = getConsumableBaseForAccount(account.id, account.clinic_name);
   const services = getServiceForAccount(account.id);
   const documents = getDocumentsForAccount(account.id);
   const marketing = getMarketingForAccount(account.id);
