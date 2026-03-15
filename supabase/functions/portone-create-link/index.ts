@@ -23,6 +23,22 @@ Deno.serve(async (req) => {
     const { quotation_id, installment_months, custom_amount, notify_by_email, notify_by_phone, pmt_channel, pmt_method, sms_phone } = await req.json();
     if (!quotation_id) throw new Error('quotation_id is required');
 
+    // Helper: normalize Thai phone to E.164 format (+66...)
+    function normalizeThaiPhone(phone: string | null | undefined): string {
+      if (!phone) return '';
+      // Remove all non-digit characters
+      let digits = phone.replace(/\D/g, '');
+      // If starts with 0, replace with 66
+      if (digits.startsWith('0')) {
+        digits = '66' + digits.substring(1);
+      }
+      // If doesn't start with 66, prepend it
+      if (!digits.startsWith('66')) {
+        digits = '66' + digits;
+      }
+      return '+' + digits;
+    }
+
     const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
     // Fetch quotation + account
@@ -83,6 +99,8 @@ Deno.serve(async (req) => {
     const sigBuffer = await crypto.subtle.sign('HMAC', cryptoKey, msgData);
     const signatureHash = btoa(String.fromCharCode(...new Uint8Array(sigBuffer)));
     console.log('Sig message:', sigMessage);
+    const normalizedPhone = normalizeThaiPhone(sms_phone || account?.phone);
+    console.log('Phone raw:', sms_phone || account?.phone, '-> normalized:', normalizedPhone);
 
     let description = `ชำระเงินสำหรับ ${qt.product || 'สินค้า'} - ${qt.qt_number || ''}`;
     if (installment_months && installment_months > 1) {
@@ -110,7 +128,7 @@ Deno.serve(async (req) => {
       billing_details: {
         billing_name: account?.clinic_name || "Customer",
         billing_email: account?.email || "",
-        billing_phone: sms_phone || account?.phone || "",
+        billing_phone: normalizeThaiPhone(sms_phone || account?.phone),
         billing_address: {
           city: "",
           country_code: "TH",
@@ -129,7 +147,7 @@ Deno.serve(async (req) => {
       customer_details: {
         name: account?.clinic_name || "Customer",
         email_address: account?.email || "",
-        phone_number: sms_phone || account?.phone || "",
+        phone_number: normalizeThaiPhone(sms_phone || account?.phone),
       },
       notify_by_email: notify_by_email !== undefined ? notify_by_email : !!(account?.email),
       notify_by_phone: notify_by_phone !== undefined ? notify_by_phone : !!(account?.phone),
