@@ -23,6 +23,22 @@ Deno.serve(async (req) => {
     const { quotation_id, installment_months, custom_amount, notify_by_email, notify_by_phone, pmt_channel, pmt_method, sms_phone } = await req.json();
     if (!quotation_id) throw new Error('quotation_id is required');
 
+    // Helper: normalize Thai phone to E.164 format (+66...)
+    function normalizeThaiPhone(phone: string | null | undefined): string {
+      if (!phone) return '';
+      // Remove all non-digit characters
+      let digits = phone.replace(/\D/g, '');
+      // If starts with 0, replace with 66
+      if (digits.startsWith('0')) {
+        digits = '66' + digits.substring(1);
+      }
+      // If doesn't start with 66, prepend it
+      if (!digits.startsWith('66')) {
+        digits = '66' + digits;
+      }
+      return '+' + digits;
+    }
+
     const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
     // Fetch quotation + account
