@@ -103,6 +103,8 @@ export default function CreateContractWizard({ open, onOpenChange, onCreated, ed
   const [depositAmount, setDepositAmount] = useState(0);
   const [remainingAmount, setRemainingAmount] = useState(0);
   const [paymentMethod, setPaymentMethod] = useState('');
+  const [paymentClause21, setPaymentClause21] = useState('ชำระค่าเครื่องมือแพทย์ตามข้อ 1. ให้ "ผู้ขาย" งวดที่ 1 เป็นจำนวนเงิน {deposit}.- บาท ({deposit_text})\nโดยชำระด้วยการโอนเงินเข้าบัญชีในนาม บริษัท ออปติม่าแอสเทติค จำกัด เลขที่บัญชี 411-0-748-56-8 (ธนาคารไทยพาณิชย์)');
+  const [paymentClause22, setPaymentClause22] = useState('ผู้ซื้อจะดำเนินการชำระเงินค่าสินค้าประเภทเครื่องมือแพทย์ในส่วนที่เหลือเป็นจำนวนเงิน {remaining} บาท\n({remaining_text}) ผ่านบัตรเครดิต');
   const [deliveryAddress, setDeliveryAddress] = useState('');
   const [deliveryDays, setDeliveryDays] = useState(60);
   const [warrantyYears, setWarrantyYears] = useState(1);
@@ -131,6 +133,9 @@ export default function CreateContractWizard({ open, onOpenChange, onCreated, ed
     setDepositAmount(editContract.deposit_amount || 0);
     setRemainingAmount(editContract.remaining_amount || 0);
     setPaymentMethod(editContract.payment_method || '');
+    const pd = editContract.payment_details as any;
+    if (pd?.clause_2_1) setPaymentClause21(pd.clause_2_1);
+    if (pd?.clause_2_2) setPaymentClause22(pd.clause_2_2);
     setDeliveryAddress(editContract.delivery_address || '');
     setDeliveryDays(editContract.delivery_days || 60);
     setWarrantyYears(editContract.warranty_years || 1);
@@ -287,6 +292,7 @@ export default function CreateContractWizard({ open, onOpenChange, onCreated, ed
         deposit_amount: depositAmount,
         remaining_amount: remainingAmount,
         payment_method: paymentMethod,
+        payment_details: { clause_2_1: paymentClause21, clause_2_2: paymentClause22 },
         delivery_address: deliveryAddress,
         delivery_days: deliveryDays,
         warranty_years: warrantyYears,
@@ -370,6 +376,8 @@ export default function CreateContractWizard({ open, onOpenChange, onCreated, ed
     setDepositAmount(0);
     setRemainingAmount(0);
     setPaymentMethod('');
+    setPaymentClause21('ชำระค่าเครื่องมือแพทย์ตามข้อ 1. ให้ "ผู้ขาย" งวดที่ 1 เป็นจำนวนเงิน {deposit}.- บาท ({deposit_text})\nโดยชำระด้วยการโอนเงินเข้าบัญชีในนาม บริษัท ออปติม่าแอสเทติค จำกัด เลขที่บัญชี 411-0-748-56-8 (ธนาคารไทยพาณิชย์)');
+    setPaymentClause22('ผู้ซื้อจะดำเนินการชำระเงินค่าสินค้าประเภทเครื่องมือแพทย์ในส่วนที่เหลือเป็นจำนวนเงิน {remaining} บาท\n({remaining_text}) ผ่านบัตรเครดิต');
     setDeliveryAddress('');
     setDeliveryDays(60);
     setWarrantyYears(1);
@@ -666,6 +674,18 @@ export default function CreateContractWizard({ open, onOpenChange, onCreated, ed
             <div>
               <Label className="text-xs">วิธีชำระเงินส่วนที่เหลือ</Label>
               <Input value={paymentMethod} onChange={e => setPaymentMethod(e.target.value)} placeholder="เช่น ผ่านบัตรเครดิต, โอนเงิน" />
+            </div>
+
+            <div>
+              <Label className="text-xs">ข้อ 2.1 — เงื่อนไขการชำระมัดจำ</Label>
+              <Textarea value={paymentClause21} onChange={e => setPaymentClause21(e.target.value)} rows={3} placeholder="ข้อความข้อ 2.1 ในสัญญา" />
+              <p className="text-[10px] text-muted-foreground mt-1">ใช้ {'{deposit}'} แทนจำนวนเงินมัดจำ, {'{deposit_text}'} แทนตัวอักษร</p>
+            </div>
+
+            <div>
+              <Label className="text-xs">ข้อ 2.2 — เงื่อนไขการชำระส่วนที่เหลือ</Label>
+              <Textarea value={paymentClause22} onChange={e => setPaymentClause22(e.target.value)} rows={3} placeholder="ข้อความข้อ 2.2 ในสัญญา" />
+              <p className="text-[10px] text-muted-foreground mt-1">ใช้ {'{remaining}'} แทนจำนวนเงินคงเหลือ, {'{remaining_text}'} แทนตัวอักษร</p>
             </div>
 
             <Separator />
