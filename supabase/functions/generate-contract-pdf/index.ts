@@ -225,7 +225,7 @@ function generateHTML(contract: any, account: any, contacts: any[]): string {
     ผู้ซื้อคือ <strong>${buyerCompany}</strong> โดย <strong>${buyerRep}</strong> ${buyerIdNumber ? `บัตรประชาชนเลขที่ <strong>${buyerIdNumber}</strong>` : ""}
     ${buyerIdExpiry ? ` หมดอายุ <strong>${fmtDateThaiShort(buyerIdExpiry)}</strong>` : ""}
     ซึ่งเป็นผู้มีอำนาจลงนามในสัญญาฉบับนี้ มีที่อยู่ตามบัตรประชาชนเลขที่ <strong>${buyerAddress}</strong> โทรศัพท์ <strong>${buyerPhone}</strong>
-    ซึ่งเป็นผู้มีอำนาจลงนามในสัญญาฉบับนี้ เป็นคู่สัญญาฝาย
+    ซึ่งเป็นผู้มีอำนาจลงนามในสัญญาฉบับนี้ เป็นคู่สัญญาฝ่ายหนึ่ง กับ
   </div>
   
   <div class="body-text" style="font-weight:700;text-align:center;margin:12px 0;">หนึ่ง</div>
