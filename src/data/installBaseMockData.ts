@@ -44,6 +44,20 @@ export interface PMReport {
   customerTel: string;
 }
 
+export type ReplacementType = 'SWAP' | 'LOANER' | 'LOANER_RETURN';
+
+export interface ReplacementRecord {
+  id: string;
+  type: ReplacementType;
+  date: string;
+  oldSerialNumber: string;
+  newSerialNumber: string;
+  reason: string;
+  note: string;
+  createdBy: string;
+  createdAt: string;
+}
+
 export interface Installation {
   id: string;
   qcStockItemId: string; // links back to QC stock item
@@ -58,6 +72,10 @@ export interface Installation {
   region: string;
   notes: string;
   pmReports: PMReport[];
+  // Replacement tracking
+  replacementHistory: ReplacementRecord[];
+  loanerSerialNumber?: string; // currently active loaner S/N
+  originalSerialNumber?: string; // original S/N if loaner is active
 }
 
 // Helper: generate PM schedule every 6 months from install date
@@ -115,6 +133,7 @@ export const mockInstallations: Installation[] = [
     province: 'กรุงเทพฯ',
     region: 'กลาง',
     notes: '',
+    replacementHistory: [],
     pmReports: [
       {
         id: 'pm-1-1',
@@ -163,6 +182,7 @@ export const mockInstallations: Installation[] = [
     province: 'กรุงเทพฯ',
     region: 'กลาง',
     notes: '',
+    replacementHistory: [],
     pmReports: [],
   },
   {
@@ -177,6 +197,7 @@ export const mockInstallations: Installation[] = [
     province: 'เชียงใหม่',
     region: 'เหนือ',
     notes: '',
+    replacementHistory: [],
     pmReports: [],
   },
 ];

@@ -121,6 +121,7 @@ export default function AddInstallationDialog({ open, onOpenChange, onInstalled 
       province,
       region,
       notes,
+      replacementHistory: [],
       pmReports: [],
     };
 
