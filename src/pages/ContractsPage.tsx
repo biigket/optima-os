@@ -87,7 +87,7 @@ export default function ContractsPage() {
             </div>
           ) : (
             <div className="space-y-2">
-              {filtered.map((c: any) => {
+              {filtered.map((c: any) => (
                   <div
                     key={c.id}
                     className="flex items-center justify-between p-3 rounded-lg border hover:bg-muted/50 transition-colors"
