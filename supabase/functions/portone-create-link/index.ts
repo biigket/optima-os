@@ -128,7 +128,7 @@ Deno.serve(async (req) => {
       customer_details: {
         name: account?.clinic_name || "Customer",
         email_address: account?.email || "",
-        phone_number: account?.phone || "",
+        phone_number: sms_phone || account?.phone || "",
       },
       notify_by_email: notify_by_email !== undefined ? notify_by_email : !!(account?.email),
       notify_by_phone: notify_by_phone !== undefined ? notify_by_phone : !!(account?.phone),
