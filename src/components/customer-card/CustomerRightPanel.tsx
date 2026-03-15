@@ -100,6 +100,7 @@ export default function CustomerRightPanel({ accountId, clinicName }: Props) {
       // Fetch installments for accurate paid/outstanding calculation
       const qtIds = items.map(q => q.id);
       let instPaidMap: Record<string, number> = {};
+      let channelMap: Record<string, Set<string>> = {};
       if (qtIds.length > 0) {
         const { data: installments } = await supabase
           .from('payment_installments')
@@ -110,7 +111,6 @@ export default function CustomerRightPanel({ accountId, clinicName }: Props) {
             if (inst.slip_status === 'VERIFIED') {
               instPaidMap[inst.quotation_id] = (instPaidMap[inst.quotation_id] || 0) + (inst.amount || 0);
             }
-            // Track payment channels per quotation
             if (inst.payment_channel) {
               if (!channelMap[inst.quotation_id]) channelMap[inst.quotation_id] = new Set();
               channelMap[inst.quotation_id].add(inst.payment_channel);
@@ -118,6 +118,7 @@ export default function CustomerRightPanel({ accountId, clinicName }: Props) {
           }
         }
       }
+      setChannelsByQt(channelMap);
 
       const total = items.reduce((sum, q) => sum + (q.price || 0), 0);
       const paid = items.reduce((sum, q) => {
