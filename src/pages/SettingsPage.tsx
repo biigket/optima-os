@@ -13,7 +13,7 @@ const MODULE_GROUPS = [
   { label: 'OPERATION', modules: ['tasks', 'calendar'] },
   { label: 'INSTALLED BASE', modules: ['install-base', 'consumables'] },
   { label: 'SERVICE', modules: ['maintenance', 'qc-stock'] },
-  { label: 'ERP', modules: ['quotations', 'payments', 'inventory'] },
+  { label: 'ERP', modules: ['quotations', 'approve-qt', 'payments', 'inventory'] },
   { label: 'INTELLIGENCE', modules: ['forecast', 'analytics'] },
   { label: 'SYSTEM', modules: ['settings'] },
 ];
