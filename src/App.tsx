@@ -81,9 +81,6 @@ function AuthedAppRoutes() {
         <Route path="/qc-stock/cartridge/:id" element={<CartridgeDetailPage />} />
         <Route path="/qc-stock/picohi/:id" element={<PicohiDetailPage />} />
         <Route path="/qc-stock/freezero/:id" element={<FreezeroDetailPage />} />
-        {phase2Routes.map((path) => (
-          <Route key={path} path={path} element={<Phase2Placeholder />} />
-        ))}
         <Route path="*" element={<NotFound />} />
       </Routes>
     </AppLayout>

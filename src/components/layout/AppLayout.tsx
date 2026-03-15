@@ -85,9 +85,6 @@ function SidebarNav({ collapsed, onNavigate }: { collapsed: boolean; onNavigate?
     <nav className="flex-1 overflow-y-auto py-3 px-2 space-y-4">
       {navGroups.map((group, gi) => {
         const prevGroup = navGroups[gi - 1];
-        const showDivider = prevGroup && group.phase !== prevGroup.phase;
-        const dividerLabel = group.phase === 2 ? 'Phase 2' : group.phase === 3 ? 'Phase 3' : '';
-        const isLockedGroup = group.phase === 2 || group.phase === 3;
 
         return (
           <div key={group.label}>
