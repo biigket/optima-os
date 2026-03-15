@@ -5,7 +5,7 @@ import {
   ListTodo, Calendar, Cpu, Package, Wrench, ChevronLeft, ChevronRight, Bell,
   FileSpreadsheet, ShoppingCart, Warehouse, Receipt, CreditCard,
   TrendingUp, BarChart3,
-  Lock, LogOut, Menu, X, ClipboardCheck
+  Lock, LogOut, Menu, X, ClipboardCheck, Fingerprint, BarChart
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useMockAuth } from '@/hooks/useMockAuth';
@@ -41,6 +41,14 @@ const navGroups = [
     phase: 1,
     items: [
       { to: '/demos', icon: Presentation, label: 'สาธิตสินค้า' },
+    ],
+  },
+  {
+    label: 'ATTENDANCE',
+    phase: 1,
+    items: [
+      { to: '/work-checkin', icon: Fingerprint, label: 'เช็คอินทำงาน' },
+      { to: '/attendance', icon: BarChart, label: 'สรุปการเข้างาน' },
     ],
   },
   {

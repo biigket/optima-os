@@ -1039,6 +1039,66 @@ export type Database = {
           },
         ]
       }
+      work_checkins: {
+        Row: {
+          check_in_address: string | null
+          check_in_at: string
+          check_in_lat: number | null
+          check_in_lng: number | null
+          check_in_note: string | null
+          check_in_photo: string | null
+          check_out_address: string | null
+          check_out_at: string | null
+          check_out_lat: number | null
+          check_out_lng: number | null
+          check_out_note: string | null
+          check_out_photo: string | null
+          created_at: string
+          department: string | null
+          id: string
+          user_name: string
+          work_type: string
+        }
+        Insert: {
+          check_in_address?: string | null
+          check_in_at?: string
+          check_in_lat?: number | null
+          check_in_lng?: number | null
+          check_in_note?: string | null
+          check_in_photo?: string | null
+          check_out_address?: string | null
+          check_out_at?: string | null
+          check_out_lat?: number | null
+          check_out_lng?: number | null
+          check_out_note?: string | null
+          check_out_photo?: string | null
+          created_at?: string
+          department?: string | null
+          id?: string
+          user_name: string
+          work_type?: string
+        }
+        Update: {
+          check_in_address?: string | null
+          check_in_at?: string
+          check_in_lat?: number | null
+          check_in_lng?: number | null
+          check_in_note?: string | null
+          check_in_photo?: string | null
+          check_out_address?: string | null
+          check_out_at?: string | null
+          check_out_lat?: number | null
+          check_out_lng?: number | null
+          check_out_note?: string | null
+          check_out_photo?: string | null
+          created_at?: string
+          department?: string | null
+          id?: string
+          user_name?: string
+          work_type?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

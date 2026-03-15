@@ -42,6 +42,8 @@ import FreezeroDetailPage from "@/pages/FreezeroDetailPage";
 import InstallBasePage from "@/pages/InstallBasePage";
 import InstallBaseDetailPage from "@/pages/InstallBaseDetailPage";
 import PaymentResultPage from "@/pages/PaymentResultPage";
+import WorkCheckinPage from "@/pages/WorkCheckinPage";
+import AttendanceSummaryPage from "@/pages/AttendanceSummaryPage";
 import { MockAuthProvider } from "@/hooks/useMockAuth";
 
 const queryClient = new QueryClient();
@@ -62,6 +64,8 @@ function AuthedAppRoutes() {
         <Route path="/demos" element={<DemosPage />} />
         <Route path="/tasks" element={<TasksPage />} />
         <Route path="/calendar" element={<CalendarPage />} />
+        <Route path="/work-checkin" element={<WorkCheckinPage />} />
+        <Route path="/attendance" element={<AttendanceSummaryPage />} />
         <Route path="/install-base" element={<InstallBasePage />} />
         <Route path="/install-base/:id" element={<InstallBaseDetailPage />} />
         <Route path="/consumables" element={<ConsumablesPage />} />
