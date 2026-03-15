@@ -18,6 +18,7 @@ import {
   mockInstallations, generatePMSchedule,
   type PMReport, type Installation, type ReplacementRecord, type ReplacementType,
 } from '@/data/installBaseMockData';
+import { mockND2Stock } from '@/data/qcMockData';
 import PMReportForm from '@/components/install-base/PMReportForm';
 import PMReportViewDialog from '@/components/install-base/PMReportViewDialog';
 import {
@@ -72,6 +73,11 @@ export default function InstallBaseDetailPage() {
 
   const hasLoaner = !!inst.loanerSerialNumber;
   const pmSchedule = generatePMSchedule(inst.installDate, pmCount).filter(pm => !deletedPMs.includes(pm.number));
+
+  // Lookup QC stock item for handpiece data
+  const qcItem = inst.productCategory === 'ND2'
+    ? mockND2Stock.find(q => q.id === inst.qcStockItemId)
+    : null;
   const today = new Date().toISOString().split('T')[0];
   const warrantyExpired = inst.warrantyExpiry < today;
 
@@ -318,6 +324,28 @@ export default function InstallBaseDetailPage() {
                 <p><span className="text-muted-foreground">จังหวัด:</span> {inst.province || '-'}</p>
                 <p><span className="text-muted-foreground">ภูมิภาค:</span> {inst.region || '-'}</p>
                 {inst.notes && <p><span className="text-muted-foreground">หมายเหตุ:</span> {inst.notes}</p>}
+                {qcItem && (
+                  <>
+                    <Separator className="my-2" />
+                    <div className="grid grid-cols-3 gap-2 text-xs">
+                      <div>
+                        <p className="font-medium text-muted-foreground mb-1">HFL</p>
+                        <p className="font-mono">{qcItem.hfl1}</p>
+                        <p className="font-mono">{qcItem.hfl2}</p>
+                      </div>
+                      <div>
+                        <p className="font-medium text-muted-foreground mb-1">HSD</p>
+                        <p className="font-mono">{qcItem.hsd1}</p>
+                        <p className="font-mono">{qcItem.hsd2}</p>
+                      </div>
+                      <div>
+                        <p className="font-medium text-muted-foreground mb-1">HRM</p>
+                        <p className="font-mono">{qcItem.hrm}</p>
+                        <p className="text-muted-foreground">({qcItem.hrmSellOrKeep})</p>
+                      </div>
+                    </div>
+                  </>
+                )}
               </>
             )}
           </CardContent>
