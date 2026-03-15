@@ -8,12 +8,13 @@ import { supabase } from '@/integrations/supabase/client';
 import { format } from 'date-fns';
 import StatusBadge from '@/components/ui/StatusBadge';
 import CreateContractWizard from '@/components/contracts/CreateContractWizard';
+import { Badge } from '@/components/ui/badge';
 
-const STATUS_MAP: Record<string, { label: string; variant: string }> = {
-  DRAFT: { label: 'แบบร่าง', variant: 'secondary' },
-  SIGNED: { label: 'เซ็นแล้ว', variant: 'success' },
-  ACTIVE: { label: 'มีผลบังคับ', variant: 'info' },
-  COMPLETED: { label: 'เสร็จสิ้น', variant: 'default' },
+const STATUS_LABELS: Record<string, string> = {
+  DRAFT: 'แบบร่าง',
+  SIGNED: 'เซ็นแล้ว',
+  ACTIVE: 'มีผลบังคับ',
+  COMPLETED: 'เสร็จสิ้น',
 };
 
 export default function ContractsPage() {
