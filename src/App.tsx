@@ -106,6 +106,7 @@ function AppRoutes() {
       {/* Public pages (no AppLayout) */}
       <Route path="/sign/quotation" element={<CustomerSignQuotationPage />} />
       <Route path="/register" element={<CustomerRegisterPage />} />
+      <Route path="/payment-result" element={<PaymentResultPage />} />
 
       {/* Main app */}
       <Route path="/*" element={<AuthedAppRoutes />} />
