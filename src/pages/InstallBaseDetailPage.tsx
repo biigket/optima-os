@@ -95,6 +95,7 @@ export default function InstallBaseDetailPage() {
 
   // === EDIT ===
   function startEdit() {
+    const qc = inst!.productCategory === 'ND2' ? mockND2Stock.find(q => q.id === inst!.qcStockItemId) : null;
     setEditForm({
       serialNumber: inst!.serialNumber,
       installDate: inst!.installDate,
@@ -103,6 +104,12 @@ export default function InstallBaseDetailPage() {
       province: inst!.province,
       region: inst!.region,
       notes: inst!.notes,
+      hfl1: qc?.hfl1 || '',
+      hfl2: qc?.hfl2 || '',
+      hsd1: qc?.hsd1 || '',
+      hsd2: qc?.hsd2 || '',
+      hrm: qc?.hrm || '',
+      hrmSellOrKeep: qc?.hrmSellOrKeep || 'ขาย',
     });
     setEditing(true);
   }
