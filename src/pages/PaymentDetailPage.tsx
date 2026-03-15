@@ -441,6 +441,18 @@ export default function PaymentDetailPage() {
                       </div>
                       <p className="text-[10px] text-muted-foreground">หากไม่กรอก จะใช้ยอดจากใบเสนอราคา (฿{(qt.price || 0).toLocaleString()})</p>
                     </div>
+                    <div className="space-y-1.5">
+                      <p className="text-sm font-medium text-foreground">ช่องทางชำระ</p>
+                      <select value={`${pmtChannel}|${pmtMethod}`} onChange={e => { const [c, m] = e.target.value.split('|'); setPmtChannel(c); setPmtMethod(m); }} className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+                        <optgroup label="บัตรเครดิต">
+                          <option value="GBPRIMEPAY|GBPRIMEPAY_CREDIT_CARD">💳 บัตรเครดิต (เต็มจำนวน)</option>
+                        </optgroup>
+                        <optgroup label="ผ่อนชำระ (Installment)">
+                          <option value="GBPRIMEPAY|GBPRIMEPAY_INSTALLMENT">📦 ผ่อนชำระผ่านบัตรเครดิต (ทุกธนาคาร)</option>
+                        </optgroup>
+                      </select>
+                    </div>
+                  </div>
                   <div className="text-center">
                     <Button className="gap-1.5" disabled={creatingLink} onClick={async () => {
                       const amt = Number(customAmount) || undefined;
