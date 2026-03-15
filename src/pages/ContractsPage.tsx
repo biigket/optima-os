@@ -13,6 +13,23 @@ export default function ContractsPage() {
   const [search, setSearch] = useState('');
   const [wizardOpen, setWizardOpen] = useState(false);
 
+  const handleViewPdf = async (contractId: string) => {
+    const projectId = import.meta.env.VITE_SUPABASE_PROJECT_ID;
+    const url = `https://${projectId}.supabase.co/functions/v1/generate-contract-pdf`;
+    const w = window.open('about:blank', '_blank');
+    if (w) {
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ contract_id: contractId }),
+      });
+      const html = await res.text();
+      w.document.open();
+      w.document.write(html);
+      w.document.close();
+    }
+  };
+
   const { data: contracts, isLoading, refetch } = useQuery({
     queryKey: ['contracts'],
     queryFn: async () => {
