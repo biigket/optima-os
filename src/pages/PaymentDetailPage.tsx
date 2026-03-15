@@ -385,28 +385,6 @@ export default function PaymentDetailPage() {
                       />
                       <span className="text-xs text-muted-foreground">฿</span>
                     </div>
-                    <div className="flex items-center gap-4">
-                      <label className="flex items-center gap-1.5 text-xs cursor-pointer">
-                        <input type="checkbox" checked={notifyEmail} onChange={e => setNotifyEmail(e.target.checked)} className="rounded border-input" />
-                        แจ้งเตือนทางอีเมล
-                      </label>
-                      <label className="flex items-center gap-1.5 text-xs cursor-pointer">
-                        <input type="checkbox" checked={notifyPhone} onChange={e => setNotifyPhone(e.target.checked)} className="rounded border-input" />
-                        แจ้งเตือนทาง SMS
-                      </label>
-                    </div>
-                    {notifyPhone && (
-                      <div className="flex items-center gap-2">
-                        <span className="text-xs text-muted-foreground whitespace-nowrap">เบอร์ SMS</span>
-                        <input
-                          type="tel"
-                          placeholder={account?.phone || '08x-xxx-xxxx'}
-                          value={smsPhone}
-                          onChange={e => setSmsPhone(e.target.value)}
-                          className="flex h-8 w-48 rounded-md border border-input bg-background px-2 py-1 text-xs ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                        />
-                      </div>
-                    )}
                     <div className="space-y-1">
                       <p className="text-[10px] font-medium text-foreground">ช่องทางชำระ</p>
                       <select value={`${pmtChannel}|${pmtMethod}`} onChange={e => { const [c, m] = e.target.value.split('|'); setPmtChannel(c); setPmtMethod(m); }} className="flex h-7 w-full rounded-md border border-input bg-background px-2 text-[11px] ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
