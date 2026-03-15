@@ -228,7 +228,6 @@ function generateHTML(contract: any, account: any, contacts: any[]): string {
     ซึ่งเป็นผู้มีอำนาจลงนามในสัญญาฉบับนี้ เป็นคู่สัญญาฝ่ายหนึ่ง กับ
   </div>
   
-  <div class="body-text" style="font-weight:700;text-align:center;margin:12px 0;">หนึ่ง</div>
   
   <div class="body-text indent">
     ผู้ขาย คือ <strong>${SELLER.company_th}</strong> โดย <strong>${sellerRep}</strong> ซึ่งเป็นผู้มีอำนาจลงนามในสัญญาฉบับนี้
