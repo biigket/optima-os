@@ -32,7 +32,8 @@ export default function PaymentDetailPage() {
   const [creatingLink, setCreatingLink] = useState(false);
   const [installmentMonths, setInstallmentMonths] = useState<number>(0);
   const [customAmount, setCustomAmount] = useState<string>('');
-
+  const [notifyEmail, setNotifyEmail] = useState(true);
+  const [notifyPhone, setNotifyPhone] = useState(true);
   const { data, isLoading } = useQuery({
     queryKey: ['payment-detail', quotationId],
     queryFn: async () => {
@@ -397,6 +398,16 @@ export default function PaymentDetailPage() {
                         ≈ ฿{Math.ceil((Number(customAmount) || qt.price || 0) / installmentMonths).toLocaleString()} / เดือน
                       </p>
                     )}
+                    <div className="flex items-center gap-4">
+                      <label className="flex items-center gap-1.5 text-xs cursor-pointer">
+                        <input type="checkbox" checked={notifyEmail} onChange={e => setNotifyEmail(e.target.checked)} className="rounded border-input" />
+                        แจ้งเตือนทางอีเมล
+                      </label>
+                      <label className="flex items-center gap-1.5 text-xs cursor-pointer">
+                        <input type="checkbox" checked={notifyPhone} onChange={e => setNotifyPhone(e.target.checked)} className="rounded border-input" />
+                        แจ้งเตือนทาง SMS
+                      </label>
+                    </div>
                     <Button size="sm" variant="outline" className="gap-1.5 text-xs w-full" disabled={creatingLink} onClick={async () => {
                       const amt = Number(customAmount) || undefined;
                       setCreatingLink(true);
@@ -405,7 +416,7 @@ export default function PaymentDetailPage() {
                         const res = await fetch(fnUrl, {
                           method: 'POST',
                           headers: { 'Content-Type': 'application/json', 'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY },
-                          body: JSON.stringify({ quotation_id: qt.id, installment_months: installmentMonths || undefined, custom_amount: amt }),
+                          body: JSON.stringify({ quotation_id: qt.id, installment_months: installmentMonths || undefined, custom_amount: amt, notify_by_email: notifyEmail, notify_by_phone: notifyPhone }),
                         });
                         const result = await res.json();
                         if (result.success) {
@@ -462,6 +473,19 @@ export default function PaymentDetailPage() {
                         </p>
                       )}
                     </div>
+                    <div className="space-y-1.5">
+                      <p className="text-sm font-medium text-foreground">แจ้งเตือนลูกค้า</p>
+                      <div className="flex items-center gap-4">
+                        <label className="flex items-center gap-1.5 text-sm cursor-pointer">
+                          <input type="checkbox" checked={notifyEmail} onChange={e => setNotifyEmail(e.target.checked)} className="rounded border-input" />
+                          แจ้งเตือนทางอีเมล
+                        </label>
+                        <label className="flex items-center gap-1.5 text-sm cursor-pointer">
+                          <input type="checkbox" checked={notifyPhone} onChange={e => setNotifyPhone(e.target.checked)} className="rounded border-input" />
+                          แจ้งเตือนทาง SMS
+                        </label>
+                      </div>
+                    </div>
                   </div>
                   <div className="text-center">
                     <Button className="gap-1.5" disabled={creatingLink} onClick={async () => {
@@ -472,7 +496,7 @@ export default function PaymentDetailPage() {
                         const res = await fetch(fnUrl, {
                           method: 'POST',
                           headers: { 'Content-Type': 'application/json', 'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY },
-                          body: JSON.stringify({ quotation_id: qt.id, installment_months: installmentMonths || undefined, custom_amount: amt }),
+                          body: JSON.stringify({ quotation_id: qt.id, installment_months: installmentMonths || undefined, custom_amount: amt, notify_by_email: notifyEmail, notify_by_phone: notifyPhone }),
                         });
                         const result = await res.json();
                         if (result.success) {
