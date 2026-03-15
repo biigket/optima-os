@@ -172,9 +172,10 @@ function generateHTML(contract: any, account: any, contacts: any[]): string {
     .page:last-child { page-break-after: auto; }
     @media print { body { background: white; } .page { margin: 0; padding: 12mm 18mm 18mm 22mm; box-shadow: none; } .no-print { display: none !important; } @page { size: A4; margin: 0; } }
     @media screen { .page { box-shadow: 0 4px 24px rgba(0,0,0,0.15); margin-top: 20px; margin-bottom: 20px; } .page:first-child { margin-top: 50px; } }
-    .header { display: flex; justify-content: flex-end; align-items: flex-start; margin-bottom: 6px; }
+    .header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 6px; }
+    .header-left { }
+    .header-left .logo { height: 80px; }
     .header-right { text-align: right; line-height: 1.5; font-size: 14px; }
-    .header-right .logo { height: 50px; margin-bottom: 4px; }
     .header-right .th { color: #1a1a1a; font-weight: 400; }
     .header-right .en { color: #444; font-size: 13px; }
     .contract-no { text-align: right; font-size: 15px; margin-bottom: 16px; margin-top: 4px; }
