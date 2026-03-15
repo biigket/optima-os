@@ -26,7 +26,7 @@ import CustomerSignQuotationPage from "@/pages/CustomerSignQuotationPage";
 import InventoryPage from "@/pages/InventoryPage";
 import PaymentsPage from "@/pages/PaymentsPage";
 import PaymentDetailPage from "@/pages/PaymentDetailPage";
-import Phase2Placeholder from "@/pages/Phase2Placeholder";
+
 import NotFound from "@/pages/NotFound";
 import MockLoginPage from "@/pages/MockLoginPage";
 import CustomerRegisterPage from "@/pages/CustomerRegisterPage";
@@ -45,16 +45,6 @@ import { MockAuthProvider } from "@/hooks/useMockAuth";
 
 const queryClient = new QueryClient();
 
-const phase2Routes = [
-  "/campaigns",
-  "/promotions",
-  "/kol",
-  "/training",
-  "/lms",
-  "/ai-pipeline",
-  "/ai-reorder",
-  "/ai-marketing",
-];
 
 function AuthedAppRoutes() {
   return (
@@ -91,9 +81,6 @@ function AuthedAppRoutes() {
         <Route path="/qc-stock/cartridge/:id" element={<CartridgeDetailPage />} />
         <Route path="/qc-stock/picohi/:id" element={<PicohiDetailPage />} />
         <Route path="/qc-stock/freezero/:id" element={<FreezeroDetailPage />} />
-        {phase2Routes.map((path) => (
-          <Route key={path} path={path} element={<Phase2Placeholder />} />
-        ))}
         <Route path="*" element={<NotFound />} />
       </Routes>
     </AppLayout>

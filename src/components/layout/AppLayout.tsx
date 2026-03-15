@@ -4,10 +4,8 @@ import {
   LayoutDashboard, Users, Target, MapPin, FileText, Presentation, CalendarDays,
   ListTodo, Calendar, Cpu, Package, Wrench, ChevronLeft, ChevronRight, Bell,
   FileSpreadsheet, ShoppingCart, Warehouse, Receipt, CreditCard,
-  Megaphone, Gift, Star,
-  GraduationCap, BookOpen,
   TrendingUp, BarChart3,
-  Lock, Bot, Brain, Zap, LogOut, Menu, X, ClipboardCheck
+  Lock, LogOut, Menu, X, ClipboardCheck
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useMockAuth } from '@/hooks/useMockAuth';
@@ -79,37 +77,11 @@ const navGroups = [
     ],
   },
   {
-    label: 'MARKETING',
-    phase: 2,
-    items: [
-      { to: '/campaigns', icon: Megaphone, label: 'แคมเปญ', locked: true },
-      { to: '/promotions', icon: Gift, label: 'โปรโมชัน', locked: true },
-      { to: '/kol', icon: Star, label: 'KOL', locked: true },
-    ],
-  },
-  {
-    label: 'EDUCATION',
-    phase: 2,
-    items: [
-      { to: '/training', icon: GraduationCap, label: 'อบรม', locked: true },
-      { to: '/lms', icon: BookOpen, label: 'LMS', locked: true },
-    ],
-  },
-  {
     label: 'INTELLIGENCE',
     phase: 1,
     items: [
       { to: '/forecast', icon: TrendingUp, label: 'พยากรณ์' },
       { to: '/analytics', icon: BarChart3, label: 'วิเคราะห์' },
-    ],
-  },
-  {
-    label: 'AI AUTOMATION',
-    phase: 3,
-    items: [
-      { to: '/ai-pipeline', icon: Brain, label: 'AI วิเคราะห์ Pipeline', locked: true },
-      { to: '/ai-reorder', icon: Zap, label: 'AI ทำนาย Reorder', locked: true },
-      { to: '/ai-marketing', icon: Bot, label: 'AI แนะนำ Marketing', locked: true },
     ],
   },
 ];
@@ -121,27 +93,11 @@ function SidebarNav({ collapsed, onNavigate }: { collapsed: boolean; onNavigate?
     <nav className="flex-1 overflow-y-auto py-3 px-2 space-y-4">
       {navGroups.map((group, gi) => {
         const prevGroup = navGroups[gi - 1];
-        const showDivider = prevGroup && group.phase !== prevGroup.phase;
-        const dividerLabel = group.phase === 2 ? 'Phase 2' : group.phase === 3 ? 'Phase 3' : '';
-        const isLockedGroup = group.phase === 2 || group.phase === 3;
 
         return (
           <div key={group.label}>
-            {showDivider && !collapsed && (
-              <div className="flex items-center gap-2 px-2 mb-3 mt-2">
-                <div className="flex-1 border-t border-sidebar-border" />
-                <span className="text-[9px] font-semibold tracking-widest text-sidebar-muted/60 uppercase">{dividerLabel}</span>
-                <div className="flex-1 border-t border-sidebar-border" />
-              </div>
-            )}
-            {showDivider && collapsed && (
-              <div className="border-t border-sidebar-border mx-2 mb-3 mt-2" />
-            )}
             {!collapsed && (
-              <p className={cn(
-                'px-2 mb-1 text-[10px] font-semibold tracking-widest uppercase',
-                isLockedGroup ? 'text-sidebar-muted/50' : 'text-sidebar-muted'
-              )}>
+              <p className="px-2 mb-1 text-[10px] font-semibold tracking-widest uppercase text-sidebar-muted">
                 {group.label}
               </p>
             )}
