@@ -124,7 +124,7 @@ Deno.serve(async (req) => {
       is_checkout_embed: false,
       success_url: successUrl,
       failure_url: failureUrl,
-      pending_url: successUrl,
+      pending_url: pendingUrl,
       expiry_date: expiry.toISOString(),
       customer_details: {
         name: account?.clinic_name || "Customer",
