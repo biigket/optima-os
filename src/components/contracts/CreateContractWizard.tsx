@@ -208,7 +208,7 @@ export default function CreateContractWizard({ open, onOpenChange, onCreated }: 
     try {
       const contractNumber = await generateContractNumber();
 
-      const { error } = await supabase.from('contracts').insert({
+      const { data, error } = await supabase.from('contracts').insert({
         contract_number: contractNumber,
         quotation_id: selectedQt.id,
         account_id: selectedQt.account_id,
