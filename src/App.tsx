@@ -30,6 +30,7 @@ import PaymentDetailPage from "@/pages/PaymentDetailPage";
 import NotFound from "@/pages/NotFound";
 import MockLoginPage from "@/pages/MockLoginPage";
 import CustomerRegisterPage from "@/pages/CustomerRegisterPage";
+import RegistrationExportPage from "@/pages/RegistrationExportPage";
 import QRCodePage from "@/pages/QRCodePage";
 import QcStockPage from "@/pages/QcStockPage";
 import QcStockDetailPage from "@/pages/QcStockDetailPage";
@@ -93,6 +94,7 @@ function AppRoutes() {
       {/* Public pages (no AppLayout) */}
       <Route path="/sign/quotation" element={<CustomerSignQuotationPage />} />
       <Route path="/register" element={<CustomerRegisterPage />} />
+      <Route path="/registration" element={<RegistrationExportPage />} />
       <Route path="/payment-result" element={<PaymentResultPage />} />
 
       {/* Main app */}
