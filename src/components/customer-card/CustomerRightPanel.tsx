@@ -89,11 +89,11 @@ export default function CustomerRightPanel({ accountId, clinicName }: Props) {
       // Fetch all customer-signed quotations for purchases tab
       const { data: purchaseData } = await supabase
         .from('quotations')
-        .select('id, qt_number, qt_date, qt_attachment, product, price, approval_status, payment_status, payment_condition, sale_assigned, customer_signed_at, deposit_value, deposit_slip_status')
+        .select('id, qt_number, qt_date, qt_attachment, product, price, approval_status, payment_status, payment_condition, sale_assigned, customer_signed_at, deposit_value, deposit_slip_status, payment_link_url, portone_order_id, has_installments, installment_count')
         .eq('account_id', accountId)
         .in('approval_status', ['APPROVED', 'CUSTOMER_SIGNED'])
         .order('qt_date', { ascending: false });
-      const items = (purchaseData as QuotationPurchase[]) || [];
+      const items = (purchaseData as any[]) || [];
       setPurchases(items);
 
       // Fetch installments for accurate paid/outstanding calculation
