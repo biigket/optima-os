@@ -70,9 +70,10 @@ export default function CustomerRightPanel({ accountId, clinicName }: Props) {
   const marketing = getMarketingForAccount(accountId);
 
   const [qtDocs, setQtDocs] = useState<QuotationDoc[]>([]);
-  const [purchases, setPurchases] = useState<QuotationPurchase[]>([]);
+  const [purchases, setPurchases] = useState<any[]>([]);
   const [paidRevenue, setPaidRevenue] = useState(0);
   const [outstandingAmount, setOutstandingAmount] = useState(0);
+  const [channelsByQt, setChannelsByQt] = useState<Record<string, Set<string>>>({});
 
   useEffect(() => {
     async function fetchData() {
