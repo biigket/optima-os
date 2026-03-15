@@ -256,16 +256,7 @@ function generateHTML(contract: any, account: any, contacts: any[]): string {
 
 <!-- PAGE 2 -->
 <div class="page">
-  <div class="header">
-    <div class="header-right">
-      <div class="th">${SELLER.company_th}</div>
-      <div class="th">65 ถนนวิชิตสงคราม ตำบลตลาดเหนือ</div>
-      <div class="th">อำเภอเมือง จังหวัดภูเก็ต 83000</div>
-      <div class="en">${SELLER.company_en}</div>
-      <div class="en">${SELLER.address_en}</div>
-    </div>
-  </div>
-  <div class="contract-no">สัญญาเลขที่ ${contractNumber}</div>
+  ${pageHeader(contractNumber)}
   
   <div class="body-text">
     <strong>${fmtInt(totalPrice)}.- (${numberToThaiText(totalPrice)})</strong> ตามใบเสนอราคาเลขที่ <strong>${qtNumber}</strong> ให้แก่ผู้ขาย โดยมีรายละเอียดแบ่งชำระราคาเครื่องมือแพทย์เป็น ${installmentCount} งวดดังต่อไปนี้
