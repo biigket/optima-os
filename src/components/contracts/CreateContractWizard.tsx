@@ -133,6 +133,9 @@ export default function CreateContractWizard({ open, onOpenChange, onCreated, ed
     setDepositAmount(editContract.deposit_amount || 0);
     setRemainingAmount(editContract.remaining_amount || 0);
     setPaymentMethod(editContract.payment_method || '');
+    const pd = editContract.payment_details as any;
+    if (pd?.clause_2_1) setPaymentClause21(pd.clause_2_1);
+    if (pd?.clause_2_2) setPaymentClause22(pd.clause_2_2);
     setDeliveryAddress(editContract.delivery_address || '');
     setDeliveryDays(editContract.delivery_days || 60);
     setWarrantyYears(editContract.warranty_years || 1);
