@@ -20,7 +20,7 @@ Deno.serve(async (req) => {
       throw new Error('PortOne credentials not configured');
     }
 
-    const { quotation_id, installment_months } = await req.json();
+    const { quotation_id, installment_months, custom_amount } = await req.json();
     if (!quotation_id) throw new Error('quotation_id is required');
 
     const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
@@ -55,7 +55,7 @@ Deno.serve(async (req) => {
 
     // Step 2: Build URLs and generate signature
     const merchantOrderId = `${qt.qt_number || 'QT'}-${Date.now()}`;
-    const amount = qt.price || 0;
+    const amount = custom_amount && Number(custom_amount) > 0 ? Number(custom_amount) : (qt.price || 0);
     
     const expiry = new Date();
     expiry.setDate(expiry.getDate() + 30);
