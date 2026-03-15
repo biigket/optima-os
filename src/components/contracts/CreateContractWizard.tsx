@@ -573,6 +573,71 @@ export default function CreateContractWizard({ open, onOpenChange, onCreated, ed
             </Button>
 
             <Separator />
+            <div className="text-sm font-medium">รายการรับประกัน Cartridge</div>
+            {warrantyDetails.map((w, i) => (
+              <div key={i} className="grid grid-cols-[1fr_1fr_1fr_auto] gap-2 items-start">
+                <Input className="text-xs" placeholder="รายการ" value={w.item} onChange={e => {
+                  const updated = [...warrantyDetails];
+                  updated[i] = { ...updated[i], item: e.target.value };
+                  setWarrantyDetails(updated);
+                }} />
+                <Input className="text-xs" placeholder="รับประกัน" value={w.warranty} onChange={e => {
+                  const updated = [...warrantyDetails];
+                  updated[i] = { ...updated[i], warranty: e.target.value };
+                  setWarrantyDetails(updated);
+                }} />
+                <Input className="text-xs" placeholder="หมายเหตุ" value={w.note} onChange={e => {
+                  const updated = [...warrantyDetails];
+                  updated[i] = { ...updated[i], note: e.target.value };
+                  setWarrantyDetails(updated);
+                }} />
+                <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => {
+                  setWarrantyDetails(warrantyDetails.filter((_, idx) => idx !== i));
+                }}>
+                  <Trash2 size={14} />
+                </Button>
+              </div>
+            ))}
+            <Button
+              variant="outline"
+              size="sm"
+              className="text-xs"
+              onClick={() => setWarrantyDetails([...warrantyDetails, { item: '', warranty: 'รับประกัน 1 ปี', note: '' }])}
+            >
+              <Plus size={12} className="mr-1" /> เพิ่มรายการรับประกัน
+            </Button>
+
+            <Separator />
+            <div className="text-sm font-medium">รายการแนบท้ายสัญญา (ของแถม)</div>
+            {appendixItems.map((a, i) => (
+              <div key={i} className="grid grid-cols-[1fr_1fr_auto] gap-2 items-start">
+                <Input className="text-xs" placeholder="รายการ" value={a.name} onChange={e => {
+                  const updated = [...appendixItems];
+                  updated[i] = { ...updated[i], name: e.target.value };
+                  setAppendixItems(updated);
+                }} />
+                <Input className="text-xs" placeholder="รายละเอียด" value={a.detail} onChange={e => {
+                  const updated = [...appendixItems];
+                  updated[i] = { ...updated[i], detail: e.target.value };
+                  setAppendixItems(updated);
+                }} />
+                <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => {
+                  setAppendixItems(appendixItems.filter((_, idx) => idx !== i));
+                }}>
+                  <Trash2 size={14} />
+                </Button>
+              </div>
+            ))}
+            <Button
+              variant="outline"
+              size="sm"
+              className="text-xs"
+              onClick={() => setAppendixItems([...appendixItems, { name: '', detail: '' }])}
+            >
+              <Plus size={12} className="mr-1" /> เพิ่มรายการแนบท้าย
+            </Button>
+
+            <Separator />
             <div className="text-sm font-medium">ข้อตกลงการชำระเงิน</div>
 
             <div className="grid grid-cols-3 gap-3">
