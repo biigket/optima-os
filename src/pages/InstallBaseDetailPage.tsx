@@ -324,6 +324,28 @@ export default function InstallBaseDetailPage() {
                 <p><span className="text-muted-foreground">จังหวัด:</span> {inst.province || '-'}</p>
                 <p><span className="text-muted-foreground">ภูมิภาค:</span> {inst.region || '-'}</p>
                 {inst.notes && <p><span className="text-muted-foreground">หมายเหตุ:</span> {inst.notes}</p>}
+                {qcItem && (
+                  <>
+                    <Separator className="my-2" />
+                    <div className="grid grid-cols-3 gap-2 text-xs">
+                      <div>
+                        <p className="font-medium text-muted-foreground mb-1">HFL</p>
+                        <p className="font-mono">{qcItem.hfl1}</p>
+                        <p className="font-mono">{qcItem.hfl2}</p>
+                      </div>
+                      <div>
+                        <p className="font-medium text-muted-foreground mb-1">HSD</p>
+                        <p className="font-mono">{qcItem.hsd1}</p>
+                        <p className="font-mono">{qcItem.hsd2}</p>
+                      </div>
+                      <div>
+                        <p className="font-medium text-muted-foreground mb-1">HRM</p>
+                        <p className="font-mono">{qcItem.hrm}</p>
+                        <p className="text-muted-foreground">({qcItem.hrmSellOrKeep})</p>
+                      </div>
+                    </div>
+                  </>
+                )}
               </>
             )}
           </CardContent>
