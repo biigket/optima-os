@@ -376,6 +376,8 @@ export default function CreateContractWizard({ open, onOpenChange, onCreated, ed
     setDepositAmount(0);
     setRemainingAmount(0);
     setPaymentMethod('');
+    setPaymentClause21('ชำระค่าเครื่องมือแพทย์ตามข้อ 1. ให้ "ผู้ขาย" งวดที่ 1 เป็นจำนวนเงิน {deposit}.- บาท ({deposit_text})\nโดยชำระด้วยการโอนเงินเข้าบัญชีในนาม บริษัท ออปติม่าแอสเทติค จำกัด เลขที่บัญชี 411-0-748-56-8 (ธนาคารไทยพาณิชย์)');
+    setPaymentClause22('ผู้ซื้อจะดำเนินการชำระเงินค่าสินค้าประเภทเครื่องมือแพทย์ในส่วนที่เหลือเป็นจำนวนเงิน {remaining} บาท\n({remaining_text}) ผ่านบัตรเครดิต');
     setDeliveryAddress('');
     setDeliveryDays(60);
     setWarrantyYears(1);
