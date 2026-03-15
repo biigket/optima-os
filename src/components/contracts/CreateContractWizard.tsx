@@ -60,6 +60,7 @@ interface Props {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onCreated?: () => void;
+  editContract?: any; // existing contract to edit
 }
 
 export default function CreateContractWizard({ open, onOpenChange, onCreated }: Props) {
