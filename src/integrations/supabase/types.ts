@@ -752,7 +752,10 @@ export type Database = {
           leasing_doc: string | null
           payment_condition: string | null
           payment_due_day: number | null
+          payment_link_ref: string | null
+          payment_link_url: string | null
           payment_status: string | null
+          portone_order_id: string | null
           price: number | null
           product: string | null
           qt_attachment: string | null
@@ -790,7 +793,10 @@ export type Database = {
           leasing_doc?: string | null
           payment_condition?: string | null
           payment_due_day?: number | null
+          payment_link_ref?: string | null
+          payment_link_url?: string | null
           payment_status?: string | null
+          portone_order_id?: string | null
           price?: number | null
           product?: string | null
           qt_attachment?: string | null
@@ -828,7 +834,10 @@ export type Database = {
           leasing_doc?: string | null
           payment_condition?: string | null
           payment_due_day?: number | null
+          payment_link_ref?: string | null
+          payment_link_url?: string | null
           payment_status?: string | null
+          portone_order_id?: string | null
           price?: number | null
           product?: string | null
           qt_attachment?: string | null
