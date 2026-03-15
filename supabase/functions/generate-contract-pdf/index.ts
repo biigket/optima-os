@@ -113,7 +113,7 @@ function generateHTML(contract: any, account: any, contacts: any[]): string {
   const buyerIdExpiry = contract.buyer_id_expiry || "";
   const buyerAddress = contract.buyer_address || account?.address || "";
   const buyerPhone = contract.buyer_phone || account?.phone || "";
-  const sellerRep = contract.seller_representative_name || "นายแพทย์คุณวุฒิ ลิ้มรัตนเมฆา";
+  const sellerRep = contract.seller_representative_name || "นายแพทย์ฐิติคมน์ ลิ้มรัตนเมฆา";
   
   const productName = contract.product_name || "NEW DOUBLO 2.0";
   const productBrand = contract.product_brand || "HIRONIC";
