@@ -215,7 +215,7 @@ function generateHTML(contract: any, account: any, contacts: any[]): string {
   ${pageHeader(contractNumber)}
   
   <h2>สัญญาซื้อขายเครื่องมือแพทย์</h2>
-  <div class="date-line">วันที่ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ${thaiYear}</div>
+  <div class="date-line">วันที่ ${fmtDateThai(contractDate)}</div>
   
   <div class="body-text indent">
     สัญญาซื้อขายฉบับนี้ทำขึ้นระหว่าง
