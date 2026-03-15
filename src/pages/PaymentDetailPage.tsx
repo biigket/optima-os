@@ -55,7 +55,13 @@ export default function PaymentDetailPage() {
         .eq('quotation_id', quotationId!)
         .order('installment_number', { ascending: true });
 
-      return { qt, account, installments: installments || [] };
+      const { data: paymentLinks } = await supabase
+        .from('payment_links' as any)
+        .select('*')
+        .eq('quotation_id', quotationId!)
+        .order('created_at', { ascending: false });
+
+      return { qt, account, installments: installments || [], paymentLinks: (paymentLinks || []) as any[] };
     },
     enabled: !!quotationId,
   });
