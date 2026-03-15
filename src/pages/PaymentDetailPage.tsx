@@ -126,7 +126,7 @@ export default function PaymentDetailPage() {
     );
   }
 
-  const { qt, account, installments } = data;
+  const { qt, account, installments, paymentLinks } = data;
   const depositAmount = summary.depositAmount;
   const hasDeposit = qt.deposit_type && qt.deposit_type !== 'NONE' && (qt.deposit_value || 0) > 0;
 
