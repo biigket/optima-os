@@ -123,6 +123,7 @@ export default function PaymentDetailPage() {
       case 'upload': return <Upload size={14} className="text-warning" />;
       case 'verify': return <CheckCircle2 size={14} className="text-success" />;
       case 'reject': return <XCircle size={14} className="text-destructive" />;
+      case 'portone': return <CreditCard size={14} className="text-success" />;
       default: return <Clock size={14} className="text-muted-foreground" />;
     }
   };
