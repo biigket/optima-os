@@ -1,6 +1,6 @@
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { ArrowLeft, FileText, Eye, Upload, Clock, CreditCard, CheckCircle2, AlertCircle, XCircle, Calendar } from 'lucide-react';
+import { ArrowLeft, FileText, Eye, Upload, Clock, CreditCard, CheckCircle2, AlertCircle, XCircle, Calendar, Link2, ExternalLink, Copy, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
@@ -8,6 +8,7 @@ import StatusBadge from '@/components/ui/StatusBadge';
 import { supabase } from '@/integrations/supabase/client';
 import { getPaymentConditionLabel } from '@/components/quotations/PaymentConditionSelector';
 import { differenceInDays, format } from 'date-fns';
+import { toast } from 'sonner';
 import { th } from 'date-fns/locale';
 import { useState, useMemo } from 'react';
 import UploadSlipDialog from '@/components/payments/UploadSlipDialog';
@@ -28,13 +29,14 @@ export default function PaymentDetailPage() {
   const [uploadTarget, setUploadTarget] = useState<any>(null);
   const [verifyTarget, setVerifyTarget] = useState<any>(null);
   const [depositTarget, setDepositTarget] = useState<any>(null);
+  const [creatingLink, setCreatingLink] = useState(false);
 
   const { data, isLoading } = useQuery({
     queryKey: ['payment-detail', quotationId],
     queryFn: async () => {
       const { data: qt, error: qtErr } = await supabase
         .from('quotations')
-        .select('id, qt_number, account_id, price, product, payment_condition, payment_status, deposit_type, deposit_value, deposit_slip, deposit_slip_status, deposit_paid_date, has_installments, installment_count, payment_due_day, qt_attachment, customer_signed_at, approved_at, created_at, billing_note_number, tax_invoice_number, delivery_note_number, docs_generated_at')
+        .select('id, qt_number, account_id, price, product, payment_condition, payment_status, deposit_type, deposit_value, deposit_slip, deposit_slip_status, deposit_paid_date, has_installments, installment_count, payment_due_day, qt_attachment, customer_signed_at, approved_at, created_at, billing_note_number, tax_invoice_number, delivery_note_number, docs_generated_at, payment_link_url, payment_link_ref, portone_order_id')
         .eq('id', quotationId!)
         .single();
       if (qtErr) throw qtErr;
@@ -328,6 +330,86 @@ export default function PaymentDetailPage() {
               </CardContent>
             </Card>
           )}
+
+          {/* PortOne Payment Link */}
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-sm flex items-center gap-1.5">
+                <Link2 size={14} /> ลิงก์ชำระเงินออนไลน์ (บัตรเครดิต)
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {(qt as any).payment_link_url ? (
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2 p-3 rounded-md bg-muted/50 border">
+                    <Link2 size={14} className="text-primary shrink-0" />
+                    <p className="text-xs font-mono text-foreground truncate flex-1">{(qt as any).payment_link_url}</p>
+                    <Button size="sm" variant="ghost" className="h-7 gap-1 text-xs shrink-0" onClick={() => {
+                      navigator.clipboard.writeText((qt as any).payment_link_url);
+                      toast.success('คัดลอกลิงก์แล้ว');
+                    }}>
+                      <Copy size={12} /> คัดลอก
+                    </Button>
+                    <Button size="sm" variant="ghost" className="h-7 gap-1 text-xs shrink-0" onClick={() => window.open((qt as any).payment_link_url, '_blank')}>
+                      <ExternalLink size={12} /> เปิด
+                    </Button>
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Ref: {(qt as any).payment_link_ref || '-'} • สามารถส่งลิงก์นี้ให้ลูกค้าเพื่อชำระผ่านบัตรเครดิตได้โดยตรง
+                  </p>
+                  <Button size="sm" variant="outline" className="gap-1.5 text-xs" disabled={creatingLink} onClick={async () => {
+                    setCreatingLink(true);
+                    try {
+                      const fnUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/portone-create-link`;
+                      const res = await fetch(fnUrl, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', 'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY },
+                        body: JSON.stringify({ quotation_id: qt.id }),
+                      });
+                      const result = await res.json();
+                      if (result.success) {
+                        toast.success('สร้างลิงก์ใหม่สำเร็จ');
+                        refetch();
+                      } else {
+                        toast.error(result.error || 'สร้างลิงก์ไม่สำเร็จ');
+                      }
+                    } catch (e) { toast.error('เกิดข้อผิดพลาด'); }
+                    setCreatingLink(false);
+                  }}>
+                    {creatingLink ? <Loader2 size={12} className="animate-spin" /> : <Link2 size={12} />}
+                    สร้างลิงก์ใหม่
+                  </Button>
+                </div>
+              ) : (
+                <div className="text-center py-4 space-y-3">
+                  <p className="text-sm text-muted-foreground">ยังไม่ได้สร้างลิงก์ชำระเงินออนไลน์</p>
+                  <Button className="gap-1.5" disabled={creatingLink} onClick={async () => {
+                    setCreatingLink(true);
+                    try {
+                      const fnUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/portone-create-link`;
+                      const res = await fetch(fnUrl, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', 'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY },
+                        body: JSON.stringify({ quotation_id: qt.id }),
+                      });
+                      const result = await res.json();
+                      if (result.success) {
+                        toast.success('สร้างลิงก์ชำระเงินสำเร็จ');
+                        refetch();
+                      } else {
+                        toast.error(result.error || 'สร้างลิงก์ไม่สำเร็จ');
+                      }
+                    } catch (e) { toast.error('เกิดข้อผิดพลาด'); }
+                    setCreatingLink(false);
+                  }}>
+                    {creatingLink ? <Loader2 size={14} className="animate-spin" /> : <CreditCard size={14} />}
+                    สร้างลิงก์ชำระเงิน (บัตรเครดิต)
+                  </Button>
+                  <p className="text-xs text-muted-foreground">ลูกค้าสามารถชำระผ่านบัตรเครดิตพร้อมผ่อนชำระได้</p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
 
           {/* Installments Table */}
           <Card>
