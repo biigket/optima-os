@@ -420,46 +420,58 @@ export default function PaymentDetailPage() {
               ) : (
                 <div className="space-y-4 py-2">
                   <p className="text-sm text-muted-foreground text-center">ยังไม่ได้สร้างลิงก์ชำระเงินออนไลน์</p>
-                  {/* Installment month selector */}
-                  <div className="space-y-2 p-3 rounded-lg bg-muted/50 border border-border">
-                    <p className="text-sm font-medium text-foreground">เลือกรูปแบบชำระ</p>
-                    <div className="flex flex-wrap gap-2">
-                      {[
-                        { value: 0, label: 'เต็มจำนวน' },
-                        { value: 3, label: 'ผ่อน 3 เดือน' },
-                        { value: 6, label: 'ผ่อน 6 เดือน' },
-                        { value: 10, label: 'ผ่อน 10 เดือน' },
-                      ].map(opt => (
-                        <Button
-                          key={opt.value}
-                          size="sm"
-                          variant={installmentMonths === opt.value ? 'default' : 'outline'}
-                          className="text-xs"
-                          onClick={() => setInstallmentMonths(opt.value)}
-                        >
-                          {opt.label}
-                        </Button>
-                      ))}
+                  <div className="space-y-3 p-3 rounded-lg bg-muted/50 border border-border">
+                    <div className="space-y-1.5">
+                      <p className="text-sm font-medium text-foreground">ยอดเงินที่ต้องการเรียกเก็บ</p>
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="number"
+                          min="1"
+                          placeholder={String(qt.price || 0)}
+                          value={customAmount}
+                          onChange={e => setCustomAmount(e.target.value)}
+                          className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                        />
+                        <span className="text-sm text-muted-foreground">฿</span>
+                      </div>
+                      <p className="text-[10px] text-muted-foreground">หากไม่กรอก จะใช้ยอดจากใบเสนอราคา (฿{(qt.price || 0).toLocaleString()})</p>
                     </div>
-                    {installmentMonths > 0 && (
-                      <p className="text-xs text-primary font-medium mt-1">
-                        ยอดต่อเดือน ≈ ฿{Math.ceil((qt.price || 0) / installmentMonths).toLocaleString()} / เดือน
-                      </p>
-                    )}
+                    <div className="space-y-1.5">
+                      <p className="text-sm font-medium text-foreground">เลือกรูปแบบชำระ</p>
+                      <div className="flex flex-wrap gap-2">
+                        {[
+                          { value: 0, label: 'เต็มจำนวน' },
+                          { value: 3, label: 'ผ่อน 3 เดือน' },
+                          { value: 6, label: 'ผ่อน 6 เดือน' },
+                          { value: 10, label: 'ผ่อน 10 เดือน' },
+                        ].map(opt => (
+                          <Button key={opt.value} size="sm" variant={installmentMonths === opt.value ? 'default' : 'outline'} className="text-xs" onClick={() => setInstallmentMonths(opt.value)}>
+                            {opt.label}
+                          </Button>
+                        ))}
+                      </div>
+                      {installmentMonths > 0 && (
+                        <p className="text-xs text-primary font-medium mt-1">
+                          ยอดต่อเดือน ≈ ฿{Math.ceil((Number(customAmount) || qt.price || 0) / installmentMonths).toLocaleString()} / เดือน
+                        </p>
+                      )}
+                    </div>
                   </div>
                   <div className="text-center">
                     <Button className="gap-1.5" disabled={creatingLink} onClick={async () => {
+                      const amt = Number(customAmount) || undefined;
                       setCreatingLink(true);
                       try {
                         const fnUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/portone-create-link`;
                         const res = await fetch(fnUrl, {
                           method: 'POST',
                           headers: { 'Content-Type': 'application/json', 'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY },
-                          body: JSON.stringify({ quotation_id: qt.id, installment_months: installmentMonths || undefined }),
+                          body: JSON.stringify({ quotation_id: qt.id, installment_months: installmentMonths || undefined, custom_amount: amt }),
                         });
                         const result = await res.json();
                         if (result.success) {
                           toast.success('สร้างลิงก์ชำระเงินสำเร็จ');
+                          setCustomAmount('');
                           refetch();
                         } else {
                           toast.error(result.error || 'สร้างลิงก์ไม่สำเร็จ');
@@ -471,7 +483,7 @@ export default function PaymentDetailPage() {
                       สร้างลิงก์ชำระเงิน (บัตรเครดิต)
                     </Button>
                   </div>
-                  <p className="text-xs text-muted-foreground text-center">ลูกค้าสามารถชำระผ่านบัตรเครดิตพร้อมผ่อนชำระได้</p>
+                  <p className="text-xs text-muted-foreground text-center">ลูกค้าสามารถชำระผ่านบัตรเครดิตพร้อมผ่อนชำระได้ • รองรับการรูดหลายใบ</p>
                 </div>
               )}
             </CardContent>

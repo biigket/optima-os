@@ -55,7 +55,7 @@ Deno.serve(async (req) => {
 
     // Step 2: Build URLs and generate signature
     const merchantOrderId = `${qt.qt_number || 'QT'}-${Date.now()}`;
-    const amount = qt.price || 0;
+    const amount = custom_amount && Number(custom_amount) > 0 ? Number(custom_amount) : (qt.price || 0);
     
     const expiry = new Date();
     expiry.setDate(expiry.getDate() + 30);
