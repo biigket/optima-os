@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { FileText, Plus, Search, Building2, Calendar, Eye } from 'lucide-react';
+import { FileText, Plus, Search, Building2, Calendar } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -8,14 +8,6 @@ import { supabase } from '@/integrations/supabase/client';
 import { format } from 'date-fns';
 import StatusBadge from '@/components/ui/StatusBadge';
 import CreateContractWizard from '@/components/contracts/CreateContractWizard';
-import { Badge } from '@/components/ui/badge';
-
-const STATUS_LABELS: Record<string, string> = {
-  DRAFT: 'แบบร่าง',
-  SIGNED: 'เซ็นแล้ว',
-  ACTIVE: 'มีผลบังคับ',
-  COMPLETED: 'เสร็จสิ้น',
-};
 
 export default function ContractsPage() {
   const [search, setSearch] = useState('');
