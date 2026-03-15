@@ -41,8 +41,8 @@ Deno.serve(async (req) => {
           .eq('quotation_id', quotationId);
       }
 
-      // Redirect to payment detail page
-      const redirectUrl = `https://optima-os.lovable.app/payments/${quotationId}`;
+      // Redirect to payment result page
+      const redirectUrl = `https://optima-os.lovable.app/payment-result?status=${status}&quotation_id=${quotationId}`;
       return new Response(null, {
         status: 302,
         headers: { ...corsHeaders, 'Location': redirectUrl },

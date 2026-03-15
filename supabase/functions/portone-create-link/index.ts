@@ -62,6 +62,7 @@ Deno.serve(async (req) => {
 
     const successUrl = `${SUPABASE_URL}/functions/v1/portone-webhook?status=success&quotation_id=${quotation_id}`;
     const failureUrl = `${SUPABASE_URL}/functions/v1/portone-webhook?status=failure&quotation_id=${quotation_id}`;
+    const pendingUrl = `${SUPABASE_URL}/functions/v1/portone-webhook?status=pending&quotation_id=${quotation_id}`;
 
     // Generate signature hash (HMAC-SHA256) with all required params
     const sigParams: Record<string, string> = {
@@ -123,7 +124,7 @@ Deno.serve(async (req) => {
       is_checkout_embed: false,
       success_url: successUrl,
       failure_url: failureUrl,
-      pending_url: successUrl,
+      pending_url: pendingUrl,
       expiry_date: expiry.toISOString(),
       customer_details: {
         name: account?.clinic_name || "Customer",
