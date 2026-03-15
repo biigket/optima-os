@@ -42,6 +42,8 @@ import FreezeroDetailPage from "@/pages/FreezeroDetailPage";
 import InstallBasePage from "@/pages/InstallBasePage";
 import InstallBaseDetailPage from "@/pages/InstallBaseDetailPage";
 import PaymentResultPage from "@/pages/PaymentResultPage";
+import WorkCheckinPage from "@/pages/WorkCheckinPage";
+import AttendanceSummaryPage from "@/pages/AttendanceSummaryPage";
 import { MockAuthProvider } from "@/hooks/useMockAuth";
 
 const queryClient = new QueryClient();
