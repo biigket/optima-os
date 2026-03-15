@@ -131,6 +131,10 @@ export default function ContractsPage() {
                           QT: {c.qt_number || '-'}
                         </div>
                       </div>
+                      <Button size="sm" variant="ghost" onClick={() => { setEditingContract(c); setWizardOpen(true); }}>
+                        <Edit3 size={14} className="mr-1" />
+                        แก้ไข
+                      </Button>
                       <Button size="sm" variant="outline" onClick={() => handleViewPdf(c.id)}>
                         <Eye size={14} className="mr-1" />
                         ดูสัญญา
