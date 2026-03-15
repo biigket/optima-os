@@ -13,6 +13,7 @@ import {
 } from '@/data/customerCardMockData';
 import { getInstallationsForAccount } from '@/data/installBaseMockData';
 import { supabase } from '@/integrations/supabase/client';
+import { getPaymentConditionLabel } from '@/components/quotations/PaymentConditionSelector';
 import StatusBadge from '@/components/ui/StatusBadge';
 
 interface Props {
@@ -70,9 +71,10 @@ export default function CustomerRightPanel({ accountId, clinicName }: Props) {
   const marketing = getMarketingForAccount(accountId);
 
   const [qtDocs, setQtDocs] = useState<QuotationDoc[]>([]);
-  const [purchases, setPurchases] = useState<QuotationPurchase[]>([]);
+  const [purchases, setPurchases] = useState<any[]>([]);
   const [paidRevenue, setPaidRevenue] = useState(0);
   const [outstandingAmount, setOutstandingAmount] = useState(0);
+  const [channelsByQt, setChannelsByQt] = useState<Record<string, Set<string>>>({});
 
   useEffect(() => {
     async function fetchData() {
@@ -89,29 +91,35 @@ export default function CustomerRightPanel({ accountId, clinicName }: Props) {
       // Fetch all customer-signed quotations for purchases tab
       const { data: purchaseData } = await supabase
         .from('quotations')
-        .select('id, qt_number, qt_date, qt_attachment, product, price, approval_status, payment_status, payment_condition, sale_assigned, customer_signed_at, deposit_value, deposit_slip_status')
+        .select('id, qt_number, qt_date, qt_attachment, product, price, approval_status, payment_status, payment_condition, sale_assigned, customer_signed_at, deposit_value, deposit_slip_status, payment_link_url, portone_order_id, has_installments, installment_count')
         .eq('account_id', accountId)
         .in('approval_status', ['APPROVED', 'CUSTOMER_SIGNED'])
         .order('qt_date', { ascending: false });
-      const items = (purchaseData as QuotationPurchase[]) || [];
+      const items = (purchaseData as any[]) || [];
       setPurchases(items);
 
       // Fetch installments for accurate paid/outstanding calculation
       const qtIds = items.map(q => q.id);
       let instPaidMap: Record<string, number> = {};
+      let channelMap: Record<string, Set<string>> = {};
       if (qtIds.length > 0) {
         const { data: installments } = await supabase
           .from('payment_installments')
-          .select('quotation_id, amount, slip_status')
+          .select('quotation_id, amount, slip_status, payment_channel')
           .in('quotation_id', qtIds);
         if (installments) {
           for (const inst of installments) {
             if (inst.slip_status === 'VERIFIED') {
               instPaidMap[inst.quotation_id] = (instPaidMap[inst.quotation_id] || 0) + (inst.amount || 0);
             }
+            if (inst.payment_channel) {
+              if (!channelMap[inst.quotation_id]) channelMap[inst.quotation_id] = new Set();
+              channelMap[inst.quotation_id].add(inst.payment_channel);
+            }
           }
         }
       }
+      setChannelsByQt(channelMap);
 
       const total = items.reduce((sum, q) => sum + (q.price || 0), 0);
       const paid = items.reduce((sum, q) => {
@@ -280,9 +288,17 @@ export default function CustomerRightPanel({ accountId, clinicName }: Props) {
                       <StatusBadge status={p.payment_status || 'UNPAID'} />
                     </div>
                   </div>
-                  <div className="flex items-center gap-2 text-[11px] text-muted-foreground">
+                  <div className="flex items-center gap-2 text-[11px] text-muted-foreground flex-wrap">
                     <CreditCard size={10} />
-                    <span>{p.payment_condition || '-'}</span>
+                    <span>{getPaymentConditionLabel(p.payment_condition)}</span>
+                    {p.has_installments && p.installment_count > 0 && (
+                      <span className="text-primary">({p.installment_count} งวด)</span>
+                    )}
+                    {channelsByQt[p.id] && channelsByQt[p.id].has('CREDIT_CARD_PORTONE') && (
+                      <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded bg-primary/10 text-primary text-[10px] font-medium">
+                        💳 PortOne
+                      </span>
+                    )}
                     <span>•</span>
                     <span>{p.sale_assigned || '-'}</span>
                     <ExternalLink size={10} className="ml-auto text-primary" />
