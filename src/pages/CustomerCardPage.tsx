@@ -196,6 +196,51 @@ export default function CustomerCardPage() {
         }
       });
   }, [id, opportunities]);
+
+  const fetchAccountDocs = useCallback(async () => {
+    if (!id) return;
+    const { data } = await supabase.from('account_documents').select('*').eq('account_id', id).order('created_at', { ascending: false });
+    if (data) setAccountDocs(data);
+  }, [id]);
+
+  useEffect(() => { fetchAccountDocs(); }, [fetchAccountDocs]);
+
+  const handleDocUpload = async (files: FileList | File[] | null) => {
+    if (!files || !id) return;
+    setDocUploading(true);
+    let ok = 0;
+    for (const file of Array.from(files)) {
+      const ext = file.name.split('.').pop() || 'bin';
+      const path = `${id}/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+      const { error: ue } = await supabase.storage.from('account-documents').upload(path, file);
+      if (ue) { console.error(ue); continue; }
+      const { data: u } = supabase.storage.from('account-documents').getPublicUrl(path);
+      const { error: de } = await supabase.from('account_documents').insert({
+        account_id: id, file_name: file.name, file_url: u.publicUrl,
+        file_size: file.size, file_type: file.type || null,
+      });
+      if (!de) ok++;
+    }
+    if (ok > 0) { toast.success(`อัปโหลดสำเร็จ ${ok} ไฟล์`); fetchAccountDocs(); }
+    setDocUploading(false);
+  };
+
+  const handleDocDelete = async (doc: any) => {
+    if (!confirm(`ลบไฟล์ "${doc.file_name}" ?`)) return;
+    const parts = doc.file_url.split('/account-documents/');
+    if (parts.length > 1) await supabase.storage.from('account-documents').remove([decodeURIComponent(parts[1])]);
+    await supabase.from('account_documents').delete().eq('id', doc.id);
+    toast.success('ลบเอกสารแล้ว');
+    fetchAccountDocs();
+  };
+
+  const formatFileSize = (bytes: number | null) => {
+    if (!bytes) return '-';
+    if (bytes < 1024) return `${bytes} B`;
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+  };
+
   const handleSubmit = async () => {
     if (!editForm.clinic_name?.trim()) {
       toast.error('กรุณากรอกชื่อคลินิก');
