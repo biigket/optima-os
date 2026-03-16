@@ -1,11 +1,43 @@
+import { useState, useEffect } from 'react';
 import {
   TrendingUp, Target, DollarSign, Calendar
 } from 'lucide-react';
 import KpiCard from '@/components/dashboard/KpiCard';
-import { mockOpportunities, getAccountById } from '@/data/mockData';
+import { supabase } from '@/integrations/supabase/client';
+
+interface OppRow {
+  id: string;
+  account_id: string;
+  stage: string;
+  expected_value: number | null;
+  close_date: string | null;
+}
 
 export default function ForecastPage() {
-  const activeOpps = mockOpportunities.filter(o => !['WON', 'LOST'].includes(o.stage));
+  const [activeOpps, setActiveOpps] = useState<OppRow[]>([]);
+  const [accountMap, setAccountMap] = useState<Record<string, string>>({});
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetch() {
+      const { data: opps } = await supabase.from('opportunities').select('id, account_id, stage, expected_value, close_date');
+      const active = (opps || []).filter(o => !['WON', 'LOST'].includes(o.stage));
+      setActiveOpps(active);
+
+      const ids = [...new Set(active.map(o => o.account_id))];
+      if (ids.length > 0) {
+        const { data: accounts } = await supabase.from('accounts').select('id, clinic_name').in('id', ids);
+        const map: Record<string, string> = {};
+        (accounts || []).forEach(a => { map[a.id] = a.clinic_name; });
+        setAccountMap(map);
+      }
+      setLoading(false);
+    }
+    fetch();
+  }, []);
+
+  if (loading) return <div className="p-8 text-center text-muted-foreground">กำลังโหลด...</div>;
+
   const totalPipeline = activeOpps.reduce((s, o) => s + (o.expected_value || 0), 0);
   const weightedPipeline = activeOpps.reduce((s, o) => {
     const weights: Record<string, number> = { NEW_LEAD: 0.1, CONTACTED: 0.2, DEMO_SCHEDULED: 0.4, DEMO_DONE: 0.6, NEGOTIATION: 0.8 };
@@ -20,12 +52,16 @@ export default function ForecastPage() {
   });
 
   const stageData = [
-    { stage: 'ใหม่', count: activeOpps.filter(o => o.stage === 'NEW_LEAD').length, value: activeOpps.filter(o => o.stage === 'NEW_LEAD').reduce((s, o) => s + (o.expected_value || 0), 0) },
-    { stage: 'ติดต่อแล้ว', count: activeOpps.filter(o => o.stage === 'CONTACTED').length, value: activeOpps.filter(o => o.stage === 'CONTACTED').reduce((s, o) => s + (o.expected_value || 0), 0) },
-    { stage: 'นัดสาธิต', count: activeOpps.filter(o => o.stage === 'DEMO_SCHEDULED').length, value: activeOpps.filter(o => o.stage === 'DEMO_SCHEDULED').reduce((s, o) => s + (o.expected_value || 0), 0) },
-    { stage: 'สาธิตแล้ว', count: activeOpps.filter(o => o.stage === 'DEMO_DONE').length, value: activeOpps.filter(o => o.stage === 'DEMO_DONE').reduce((s, o) => s + (o.expected_value || 0), 0) },
-    { stage: 'เจรจา', count: activeOpps.filter(o => o.stage === 'NEGOTIATION').length, value: activeOpps.filter(o => o.stage === 'NEGOTIATION').reduce((s, o) => s + (o.expected_value || 0), 0) },
-  ];
+    { stage: 'ใหม่', key: 'NEW_LEAD' },
+    { stage: 'ติดต่อแล้ว', key: 'CONTACTED' },
+    { stage: 'นัดสาธิต', key: 'DEMO_SCHEDULED' },
+    { stage: 'สาธิตแล้ว', key: 'DEMO_DONE' },
+    { stage: 'เจรจา', key: 'NEGOTIATION' },
+  ].map(s => ({
+    stage: s.stage,
+    count: activeOpps.filter(o => o.stage === s.key).length,
+    value: activeOpps.filter(o => o.stage === s.key).reduce((sum, o) => sum + (o.expected_value || 0), 0),
+  }));
 
   return (
     <div className="space-y-6 animate-fade-in">
@@ -80,21 +116,18 @@ export default function ForecastPage() {
       <div className="rounded-lg border bg-card p-5">
         <h3 className="text-sm font-semibold text-foreground mb-4">ดีลมูลค่าสูงสุด</h3>
         <div className="space-y-2">
-          {[...activeOpps].sort((a, b) => (b.expected_value || 0) - (a.expected_value || 0)).slice(0, 5).map((opp, i) => {
-            const account = getAccountById(opp.account_id);
-            return (
-              <div key={opp.id} className="flex items-center justify-between rounded-md border px-4 py-2.5">
-                <div className="flex items-center gap-3">
-                  <span className="flex h-6 w-6 items-center justify-center rounded-full bg-muted text-xs font-bold text-muted-foreground">{i + 1}</span>
-                  <div>
-                    <p className="text-sm font-medium text-foreground">{account?.clinic_name}</p>
-                    <p className="text-xs text-muted-foreground">{opp.stage}</p>
-                  </div>
+          {[...activeOpps].sort((a, b) => (b.expected_value || 0) - (a.expected_value || 0)).slice(0, 5).map((opp, i) => (
+            <div key={opp.id} className="flex items-center justify-between rounded-md border px-4 py-2.5">
+              <div className="flex items-center gap-3">
+                <span className="flex h-6 w-6 items-center justify-center rounded-full bg-muted text-xs font-bold text-muted-foreground">{i + 1}</span>
+                <div>
+                  <p className="text-sm font-medium text-foreground">{accountMap[opp.account_id] || '-'}</p>
+                  <p className="text-xs text-muted-foreground">{opp.stage}</p>
                 </div>
-                <span className="text-sm font-semibold text-foreground">฿{(opp.expected_value || 0).toLocaleString()}</span>
               </div>
-            );
-          })}
+              <span className="text-sm font-semibold text-foreground">฿{(opp.expected_value || 0).toLocaleString()}</span>
+            </div>
+          ))}
         </div>
       </div>
     </div>

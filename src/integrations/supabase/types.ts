@@ -1039,11 +1039,13 @@ export type Database = {
       }
       qc_stock_items: {
         Row: {
+          account_id: string | null
           borrow_from: string | null
           borrow_to: string | null
           cartridge_type: string | null
           clinic: string | null
           created_at: string
+          depleted: boolean | null
           email_trica: string | null
           fail_reason: string | null
           handpiece: string | null
@@ -1064,13 +1066,17 @@ export type Database = {
           status: string | null
           storage_location: string | null
           ups_stabilizer: string | null
+          warranty_days: number | null
+          warranty_expiry: string | null
         }
         Insert: {
+          account_id?: string | null
           borrow_from?: string | null
           borrow_to?: string | null
           cartridge_type?: string | null
           clinic?: string | null
           created_at?: string
+          depleted?: boolean | null
           email_trica?: string | null
           fail_reason?: string | null
           handpiece?: string | null
@@ -1091,13 +1097,17 @@ export type Database = {
           status?: string | null
           storage_location?: string | null
           ups_stabilizer?: string | null
+          warranty_days?: number | null
+          warranty_expiry?: string | null
         }
         Update: {
+          account_id?: string | null
           borrow_from?: string | null
           borrow_to?: string | null
           cartridge_type?: string | null
           clinic?: string | null
           created_at?: string
+          depleted?: boolean | null
           email_trica?: string | null
           fail_reason?: string | null
           handpiece?: string | null
@@ -1118,6 +1128,8 @@ export type Database = {
           status?: string | null
           storage_location?: string | null
           ups_stabilizer?: string | null
+          warranty_days?: number | null
+          warranty_expiry?: string | null
         }
         Relationships: []
       }

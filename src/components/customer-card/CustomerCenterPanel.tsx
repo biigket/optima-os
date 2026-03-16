@@ -16,7 +16,7 @@ import {
   getTimelineForAccount, getVisitsForAccount,
   getLifetimeRevenue, getDevicesForAccount
 } from '@/data/customerCardMockData';
-import { mockWorkItems, type WorkItem } from '@/data/mockData';
+
 import { supabase } from '@/integrations/supabase/client';
 import type { OpportunityNote } from '@/hooks/useOpportunityNotes';
 import { format } from 'date-fns';
@@ -76,7 +76,7 @@ export default function CustomerCenterPanel({ accountId, opportunities }: Props)
   const visits = getVisitsForAccount(accountId);
   const devices = getDevicesForAccount(accountId);
   const revenue = getLifetimeRevenue(accountId);
-  const tasks = mockWorkItems.filter((w: WorkItem) => w.linkedAccountId === accountId);
+  const [tasks, setTasks] = useState<any[]>([]);
   const [internalNotes, setInternalNotes] = useState<OpportunityNote[]>([]);
   const [visitReports, setVisitReports] = useState<VisitReportRow[]>([]);
   const [demoReports, setDemoReports] = useState<any[]>([]);
@@ -99,6 +99,9 @@ export default function CustomerCenterPanel({ accountId, opportunities }: Props)
 
     supabase.from('demos').select('*, accounts(clinic_name)').eq('account_id', accountId).eq('report_submitted', true).order('created_at', { ascending: false })
       .then(({ data }) => { if (data) setDemoReports(data); });
+
+    supabase.from('activities').select('id, title, activity_type, activity_date, is_done, priority').eq('account_id', accountId).order('activity_date', { ascending: false }).limit(20)
+      .then(({ data }) => { if (data) setTasks(data.map(a => ({ workItemId: a.id, title: a.title, status: a.is_done ? 'DONE' : 'OPEN', priority: a.priority || 'NORMAL', dueDateTime: a.activity_date }))); });
 
     fetchDocuments();
   }, [accountId, fetchDocuments]);

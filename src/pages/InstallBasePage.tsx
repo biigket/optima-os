@@ -1,63 +1,122 @@
-import { useState, useMemo } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Plus, Search, Cpu, Wrench, AlertTriangle, CheckCircle, Clock } from 'lucide-react';
-import { mockInstallations, generatePMSchedule, type Installation } from '@/data/installBaseMockData';
+import { supabase } from '@/integrations/supabase/client';
 import AddInstallationDialog from '@/components/install-base/AddInstallationDialog';
+import type { Installation } from '@/data/installBaseMockData';
+
+interface InstallRow {
+  id: string;
+  serial_number: string;
+  account_id: string | null;
+  product_id: string | null;
+  install_date: string | null;
+  warranty_days: number | null;
+  warranty_expiry: string | null;
+  province: string | null;
+  region: string | null;
+  status: string | null;
+  clinic_name?: string;
+  product_name?: string;
+}
+
+interface PMRow {
+  id: string;
+  installation_id: string;
+  maintenance_number: number;
+  scheduled_date: string | null;
+  status: string | null;
+}
 
 export default function InstallBasePage() {
   const navigate = useNavigate();
-  const [installations, setInstallations] = useState<Installation[]>(mockInstallations);
+  const [rows, setRows] = useState<InstallRow[]>([]);
+  const [pmMap, setPmMap] = useState<Record<string, PMRow[]>>({});
   const [search, setSearch] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('ALL');
   const [showAddDialog, setShowAddDialog] = useState(false);
+  const [loading, setLoading] = useState(true);
+
+  const fetchData = async () => {
+    setLoading(true);
+    const [instRes, pmRes] = await Promise.all([
+      supabase.from('installations').select('*, accounts(clinic_name), products(product_name)').order('created_at', { ascending: false }),
+      supabase.from('maintenance_records').select('id, installation_id, maintenance_number, scheduled_date, status'),
+    ]);
+
+    const instData = (instRes.data || []).map((r: any) => ({
+      ...r,
+      clinic_name: r.accounts?.clinic_name || '',
+      product_name: r.products?.product_name || '',
+    }));
+    setRows(instData);
+
+    const map: Record<string, PMRow[]> = {};
+    (pmRes.data || []).forEach((pm: any) => {
+      if (!map[pm.installation_id]) map[pm.installation_id] = [];
+      map[pm.installation_id].push(pm);
+    });
+    setPmMap(map);
+    setLoading(false);
+  };
+
+  useEffect(() => { fetchData(); }, []);
 
   const filtered = useMemo(() => {
-    return installations.filter(inst => {
+    return rows.filter(inst => {
       const matchSearch = !search ||
-        inst.serialNumber.toLowerCase().includes(search.toLowerCase()) ||
-        inst.clinic.toLowerCase().includes(search.toLowerCase());
-      const matchCategory = categoryFilter === 'ALL' || inst.productCategory === categoryFilter;
+        (inst.serial_number || '').toLowerCase().includes(search.toLowerCase()) ||
+        (inst.clinic_name || '').toLowerCase().includes(search.toLowerCase());
+      const matchCategory = categoryFilter === 'ALL' || (inst.product_name || '').toUpperCase().includes(categoryFilter.toUpperCase());
       return matchSearch && matchCategory;
     });
-  }, [installations, search, categoryFilter]);
+  }, [rows, search, categoryFilter]);
 
-  // Calculate PM status for each installation
-  function getPMStatus(inst: Installation) {
-    const schedule = generatePMSchedule(inst.installDate);
-    const completedCount = inst.pmReports.filter(r => r.status === 'COMPLETED').length;
+  function getPMStatus(instId: string, installDate: string | null) {
+    const pms = pmMap[instId] || [];
+    const completedCount = pms.filter(r => r.status === 'COMPLETED').length;
     const today = new Date().toISOString().split('T')[0];
-    const nextPM = schedule.find(s => s.number > completedCount);
-    const isOverdue = nextPM && nextPM.date < today;
-    return { completedCount, totalScheduled: schedule.length, nextPM, isOverdue };
+    const pendingPMs = pms.filter(p => p.status === 'PENDING').sort((a, b) => (a.scheduled_date || '').localeCompare(b.scheduled_date || ''));
+    const nextPM = pendingPMs[0];
+    const isOverdue = nextPM && nextPM.scheduled_date && nextPM.scheduled_date < today;
+    return { completedCount, totalScheduled: pms.length, nextPM, isOverdue };
   }
 
-  // KPI cards
-  const totalInstalled = installations.length;
-  const categoryBreakdown = installations.reduce((acc, inst) => {
-    acc[inst.productCategory] = (acc[inst.productCategory] || 0) + 1;
+  const totalInstalled = rows.length;
+  const today = new Date().toISOString().split('T')[0];
+  const overdueCount = rows.filter(inst => getPMStatus(inst.id, inst.install_date).isOverdue).length;
+  const warrantyActive = rows.filter(inst => inst.warranty_expiry && inst.warranty_expiry >= today).length;
+
+  const categoryBreakdown = rows.reduce((acc, inst) => {
+    const cat = inst.product_name || 'อื่นๆ';
+    acc[cat] = (acc[cat] || 0) + 1;
     return acc;
   }, {} as Record<string, number>);
-  const overdueCount = installations.filter(inst => getPMStatus(inst).isOverdue).length;
-  const warrantyActive = installations.filter(inst => inst.warrantyExpiry >= new Date().toISOString().split('T')[0]).length;
 
   const categoryColors: Record<string, string> = {
     'ND2': 'bg-indigo-100 text-indigo-800',
-    'Trica 3D': 'bg-violet-100 text-violet-800',
-    'Quattro': 'bg-teal-100 text-teal-800',
-    'Picohi': 'bg-pink-100 text-pink-800',
-    'Freezero': 'bg-cyan-100 text-cyan-800',
+    'TRICA 3D': 'bg-violet-100 text-violet-800',
+    'QUATTRO': 'bg-teal-100 text-teal-800',
+    'PICOHI300': 'bg-pink-100 text-pink-800',
+    'FREEZERO': 'bg-cyan-100 text-cyan-800',
   };
 
+  function getCategoryColor(name: string) {
+    const upper = (name || '').toUpperCase();
+    for (const [key, val] of Object.entries(categoryColors)) {
+      if (upper.includes(key)) return val;
+    }
+    return 'bg-muted text-muted-foreground';
+  }
+
   function handleInstalled(inst: Installation) {
-    setInstallations(prev => [...prev, inst]);
-    // Also push to the shared mock array
-    mockInstallations.push(inst);
+    fetchData();
   }
 
   return (
@@ -70,7 +129,6 @@ export default function InstallBasePage() {
         <Button onClick={() => setShowAddDialog(true)}><Plus size={16} className="mr-1" />ลงติดตั้งใหม่</Button>
       </div>
 
-      {/* KPI Cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <Card className="bg-gradient-to-br from-blue-50 to-blue-100/50 border-blue-200">
           <CardContent className="p-4">
@@ -95,14 +153,13 @@ export default function InstallBasePage() {
             <div className="flex items-center gap-2 mb-1"><Wrench size={16} className="text-violet-600" /><span className="text-xs text-violet-600 font-medium">ประเภทสินค้า</span></div>
             <div className="flex flex-wrap gap-1 mt-1">
               {Object.entries(categoryBreakdown).map(([cat, count]) => (
-                <Badge key={cat} variant="outline" className={categoryColors[cat] || ''}>{cat}: {count}</Badge>
+                <Badge key={cat} variant="outline" className={getCategoryColor(cat)}>{cat}: {count}</Badge>
               ))}
             </div>
           </CardContent>
         </Card>
       </div>
 
-      {/* Filters */}
       <div className="flex flex-col sm:flex-row gap-3">
         <div className="relative flex-1">
           <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
@@ -113,15 +170,14 @@ export default function InstallBasePage() {
           <SelectContent>
             <SelectItem value="ALL">ทุกประเภท</SelectItem>
             <SelectItem value="ND2">ND2</SelectItem>
-            <SelectItem value="Trica 3D">Trica 3D</SelectItem>
-            <SelectItem value="Quattro">Quattro</SelectItem>
-            <SelectItem value="Picohi">Picohi</SelectItem>
-            <SelectItem value="Freezero">Freezero</SelectItem>
+            <SelectItem value="TRICA">Trica 3D</SelectItem>
+            <SelectItem value="QUATTRO">Quattro</SelectItem>
+            <SelectItem value="PICOHI">Picohi</SelectItem>
+            <SelectItem value="FREEZERO">Freezero</SelectItem>
           </SelectContent>
         </Select>
       </div>
 
-      {/* Table */}
       <Card>
         <CardContent className="p-0">
           <Table>
@@ -137,26 +193,28 @@ export default function InstallBasePage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filtered.map(inst => {
-                const pm = getPMStatus(inst);
-                const warrantyExpired = inst.warrantyExpiry < new Date().toISOString().split('T')[0];
+              {loading ? (
+                <TableRow><TableCell colSpan={7} className="text-center py-8 text-muted-foreground">กำลังโหลด...</TableCell></TableRow>
+              ) : filtered.map(inst => {
+                const pm = getPMStatus(inst.id, inst.install_date);
+                const warrantyExpired = inst.warranty_expiry ? inst.warranty_expiry < today : false;
                 return (
                   <TableRow
                     key={inst.id}
                     className="cursor-pointer hover:bg-muted/50"
                     onClick={() => navigate(`/install-base/${inst.id}`)}
                   >
-                    <TableCell><Badge className={categoryColors[inst.productCategory]} variant="outline">{inst.productCategory}</Badge></TableCell>
-                    <TableCell className="font-mono text-sm">{inst.serialNumber}</TableCell>
-                    <TableCell className="font-medium">{inst.clinic}</TableCell>
-                    <TableCell className="text-sm">{inst.installDate}</TableCell>
+                    <TableCell><Badge className={getCategoryColor(inst.product_name || '')} variant="outline">{inst.product_name || '-'}</Badge></TableCell>
+                    <TableCell className="font-mono text-sm">{inst.serial_number || '-'}</TableCell>
+                    <TableCell className="font-medium">{inst.clinic_name || '-'}</TableCell>
+                    <TableCell className="text-sm">{inst.install_date || '-'}</TableCell>
                     <TableCell>
                       <span className={`text-sm ${warrantyExpired ? 'text-red-600 font-medium' : ''}`}>
-                        {inst.warrantyExpiry}
+                        {inst.warranty_expiry || '-'}
                         {warrantyExpired && ' (หมดแล้ว)'}
                       </span>
                     </TableCell>
-                    <TableCell className="text-sm">{inst.province}</TableCell>
+                    <TableCell className="text-sm">{inst.province || '-'}</TableCell>
                     <TableCell>
                       {pm.isOverdue ? (
                         <Badge className="bg-red-100 text-red-800 border-red-200">
@@ -166,16 +224,18 @@ export default function InstallBasePage() {
                         <Badge className="bg-blue-100 text-blue-800 border-blue-200">
                           <Clock size={12} className="mr-1" />PM {pm.completedCount}/{pm.totalScheduled}
                         </Badge>
-                      ) : (
+                      ) : pm.totalScheduled > 0 ? (
                         <Badge className="bg-emerald-100 text-emerald-800 border-emerald-200">
                           <CheckCircle size={12} className="mr-1" />ครบแล้ว
                         </Badge>
+                      ) : (
+                        <span className="text-xs text-muted-foreground">-</span>
                       )}
                     </TableCell>
                   </TableRow>
                 );
               })}
-              {filtered.length === 0 && (
+              {!loading && filtered.length === 0 && (
                 <TableRow><TableCell colSpan={7} className="text-center py-8 text-muted-foreground">ไม่พบข้อมูล</TableCell></TableRow>
               )}
             </TableBody>
