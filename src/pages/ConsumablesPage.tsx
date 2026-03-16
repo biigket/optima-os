@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -6,52 +6,83 @@ import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Plus, Search, Package, CheckCircle, AlertTriangle, CircleOff } from 'lucide-react';
-import { mockConsumableInstallations, type ConsumableInstallation } from '@/data/consumableBaseMockData';
+import { supabase } from '@/integrations/supabase/client';
 import { cartridgeTypes } from '@/data/cartridgeMockData';
 import AddConsumableDialog from '@/components/consumables/AddConsumableDialog';
+import type { ConsumableInstallation } from '@/data/consumableBaseMockData';
+
+interface ConsumableRow {
+  id: string;
+  cartridge_type: string;
+  serial_number: string;
+  clinic: string;
+  account_id: string | null;
+  install_date: string | null;
+  warranty_days: number | null;
+  warranty_expiry: string | null;
+  notes: string | null;
+  depleted: boolean;
+}
 
 export default function ConsumablesPage() {
-  const [items, setItems] = useState<ConsumableInstallation[]>(mockConsumableInstallations);
+  const [items, setItems] = useState<ConsumableRow[]>([]);
   const [search, setSearch] = useState('');
   const [typeFilter, setTypeFilter] = useState('ALL');
   const [showAddDialog, setShowAddDialog] = useState(false);
+  const [loading, setLoading] = useState(true);
+
+  const fetchData = async () => {
+    setLoading(true);
+    const { data } = await supabase
+      .from('qc_stock_items')
+      .select('id, cartridge_type, serial_number, clinic, account_id, install_date, warranty_days, warranty_expiry, depleted, notes')
+      .eq('product_type', 'Cartridge')
+      .eq('status', 'ติดตั้งแล้ว')
+      .order('install_date', { ascending: false });
+
+    setItems((data || []).map((r: any) => ({
+      ...r,
+      cartridge_type: r.cartridge_type || '',
+      serial_number: r.serial_number || '',
+      clinic: r.clinic || '',
+      depleted: r.depleted || false,
+      warranty_expiry: r.warranty_expiry || '',
+    })));
+    setLoading(false);
+  };
+
+  useEffect(() => { fetchData(); }, []);
 
   const filtered = useMemo(() => {
     return items.filter(item => {
       const matchSearch = !search ||
-        item.serialNumber.toLowerCase().includes(search.toLowerCase()) ||
+        item.serial_number.toLowerCase().includes(search.toLowerCase()) ||
         item.clinic.toLowerCase().includes(search.toLowerCase());
-      const matchType = typeFilter === 'ALL' || item.cartridgeType === typeFilter;
+      const matchType = typeFilter === 'ALL' || item.cartridge_type === typeFilter;
       return matchSearch && matchType;
     });
   }, [items, search, typeFilter]);
 
   const today = new Date().toISOString().split('T')[0];
   const totalDelivered = items.length;
-  const warrantyActive = items.filter(i => i.warrantyExpiry >= today).length;
-  const warrantyExpired = items.filter(i => i.warrantyExpiry < today).length;
+  const warrantyActive = items.filter(i => i.warranty_expiry && i.warranty_expiry >= today).length;
+  const warrantyExpired = items.filter(i => i.warranty_expiry && i.warranty_expiry < today).length;
 
   const typeBreakdown = items.reduce((acc, item) => {
-    acc[item.cartridgeType] = (acc[item.cartridgeType] || 0) + 1;
+    if (item.cartridge_type) acc[item.cartridge_type] = (acc[item.cartridge_type] || 0) + 1;
     return acc;
   }, {} as Record<string, number>);
 
   function handleAdded(item: ConsumableInstallation) {
-    setItems(prev => [...prev, item]);
-    mockConsumableInstallations.push(item);
+    fetchData();
   }
 
-  function handleToggleDepleted(id: string) {
-    setItems(prev => prev.map(item => {
-      if (item.id === id) {
-        const updated = { ...item, depleted: !item.depleted };
-        // sync mock
-        const idx = mockConsumableInstallations.findIndex(m => m.id === id);
-        if (idx !== -1) mockConsumableInstallations[idx] = updated;
-        return updated;
-      }
-      return item;
-    }));
+  async function handleToggleDepleted(id: string) {
+    const item = items.find(i => i.id === id);
+    if (!item) return;
+    const newDepleted = !item.depleted;
+    await supabase.from('qc_stock_items').update({ depleted: newDepleted }).eq('id', id);
+    setItems(prev => prev.map(i => i.id === id ? { ...i, depleted: newDepleted } : i));
   }
 
   return (
@@ -64,7 +95,6 @@ export default function ConsumablesPage() {
         <Button onClick={() => setShowAddDialog(true)}><Plus size={16} className="mr-1" />ส่งมอบใหม่</Button>
       </div>
 
-      {/* KPI Cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <Card className="bg-gradient-to-br from-blue-50 to-blue-100/50 border-blue-200">
           <CardContent className="p-4">
@@ -96,7 +126,6 @@ export default function ConsumablesPage() {
         </Card>
       </div>
 
-      {/* Filters */}
       <div className="flex flex-col sm:flex-row gap-3">
         <div className="relative flex-1">
           <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
@@ -113,7 +142,6 @@ export default function ConsumablesPage() {
         </Select>
       </div>
 
-      {/* Table */}
       <Card>
         <CardContent className="p-0">
           <Table>
@@ -129,20 +157,22 @@ export default function ConsumablesPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filtered.map(item => {
-                const warrantyExp = item.warrantyExpiry < today;
+              {loading ? (
+                <TableRow><TableCell colSpan={7} className="text-center py-8 text-muted-foreground">กำลังโหลด...</TableCell></TableRow>
+              ) : filtered.map(item => {
+                const warrantyExp = item.warranty_expiry ? item.warranty_expiry < today : false;
                 const isDepleted = !!item.depleted;
                 return (
                   <TableRow key={item.id} className={isDepleted ? 'opacity-60' : ''}>
                     <TableCell>
-                      <Badge variant="outline" className={`bg-amber-100 text-amber-800 ${isDepleted ? 'line-through' : ''}`}>{item.cartridgeType}</Badge>
+                      <Badge variant="outline" className={`bg-amber-100 text-amber-800 ${isDepleted ? 'line-through' : ''}`}>{item.cartridge_type}</Badge>
                     </TableCell>
-                    <TableCell className={`font-mono text-sm ${isDepleted ? 'line-through' : ''}`}>{item.serialNumber}</TableCell>
+                    <TableCell className={`font-mono text-sm ${isDepleted ? 'line-through' : ''}`}>{item.serial_number}</TableCell>
                     <TableCell className={`font-medium ${isDepleted ? 'line-through' : ''}`}>{item.clinic}</TableCell>
-                    <TableCell className={`text-sm ${isDepleted ? 'line-through' : ''}`}>{item.deliveryDate}</TableCell>
+                    <TableCell className={`text-sm ${isDepleted ? 'line-through' : ''}`}>{item.install_date || '-'}</TableCell>
                     <TableCell>
                       <span className={`text-sm ${isDepleted ? 'line-through ' : ''}${warrantyExp ? 'text-destructive font-medium' : ''}`}>
-                        {item.warrantyExpiry}
+                        {item.warranty_expiry || '-'}
                         {warrantyExp && ' (หมดแล้ว)'}
                       </span>
                     </TableCell>
@@ -161,7 +191,7 @@ export default function ConsumablesPage() {
                   </TableRow>
                 );
               })}
-              {filtered.length === 0 && (
+              {!loading && filtered.length === 0 && (
                 <TableRow><TableCell colSpan={7} className="text-center py-8 text-muted-foreground">ไม่พบข้อมูล</TableCell></TableRow>
               )}
             </TableBody>
