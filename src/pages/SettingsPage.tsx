@@ -1,8 +1,10 @@
 import { useAllRolePermissions, ALL_ROLES, ALL_MODULES, ROLE_LABELS, MODULE_LABELS } from '@/hooks/useRolePermissions';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Settings, Shield, Loader2 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Settings, Shield, Loader2, FileSpreadsheet, ArrowRight } from 'lucide-react';
 import { toast } from 'sonner';
+import { useNavigate } from 'react-router-dom';
 
 const MODULE_GROUPS = [
   { label: 'ANALYTICS', modules: ['dashboard'] },
