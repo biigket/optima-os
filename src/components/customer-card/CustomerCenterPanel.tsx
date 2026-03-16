@@ -16,7 +16,7 @@ import {
   getTimelineForAccount, getVisitsForAccount,
   getLifetimeRevenue, getDevicesForAccount
 } from '@/data/customerCardMockData';
-import { mockWorkItems, type WorkItem } from '@/data/mockData';
+
 import { supabase } from '@/integrations/supabase/client';
 import type { OpportunityNote } from '@/hooks/useOpportunityNotes';
 import { format } from 'date-fns';
