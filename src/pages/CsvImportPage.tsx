@@ -1,4 +1,5 @@
 import { useState, useRef, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Upload, Download, FileSpreadsheet, CheckCircle2, XCircle, Loader2, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
