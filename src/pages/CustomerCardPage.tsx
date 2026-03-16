@@ -1067,9 +1067,14 @@ export default function CustomerCardPage() {
                         <div key={doc.id} className="flex items-center gap-3 p-2.5 rounded-md hover:bg-muted/40 transition-colors group">
                           <FileIcon size={16} className="text-primary shrink-0" />
                           <div className="min-w-0 flex-1">
-                            <p className="text-xs text-foreground truncate">{doc.file_name}</p>
+                            <div className="flex items-center gap-1.5">
+                              <p className="text-xs text-foreground truncate">{doc.file_name}</p>
+                              {doc.doc_label && (
+                                <Badge variant="outline" className="text-[9px] h-4 px-1.5 shrink-0">{doc.doc_label}</Badge>
+                              )}
+                            </div>
                             <p className="text-[10px] text-muted-foreground">
-                              {doc.doc_label || 'เอกสาร'} • {format(new Date(doc.created_at), 'd MMM yy', { locale: th })}
+                              {format(new Date(doc.created_at), 'd MMM yy', { locale: th })}
                               {doc.file_size ? ` • ${formatFileSize(doc.file_size)}` : ''}
                             </p>
                           </div>
