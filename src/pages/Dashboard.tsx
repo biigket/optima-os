@@ -95,11 +95,8 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* Row 4: Charts + Announcements */}
-      <div className="grid gap-6 lg:grid-cols-2">
-        <PipelineChart data={pipelineStages} />
-        <AnnouncementBoard announcements={announcements} onRefresh={refetch} />
-      </div>
+      {/* Row 4: Pipeline Chart */}
+      <PipelineChart data={pipelineStages} />
 
       {/* Row 5: Activities + Demos */}
       <div className="grid gap-6 lg:grid-cols-2">
