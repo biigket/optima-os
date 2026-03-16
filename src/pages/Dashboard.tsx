@@ -47,6 +47,9 @@ export default function Dashboard() {
         <p className="text-sm text-muted-foreground">Optima Aesthetic OS — ภาพรวมบริษัท</p>
       </div>
 
+      {/* Announcement Board */}
+      <AnnouncementBoard announcements={announcements} onRefresh={refetch} />
+
       {/* Row 1: Sales KPIs */}
       <div>
         <h2 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">ฝ่ายขาย</h2>
