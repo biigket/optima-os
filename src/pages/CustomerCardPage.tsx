@@ -202,6 +202,10 @@ export default function CustomerCardPage() {
           }
         }
       });
+    // Contracts for this account
+    supabase.from('contracts').select('*').eq('account_id', id)
+      .order('created_at', { ascending: false })
+      .then(({ data }) => { if (data) setAccountContracts(data); });
   }, [id, opportunities]);
 
   const fetchAccountDocs = useCallback(async () => {
