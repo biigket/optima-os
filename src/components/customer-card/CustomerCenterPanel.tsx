@@ -76,7 +76,7 @@ export default function CustomerCenterPanel({ accountId, opportunities }: Props)
   const visits = getVisitsForAccount(accountId);
   const devices = getDevicesForAccount(accountId);
   const revenue = getLifetimeRevenue(accountId);
-  const tasks = mockWorkItems.filter((w: WorkItem) => w.linkedAccountId === accountId);
+  const [tasks, setTasks] = useState<any[]>([]);
   const [internalNotes, setInternalNotes] = useState<OpportunityNote[]>([]);
   const [visitReports, setVisitReports] = useState<VisitReportRow[]>([]);
   const [demoReports, setDemoReports] = useState<any[]>([]);
