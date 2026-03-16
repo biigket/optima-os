@@ -1016,6 +1016,14 @@ export default function CustomerCardPage() {
                           }`}
                         >
                           {label}
+                          {docLabels.length > 1 && (
+                            <span
+                              onClick={e => { e.stopPropagation(); removeDocLabel(label); }}
+                              className="ml-1 opacity-50 hover:opacity-100 transition-opacity"
+                            >
+                              ×
+                            </span>
+                          )}
                         </button>
                       ))}
                     </div>
