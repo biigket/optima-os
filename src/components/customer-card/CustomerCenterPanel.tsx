@@ -1,14 +1,17 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import StatusBadge from '@/components/ui/StatusBadge';
 import {
   LayoutDashboard, Clock, Handshake, MapPin, FileText, CheckSquare,
-  Eye, Phone as PhoneIcon, Presentation, Users, FileCheck, Wrench, GraduationCap, MessageSquare, Camera, FlaskConical, User, Star
+  Eye, Phone as PhoneIcon, Presentation, Users, FileCheck, Wrench, GraduationCap, MessageSquare, Camera, FlaskConical, User, Star,
+  FolderOpen, Upload, Download, Trash2, FileIcon, Loader2
 } from 'lucide-react';
+import { toast } from 'sonner';
 import {
   getTimelineForAccount, getVisitsForAccount,
   getLifetimeRevenue, getDevicesForAccount
@@ -77,6 +80,15 @@ export default function CustomerCenterPanel({ accountId, opportunities }: Props)
   const [internalNotes, setInternalNotes] = useState<OpportunityNote[]>([]);
   const [visitReports, setVisitReports] = useState<VisitReportRow[]>([]);
   const [demoReports, setDemoReports] = useState<any[]>([]);
+  const [documents, setDocuments] = useState<any[]>([]);
+  const [docUploading, setDocUploading] = useState(false);
+  const [dragOver, setDragOver] = useState(false);
+  const docInputRef = useRef<HTMLInputElement>(null);
+
+  const fetchDocuments = useCallback(async () => {
+    const { data } = await supabase.from('account_documents').select('*').eq('account_id', accountId).order('created_at', { ascending: false });
+    if (data) setDocuments(data);
+  }, [accountId]);
 
   useEffect(() => {
     supabase.from('opportunity_notes').select('*').eq('account_id', accountId).order('created_at', { ascending: false })
@@ -87,7 +99,54 @@ export default function CustomerCenterPanel({ accountId, opportunities }: Props)
 
     supabase.from('demos').select('*, accounts(clinic_name)').eq('account_id', accountId).eq('report_submitted', true).order('created_at', { ascending: false })
       .then(({ data }) => { if (data) setDemoReports(data); });
-  }, [accountId]);
+
+    fetchDocuments();
+  }, [accountId, fetchDocuments]);
+
+  const handleDocUpload = async (files: FileList | null) => {
+    if (!files || files.length === 0) return;
+    setDocUploading(true);
+    let successCount = 0;
+    for (const file of Array.from(files)) {
+      const ext = file.name.split('.').pop() || 'bin';
+      const path = `${accountId}/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+      const { error: uploadErr } = await supabase.storage.from('account-documents').upload(path, file);
+      if (uploadErr) { console.error(uploadErr); continue; }
+      const { data: urlData } = supabase.storage.from('account-documents').getPublicUrl(path);
+      const { error: dbErr } = await supabase.from('account_documents').insert({
+        account_id: accountId,
+        file_name: file.name,
+        file_url: urlData.publicUrl,
+        file_size: file.size,
+        file_type: file.type || null,
+      });
+      if (!dbErr) successCount++;
+    }
+    if (successCount > 0) {
+      toast.success(`อัปโหลดสำเร็จ ${successCount} ไฟล์`);
+      fetchDocuments();
+    }
+    setDocUploading(false);
+  };
+
+  const handleDocDelete = async (doc: any) => {
+    if (!confirm(`ลบไฟล์ "${doc.file_name}" ?`)) return;
+    // Extract storage path from URL
+    const urlParts = doc.file_url.split('/account-documents/');
+    if (urlParts.length > 1) {
+      await supabase.storage.from('account-documents').remove([decodeURIComponent(urlParts[1])]);
+    }
+    await supabase.from('account_documents').delete().eq('id', doc.id);
+    toast.success('ลบเอกสารแล้ว');
+    fetchDocuments();
+  };
+
+  const formatFileSize = (bytes: number | null) => {
+    if (!bytes) return '-';
+    if (bytes < 1024) return `${bytes} B`;
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+  };
 
   const lastVisit = visits.length > 0 ? visits[0].date : '-';
   const activeDeals = opportunities.filter(o => !['WON', 'LOST', 'CLOSED'].includes(o.stage)).length;
@@ -130,6 +189,12 @@ export default function CustomerCenterPanel({ accountId, opportunities }: Props)
               </TabsTrigger>
               <TabsTrigger value="tasks" className="text-xs gap-1.5 rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none px-3 py-2.5">
                 <CheckSquare size={13} /> งาน
+              </TabsTrigger>
+              <TabsTrigger value="documents" className="text-xs gap-1.5 rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none px-3 py-2.5">
+                <FolderOpen size={13} /> เอกสาร
+                {documents.length > 0 && (
+                  <span className="ml-1 text-[10px] bg-primary/10 text-primary rounded-full px-1.5 py-0.5 font-semibold">{documents.length}</span>
+                )}
               </TabsTrigger>
             </TabsList>
             <ScrollBar orientation="horizontal" />
@@ -407,6 +472,86 @@ export default function CustomerCenterPanel({ accountId, opportunities }: Props)
                 </TableBody>
               </Table>
             </div>
+          </TabsContent>
+
+          {/* Documents */}
+          <TabsContent value="documents" className="mt-0 space-y-4">
+            {/* Drag & Drop Upload Area */}
+            <div
+              className={`border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition-colors ${
+                dragOver ? 'border-primary bg-primary/5' : 'border-border hover:border-primary/50 hover:bg-muted/30'
+              }`}
+              onClick={() => docInputRef.current?.click()}
+              onDragOver={e => { e.preventDefault(); setDragOver(true); }}
+              onDragLeave={() => setDragOver(false)}
+              onDrop={e => { e.preventDefault(); setDragOver(false); handleDocUpload(e.dataTransfer.files); }}
+            >
+              <input
+                ref={docInputRef}
+                type="file"
+                multiple
+                className="hidden"
+                onChange={e => { handleDocUpload(e.target.files); if (e.target) e.target.value = ''; }}
+              />
+              {docUploading ? (
+                <div className="flex items-center justify-center gap-2">
+                  <Loader2 size={20} className="animate-spin text-primary" />
+                  <span className="text-sm text-muted-foreground">กำลังอัปโหลด...</span>
+                </div>
+              ) : (
+                <>
+                  <Upload size={24} className="mx-auto text-muted-foreground mb-2" />
+                  <p className="text-sm font-medium text-foreground">ลากไฟล์มาวาง หรือคลิกเพื่อเลือกไฟล์</p>
+                  <p className="text-xs text-muted-foreground mt-1">รองรับทุกประเภทไฟล์ — สัญญา, ใบเสร็จ, เอกสารเก่า ฯลฯ</p>
+                </>
+              )}
+            </div>
+
+            {/* Documents List */}
+            {documents.length > 0 ? (
+              <div className="rounded-md border">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="text-xs">ชื่อไฟล์</TableHead>
+                      <TableHead className="text-xs hidden sm:table-cell">ขนาด</TableHead>
+                      <TableHead className="text-xs hidden sm:table-cell">วันที่อัปโหลด</TableHead>
+                      <TableHead className="text-xs text-right">จัดการ</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {documents.map(doc => (
+                      <TableRow key={doc.id}>
+                        <TableCell className="text-xs font-medium">
+                          <div className="flex items-center gap-2">
+                            <FileIcon size={14} className="text-muted-foreground shrink-0" />
+                            <span className="truncate max-w-[200px]">{doc.file_name}</span>
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-xs text-muted-foreground hidden sm:table-cell">{formatFileSize(doc.file_size)}</TableCell>
+                        <TableCell className="text-xs text-muted-foreground hidden sm:table-cell">
+                          {format(new Date(doc.created_at), 'd MMM yy', { locale: th })}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <div className="flex items-center justify-end gap-1">
+                            <Button variant="ghost" size="icon" className="h-7 w-7" asChild>
+                              <a href={doc.file_url} target="_blank" rel="noopener noreferrer" title="ดาวน์โหลด">
+                                <Download size={14} />
+                              </a>
+                            </Button>
+                            <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive hover:text-destructive" onClick={() => handleDocDelete(doc)} title="ลบ">
+                              <Trash2 size={14} />
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            ) : (
+              <Empty text="ยังไม่มีเอกสาร — อัปโหลดไฟล์เพื่อเริ่มเก็บข้อมูล" />
+            )}
           </TabsContent>
         </div>
       </Tabs>
