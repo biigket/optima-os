@@ -143,6 +143,7 @@ function coerceValue(key: string, value: string): any {
 
 // ── Component ────────────────────────────────────────────────────
 export default function CsvImportPage() {
+  const navigate = useNavigate();
   const [selectedTable, setSelectedTable] = useState<string>('');
   const [rawRows, setRawRows] = useState<string[][]>([]);
   const [headers, setHeaders] = useState<string[]>([]);
