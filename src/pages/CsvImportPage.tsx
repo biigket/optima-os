@@ -330,6 +330,51 @@ export default function CsvImportPage() {
     if (failed > 0) toast.error(`นำเข้าล้มเหลว ${failed} รายการ`);
   };
 
+  const [bulkImporting, setBulkImporting] = useState(false);
+  const [bulkLog, setBulkLog] = useState<string[]>([]);
+
+  const handleBulkImport = async () => {
+    setBulkImporting(true);
+    setBulkLog([]);
+    const tables = ['products', 'accounts', 'contacts', 'qc_stock_items', 'installations'];
+    const log: string[] = [];
+
+    for (const t of tables) {
+      log.push(`⏳ กำลังนำเข้า ${t}...`);
+      setBulkLog([...log]);
+      try {
+        const res = await fetch(`/import-data/import-${t === 'qc_stock_items' ? 'qc_stock_items' : t}.csv`);
+        if (!res.ok) {
+          log[log.length - 1] = `❌ ${t}: ไม่พบไฟล์ CSV`;
+          setBulkLog([...log]);
+          continue;
+        }
+        const csvContent = await res.text();
+
+        const fnRes = await supabase.functions.invoke('bulk-import-csv', {
+          body: { table: t, csvContent },
+        });
+
+        if (fnRes.error) {
+          log[log.length - 1] = `❌ ${t}: ${fnRes.error.message}`;
+        } else {
+          const data = fnRes.data;
+          const result = data?.results?.[t];
+          if (result?.error) {
+            log[log.length - 1] = `⚠️ ${t}: ${result.count} รายการ (error: ${result.error})`;
+          } else {
+            log[log.length - 1] = `✅ ${t}: ${result?.count || 0} รายการสำเร็จ`;
+          }
+        }
+      } catch (err: any) {
+        log[log.length - 1] = `❌ ${t}: ${err.message}`;
+      }
+      setBulkLog([...log]);
+    }
+    setBulkImporting(false);
+    toast.success('นำเข้าข้อมูลเสร็จสิ้น');
+  };
+
   return (
     <div className="space-y-6 animate-fade-in">
       <div className="flex items-center justify-between flex-wrap gap-3">
@@ -337,10 +382,25 @@ export default function CsvImportPage() {
           <FileSpreadsheet size={28} className="text-primary" />
           <h1 className="text-2xl font-bold text-foreground">นำเข้าข้อมูล CSV</h1>
         </div>
-        <Button variant="outline" className="gap-1.5" onClick={() => navigate('/qt-ar-import')}>
-          <FileSpreadsheet size={14} /> นำเข้า QT/AR จาก Excel
-        </Button>
+        <div className="flex gap-2">
+          <Button variant="default" className="gap-1.5" onClick={handleBulkImport} disabled={bulkImporting}>
+            {bulkImporting ? <Loader2 size={14} className="animate-spin" /> : <Upload size={14} />}
+            {bulkImporting ? 'กำลังนำเข้า...' : 'นำเข้าทั้งหมด (5 ตาราง)'}
+          </Button>
+          <Button variant="outline" className="gap-1.5" onClick={() => navigate('/qt-ar-import')}>
+            <FileSpreadsheet size={14} /> นำเข้า QT/AR จาก Excel
+          </Button>
+        </div>
       </div>
+
+      {bulkLog.length > 0 && (
+        <div className="rounded-lg border bg-card p-4 space-y-1">
+          <h3 className="text-sm font-semibold mb-2">ผลการนำเข้าอัตโนมัติ</h3>
+          {bulkLog.map((line, i) => (
+            <p key={i} className="text-sm font-mono">{line}</p>
+          ))}
+        </div>
+      )}
 
       {/* Step 1: Select table */}
       <div className="rounded-lg border bg-card p-5 space-y-4">
