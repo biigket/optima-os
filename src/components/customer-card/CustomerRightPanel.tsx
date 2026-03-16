@@ -164,6 +164,54 @@ export default function CustomerRightPanel({ accountId, clinicName }: Props) {
     fetchData();
   }, [accountId]);
 
+  const handleUploadFiles = async (files: File[]) => {
+    setUploading(true);
+    try {
+      for (const file of files) {
+        const ext = file.name.split('.').pop();
+        const path = `${accountId}/${Date.now()}-${file.name}`;
+        const { error: uploadError } = await supabase.storage
+          .from('account-documents')
+          .upload(path, file);
+        if (uploadError) {
+          toast.error(`อัปโหลดไม่สำเร็จ: ${file.name}`);
+          continue;
+        }
+        const { data: urlData } = supabase.storage
+          .from('account-documents')
+          .getPublicUrl(path);
+
+        await supabase.from('account_documents').insert({
+          account_id: accountId,
+          file_name: file.name,
+          file_url: urlData.publicUrl,
+          file_type: file.type || null,
+          file_size: file.size,
+          doc_label: 'เอกสารเก่า',
+          uploaded_by: null,
+        });
+      }
+      toast.success(`อัปโหลดสำเร็จ ${files.length} ไฟล์`);
+      fetchAccountDocs();
+    } catch (err) {
+      toast.error('เกิดข้อผิดพลาดในการอัปโหลด');
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const handleDeleteDoc = async (docId: string, fileUrl: string) => {
+    // Extract path from URL
+    const urlParts = fileUrl.split('/account-documents/');
+    const filePath = urlParts[urlParts.length - 1];
+    if (filePath) {
+      await supabase.storage.from('account-documents').remove([filePath]);
+    }
+    await supabase.from('account_documents').delete().eq('id', docId);
+    toast.success('ลบเอกสารแล้ว');
+    fetchAccountDocs();
+  };
+
   return (
     <div className="rounded-lg border bg-card overflow-hidden">
       <Tabs defaultValue="devices">
