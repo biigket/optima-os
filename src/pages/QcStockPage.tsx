@@ -6,20 +6,21 @@ import { Button } from '@/components/ui/button';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
-import { mockND2Stock, type ND2StockItem } from '@/data/qcMockData';
-import { mockCartridgeStock, type CartridgeStockItem } from '@/data/cartridgeMockData';
-import { mockTrica3DStock, type Trica3DStockItem } from '@/data/trica3dMockData';
-import { mockQuattroStock, type QuattroStockItem } from '@/data/quattroMockData';
-import { mockPicohiStock, type PicohiStockItem } from '@/data/picohiMockData';
-import { mockFreezeroStock, type FreezeroStockItem } from '@/data/freezeroMockData';
+import type { ND2StockItem } from '@/data/qcMockData';
+import type { CartridgeStockItem } from '@/data/cartridgeMockData';
+import type { Trica3DStockItem } from '@/data/trica3dMockData';
+import type { QuattroStockItem } from '@/data/quattroMockData';
+import type { PicohiStockItem } from '@/data/picohiMockData';
+import type { FreezeroStockItem } from '@/data/freezeroMockData';
 import { unifiedStatuses, unifiedStatusColor, type UnifiedStockStatus } from '@/data/unifiedStockStatus';
+import { mapND2, mapTrica3D, mapGenericStock, mapCartridge } from '@/data/qcStockMapper';
+import { supabase } from '@/integrations/supabase/client';
 import ND2IntakeForm from '@/components/qc-stock/ND2IntakeForm';
 import CartridgeIntakeForm from '@/components/qc-stock/CartridgeIntakeForm';
 import Trica3DIntakeForm from '@/components/qc-stock/Trica3DIntakeForm';
 import QuattroIntakeForm from '@/components/qc-stock/QuattroIntakeForm';
 import PicohiIntakeForm from '@/components/qc-stock/PicohiIntakeForm';
 import FreezeroIntakeForm from '@/components/qc-stock/FreezeroIntakeForm';
-import { syncReservations } from '@/data/inventoryReservation';
 
 type FilterTab = 'ALL' | UnifiedStockStatus;
 
