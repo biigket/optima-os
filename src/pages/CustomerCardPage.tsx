@@ -542,29 +542,26 @@ export default function CustomerCardPage() {
       </div>
       <div className="rounded-xl border bg-card overflow-hidden shadow-sm">
         <Tabs defaultValue="overview">
-          <div className="border-b">
-            <ScrollArea className="w-full">
-              <TabsList className="bg-transparent h-auto p-0 w-max">
-                {[
-                  { value: 'overview', icon: LayoutDashboard, label: 'ภาพรวม' },
-                  { value: 'deals', icon: Handshake, label: 'โอกาสขาย' },
-                  { value: 'visits', icon: MapPin, label: 'การเยี่ยม / รายงาน' },
-                  { value: 'demo-reports', icon: Presentation, label: `รายงานเคส DEMO${demoReports.length > 0 ? ` (${demoReports.length})` : ''}` },
-                  { value: 'devices', icon: Monitor, label: 'เครื่องที่ติดตั้งแล้ว' },
-                  { value: 'consumables', icon: ShoppingCart, label: 'Consumable' },
-                  { value: 'service', icon: Wrench, label: 'เซอร์วิส' },
-                  { value: 'purchases', icon: Receipt, label: 'ซื้อ' },
-                  { value: 'documents', icon: FolderOpen, label: 'เอกสาร' },
-                  { value: 'marketing', icon: Megaphone, label: 'การตลาด' },
-                  { value: 'chat_images', icon: ImageIcon, label: `รูปแชท (${chatImages.length})` },
-                ].map(t => (
-                  <TabsTrigger key={t.value} value={t.value} className="text-xs gap-1.5 rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none px-3 py-2.5 shrink-0">
-                    <t.icon size={13} /> {t.label}
-                  </TabsTrigger>
-                ))}
-              </TabsList>
-              <ScrollBar orientation="horizontal" />
-            </ScrollArea>
+          <div className="border-b px-2 pt-1">
+            <TabsList className="bg-transparent h-auto p-0 w-full flex flex-wrap gap-0">
+              {[
+                { value: 'overview', icon: LayoutDashboard, label: 'ภาพรวม' },
+                { value: 'deals', icon: Handshake, label: 'โอกาสขาย' },
+                { value: 'visits', icon: MapPin, label: 'การเยี่ยม / รายงาน' },
+                { value: 'demo-reports', icon: Presentation, label: `เคส DEMO${demoReports.length > 0 ? ` (${demoReports.length})` : ''}` },
+                { value: 'devices', icon: Monitor, label: 'เครื่องที่ติดตั้งแล้ว' },
+                { value: 'consumables', icon: ShoppingCart, label: 'Consumable' },
+                { value: 'service', icon: Wrench, label: 'เซอร์วิส' },
+                { value: 'purchases', icon: Receipt, label: 'ซื้อ' },
+                { value: 'documents', icon: FolderOpen, label: 'เอกสาร' },
+                { value: 'marketing', icon: Megaphone, label: 'การตลาด' },
+                { value: 'chat_images', icon: ImageIcon, label: `รูปแชท (${chatImages.length})` },
+              ].map(t => (
+                <TabsTrigger key={t.value} value={t.value} className="text-xs gap-1 rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none px-2.5 py-2 whitespace-nowrap">
+                  <t.icon size={13} /> {t.label}
+                </TabsTrigger>
+              ))}
+            </TabsList>
           </div>
 
           <div className="p-4 md:p-5">
