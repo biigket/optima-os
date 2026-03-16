@@ -88,7 +88,23 @@ export default function CustomerRightPanel({ accountId, clinicName }: Props) {
   const [purchases, setPurchases] = useState<any[]>([]);
   const [paidRevenue, setPaidRevenue] = useState(0);
   const [outstandingAmount, setOutstandingAmount] = useState(0);
-  const [channelsByQt, setChannelsByQt] = useState<Record<string, Set<string>>>({});
+  const [accountDocs, setAccountDocs] = useState<AccountDocument[]>([]);
+  const [uploading, setUploading] = useState(false);
+  const [dragOver, setDragOver] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const fetchAccountDocs = useCallback(async () => {
+    const { data } = await supabase
+      .from('account_documents')
+      .select('*')
+      .eq('account_id', accountId)
+      .order('created_at', { ascending: false });
+    setAccountDocs((data as AccountDocument[]) || []);
+  }, [accountId]);
+
+  useEffect(() => {
+    fetchAccountDocs();
+  }, [fetchAccountDocs]);
 
   useEffect(() => {
     async function fetchData() {
