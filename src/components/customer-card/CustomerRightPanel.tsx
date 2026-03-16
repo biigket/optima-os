@@ -41,8 +41,18 @@ interface QuotationDoc {
   deposit_slip_status: string | null;
 }
 
-interface QuotationPurchase extends QuotationDoc {
-  // same shape, used for purchases tab
+interface QuotationPurchase extends QuotationDoc {}
+
+interface AccountDocument {
+  id: string;
+  account_id: string;
+  file_name: string;
+  file_url: string;
+  file_type: string | null;
+  file_size: number | null;
+  doc_label: string | null;
+  uploaded_by: string | null;
+  created_at: string;
 }
 
 function formatCurrency(val?: number | null) {
