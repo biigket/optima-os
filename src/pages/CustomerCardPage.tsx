@@ -121,6 +121,12 @@ export default function CustomerCardPage() {
   const [accountDocs, setAccountDocs] = useState<any[]>([]);
   const [docUploading, setDocUploading] = useState(false);
   const [docDragOver, setDocDragOver] = useState(false);
+  const [docLabel, setDocLabel] = useState('เอกสารทั่วไป');
+  const [customLabelInput, setCustomLabelInput] = useState('');
+  const [docLabels, setDocLabels] = useState<string[]>(() => {
+    const saved = localStorage.getItem('doc_labels');
+    return saved ? JSON.parse(saved) : ['สัญญา', 'การเงิน', 'ใบเสร็จ', 'ใบรับรอง', 'เอกสารทั่วไป'];
+  });
   const docFileRef = useRef<HTMLInputElement>(null);
   const [qtDocs, setQtDocs] = useState<{ id: string; qt_number: string | null; qt_date: string | null; qt_attachment: string | null; product: string | null; price: number | null; approval_status: string | null; customer_signed_at: string | null; payment_status: string | null; payment_condition: string | null; sale_assigned: string | null; deposit_value: number | null; deposit_slip_status: string | null }[]>([]);
   const [installmentsByQt, setInstallmentsByQt] = useState<Record<string, { paid: number; total: number }>>({});
