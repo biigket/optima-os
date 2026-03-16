@@ -240,6 +240,9 @@ export default function CsvImportPage() {
           <FileSpreadsheet size={28} className="text-primary" />
           <h1 className="text-2xl font-bold text-foreground">นำเข้าข้อมูล CSV</h1>
         </div>
+        <Button variant="outline" className="gap-1.5" onClick={() => navigate('/qt-ar-import')}>
+          <FileSpreadsheet size={14} /> นำเข้า QT/AR จาก Excel
+        </Button>
       </div>
 
       {/* Step 1: Select table */}
