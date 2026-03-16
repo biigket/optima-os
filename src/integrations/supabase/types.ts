@@ -176,6 +176,45 @@ export type Database = {
         }
         Relationships: []
       }
+      company_events: {
+        Row: {
+          all_day: boolean
+          created_at: string
+          created_by: string | null
+          description: string | null
+          end_time: string | null
+          event_date: string
+          event_type: string
+          id: string
+          start_time: string | null
+          title: string
+        }
+        Insert: {
+          all_day?: boolean
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          end_time?: string | null
+          event_date: string
+          event_type?: string
+          id?: string
+          start_time?: string | null
+          title: string
+        }
+        Update: {
+          all_day?: boolean
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          end_time?: string | null
+          event_date?: string
+          event_type?: string
+          id?: string
+          start_time?: string | null
+          title?: string
+        }
+        Relationships: []
+      }
       contacts: {
         Row: {
           account_id: string
