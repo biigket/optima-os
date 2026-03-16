@@ -1213,7 +1213,7 @@ export default function CustomerCardPage() {
                   </div>
                 ))}
 
-                {documents.length === 0 && qtDocs.length === 0 && accountDocs.length === 0 && (
+                {documents.length === 0 && qtDocs.length === 0 && accountDocs.length === 0 && accountContracts.length === 0 && (
                   <p className="text-xs text-muted-foreground text-center py-4">ยังไม่มีเอกสาร — ลากไฟล์มาวางด้านบนเพื่อเริ่มเก็บ</p>
                 )}
               </div>
