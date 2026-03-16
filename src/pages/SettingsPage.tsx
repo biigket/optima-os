@@ -109,6 +109,26 @@ export default function SettingsPage() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Quick Links */}
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle className="text-base flex items-center gap-2">
+            <FileSpreadsheet size={16} />
+            เครื่องมือนำเข้าข้อมูล
+          </CardTitle>
+          <CardDescription>นำเข้าข้อมูลเข้าระบบโดยใช้ไฟล์ CSV</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Button variant="outline" className="w-full justify-between" onClick={() => navigate('/csv-import')}>
+            <span className="flex items-center gap-2">
+              <FileSpreadsheet size={16} />
+              ไปที่หน้านำเข้า CSV
+            </span>
+            <ArrowRight size={16} />
+          </Button>
+        </CardContent>
+      </Card>
     </div>
   );
 }
