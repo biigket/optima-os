@@ -1,12 +1,16 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import {
-  Monitor, ShoppingCart, Wrench, Receipt, FolderOpen, Megaphone, ExternalLink, CreditCard
+  Monitor, ShoppingCart, Wrench, Receipt, FolderOpen, Megaphone, ExternalLink, CreditCard,
+  Upload, Trash2, FileText, Loader2, Download
 } from 'lucide-react';
+import { toast } from 'sonner';
 import {
   getDevicesForAccount, getConsumablesForAccount, getServiceForAccount,
   getDocumentsForAccount, getMarketingForAccount,
