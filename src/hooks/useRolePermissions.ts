@@ -42,6 +42,7 @@ export const MODULE_LABELS: Record<string, string> = {
   settings: 'ตั้งค่า',
   'approve-qt': 'อนุมัติใบเสนอราคา',
   contracts: 'หนังสือสัญญาซื้อขาย',
+  'csv-import': 'นำเข้า CSV',
 };
 
 export const ALL_ROLES = ['OWNER', 'SALES_MANAGER', 'SALES', 'PRODUCT', 'SERVICE', 'FINANCE'];

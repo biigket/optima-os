@@ -17,7 +17,7 @@ const MODULE_GROUPS = [
   { label: 'SERVICE', modules: ['maintenance', 'qc-stock'] },
   { label: 'ERP', modules: ['quotations', 'approve-qt', 'contracts', 'payments', 'inventory'] },
   { label: 'INTELLIGENCE', modules: ['forecast', 'analytics'] },
-  { label: 'SYSTEM', modules: ['settings'] },
+  { label: 'SYSTEM', modules: ['settings', 'csv-import'] },
 ];
 
 export default function SettingsPage() {
