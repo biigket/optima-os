@@ -82,6 +82,7 @@ function AuthedAppRoutes() {
         <Route path="/quotations/:id" element={<QuotationDetailPage />} />
         <Route path="/contracts" element={<ContractsPage />} />
         <Route path="/csv-import" element={<CsvImportPage />} />
+        <Route path="/qt-ar-import" element={<QtArImportPage />} />
         <Route path="/inventory" element={<InventoryPage />} />
         <Route path="/payments" element={<PaymentsPage />} />
         <Route path="/payments/:quotationId" element={<PaymentDetailPage />} />
