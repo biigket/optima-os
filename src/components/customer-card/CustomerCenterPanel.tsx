@@ -473,6 +473,86 @@ export default function CustomerCenterPanel({ accountId, opportunities }: Props)
               </Table>
             </div>
           </TabsContent>
+
+          {/* Documents */}
+          <TabsContent value="documents" className="mt-0 space-y-4">
+            {/* Drag & Drop Upload Area */}
+            <div
+              className={`border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition-colors ${
+                dragOver ? 'border-primary bg-primary/5' : 'border-border hover:border-primary/50 hover:bg-muted/30'
+              }`}
+              onClick={() => docInputRef.current?.click()}
+              onDragOver={e => { e.preventDefault(); setDragOver(true); }}
+              onDragLeave={() => setDragOver(false)}
+              onDrop={e => { e.preventDefault(); setDragOver(false); handleDocUpload(e.dataTransfer.files); }}
+            >
+              <input
+                ref={docInputRef}
+                type="file"
+                multiple
+                className="hidden"
+                onChange={e => { handleDocUpload(e.target.files); if (e.target) e.target.value = ''; }}
+              />
+              {docUploading ? (
+                <div className="flex items-center justify-center gap-2">
+                  <Loader2 size={20} className="animate-spin text-primary" />
+                  <span className="text-sm text-muted-foreground">กำลังอัปโหลด...</span>
+                </div>
+              ) : (
+                <>
+                  <Upload size={24} className="mx-auto text-muted-foreground mb-2" />
+                  <p className="text-sm font-medium text-foreground">ลากไฟล์มาวาง หรือคลิกเพื่อเลือกไฟล์</p>
+                  <p className="text-xs text-muted-foreground mt-1">รองรับทุกประเภทไฟล์ — สัญญา, ใบเสร็จ, เอกสารเก่า ฯลฯ</p>
+                </>
+              )}
+            </div>
+
+            {/* Documents List */}
+            {documents.length > 0 ? (
+              <div className="rounded-md border">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="text-xs">ชื่อไฟล์</TableHead>
+                      <TableHead className="text-xs hidden sm:table-cell">ขนาด</TableHead>
+                      <TableHead className="text-xs hidden sm:table-cell">วันที่อัปโหลด</TableHead>
+                      <TableHead className="text-xs text-right">จัดการ</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {documents.map(doc => (
+                      <TableRow key={doc.id}>
+                        <TableCell className="text-xs font-medium">
+                          <div className="flex items-center gap-2">
+                            <FileIcon size={14} className="text-muted-foreground shrink-0" />
+                            <span className="truncate max-w-[200px]">{doc.file_name}</span>
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-xs text-muted-foreground hidden sm:table-cell">{formatFileSize(doc.file_size)}</TableCell>
+                        <TableCell className="text-xs text-muted-foreground hidden sm:table-cell">
+                          {format(new Date(doc.created_at), 'd MMM yy', { locale: th })}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <div className="flex items-center justify-end gap-1">
+                            <Button variant="ghost" size="icon" className="h-7 w-7" asChild>
+                              <a href={doc.file_url} target="_blank" rel="noopener noreferrer" title="ดาวน์โหลด">
+                                <Download size={14} />
+                              </a>
+                            </Button>
+                            <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive hover:text-destructive" onClick={() => handleDocDelete(doc)} title="ลบ">
+                              <Trash2 size={14} />
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            ) : (
+              <Empty text="ยังไม่มีเอกสาร — อัปโหลดไฟล์เพื่อเริ่มเก็บข้อมูล" />
+            )}
+          </TabsContent>
         </div>
       </Tabs>
     </div>
