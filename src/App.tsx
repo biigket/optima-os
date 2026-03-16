@@ -46,6 +46,7 @@ import WorkCheckinPage from "@/pages/WorkCheckinPage";
 import AttendanceSummaryPage from "@/pages/AttendanceSummaryPage";
 import SettingsPage from "@/pages/SettingsPage";
 import ContractsPage from "@/pages/ContractsPage";
+import CsvImportPage from "@/pages/CsvImportPage";
 import { MockAuthProvider } from "@/hooks/useMockAuth";
 
 const queryClient = new QueryClient();
