@@ -1,4 +1,5 @@
 import { useState, useRef, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Upload, Download, FileSpreadsheet, CheckCircle2, XCircle, Loader2, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -142,6 +143,7 @@ function coerceValue(key: string, value: string): any {
 
 // ── Component ────────────────────────────────────────────────────
 export default function CsvImportPage() {
+  const navigate = useNavigate();
   const [selectedTable, setSelectedTable] = useState<string>('');
   const [rawRows, setRawRows] = useState<string[][]>([]);
   const [headers, setHeaders] = useState<string[]>([]);
@@ -239,6 +241,9 @@ export default function CsvImportPage() {
           <FileSpreadsheet size={28} className="text-primary" />
           <h1 className="text-2xl font-bold text-foreground">นำเข้าข้อมูล CSV</h1>
         </div>
+        <Button variant="outline" className="gap-1.5" onClick={() => navigate('/qt-ar-import')}>
+          <FileSpreadsheet size={14} /> นำเข้า QT/AR จาก Excel
+        </Button>
       </div>
 
       {/* Step 1: Select table */}
