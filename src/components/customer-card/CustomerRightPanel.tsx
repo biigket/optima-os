@@ -344,26 +344,102 @@ export default function CustomerRightPanel({ accountId, clinicName }: Props) {
 
           {/* Documents */}
           <TabsContent value="documents" className="mt-0">
-            <div className="space-y-1.5">
-              {/* Approved Quotation PDFs */}
-              {qtDocs.map(q => (
-                <a
-                  key={q.id}
-                  href={q.qt_attachment!}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-3 p-2.5 rounded-md hover:bg-muted/40 transition-colors cursor-pointer"
-                >
-                  <span className="text-base">📋</span>
-                  <div className="min-w-0 flex-1">
-                    <p className="text-xs text-foreground truncate">{q.qt_number || 'ใบเสนอราคา'} — {q.product || ''}</p>
-                    <p className="text-[10px] text-muted-foreground">
-                      ใบเสนอราคา (อนุมัติแล้ว) • {q.qt_date || '-'} • ฿{(q.price || 0).toLocaleString()}
-                    </p>
+            <div className="space-y-3">
+              {/* Upload zone */}
+              <div
+                onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
+                onDragLeave={() => setDragOver(false)}
+                onDrop={async (e) => {
+                  e.preventDefault();
+                  setDragOver(false);
+                  const files = Array.from(e.dataTransfer.files);
+                  if (files.length > 0) await handleUploadFiles(files);
+                }}
+                className={`border-2 border-dashed rounded-lg p-4 text-center transition-colors cursor-pointer ${dragOver ? 'border-primary bg-primary/5' : 'border-border hover:border-primary/50'}`}
+                onClick={() => fileInputRef.current?.click()}
+              >
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  multiple
+                  className="hidden"
+                  onChange={async (e) => {
+                    const files = Array.from(e.target.files || []);
+                    if (files.length > 0) await handleUploadFiles(files);
+                    e.target.value = '';
+                  }}
+                />
+                {uploading ? (
+                  <div className="flex items-center justify-center gap-2 py-2">
+                    <Loader2 size={16} className="animate-spin text-primary" />
+                    <span className="text-xs text-muted-foreground">กำลังอัปโหลด...</span>
                   </div>
-                  <ExternalLink size={12} className="text-muted-foreground shrink-0" />
-                </a>
-              ))}
+                ) : (
+                  <div className="flex flex-col items-center gap-1 py-1">
+                    <Upload size={20} className="text-muted-foreground" />
+                    <span className="text-xs text-muted-foreground">ลากไฟล์มาวาง หรือคลิกเพื่อเลือกไฟล์</span>
+                    <span className="text-[10px] text-muted-foreground">สำหรับเอกสารลูกค้าเก่า (สัญญา, ใบเสร็จ, ฯลฯ)</span>
+                  </div>
+                )}
+              </div>
+
+              {/* Uploaded documents */}
+              {accountDocs.length > 0 && (
+                <div>
+                  <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground mb-1.5">เอกสารที่อัปโหลด</p>
+                  <div className="space-y-1">
+                    {accountDocs.map(doc => (
+                      <div key={doc.id} className="flex items-center gap-3 p-2.5 rounded-md hover:bg-muted/40 transition-colors group">
+                        <FileText size={16} className="text-primary shrink-0" />
+                        <div className="min-w-0 flex-1">
+                          <p className="text-xs text-foreground truncate">{doc.file_name}</p>
+                          <p className="text-[10px] text-muted-foreground">
+                            {doc.doc_label || 'เอกสาร'} • {new Date(doc.created_at).toLocaleDateString('th-TH', { day: 'numeric', month: 'short', year: 'numeric' })}
+                            {doc.file_size ? ` • ${(doc.file_size / 1024).toFixed(0)} KB` : ''}
+                          </p>
+                        </div>
+                        <a href={doc.file_url} target="_blank" rel="noopener noreferrer" className="p-1 rounded hover:bg-muted">
+                          <Download size={12} className="text-muted-foreground" />
+                        </a>
+                        <button
+                          onClick={() => handleDeleteDoc(doc.id, doc.file_url)}
+                          className="p-1 rounded hover:bg-destructive/10 opacity-0 group-hover:opacity-100 transition-opacity"
+                        >
+                          <Trash2 size={12} className="text-destructive" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Approved Quotation PDFs */}
+              {qtDocs.length > 0 && (
+                <div>
+                  <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground mb-1.5">ใบเสนอราคา (จากระบบ)</p>
+                  <div className="space-y-1">
+                    {qtDocs.map(q => (
+                      <a
+                        key={q.id}
+                        href={q.qt_attachment!}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-3 p-2.5 rounded-md hover:bg-muted/40 transition-colors cursor-pointer"
+                      >
+                        <span className="text-base">📋</span>
+                        <div className="min-w-0 flex-1">
+                          <p className="text-xs text-foreground truncate">{q.qt_number || 'ใบเสนอราคา'} — {q.product || ''}</p>
+                          <p className="text-[10px] text-muted-foreground">
+                            อนุมัติแล้ว • {q.qt_date || '-'} • ฿{(q.price || 0).toLocaleString()}
+                          </p>
+                        </div>
+                        <ExternalLink size={12} className="text-muted-foreground shrink-0" />
+                      </a>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               {/* Mock documents */}
               {documents.map(d => (
                 <div key={d.id} className="flex items-center gap-3 p-2.5 rounded-md hover:bg-muted/40 transition-colors cursor-pointer">
@@ -374,7 +450,8 @@ export default function CustomerRightPanel({ accountId, clinicName }: Props) {
                   </div>
                 </div>
               ))}
-              {documents.length === 0 && qtDocs.length === 0 && <Empty />}
+
+              {documents.length === 0 && qtDocs.length === 0 && accountDocs.length === 0 && <Empty />}
             </div>
           </TabsContent>
 
