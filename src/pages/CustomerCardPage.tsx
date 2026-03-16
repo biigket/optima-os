@@ -1076,7 +1076,48 @@ export default function CustomerCardPage() {
                   </div>
                 </div>
 
-                {/* Uploaded documents */}
+                {/* Contracts from system */}
+                {accountContracts.length > 0 && (
+                  <div>
+                    <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground mb-1.5">หนังสือสัญญาซื้อขาย</p>
+                    <div className="grid gap-2 sm:grid-cols-2">
+                      {accountContracts.map(c => (
+                        <div
+                          key={c.id}
+                          onClick={() => navigate(`/contracts`)}
+                          className="border rounded-lg p-3 hover:bg-muted/40 transition-colors cursor-pointer group"
+                        >
+                          <div className="flex items-start gap-2.5">
+                            <div className="p-1.5 rounded-md bg-primary/10 text-primary shrink-0 mt-0.5">
+                              <FileCheck size={16} />
+                            </div>
+                            <div className="min-w-0 flex-1">
+                              <div className="flex items-center gap-1.5 flex-wrap">
+                                <p className="text-xs font-medium text-foreground">{c.contract_number}</p>
+                                <Badge variant={c.status === 'SIGNED' ? 'default' : 'outline'} className="text-[9px] h-4 px-1.5">
+                                  {c.status === 'SIGNED' ? 'ลงนามแล้ว' : c.status === 'DRAFT' ? 'แบบร่าง' : c.status}
+                                </Badge>
+                              </div>
+                              <p className="text-[11px] text-muted-foreground mt-0.5">
+                                {c.product_name || c.product_type || '-'} {c.product_brand ? `• ${c.product_brand}` : ''}
+                              </p>
+                              <div className="flex items-center gap-3 mt-1 text-[10px] text-muted-foreground">
+                                <span>📅 {c.contract_date ? format(new Date(c.contract_date), 'd MMM yy', { locale: th }) : '-'}</span>
+                                {c.total_price && <span>💰 ฿{c.total_price.toLocaleString()}</span>}
+                              </div>
+                              {c.qt_number && (
+                                <p className="text-[10px] text-muted-foreground mt-0.5">QT: {c.qt_number}</p>
+                              )}
+                            </div>
+                            <ExternalLink size={12} className="text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity shrink-0 mt-1" />
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+
                 {accountDocs.length > 0 && (
                   <div>
                     <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground mb-1.5">เอกสารที่อัปโหลด</p>
