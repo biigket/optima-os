@@ -1,14 +1,17 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import StatusBadge from '@/components/ui/StatusBadge';
 import {
   LayoutDashboard, Clock, Handshake, MapPin, FileText, CheckSquare,
-  Eye, Phone as PhoneIcon, Presentation, Users, FileCheck, Wrench, GraduationCap, MessageSquare, Camera, FlaskConical, User, Star
+  Eye, Phone as PhoneIcon, Presentation, Users, FileCheck, Wrench, GraduationCap, MessageSquare, Camera, FlaskConical, User, Star,
+  FolderOpen, Upload, Download, Trash2, FileIcon, Loader2
 } from 'lucide-react';
+import { toast } from 'sonner';
 import {
   getTimelineForAccount, getVisitsForAccount,
   getLifetimeRevenue, getDevicesForAccount
