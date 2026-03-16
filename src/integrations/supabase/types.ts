@@ -1037,6 +1037,90 @@ export type Database = {
         }
         Relationships: []
       }
+      qc_stock_items: {
+        Row: {
+          borrow_from: string | null
+          borrow_to: string | null
+          cartridge_type: string | null
+          clinic: string | null
+          created_at: string
+          email_trica: string | null
+          fail_reason: string | null
+          handpiece: string | null
+          hfl1: string | null
+          hfl2: string | null
+          hrm: string | null
+          hrm_sell_or_keep: string | null
+          hsd1: string | null
+          hsd2: string | null
+          id: string
+          inspection_doc: string | null
+          install_date: string | null
+          notes: string | null
+          product_type: string
+          received_date: string | null
+          reserved_for: string | null
+          serial_number: string | null
+          status: string | null
+          storage_location: string | null
+          ups_stabilizer: string | null
+        }
+        Insert: {
+          borrow_from?: string | null
+          borrow_to?: string | null
+          cartridge_type?: string | null
+          clinic?: string | null
+          created_at?: string
+          email_trica?: string | null
+          fail_reason?: string | null
+          handpiece?: string | null
+          hfl1?: string | null
+          hfl2?: string | null
+          hrm?: string | null
+          hrm_sell_or_keep?: string | null
+          hsd1?: string | null
+          hsd2?: string | null
+          id?: string
+          inspection_doc?: string | null
+          install_date?: string | null
+          notes?: string | null
+          product_type?: string
+          received_date?: string | null
+          reserved_for?: string | null
+          serial_number?: string | null
+          status?: string | null
+          storage_location?: string | null
+          ups_stabilizer?: string | null
+        }
+        Update: {
+          borrow_from?: string | null
+          borrow_to?: string | null
+          cartridge_type?: string | null
+          clinic?: string | null
+          created_at?: string
+          email_trica?: string | null
+          fail_reason?: string | null
+          handpiece?: string | null
+          hfl1?: string | null
+          hfl2?: string | null
+          hrm?: string | null
+          hrm_sell_or_keep?: string | null
+          hsd1?: string | null
+          hsd2?: string | null
+          id?: string
+          inspection_doc?: string | null
+          install_date?: string | null
+          notes?: string | null
+          product_type?: string
+          received_date?: string | null
+          reserved_for?: string | null
+          serial_number?: string | null
+          status?: string | null
+          storage_location?: string | null
+          ups_stabilizer?: string | null
+        }
+        Relationships: []
+      }
       quotations: {
         Row: {
           account_id: string | null
