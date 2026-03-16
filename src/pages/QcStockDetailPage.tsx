@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Pencil, Save, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -8,8 +8,10 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
 import { toast } from 'sonner';
-import { mockND2Stock, type ND2StockItem, type HrmSellOrKeep } from '@/data/qcMockData';
+import type { ND2StockItem, HrmSellOrKeep } from '@/data/qcMockData';
 import { unifiedStatuses, unifiedStatusColor, type UnifiedStockStatus } from '@/data/unifiedStockStatus';
+import { mapND2, toDbRow } from '@/data/qcStockMapper';
+import { supabase } from '@/integrations/supabase/client';
 
 function StatusChip({ status }: { status: UnifiedStockStatus }) {
   return (
@@ -22,9 +24,19 @@ function StatusChip({ status }: { status: UnifiedStockStatus }) {
 export default function QcStockDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const item = mockND2Stock.find(i => i.id === id);
+  const [item, setItem] = useState<ND2StockItem | null>(null);
   const [editing, setEditing] = useState(false);
-  const [form, setForm] = useState<ND2StockItem | null>(item ?? null);
+  const [form, setForm] = useState<ND2StockItem | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    supabase.from('qc_stock_items').select('*').eq('id', id!).single().then(({ data }) => {
+      if (data) { const mapped = mapND2(data); setItem(mapped); setForm(mapped); }
+      setLoading(false);
+    });
+  }, [id]);
+
+  if (loading) return <div className="flex items-center justify-center py-20 text-muted-foreground">กำลังโหลด...</div>;
 
   if (!item || !form) {
     return (
@@ -37,15 +49,14 @@ export default function QcStockDetailPage() {
 
   const set = (key: keyof ND2StockItem, value: string) => setForm(prev => prev ? { ...prev, [key]: value } : prev);
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!form.hntSerialNumber.trim()) {
       toast.error('กรุณากรอก HNT S/N');
       return;
     }
-    const idx = mockND2Stock.findIndex(i => i.id === id);
-    if (idx !== -1) {
-      Object.assign(mockND2Stock[idx], form);
-    }
+    const dbRow = toDbRow(form, 'ND2');
+    await supabase.from('qc_stock_items').update(dbRow).eq('id', id!);
+    setItem({ ...form });
     setEditing(false);
     toast.success('บันทึกการแก้ไขเรียบร้อย');
   };

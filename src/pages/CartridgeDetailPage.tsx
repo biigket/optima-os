@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Pencil, Save, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -8,8 +8,10 @@ import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
 import { toast } from 'sonner';
-import { mockCartridgeStock, cartridgeTypes, type CartridgeStockItem, type CartridgeType } from '@/data/cartridgeMockData';
+import { cartridgeTypes, type CartridgeStockItem, type CartridgeType } from '@/data/cartridgeMockData';
 import { unifiedStatuses, unifiedStatusColor, type UnifiedStockStatus } from '@/data/unifiedStockStatus';
+import { mapCartridge, toDbRow } from '@/data/qcStockMapper';
+import { supabase } from '@/integrations/supabase/client';
 
 function StatusChip({ status }: { status: UnifiedStockStatus }) {
   return (
@@ -22,9 +24,19 @@ function StatusChip({ status }: { status: UnifiedStockStatus }) {
 export default function CartridgeDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const item = mockCartridgeStock.find(i => i.id === id);
+  const [item, setItem] = useState<CartridgeStockItem | null>(null);
   const [editing, setEditing] = useState(false);
-  const [form, setForm] = useState<CartridgeStockItem | null>(item ?? null);
+  const [form, setForm] = useState<CartridgeStockItem | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    supabase.from('qc_stock_items').select('*').eq('id', id!).single().then(({ data }) => {
+      if (data) { const mapped = mapCartridge(data); setItem(mapped); setForm(mapped); }
+      setLoading(false);
+    });
+  }, [id]);
+
+  if (loading) return <div className="flex items-center justify-center py-20 text-muted-foreground">กำลังโหลด...</div>;
 
   if (!item || !form) {
     return (
@@ -37,10 +49,11 @@ export default function CartridgeDetailPage() {
 
   const set = (key: keyof CartridgeStockItem, value: string) => setForm(prev => prev ? { ...prev, [key]: value } : prev);
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!form.serialNumber.trim()) { toast.error('กรุณากรอก S/N'); return; }
-    const idx = mockCartridgeStock.findIndex(i => i.id === id);
-    if (idx !== -1) Object.assign(mockCartridgeStock[idx], form);
+    const dbRow = toDbRow(form, 'CARTRIDGE');
+    await supabase.from('qc_stock_items').update(dbRow).eq('id', id!);
+    setItem({ ...form });
     setEditing(false);
     toast.success('บันทึกการแก้ไขเรียบร้อย');
   };

@@ -6,20 +6,21 @@ import { Button } from '@/components/ui/button';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
-import { mockND2Stock, type ND2StockItem } from '@/data/qcMockData';
-import { mockCartridgeStock, type CartridgeStockItem } from '@/data/cartridgeMockData';
-import { mockTrica3DStock, type Trica3DStockItem } from '@/data/trica3dMockData';
-import { mockQuattroStock, type QuattroStockItem } from '@/data/quattroMockData';
-import { mockPicohiStock, type PicohiStockItem } from '@/data/picohiMockData';
-import { mockFreezeroStock, type FreezeroStockItem } from '@/data/freezeroMockData';
+import type { ND2StockItem } from '@/data/qcMockData';
+import type { CartridgeStockItem } from '@/data/cartridgeMockData';
+import type { Trica3DStockItem } from '@/data/trica3dMockData';
+import type { QuattroStockItem } from '@/data/quattroMockData';
+import type { PicohiStockItem } from '@/data/picohiMockData';
+import type { FreezeroStockItem } from '@/data/freezeroMockData';
 import { unifiedStatuses, unifiedStatusColor, type UnifiedStockStatus } from '@/data/unifiedStockStatus';
+import { mapND2, mapTrica3D, mapGenericStock, mapCartridge } from '@/data/qcStockMapper';
+import { supabase } from '@/integrations/supabase/client';
 import ND2IntakeForm from '@/components/qc-stock/ND2IntakeForm';
 import CartridgeIntakeForm from '@/components/qc-stock/CartridgeIntakeForm';
 import Trica3DIntakeForm from '@/components/qc-stock/Trica3DIntakeForm';
 import QuattroIntakeForm from '@/components/qc-stock/QuattroIntakeForm';
 import PicohiIntakeForm from '@/components/qc-stock/PicohiIntakeForm';
 import FreezeroIntakeForm from '@/components/qc-stock/FreezeroIntakeForm';
-import { syncReservations } from '@/data/inventoryReservation';
 
 type FilterTab = 'ALL' | UnifiedStockStatus;
 
@@ -38,43 +39,55 @@ function StatusChip({ status }: { status: UnifiedStockStatus }) {
 
 export default function QcStockPage() {
   const navigate = useNavigate();
-  useEffect(() => { syncReservations(); }, []);
 
   // ND2 state
-  const [items, setItems] = useState<ND2StockItem[]>(mockND2Stock);
+  const [items, setItems] = useState<ND2StockItem[]>([]);
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState<FilterTab>('ALL');
   const [formOpen, setFormOpen] = useState(false);
 
   // Cartridge state
-  const [cartridgeItems, setCartridgeItems] = useState<CartridgeStockItem[]>(mockCartridgeStock);
+  const [cartridgeItems, setCartridgeItems] = useState<CartridgeStockItem[]>([]);
   const [cartridgeSearch, setCartridgeSearch] = useState('');
   const [cartridgeFilter, setCartridgeFilter] = useState<FilterTab>('ALL');
   const [cartridgeFormOpen, setCartridgeFormOpen] = useState(false);
 
   // Trica 3D state
-  const [trica3dItems, setTrica3dItems] = useState<Trica3DStockItem[]>(mockTrica3DStock);
+  const [trica3dItems, setTrica3dItems] = useState<Trica3DStockItem[]>([]);
   const [trica3dSearch, setTrica3dSearch] = useState('');
   const [trica3dFilter, setTrica3dFilter] = useState<FilterTab>('ALL');
   const [trica3dFormOpen, setTrica3dFormOpen] = useState(false);
 
   // Quattro state
-  const [quattroItems, setQuattroItems] = useState<QuattroStockItem[]>(mockQuattroStock);
+  const [quattroItems, setQuattroItems] = useState<QuattroStockItem[]>([]);
   const [quattroSearch, setQuattroSearch] = useState('');
   const [quattroFilter, setQuattroFilter] = useState<FilterTab>('ALL');
   const [quattroFormOpen, setQuattroFormOpen] = useState(false);
 
   // Picohi state
-  const [picohiItems, setPicohiItems] = useState<PicohiStockItem[]>(mockPicohiStock);
+  const [picohiItems, setPicohiItems] = useState<PicohiStockItem[]>([]);
   const [picohiSearch, setPicohiSearch] = useState('');
   const [picohiFilter, setPicohiFilter] = useState<FilterTab>('ALL');
   const [picohiFormOpen, setPicohiFormOpen] = useState(false);
 
   // Freezero state
-  const [freezeroItems, setFreezeroItems] = useState<FreezeroStockItem[]>(mockFreezeroStock);
+  const [freezeroItems, setFreezeroItems] = useState<FreezeroStockItem[]>([]);
   const [freezeroSearch, setFreezeroSearch] = useState('');
   const [freezeroFilter, setFreezeroFilter] = useState<FilterTab>('ALL');
   const [freezeroFormOpen, setFreezeroFormOpen] = useState(false);
+
+  // Fetch all stock from DB
+  useEffect(() => {
+    supabase.from('qc_stock_items').select('*').order('created_at', { ascending: false }).then(({ data }) => {
+      if (!data) return;
+      setItems(data.filter(r => r.product_type === 'ND2').map(mapND2));
+      setCartridgeItems(data.filter(r => r.product_type === 'CARTRIDGE').map(mapCartridge));
+      setTrica3dItems(data.filter(r => r.product_type === 'TRICA 3D').map(mapTrica3D));
+      setQuattroItems(data.filter(r => r.product_type === 'QUATTRO').map(mapGenericStock));
+      setPicohiItems(data.filter(r => r.product_type === 'PICOHI300').map(mapGenericStock));
+      setFreezeroItems(data.filter(r => r.product_type === 'FREEZERO').map(mapGenericStock));
+    });
+  }, []);
 
   // ND2 filters
   const filtered = useMemo(() => {
