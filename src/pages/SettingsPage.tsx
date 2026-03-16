@@ -1,8 +1,10 @@
 import { useAllRolePermissions, ALL_ROLES, ALL_MODULES, ROLE_LABELS, MODULE_LABELS } from '@/hooks/useRolePermissions';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Settings, Shield, Loader2 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Settings, Shield, Loader2, FileSpreadsheet, ArrowRight } from 'lucide-react';
 import { toast } from 'sonner';
+import { useNavigate } from 'react-router-dom';
 
 const MODULE_GROUPS = [
   { label: 'ANALYTICS', modules: ['dashboard'] },
@@ -15,11 +17,12 @@ const MODULE_GROUPS = [
   { label: 'SERVICE', modules: ['maintenance', 'qc-stock'] },
   { label: 'ERP', modules: ['quotations', 'approve-qt', 'contracts', 'payments', 'inventory'] },
   { label: 'INTELLIGENCE', modules: ['forecast', 'analytics'] },
-  { label: 'SYSTEM', modules: ['settings'] },
+  { label: 'SYSTEM', modules: ['settings', 'csv-import'] },
 ];
 
 export default function SettingsPage() {
   const { loading, togglePermission, getPermission } = useAllRolePermissions();
+  const navigate = useNavigate();
 
   const handleToggle = async (roleKey: string, moduleKey: string) => {
     const current = getPermission(roleKey, moduleKey);
@@ -104,6 +107,26 @@ export default function SettingsPage() {
               </tbody>
             </table>
           </div>
+        </CardContent>
+      </Card>
+
+      {/* Quick Links */}
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle className="text-base flex items-center gap-2">
+            <FileSpreadsheet size={16} />
+            เครื่องมือนำเข้าข้อมูล
+          </CardTitle>
+          <CardDescription>นำเข้าข้อมูลเข้าระบบโดยใช้ไฟล์ CSV</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Button variant="outline" className="w-full justify-between" onClick={() => navigate('/csv-import')}>
+            <span className="flex items-center gap-2">
+              <FileSpreadsheet size={16} />
+              ไปที่หน้านำเข้า CSV
+            </span>
+            <ArrowRight size={16} />
+          </Button>
         </CardContent>
       </Card>
     </div>
