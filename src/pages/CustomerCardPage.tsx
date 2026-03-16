@@ -974,52 +974,118 @@ export default function CustomerCardPage() {
 
             {/* ===== DOCUMENTS ===== */}
             <TabsContent value="documents" className="mt-0">
-              <div className="space-y-1.5">
-                {/* Approved Quotation PDFs */}
-                {qtDocs.map(q => (
-                  <button
-                    key={q.id}
-                    onClick={async () => {
-                      try {
-                        const { data, error } = await supabase.functions.invoke('generate-quotation-pdf', {
-                          body: { quotation_id: q.id },
-                        });
-                        if (error) throw error;
-                        // data is raw HTML string when Content-Type is text/html
-                        const html = typeof data === 'string' ? data : data?.html;
-                        if (html) {
-                          const w = window.open('', '_blank');
-                          if (w) { w.document.write(html); w.document.close(); }
-                        } else {
-                          toast.error('ไม่พบข้อมูล PDF');
-                        }
-                      } catch (e) {
-                        toast.error('ไม่สามารถสร้าง PDF ได้');
-                      }
-                    }}
-                    className="flex items-center gap-3 p-2.5 rounded-md hover:bg-muted/40 transition-colors cursor-pointer w-full text-left"
-                  >
-                    <span className="text-base">📋</span>
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-center gap-1.5 flex-wrap">
-                        <p className="text-xs text-foreground truncate">{q.qt_number || 'ใบเสนอราคา'} — {q.product || ''}</p>
-                        {q.customer_signed_at && (
-                          <span className="inline-flex items-center rounded-full px-1.5 py-0.5 text-[10px] font-semibold bg-blue-500/15 text-blue-600">CUSTOMER SIGNED</span>
-                        )}
-                        {q.payment_status && q.payment_status !== 'PAID' && (
-                          <StatusBadge status={q.payment_status} className="text-[10px] px-1.5 py-0.5" />
-                        )}
-                        {q.payment_status === 'PAID' && (
-                          <StatusBadge status="PAID" className="text-[10px] px-1.5 py-0.5" />
-                        )}
-                      </div>
-                      <p className="text-[10px] text-muted-foreground">
-                        ใบเสนอราคา (อนุมัติแล้ว) • {q.qt_date || '-'} • ฿{(q.price || 0).toLocaleString()}
-                      </p>
+              <div className="space-y-3">
+                {/* Upload zone */}
+                <div
+                  onDragOver={e => { e.preventDefault(); setDocDragOver(true); }}
+                  onDragLeave={() => setDocDragOver(false)}
+                  onDrop={e => { e.preventDefault(); setDocDragOver(false); handleDocUpload(Array.from(e.dataTransfer.files)); }}
+                  onClick={() => docFileRef.current?.click()}
+                  className={`border-2 border-dashed rounded-lg p-4 text-center cursor-pointer transition-colors ${
+                    docDragOver ? 'border-primary bg-primary/5' : 'border-border hover:border-primary/50 hover:bg-muted/30'
+                  }`}
+                >
+                  <input
+                    ref={docFileRef}
+                    type="file"
+                    multiple
+                    className="hidden"
+                    onChange={e => { handleDocUpload(e.target.files); if (e.target) e.target.value = ''; }}
+                  />
+                  {docUploading ? (
+                    <div className="flex items-center justify-center gap-2 py-1">
+                      <Loader2 size={16} className="animate-spin text-primary" />
+                      <span className="text-xs text-muted-foreground">กำลังอัปโหลด...</span>
                     </div>
-                    <FileText size={12} className="text-muted-foreground shrink-0" />
-                  </button>
-                ))}
+                  ) : (
+                    <div className="flex flex-col items-center gap-1 py-1">
+                      <Upload size={20} className="text-muted-foreground" />
+                      <span className="text-xs text-muted-foreground">ลากไฟล์มาวาง หรือคลิกเพื่อเลือกไฟล์</span>
+                      <span className="text-[10px] text-muted-foreground">สำหรับเอกสารลูกค้าเก่า (สัญญา, ใบเสร็จ, ฯลฯ)</span>
+                    </div>
+                  )}
+                </div>
+
+                {/* Uploaded documents */}
+                {accountDocs.length > 0 && (
+                  <div>
+                    <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground mb-1.5">เอกสารที่อัปโหลด</p>
+                    <div className="space-y-1">
+                      {accountDocs.map(doc => (
+                        <div key={doc.id} className="flex items-center gap-3 p-2.5 rounded-md hover:bg-muted/40 transition-colors group">
+                          <FileIcon size={16} className="text-primary shrink-0" />
+                          <div className="min-w-0 flex-1">
+                            <p className="text-xs text-foreground truncate">{doc.file_name}</p>
+                            <p className="text-[10px] text-muted-foreground">
+                              {doc.doc_label || 'เอกสาร'} • {format(new Date(doc.created_at), 'd MMM yy', { locale: th })}
+                              {doc.file_size ? ` • ${formatFileSize(doc.file_size)}` : ''}
+                            </p>
+                          </div>
+                          <a href={doc.file_url} target="_blank" rel="noopener noreferrer" className="p-1 rounded hover:bg-muted">
+                            <Download size={12} className="text-muted-foreground" />
+                          </a>
+                          <button
+                            onClick={() => handleDocDelete(doc)}
+                            className="p-1 rounded hover:bg-destructive/10 opacity-0 group-hover:opacity-100 transition-opacity"
+                          >
+                            <Trash2 size={12} className="text-destructive" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Approved Quotation PDFs */}
+                {qtDocs.length > 0 && (
+                  <div>
+                    <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground mb-1.5">ใบเสนอราคา (จากระบบ)</p>
+                    {qtDocs.map(q => (
+                      <button
+                        key={q.id}
+                        onClick={async () => {
+                          try {
+                            const { data, error } = await supabase.functions.invoke('generate-quotation-pdf', {
+                              body: { quotation_id: q.id },
+                            });
+                            if (error) throw error;
+                            const html = typeof data === 'string' ? data : data?.html;
+                            if (html) {
+                              const w = window.open('', '_blank');
+                              if (w) { w.document.write(html); w.document.close(); }
+                            } else {
+                              toast.error('ไม่พบข้อมูล PDF');
+                            }
+                          } catch (e) {
+                            toast.error('ไม่สามารถสร้าง PDF ได้');
+                          }
+                        }}
+                        className="flex items-center gap-3 p-2.5 rounded-md hover:bg-muted/40 transition-colors cursor-pointer w-full text-left"
+                      >
+                        <span className="text-base">📋</span>
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            <p className="text-xs text-foreground truncate">{q.qt_number || 'ใบเสนอราคา'} — {q.product || ''}</p>
+                            {q.customer_signed_at && (
+                              <span className="inline-flex items-center rounded-full px-1.5 py-0.5 text-[10px] font-semibold bg-blue-500/15 text-blue-600">CUSTOMER SIGNED</span>
+                            )}
+                            {q.payment_status && q.payment_status !== 'PAID' && (
+                              <StatusBadge status={q.payment_status} className="text-[10px] px-1.5 py-0.5" />
+                            )}
+                            {q.payment_status === 'PAID' && (
+                              <StatusBadge status="PAID" className="text-[10px] px-1.5 py-0.5" />
+                            )}
+                          </div>
+                          <p className="text-[10px] text-muted-foreground">
+                            ใบเสนอราคา (อนุมัติแล้ว) • {q.qt_date || '-'} • ฿{(q.price || 0).toLocaleString()}
+                          </p>
+                        </div>
+                        <FileText size={12} className="text-muted-foreground shrink-0" />
+                      </button>
+                    ))}
+                  </div>
+                )}
+
                 {/* Mock documents */}
                 {documents.map(d => (
                   <div key={d.id} className="flex items-center gap-3 p-2.5 rounded-md hover:bg-muted/40 transition-colors cursor-pointer">
@@ -1030,7 +1096,10 @@ export default function CustomerCardPage() {
                     </div>
                   </div>
                 ))}
-                {documents.length === 0 && qtDocs.length === 0 && <Empty text="ไม่มีเอกสาร" />}
+
+                {documents.length === 0 && qtDocs.length === 0 && accountDocs.length === 0 && (
+                  <p className="text-xs text-muted-foreground text-center py-4">ยังไม่มีเอกสาร — ลากไฟล์มาวางด้านบนเพื่อเริ่มเก็บ</p>
+                )}
               </div>
             </TabsContent>
 
