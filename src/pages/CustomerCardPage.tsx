@@ -121,6 +121,12 @@ export default function CustomerCardPage() {
   const [accountDocs, setAccountDocs] = useState<any[]>([]);
   const [docUploading, setDocUploading] = useState(false);
   const [docDragOver, setDocDragOver] = useState(false);
+  const [docLabel, setDocLabel] = useState('เอกสารทั่วไป');
+  const [customLabelInput, setCustomLabelInput] = useState('');
+  const [docLabels, setDocLabels] = useState<string[]>(() => {
+    const saved = localStorage.getItem('doc_labels');
+    return saved ? JSON.parse(saved) : ['สัญญา', 'การเงิน', 'ใบเสร็จ', 'ใบรับรอง', 'เอกสารทั่วไป'];
+  });
   const docFileRef = useRef<HTMLInputElement>(null);
   const [qtDocs, setQtDocs] = useState<{ id: string; qt_number: string | null; qt_date: string | null; qt_attachment: string | null; product: string | null; price: number | null; approval_status: string | null; customer_signed_at: string | null; payment_status: string | null; payment_condition: string | null; sale_assigned: string | null; deposit_value: number | null; deposit_slip_status: string | null }[]>([]);
   const [installmentsByQt, setInstallmentsByQt] = useState<Record<string, { paid: number; total: number }>>({});
@@ -218,11 +224,22 @@ export default function CustomerCardPage() {
       const { error: de } = await supabase.from('account_documents').insert({
         account_id: id, file_name: file.name, file_url: u.publicUrl,
         file_size: file.size, file_type: file.type || null,
+        doc_label: docLabel,
       });
       if (!de) ok++;
     }
     if (ok > 0) { toast.success(`อัปโหลดสำเร็จ ${ok} ไฟล์`); fetchAccountDocs(); }
     setDocUploading(false);
+  };
+
+  const addCustomLabel = () => {
+    const label = customLabelInput.trim();
+    if (!label || docLabels.includes(label)) return;
+    const updated = [...docLabels, label];
+    setDocLabels(updated);
+    localStorage.setItem('doc_labels', JSON.stringify(updated));
+    setDocLabel(label);
+    setCustomLabelInput('');
   };
 
   const handleDocDelete = async (doc: any) => {
@@ -975,35 +992,70 @@ export default function CustomerCardPage() {
             {/* ===== DOCUMENTS ===== */}
             <TabsContent value="documents" className="mt-0">
               <div className="space-y-3">
-                {/* Upload zone */}
-                <div
-                  onDragOver={e => { e.preventDefault(); setDocDragOver(true); }}
-                  onDragLeave={() => setDocDragOver(false)}
-                  onDrop={e => { e.preventDefault(); setDocDragOver(false); handleDocUpload(Array.from(e.dataTransfer.files)); }}
-                  onClick={() => docFileRef.current?.click()}
-                  className={`border-2 border-dashed rounded-lg p-4 text-center cursor-pointer transition-colors ${
-                    docDragOver ? 'border-primary bg-primary/5' : 'border-border hover:border-primary/50 hover:bg-muted/30'
-                  }`}
-                >
-                  <input
-                    ref={docFileRef}
-                    type="file"
-                    multiple
-                    className="hidden"
-                    onChange={e => { handleDocUpload(e.target.files); if (e.target) e.target.value = ''; }}
-                  />
-                  {docUploading ? (
-                    <div className="flex items-center justify-center gap-2 py-1">
-                      <Loader2 size={16} className="animate-spin text-primary" />
-                      <span className="text-xs text-muted-foreground">กำลังอัปโหลด...</span>
+                {/* Label selector + Upload zone */}
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="text-xs text-muted-foreground shrink-0">หมวดหมู่:</span>
+                    <div className="flex gap-1.5 flex-wrap">
+                      {docLabels.map(label => (
+                        <button
+                          key={label}
+                          onClick={() => setDocLabel(label)}
+                          className={`px-2.5 py-1 rounded-full text-[11px] border transition-colors ${
+                            docLabel === label
+                              ? 'bg-primary text-primary-foreground border-primary'
+                              : 'bg-muted/40 text-muted-foreground border-border hover:border-primary/50'
+                          }`}
+                        >
+                          {label}
+                        </button>
+                      ))}
                     </div>
-                  ) : (
-                    <div className="flex flex-col items-center gap-1 py-1">
-                      <Upload size={20} className="text-muted-foreground" />
-                      <span className="text-xs text-muted-foreground">ลากไฟล์มาวาง หรือคลิกเพื่อเลือกไฟล์</span>
-                      <span className="text-[10px] text-muted-foreground">สำหรับเอกสารลูกค้าเก่า (สัญญา, ใบเสร็จ, ฯลฯ)</span>
+                    <div className="flex items-center gap-1">
+                      <Input
+                        value={customLabelInput}
+                        onChange={e => setCustomLabelInput(e.target.value)}
+                        onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); addCustomLabel(); } }}
+                        placeholder="เพิ่มหมวดใหม่..."
+                        className="h-7 text-[11px] w-28 px-2"
+                      />
+                      {customLabelInput.trim() && (
+                        <Button variant="ghost" size="icon" className="h-7 w-7" onClick={addCustomLabel}>
+                          <ListPlus size={14} />
+                        </Button>
+                      )}
                     </div>
-                  )}
+                  </div>
+
+                  <div
+                    onDragOver={e => { e.preventDefault(); setDocDragOver(true); }}
+                    onDragLeave={() => setDocDragOver(false)}
+                    onDrop={e => { e.preventDefault(); setDocDragOver(false); handleDocUpload(Array.from(e.dataTransfer.files)); }}
+                    onClick={() => docFileRef.current?.click()}
+                    className={`border-2 border-dashed rounded-lg p-4 text-center cursor-pointer transition-colors ${
+                      docDragOver ? 'border-primary bg-primary/5' : 'border-border hover:border-primary/50 hover:bg-muted/30'
+                    }`}
+                  >
+                    <input
+                      ref={docFileRef}
+                      type="file"
+                      multiple
+                      className="hidden"
+                      onChange={e => { handleDocUpload(e.target.files); if (e.target) e.target.value = ''; }}
+                    />
+                    {docUploading ? (
+                      <div className="flex items-center justify-center gap-2 py-1">
+                        <Loader2 size={16} className="animate-spin text-primary" />
+                        <span className="text-xs text-muted-foreground">กำลังอัปโหลด...</span>
+                      </div>
+                    ) : (
+                      <div className="flex flex-col items-center gap-1 py-1">
+                        <Upload size={20} className="text-muted-foreground" />
+                        <span className="text-xs text-muted-foreground">ลากไฟล์มาวาง หรือคลิกเพื่อเลือกไฟล์</span>
+                        <span className="text-[10px] text-muted-foreground">จะบันทึกเป็นหมวด "<strong>{docLabel}</strong>"</span>
+                      </div>
+                    )}
+                  </div>
                 </div>
 
                 {/* Uploaded documents */}
@@ -1015,9 +1067,14 @@ export default function CustomerCardPage() {
                         <div key={doc.id} className="flex items-center gap-3 p-2.5 rounded-md hover:bg-muted/40 transition-colors group">
                           <FileIcon size={16} className="text-primary shrink-0" />
                           <div className="min-w-0 flex-1">
-                            <p className="text-xs text-foreground truncate">{doc.file_name}</p>
+                            <div className="flex items-center gap-1.5">
+                              <p className="text-xs text-foreground truncate">{doc.file_name}</p>
+                              {doc.doc_label && (
+                                <Badge variant="outline" className="text-[9px] h-4 px-1.5 shrink-0">{doc.doc_label}</Badge>
+                              )}
+                            </div>
                             <p className="text-[10px] text-muted-foreground">
-                              {doc.doc_label || 'เอกสาร'} • {format(new Date(doc.created_at), 'd MMM yy', { locale: th })}
+                              {format(new Date(doc.created_at), 'd MMM yy', { locale: th })}
                               {doc.file_size ? ` • ${formatFileSize(doc.file_size)}` : ''}
                             </p>
                           </div>
