@@ -1,81 +1,157 @@
 import {
-  Target, Users, Presentation, Wrench, Package, AlertTriangle, DollarSign
+  Users, Target, Presentation, Wrench, DollarSign, FileText,
+  CalendarCheck, TrendingUp, Package, Clock, AlertTriangle,
+  CheckCircle2, Banknote, ClipboardList, MapPin, Trophy
 } from 'lucide-react';
-import KpiCard from '@/components/dashboard/KpiCard';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Skeleton } from '@/components/ui/skeleton';
 import StatusBadge from '@/components/ui/StatusBadge';
-import { mockOpportunities, mockWorkItems, mockInventory, mockActivityLogs, getAccountById, getUserById } from '@/data/mockData';
+import KpiCard from '@/components/dashboard/KpiCard';
+import PipelineChart from '@/components/dashboard/PipelineChart';
+import AnnouncementBoard from '@/components/dashboard/AnnouncementBoard';
+import { useDashboardData } from '@/hooks/useDashboardData';
+
+const activityTypeLabels: Record<string, string> = {
+  CALL: '📞 โทร',
+  MEETING: '🤝 ประชุม',
+  TASK: '📋 งาน',
+  DEADLINE: '⏰ เดดไลน์',
+  DEMO: '🎯 เดโม',
+};
+
+const fmt = (n: number) => `฿${(n / 1000000).toFixed(1)}M`;
 
 export default function Dashboard() {
-  const newLeads = mockOpportunities.filter(o => o.stage === 'NEW_LEAD').length;
-  const activeOpps = mockOpportunities.filter(o => !['WON', 'LOST'].includes(o.stage)).length;
-  const upcomingDemos = mockWorkItems.filter(w => w.type === 'DEMO_EVENT' && w.status !== 'DONE').length;
-  const openTickets = mockWorkItems.filter(w => w.type === 'SERVICE_TICKET' && w.status !== 'DONE').length;
-  const lowStock = mockInventory.filter(i => i.status === 'OUT' || i.quantity <= 2).length;
-  const totalPipeline = mockOpportunities.filter(o => !['WON', 'LOST'].includes(o.stage)).reduce((s, o) => s + (o.expected_value || 0), 0);
+  const { kpis, pipelineStages, upcomingActivities, upcomingDemos, announcements, loading, refetch } = useDashboardData();
 
-  const recentActivities = [...mockActivityLogs].sort((a, b) => new Date(b.performedAt).getTime() - new Date(a.performedAt).getTime()).slice(0, 8);
+  if (loading) {
+    return (
+      <div className="space-y-6 animate-fade-in">
+        <div>
+          <h1 className="text-2xl font-bold text-foreground">แดชบอร์ด</h1>
+          <p className="text-sm text-muted-foreground">Optima Aesthetic OS — ภาพรวม</p>
+        </div>
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          {Array.from({ length: 8 }).map((_, i) => (
+            <Skeleton key={i} className="h-24 rounded-lg" />
+          ))}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6 animate-fade-in">
       <div>
         <h1 className="text-2xl font-bold text-foreground">แดชบอร์ด</h1>
-        <p className="text-sm text-muted-foreground">Optima Aesthetic OS — ภาพรวม</p>
+        <p className="text-sm text-muted-foreground">Optima Aesthetic OS — ภาพรวมบริษัท</p>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <KpiCard label="ลีดใหม่" value={newLeads} icon={Users} variant="accent" />
-        <KpiCard label="โอกาสขายที่เปิดอยู่" value={activeOpps} icon={Target} variant="default" />
-        <KpiCard label="ขอคิวเดโม" value={upcomingDemos} icon={Presentation} variant="warning" />
-        <KpiCard label="ใบแจ้งซ่อมเปิดอยู่" value={openTickets} icon={Wrench} variant="destructive" />
-      </div>
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        <KpiCard label="สินค้าใกล้หมด" value={lowStock} icon={AlertTriangle} variant="warning" />
-        <KpiCard label="มูลค่า Pipeline" value={`฿${(totalPipeline / 1000000).toFixed(1)}M`} icon={DollarSign} variant="accent" />
-        <KpiCard label="วัสดุสิ้นเปลือง" value={mockInventory.filter(i => i.category === 'CONSUMABLE').length} icon={Package} />
+      {/* Row 1: Sales KPIs */}
+      <div>
+        <h2 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">ฝ่ายขาย</h2>
+        <div className="grid gap-3 grid-cols-2 lg:grid-cols-5">
+          <KpiCard label="ลีดใหม่" value={kpis.newLeads} icon={Users} variant="accent" />
+          <KpiCard label="โอกาสขายเปิดอยู่" value={kpis.activeOpps} icon={Target} variant="default" />
+          <KpiCard label="มูลค่า Pipeline" value={fmt(kpis.pipelineValue)} icon={DollarSign} variant="accent" />
+          <KpiCard label="ปิดการขายเดือนนี้" value={kpis.wonThisMonth} icon={Trophy} variant="success" />
+          <KpiCard label="ยอดขายเดือนนี้" value={fmt(kpis.wonValue)} icon={TrendingUp} variant="success" />
+        </div>
       </div>
 
+      {/* Row 2: Operations KPIs */}
+      <div>
+        <h2 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">ปฏิบัติการ</h2>
+        <div className="grid gap-3 grid-cols-2 lg:grid-cols-4">
+          <KpiCard label="เดโมรอยืนยัน" value={kpis.pendingDemos} icon={Presentation} variant="warning" />
+          <KpiCard label="เดโมยืนยันแล้ว" value={kpis.confirmedDemos} icon={CalendarCheck} variant="success" />
+          <KpiCard label="ใบเสนอราคารออนุมัติ" value={kpis.pendingQuotations} icon={FileText} variant="warning" />
+          <KpiCard label="ใบเสนอราคาอนุมัติแล้ว" value={kpis.approvedQuotations} icon={CheckCircle2} variant="success" />
+        </div>
+      </div>
+
+      {/* Row 3: Service + Finance KPIs */}
       <div className="grid gap-6 lg:grid-cols-2">
-        <div className="rounded-lg border bg-card p-4">
-          <h3 className="text-sm font-semibold text-foreground mb-3">กิจกรรมล่าสุด</h3>
-          <div className="space-y-3">
-            {recentActivities.map(activity => {
-              const account = getAccountById(activity.linkedAccountId);
-              const user = getUserById(activity.performedByUserId);
-              return (
-                <div key={activity.activityId} className="flex gap-3 text-sm">
-                  <div className="mt-1 h-2 w-2 shrink-0 rounded-full bg-accent" />
-                  <div className="flex-1 min-w-0">
-                    <p className="text-foreground">{activity.message}</p>
-                    <p className="text-xs text-muted-foreground mt-0.5">
-                      {user?.name} · {account?.clinic_name} · {new Date(activity.performedAt).toLocaleDateString('th-TH')}
-                    </p>
-                  </div>
-                </div>
-              );
-            })}
+        <div>
+          <h2 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">บริการ</h2>
+          <div className="grid gap-3 grid-cols-2">
+            <KpiCard label="เครื่องติดตั้ง" value={kpis.totalInstalled} icon={Package} variant="default" />
+            <KpiCard label="PM เกินกำหนด" value={kpis.overduePM} icon={Wrench} variant={kpis.overduePM > 0 ? 'destructive' : 'default'} />
+            <KpiCard label="สัญญาซื้อขาย" value={kpis.activeContracts} icon={ClipboardList} variant="default" />
+            <KpiCard label="แผนเยี่ยม" value={kpis.plannedVisits} icon={MapPin} variant="accent" />
           </div>
         </div>
+        <div>
+          <h2 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">การเงิน</h2>
+          <div className="grid gap-3 grid-cols-2">
+            <KpiCard label="ยอดค้างชำระ" value={`฿${kpis.totalDue.toLocaleString()}`} icon={Banknote} variant={kpis.totalDue > 0 ? 'destructive' : 'default'} />
+            <KpiCard label="ชำระแล้ว" value={`฿${kpis.totalPaid.toLocaleString()}`} icon={CheckCircle2} variant="success" />
+            <KpiCard label="สลิปรอตรวจ" value={kpis.pendingSlips} icon={Clock} variant="warning" />
+            <KpiCard label="เกินกำหนดชำระ" value={kpis.overduePayments} icon={AlertTriangle} variant={kpis.overduePayments > 0 ? 'destructive' : 'default'} />
+          </div>
+        </div>
+      </div>
 
-        <div className="rounded-lg border bg-card p-4">
-          <h3 className="text-sm font-semibold text-foreground mb-3">งานที่เปิดอยู่</h3>
-          <div className="space-y-2">
-            {mockWorkItems.filter(w => w.status !== 'DONE' && w.status !== 'CANCELLED').slice(0, 6).map(item => {
-              const account = getAccountById(item.linkedAccountId);
-              return (
-                <div key={item.workItemId} className="flex items-center justify-between gap-2 rounded-md border px-3 py-2">
-                  <div className="min-w-0 flex-1">
-                    <p className="text-sm font-medium text-foreground truncate">{item.title}</p>
-                    <p className="text-xs text-muted-foreground">{account?.clinic_name}</p>
-                  </div>
-                  <div className="flex items-center gap-2 shrink-0">
-                    <StatusBadge status={item.priority} />
-                    <StatusBadge status={item.status} />
-                  </div>
+      {/* Row 4: Charts + Announcements */}
+      <div className="grid gap-6 lg:grid-cols-2">
+        <PipelineChart data={pipelineStages} />
+        <AnnouncementBoard announcements={announcements} onRefresh={refetch} />
+      </div>
+
+      {/* Row 5: Activities + Demos */}
+      <div className="grid gap-6 lg:grid-cols-2">
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-semibold">กิจกรรมที่กำลังจะมาถึง</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-2">
+            {upcomingActivities.length === 0 && (
+              <p className="text-xs text-muted-foreground text-center py-4">ไม่มีกิจกรรมที่รอดำเนินการ</p>
+            )}
+            {upcomingActivities.map(act => (
+              <div key={act.id} className="flex items-center justify-between gap-2 rounded-md border px-3 py-2">
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm font-medium text-foreground truncate">{act.title}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {activityTypeLabels[act.activity_type] || act.activity_type}
+                    {act.clinic_name && ` · ${act.clinic_name}`}
+                  </p>
                 </div>
-              );
-            })}
-          </div>
-        </div>
+                <div className="text-xs text-muted-foreground shrink-0">
+                  {new Date(act.activity_date).toLocaleDateString('th-TH', { day: 'numeric', month: 'short' })}
+                  {act.start_time && ` ${act.start_time}`}
+                </div>
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-semibold">เดโมที่กำลังจะมาถึง</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-2">
+            {upcomingDemos.length === 0 && (
+              <p className="text-xs text-muted-foreground text-center py-4">ไม่มีเดโมที่กำลังจะมาถึง</p>
+            )}
+            {upcomingDemos.map(demo => (
+              <div key={demo.id} className="flex items-center justify-between gap-2 rounded-md border px-3 py-2">
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm font-medium text-foreground truncate">{demo.clinic_name || 'ไม่ระบุคลินิก'}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {demo.products_demo?.join(', ') || '-'}
+                  </p>
+                </div>
+                <div className="flex items-center gap-2 shrink-0">
+                  <span className="text-xs text-muted-foreground">
+                    {new Date(demo.demo_date).toLocaleDateString('th-TH', { day: 'numeric', month: 'short' })}
+                  </span>
+                  <StatusBadge status={demo.confirmed ? 'CONFIRMED' : 'PENDING'} />
+                </div>
+              </div>
+            ))}
+          </CardContent>
+        </Card>
       </div>
     </div>
   );
