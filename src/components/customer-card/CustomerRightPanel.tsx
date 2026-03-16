@@ -88,6 +88,7 @@ export default function CustomerRightPanel({ accountId, clinicName }: Props) {
   const [purchases, setPurchases] = useState<any[]>([]);
   const [paidRevenue, setPaidRevenue] = useState(0);
   const [outstandingAmount, setOutstandingAmount] = useState(0);
+  const [channelsByQt, setChannelsByQt] = useState<Record<string, Set<string>>>({});
   const [accountDocs, setAccountDocs] = useState<AccountDocument[]>([]);
   const [uploading, setUploading] = useState(false);
   const [dragOver, setDragOver] = useState(false);
