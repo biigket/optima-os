@@ -224,11 +224,22 @@ export default function CustomerCardPage() {
       const { error: de } = await supabase.from('account_documents').insert({
         account_id: id, file_name: file.name, file_url: u.publicUrl,
         file_size: file.size, file_type: file.type || null,
+        doc_label: docLabel,
       });
       if (!de) ok++;
     }
     if (ok > 0) { toast.success(`อัปโหลดสำเร็จ ${ok} ไฟล์`); fetchAccountDocs(); }
     setDocUploading(false);
+  };
+
+  const addCustomLabel = () => {
+    const label = customLabelInput.trim();
+    if (!label || docLabels.includes(label)) return;
+    const updated = [...docLabels, label];
+    setDocLabels(updated);
+    localStorage.setItem('doc_labels', JSON.stringify(updated));
+    setDocLabel(label);
+    setCustomLabelInput('');
   };
 
   const handleDocDelete = async (doc: any) => {
