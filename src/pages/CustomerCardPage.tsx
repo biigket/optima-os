@@ -242,6 +242,14 @@ export default function CustomerCardPage() {
     setCustomLabelInput('');
   };
 
+  const removeDocLabel = (label: string) => {
+    if (docLabels.length <= 1) return;
+    const updated = docLabels.filter(l => l !== label);
+    setDocLabels(updated);
+    localStorage.setItem('doc_labels', JSON.stringify(updated));
+    if (docLabel === label) setDocLabel(updated[0]);
+  };
+
   const handleDocDelete = async (doc: any) => {
     if (!confirm(`ลบไฟล์ "${doc.file_name}" ?`)) return;
     const parts = doc.file_url.split('/account-documents/');
@@ -1008,6 +1016,14 @@ export default function CustomerCardPage() {
                           }`}
                         >
                           {label}
+                          {docLabels.length > 1 && (
+                            <span
+                              onClick={e => { e.stopPropagation(); removeDocLabel(label); }}
+                              className="ml-1 opacity-50 hover:opacity-100 transition-opacity"
+                            >
+                              ×
+                            </span>
+                          )}
                         </button>
                       ))}
                     </div>
