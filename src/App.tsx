@@ -46,6 +46,7 @@ import WorkCheckinPage from "@/pages/WorkCheckinPage";
 import AttendanceSummaryPage from "@/pages/AttendanceSummaryPage";
 import SettingsPage from "@/pages/SettingsPage";
 import ContractsPage from "@/pages/ContractsPage";
+import CsvImportPage from "@/pages/CsvImportPage";
 import { MockAuthProvider } from "@/hooks/useMockAuth";
 
 const queryClient = new QueryClient();
@@ -79,6 +80,7 @@ function AuthedAppRoutes() {
         <Route path="/quotations" element={<QuotationsPage />} />
         <Route path="/quotations/:id" element={<QuotationDetailPage />} />
         <Route path="/contracts" element={<ContractsPage />} />
+        <Route path="/csv-import" element={<CsvImportPage />} />
         <Route path="/inventory" element={<InventoryPage />} />
         <Route path="/payments" element={<PaymentsPage />} />
         <Route path="/payments/:quotationId" element={<PaymentDetailPage />} />
