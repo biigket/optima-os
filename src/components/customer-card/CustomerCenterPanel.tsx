@@ -80,6 +80,15 @@ export default function CustomerCenterPanel({ accountId, opportunities }: Props)
   const [internalNotes, setInternalNotes] = useState<OpportunityNote[]>([]);
   const [visitReports, setVisitReports] = useState<VisitReportRow[]>([]);
   const [demoReports, setDemoReports] = useState<any[]>([]);
+  const [documents, setDocuments] = useState<any[]>([]);
+  const [docUploading, setDocUploading] = useState(false);
+  const [dragOver, setDragOver] = useState(false);
+  const docInputRef = useRef<HTMLInputElement>(null);
+
+  const fetchDocuments = useCallback(async () => {
+    const { data } = await supabase.from('account_documents').select('*').eq('account_id', accountId).order('created_at', { ascending: false });
+    if (data) setDocuments(data);
+  }, [accountId]);
 
   useEffect(() => {
     supabase.from('opportunity_notes').select('*').eq('account_id', accountId).order('created_at', { ascending: false })
@@ -90,7 +99,54 @@ export default function CustomerCenterPanel({ accountId, opportunities }: Props)
 
     supabase.from('demos').select('*, accounts(clinic_name)').eq('account_id', accountId).eq('report_submitted', true).order('created_at', { ascending: false })
       .then(({ data }) => { if (data) setDemoReports(data); });
-  }, [accountId]);
+
+    fetchDocuments();
+  }, [accountId, fetchDocuments]);
+
+  const handleDocUpload = async (files: FileList | null) => {
+    if (!files || files.length === 0) return;
+    setDocUploading(true);
+    let successCount = 0;
+    for (const file of Array.from(files)) {
+      const ext = file.name.split('.').pop() || 'bin';
+      const path = `${accountId}/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+      const { error: uploadErr } = await supabase.storage.from('account-documents').upload(path, file);
+      if (uploadErr) { console.error(uploadErr); continue; }
+      const { data: urlData } = supabase.storage.from('account-documents').getPublicUrl(path);
+      const { error: dbErr } = await supabase.from('account_documents').insert({
+        account_id: accountId,
+        file_name: file.name,
+        file_url: urlData.publicUrl,
+        file_size: file.size,
+        file_type: file.type || null,
+      });
+      if (!dbErr) successCount++;
+    }
+    if (successCount > 0) {
+      toast.success(`อัปโหลดสำเร็จ ${successCount} ไฟล์`);
+      fetchDocuments();
+    }
+    setDocUploading(false);
+  };
+
+  const handleDocDelete = async (doc: any) => {
+    if (!confirm(`ลบไฟล์ "${doc.file_name}" ?`)) return;
+    // Extract storage path from URL
+    const urlParts = doc.file_url.split('/account-documents/');
+    if (urlParts.length > 1) {
+      await supabase.storage.from('account-documents').remove([decodeURIComponent(urlParts[1])]);
+    }
+    await supabase.from('account_documents').delete().eq('id', doc.id);
+    toast.success('ลบเอกสารแล้ว');
+    fetchDocuments();
+  };
+
+  const formatFileSize = (bytes: number | null) => {
+    if (!bytes) return '-';
+    if (bytes < 1024) return `${bytes} B`;
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+  };
 
   const lastVisit = visits.length > 0 ? visits[0].date : '-';
   const activeDeals = opportunities.filter(o => !['WON', 'LOST', 'CLOSED'].includes(o.stage)).length;
