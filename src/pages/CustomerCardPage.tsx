@@ -32,8 +32,7 @@ import {
   getConsumablesForAccount, getServiceForAccount,
   getDocumentsForAccount, getMarketingForAccount
 } from '@/data/customerCardMockData';
-import { getInstallationsForAccount } from '@/data/installBaseMockData';
-import { getConsumablesForAccount as getConsumableBaseForAccount } from '@/data/consumableBaseMockData';
+// Install base and consumable data now comes from Supabase directly
 import type { Opportunity, Activity } from '@/types';
 import HistoryTimeline from '@/components/opportunity-detail/HistoryTimeline';
 import { useOpportunityNotes, type OpportunityNote } from '@/hooks/useOpportunityNotes';
