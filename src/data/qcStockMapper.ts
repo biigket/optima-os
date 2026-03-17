@@ -82,7 +82,7 @@ export function mapGenericStock(row: DbRow): QuattroStockItem & PicohiStockItem 
     id: row.id,
     serialNumber: row.serial_number || '',
     handpiece: row.handpiece || '',
-    status: (row.status || 'พร้อมขาย') as UnifiedStockStatus,
+    status: normalizeStatus(row.status),
     reservedFor: row.reserved_for,
     failReason: row.fail_reason || '',
     receivedDate: row.received_date || '',
