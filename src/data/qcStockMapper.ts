@@ -96,7 +96,7 @@ export function mapCartridge(row: DbRow): CartridgeStockItem {
     id: row.id,
     serialNumber: row.serial_number || '',
     cartridgeType: (row.cartridge_type || 'A2.0') as CartridgeType,
-    status: (row.status || 'พร้อมขาย') as UnifiedStockStatus,
+    status: normalizeStatus(row.status),
     reservedFor: row.reserved_for,
     qcFailReason: row.fail_reason || '',
     receivedDate: row.received_date || '',
