@@ -64,7 +64,7 @@ export function mapTrica3D(row: DbRow): Trica3DStockItem {
     id: row.id,
     serialNumber: row.serial_number || '',
     clinic: row.clinic || '',
-    status: (row.status || 'พร้อมขาย') as UnifiedStockStatus,
+    status: normalizeStatus(row.status),
     reservedFor: row.reserved_for,
     receivedDate: row.received_date || '',
     installDate: row.install_date || '',
