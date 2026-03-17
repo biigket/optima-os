@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -9,26 +9,72 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Separator } from '@/components/ui/separator';
 import {
   ArrowLeft, Wrench, Building2, Cpu, Calendar, User, Clock, Send,
-  CheckCircle, AlertTriangle, Camera, ImagePlus,
+  CheckCircle, AlertTriangle, Camera,
 } from 'lucide-react';
 import {
-  mockServiceTickets, type ServiceTicket, type ServiceTicketUpdate, type TicketStatus,
+  type ServiceTicket, type ServiceTicketUpdate, type TicketStatus,
   ticketStatusLabels, ticketStatusColors,
   ticketPriorityLabels, ticketPriorityColors,
 } from '@/data/serviceTicketMockData';
+import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 
 export default function ServiceTicketDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const [ticket, setTicket] = useState<ServiceTicket | null>(null);
+  const [loading, setLoading] = useState(true);
 
-  const ticketRef = mockServiceTickets.find(t => t.id === id);
-  const [ticket, setTicket] = useState<ServiceTicket | null>(ticketRef ? { ...ticketRef } : null);
-
-  // Update form
   const [updateMessage, setUpdateMessage] = useState('');
   const [newStatus, setNewStatus] = useState<TicketStatus | ''>('');
-  const [resolution, setResolution] = useState(ticket?.resolution || '');
+  const [resolution, setResolution] = useState('');
+
+  useEffect(() => {
+    async function load() {
+      const [{ data: row }, { data: updates }] = await Promise.all([
+        supabase.from('service_tickets').select('*').eq('id', id).single(),
+        supabase.from('service_ticket_updates').select('*').eq('ticket_id', id).order('created_at', { ascending: true }),
+      ]);
+      if (row) {
+        const t: ServiceTicket = {
+          id: row.id,
+          ticketNumber: row.ticket_number || '',
+          accountId: row.account_id || '',
+          clinic: row.clinic || '',
+          itemType: row.item_type || 'DEVICE',
+          itemId: row.item_id || '',
+          itemName: row.item_name || '',
+          serialNumber: row.serial_number || '',
+          symptom: row.symptom || '',
+          symptomPhotos: row.symptom_photos || [],
+          status: (row.status || 'OPEN') as TicketStatus,
+          priority: row.priority || 'NORMAL',
+          assignedTo: row.assigned_to || '',
+          resolution: row.resolution || '',
+          createdAt: row.created_at || '',
+          updatedAt: row.updated_at || '',
+          closedAt: row.closed_at || undefined,
+          updates: (updates || []).map((u: any) => ({
+            id: u.id,
+            ticketId: u.ticket_id,
+            message: u.message || '',
+            photos: u.photos || [],
+            updatedBy: u.updated_by || '',
+            newStatus: u.new_status || undefined,
+            createdAt: u.created_at || '',
+          })),
+        };
+        setTicket(t);
+        setResolution(t.resolution);
+      }
+      setLoading(false);
+    }
+    load();
+  }, [id]);
+
+  if (loading) {
+    return <div className="text-center py-20 text-muted-foreground">กำลังโหลด...</div>;
+  }
 
   if (!ticket) {
     return (
@@ -41,12 +87,28 @@ export default function ServiceTicketDetailPage() {
 
   const isClosed = ticket.status === 'CLOSED' || ticket.status === 'RESOLVED';
 
-  function handleAddUpdate() {
-    if (!updateMessage.trim()) return;
+  async function handleAddUpdate() {
+    if (!updateMessage.trim() || !ticket) return;
 
-    const update: ServiceTicketUpdate = {
-      id: `stu-${Date.now()}`,
-      ticketId: ticket!.id,
+    const { data: insertedUpdate } = await supabase.from('service_ticket_updates').insert({
+      ticket_id: ticket.id,
+      message: updateMessage.trim(),
+      updated_by: 'Tanaka Yuki',
+      new_status: newStatus || null,
+    }).select().single();
+
+    const updatePayload: any = { updated_at: new Date().toISOString() };
+    if (newStatus) {
+      updatePayload.status = newStatus;
+      if (newStatus === 'CLOSED' || newStatus === 'RESOLVED') {
+        updatePayload.closed_at = new Date().toISOString();
+      }
+    }
+    await supabase.from('service_tickets').update(updatePayload).eq('id', ticket.id);
+
+    const newUpdate: ServiceTicketUpdate = {
+      id: insertedUpdate?.id || `stu-${Date.now()}`,
+      ticketId: ticket.id,
       message: updateMessage.trim(),
       photos: [],
       updatedBy: 'Tanaka Yuki',
@@ -54,36 +116,43 @@ export default function ServiceTicketDetailPage() {
       createdAt: new Date().toISOString(),
     };
 
-    const updatedTicket = {
-      ...ticket!,
-      updates: [...ticket!.updates, update],
+    setTicket({
+      ...ticket,
+      updates: [...ticket.updates, newUpdate],
       updatedAt: new Date().toISOString(),
       ...(newStatus ? { status: newStatus } : {}),
       ...(newStatus === 'CLOSED' || newStatus === 'RESOLVED' ? { closedAt: new Date().toISOString() } : {}),
-    };
-
-    // Sync back to mock array
-    const idx = mockServiceTickets.findIndex(t => t.id === ticket!.id);
-    if (idx !== -1) mockServiceTickets[idx] = updatedTicket;
-
-    setTicket(updatedTicket);
+    });
     setUpdateMessage('');
     setNewStatus('');
     toast({ title: 'อัพเดทเรียบร้อย' });
   }
 
-  function handleSaveResolution() {
-    const updatedTicket = { ...ticket!, resolution };
-    const idx = mockServiceTickets.findIndex(t => t.id === ticket!.id);
-    if (idx !== -1) mockServiceTickets[idx] = updatedTicket;
-    setTicket(updatedTicket);
+  async function handleSaveResolution() {
+    if (!ticket) return;
+    await supabase.from('service_tickets').update({ resolution }).eq('id', ticket.id);
+    setTicket({ ...ticket, resolution });
     toast({ title: 'บันทึกการแก้ไขแล้ว' });
   }
 
-  function handleCloseTicket() {
+  async function handleCloseTicket() {
+    if (!ticket) return;
+
+    await supabase.from('service_ticket_updates').insert({
+      ticket_id: ticket.id,
+      message: 'ปิด Ticket - งานเสร็จสมบูรณ์',
+      updated_by: 'Tanaka Yuki',
+      new_status: 'CLOSED',
+    });
+    await supabase.from('service_tickets').update({
+      status: 'CLOSED',
+      closed_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    }).eq('id', ticket.id);
+
     const update: ServiceTicketUpdate = {
       id: `stu-${Date.now()}`,
-      ticketId: ticket!.id,
+      ticketId: ticket.id,
       message: 'ปิด Ticket - งานเสร็จสมบูรณ์',
       photos: [],
       updatedBy: 'Tanaka Yuki',
@@ -91,23 +160,18 @@ export default function ServiceTicketDetailPage() {
       createdAt: new Date().toISOString(),
     };
 
-    const updatedTicket = {
-      ...ticket!,
+    setTicket({
+      ...ticket,
       status: 'CLOSED' as TicketStatus,
       closedAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
-      updates: [...ticket!.updates, update],
-    };
-
-    const idx = mockServiceTickets.findIndex(t => t.id === ticket!.id);
-    if (idx !== -1) mockServiceTickets[idx] = updatedTicket;
-    setTicket(updatedTicket);
+      updates: [...ticket.updates, update],
+    });
     toast({ title: 'ปิด Ticket เรียบร้อย' });
   }
 
   return (
     <div className="space-y-6 animate-fade-in max-w-4xl mx-auto">
-      {/* Header */}
       <div className="flex items-center gap-3">
         <Button variant="ghost" size="icon" onClick={() => navigate('/maintenance')}>
           <ArrowLeft size={18} />
@@ -131,9 +195,7 @@ export default function ServiceTicketDetailPage() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Left: Info + Updates */}
         <div className="lg:col-span-2 space-y-4">
-          {/* Ticket Info */}
           <Card>
             <CardHeader className="pb-3">
               <CardTitle className="text-sm flex items-center gap-2"><Wrench size={15} /> ข้อมูล Ticket</CardTitle>
@@ -142,17 +204,11 @@ export default function ServiceTicketDetailPage() {
               <div className="grid grid-cols-2 gap-3 text-sm">
                 <div className="flex items-center gap-2">
                   <Building2 size={14} className="text-muted-foreground" />
-                  <div>
-                    <p className="text-xs text-muted-foreground">คลินิก</p>
-                    <p className="font-medium">{ticket.clinic}</p>
-                  </div>
+                  <div><p className="text-xs text-muted-foreground">คลินิก</p><p className="font-medium">{ticket.clinic}</p></div>
                 </div>
                 <div className="flex items-center gap-2">
                   <Cpu size={14} className="text-muted-foreground" />
-                  <div>
-                    <p className="text-xs text-muted-foreground">อุปกรณ์</p>
-                    <p className="font-medium">{ticket.itemName}</p>
-                  </div>
+                  <div><p className="text-xs text-muted-foreground">อุปกรณ์</p><p className="font-medium">{ticket.itemName}</p></div>
                 </div>
                 <div className="flex items-center gap-2">
                   <span className="text-muted-foreground text-xs font-mono">S/N</span>
@@ -160,15 +216,10 @@ export default function ServiceTicketDetailPage() {
                 </div>
                 <div className="flex items-center gap-2">
                   <User size={14} className="text-muted-foreground" />
-                  <div>
-                    <p className="text-xs text-muted-foreground">ผู้รับผิดชอบ</p>
-                    <p className="font-medium">{ticket.assignedTo}</p>
-                  </div>
+                  <div><p className="text-xs text-muted-foreground">ผู้รับผิดชอบ</p><p className="font-medium">{ticket.assignedTo}</p></div>
                 </div>
               </div>
-
               <Separator />
-
               <div>
                 <p className="text-xs text-muted-foreground mb-1">อาการที่แจ้ง</p>
                 <p className="text-sm bg-muted/50 rounded-md p-3">{ticket.symptom}</p>
@@ -176,7 +227,6 @@ export default function ServiceTicketDetailPage() {
             </CardContent>
           </Card>
 
-          {/* Timeline */}
           <Card>
             <CardHeader className="pb-3">
               <CardTitle className="text-sm flex items-center gap-2"><Clock size={15} /> ประวัติการอัพเดท</CardTitle>
@@ -188,15 +238,10 @@ export default function ServiceTicketDetailPage() {
               <div className="space-y-4">
                 {ticket.updates.map((u, i) => (
                   <div key={u.id} className="relative pl-6 pb-4 last:pb-0">
-                    {/* Timeline line */}
-                    {i < ticket.updates.length - 1 && (
-                      <div className="absolute left-[9px] top-5 bottom-0 w-px bg-border" />
-                    )}
-                    {/* Timeline dot */}
+                    {i < ticket.updates.length - 1 && <div className="absolute left-[9px] top-5 bottom-0 w-px bg-border" />}
                     <div className="absolute left-0 top-1 h-[18px] w-[18px] rounded-full border-2 border-primary bg-background flex items-center justify-center">
                       <div className="h-2 w-2 rounded-full bg-primary" />
                     </div>
-
                     <div className="space-y-1">
                       <div className="flex items-center gap-2 text-xs text-muted-foreground">
                         <span className="font-medium text-foreground">{u.updatedBy}</span>
@@ -209,15 +254,6 @@ export default function ServiceTicketDetailPage() {
                         )}
                       </div>
                       <p className="text-sm">{u.message}</p>
-                      {u.photos.length > 0 && (
-                        <div className="flex gap-2 mt-1">
-                          {u.photos.map((p, j) => (
-                            <div key={j} className="h-16 w-16 rounded-md bg-muted border flex items-center justify-center">
-                              <Camera size={16} className="text-muted-foreground" />
-                            </div>
-                          ))}
-                        </div>
-                      )}
                     </div>
                   </div>
                 ))}
@@ -225,26 +261,18 @@ export default function ServiceTicketDetailPage() {
             </CardContent>
           </Card>
 
-          {/* Add Update Form */}
           {!isClosed && (
             <Card>
               <CardHeader className="pb-3">
                 <CardTitle className="text-sm flex items-center gap-2"><Send size={15} /> เพิ่มอัพเดท</CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
-                <Textarea
-                  placeholder="บันทึกความคืบหน้า..."
-                  value={updateMessage}
-                  onChange={e => setUpdateMessage(e.target.value)}
-                  rows={3}
-                />
+                <Textarea placeholder="บันทึกความคืบหน้า..." value={updateMessage} onChange={e => setUpdateMessage(e.target.value)} rows={3} />
                 <div className="flex items-end gap-3">
                   <div className="flex-1 space-y-1">
                     <Label className="text-xs">เปลี่ยนสถานะ (ถ้ามี)</Label>
                     <Select value={newStatus} onValueChange={v => setNewStatus(v as TicketStatus)}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="ไม่เปลี่ยน" />
-                      </SelectTrigger>
+                      <SelectTrigger><SelectValue placeholder="ไม่เปลี่ยน" /></SelectTrigger>
                       <SelectContent>
                         <SelectItem value="IN_PROGRESS">กำลังดำเนินการ</SelectItem>
                         <SelectItem value="WAITING_PART">รออะไหล่</SelectItem>
@@ -261,56 +289,23 @@ export default function ServiceTicketDetailPage() {
           )}
         </div>
 
-        {/* Right: Summary */}
         <div className="space-y-4">
           <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm">สรุป</CardTitle>
-            </CardHeader>
+            <CardHeader className="pb-3"><CardTitle className="text-sm">สรุป</CardTitle></CardHeader>
             <CardContent className="space-y-3 text-sm">
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">วันที่เปิด</span>
-                <span>{new Date(ticket.createdAt).toLocaleDateString('th-TH')}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">อัพเดทล่าสุด</span>
-                <span>{new Date(ticket.updatedAt).toLocaleDateString('th-TH')}</span>
-              </div>
-              {ticket.closedAt && (
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">วันที่ปิด</span>
-                  <span>{new Date(ticket.closedAt).toLocaleDateString('th-TH')}</span>
-                </div>
-              )}
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">ประเภท</span>
-                <span>{ticket.itemType === 'DEVICE' ? 'เครื่อง' : 'วัสดุสิ้นเปลือง'}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">จำนวนอัพเดท</span>
-                <span>{ticket.updates.length}</span>
-              </div>
+              <div className="flex justify-between"><span className="text-muted-foreground">วันที่เปิด</span><span>{new Date(ticket.createdAt).toLocaleDateString('th-TH')}</span></div>
+              <div className="flex justify-between"><span className="text-muted-foreground">อัพเดทล่าสุด</span><span>{new Date(ticket.updatedAt).toLocaleDateString('th-TH')}</span></div>
+              {ticket.closedAt && <div className="flex justify-between"><span className="text-muted-foreground">วันที่ปิด</span><span>{new Date(ticket.closedAt).toLocaleDateString('th-TH')}</span></div>}
+              <div className="flex justify-between"><span className="text-muted-foreground">ประเภท</span><span>{ticket.itemType === 'DEVICE' ? 'เครื่อง' : 'วัสดุสิ้นเปลือง'}</span></div>
+              <div className="flex justify-between"><span className="text-muted-foreground">จำนวนอัพเดท</span><span>{ticket.updates.length}</span></div>
             </CardContent>
           </Card>
 
-          {/* Resolution */}
           <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm flex items-center gap-2"><Wrench size={14} /> การแก้ไข</CardTitle>
-            </CardHeader>
+            <CardHeader className="pb-3"><CardTitle className="text-sm flex items-center gap-2"><Wrench size={14} /> การแก้ไข</CardTitle></CardHeader>
             <CardContent className="space-y-3">
-              <Textarea
-                placeholder="บันทึกสาเหตุและวิธีแก้ไข..."
-                value={resolution}
-                onChange={e => setResolution(e.target.value)}
-                rows={4}
-                disabled={isClosed}
-              />
-              {!isClosed && (
-                <Button size="sm" variant="outline" onClick={handleSaveResolution} className="w-full">
-                  บันทึกการแก้ไข
-                </Button>
-              )}
+              <Textarea placeholder="บันทึกสาเหตุและวิธีแก้ไข..." value={resolution} onChange={e => setResolution(e.target.value)} rows={4} disabled={isClosed} />
+              {!isClosed && <Button size="sm" variant="outline" onClick={handleSaveResolution} className="w-full">บันทึกการแก้ไข</Button>}
             </CardContent>
           </Card>
         </div>
