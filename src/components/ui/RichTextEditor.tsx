@@ -1,8 +1,6 @@
-import { useEditor, EditorContent } from '@tiptap/react';
-import StarterKit from '@tiptap/starter-kit';
+import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { Bold, List } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { useEffect } from 'react';
 
 interface RichTextEditorProps {
   content: string;
@@ -20,7 +18,7 @@ function ToolbarButton({
 }: {
   active?: boolean;
   onClick: () => void;
-  children: React.ReactNode;
+  children: ReactNode;
   title?: string;
 }) {
   return (
@@ -29,7 +27,7 @@ function ToolbarButton({
       onClick={onClick}
       title={title}
       className={cn(
-        'p-1.5 rounded-md transition-colors',
+        'rounded-md p-1.5 transition-colors',
         active
           ? 'bg-primary/15 text-primary'
           : 'text-muted-foreground hover:bg-muted hover:text-foreground'
@@ -40,6 +38,14 @@ function ToolbarButton({
   );
 }
 
+function normalizeHtml(html: string) {
+  const trimmed = html.trim();
+  if (!trimmed || trimmed === '<p></p>' || trimmed === '<div></div>' || trimmed === '<br>') {
+    return '';
+  }
+  return html;
+}
+
 export default function RichTextEditor({
   content,
   onChange,
@@ -47,54 +53,91 @@ export default function RichTextEditor({
   className,
   minHeight = '100px',
 }: RichTextEditorProps) {
-  const editor = useEditor({
-    extensions: [
-      StarterKit.configure({
-        heading: false,
-        orderedList: false,
-        horizontalRule: false,
-        bulletList: { keepMarks: true },
-      }),
-    ],
-    content,
-    editorProps: {
-      attributes: {
-        class: `prose prose-sm max-w-none focus:outline-none px-3 py-2 text-xs leading-relaxed`,
-        style: `min-height: ${minHeight}`,
-      },
-    },
-    onUpdate: ({ editor }) => {
-      onChange(editor.getHTML());
-    },
-  });
+  const editorRef = useRef<HTMLDivElement | null>(null);
+  const [isFocused, setIsFocused] = useState(false);
+  const [formats, setFormats] = useState({ bold: false, bulletList: false });
+
+  const normalizedContent = useMemo(() => normalizeHtml(content), [content]);
+
+  const updateFormats = () => {
+    if (typeof document === 'undefined') return;
+    setFormats({
+      bold: document.queryCommandState('bold'),
+      bulletList: document.queryCommandState('insertUnorderedList'),
+    });
+  };
+
+  const emitChange = () => {
+    const html = normalizeHtml(editorRef.current?.innerHTML || '');
+    onChange(html);
+    updateFormats();
+  };
+
+  const focusEditor = () => {
+    editorRef.current?.focus();
+    updateFormats();
+  };
+
+  const runCommand = (command: 'bold' | 'insertUnorderedList') => {
+    focusEditor();
+    document.execCommand(command, false);
+    emitChange();
+  };
 
   useEffect(() => {
-    if (editor && content !== editor.getHTML()) {
-      editor.commands.setContent(content, { emitUpdate: false });
-    }
-  }, [content]);
+    const el = editorRef.current;
+    if (!el) return;
 
-  if (!editor) return null;
+    const currentHtml = normalizeHtml(el.innerHTML);
+    if (currentHtml !== normalizedContent) {
+      el.innerHTML = normalizedContent;
+    }
+  }, [normalizedContent]);
 
   return (
-    <div className={cn('rounded-md border border-input bg-background overflow-hidden', className)}>
-      <div className="flex items-center gap-0.5 px-1.5 py-1 border-b border-border bg-muted/30">
+    <div className={cn('overflow-hidden rounded-md border border-input bg-background', className)}>
+      <div className="flex items-center gap-0.5 border-b border-border bg-muted/30 px-1.5 py-1">
         <ToolbarButton
-          active={editor.isActive('bold')}
-          onClick={() => editor.chain().focus().toggleBold().run()}
+          active={formats.bold}
+          onClick={() => runCommand('bold')}
           title="Bold"
         >
           <Bold size={14} />
         </ToolbarButton>
         <ToolbarButton
-          active={editor.isActive('bulletList')}
-          onClick={() => editor.chain().focus().toggleBulletList().run()}
+          active={formats.bulletList}
+          onClick={() => runCommand('insertUnorderedList')}
           title="Bullet List"
         >
           <List size={14} />
         </ToolbarButton>
       </div>
-      <EditorContent editor={editor} />
+
+      <div className="relative">
+        {!normalizeHtml(editorRef.current?.innerHTML || normalizedContent) && !isFocused && (
+          <div className="pointer-events-none absolute left-3 top-2 text-xs text-muted-foreground">
+            {placeholder}
+          </div>
+        )}
+        <div
+          ref={editorRef}
+          contentEditable
+          suppressContentEditableWarning
+          onInput={emitChange}
+          onBlur={() => {
+            setIsFocused(false);
+            emitChange();
+          }}
+          onFocus={() => {
+            setIsFocused(true);
+            updateFormats();
+          }}
+          onKeyUp={updateFormats}
+          onMouseUp={updateFormats}
+          className="prose prose-sm max-w-none px-3 py-2 text-xs leading-relaxed focus:outline-none"
+          style={{ minHeight }}
+        />
+      </div>
     </div>
   );
 }
