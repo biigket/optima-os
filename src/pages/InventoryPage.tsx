@@ -4,19 +4,12 @@ import { Search, Package, Cpu, Zap, MonitorSmartphone, DollarSign, Check, X, Pen
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
-import { mockND2Stock } from '@/data/qcMockData';
-import { mockCartridgeStock } from '@/data/cartridgeMockData';
-import { mockTrica3DStock } from '@/data/trica3dMockData';
-import { mockQuattroStock } from '@/data/quattroMockData';
-import { mockPicohiStock } from '@/data/picohiMockData';
-import { mockFreezeroStock } from '@/data/freezeroMockData';
 import { inventoryPrices, getPrice, setPrice } from '@/data/inventoryPricing';
-import { syncReservations } from '@/data/inventoryReservation';
 import type { UnifiedStockStatus } from '@/data/unifiedStockStatus';
 import { unifiedStatusColor } from '@/data/unifiedStockStatus';
+import { supabase } from '@/integrations/supabase/client';
 
 type ProductCategory = 'ALL' | 'ND2' | 'TRICA3D' | 'QUATTRO' | 'PICOHI' | 'FREEZERO' | 'CARTRIDGE';
 
@@ -57,100 +50,60 @@ export default function InventoryPage() {
   const [tab, setTab] = useState<ProductCategory>('ALL');
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editPrice, setEditPrice] = useState('');
-  // force re-render after price save
   const [, setTick] = useState(0);
-  // Sync reservations on mount
-  useEffect(() => { syncReservations(); }, []);
+  const [allItems, setAllItems] = useState<InventoryItem[]>([]);
 
-  // Auto-sync: pull "พร้อมขาย" และ "ติดจอง" from all QC Stock sources
-  const allItems = useMemo<InventoryItem[]>(() => {
-    const items: InventoryItem[] = [];
+  // Fetch from Supabase: items with status พร้อมขาย or ติดจอง
+  useEffect(() => {
+    supabase
+      .from('qc_stock_items')
+      .select('*')
+      .in('status', ['พร้อมขาย', 'ติดจอง'])
+      .order('created_at', { ascending: false })
+      .then(({ data }) => {
+        if (!data) return;
 
-    mockND2Stock
-      .filter(i => i.status === 'พร้อมขาย' || i.status === 'ติดจอง')
-      .forEach(i => items.push({
-        id: i.id,
-        category: 'ND2',
-        serialNumber: i.hntSerialNumber,
-        subInfo: `HRM: ${i.hrm || '—'}`,
-        storageLocation: i.storageLocation || '—',
-        receivedDate: i.receivedDate || '—',
-        detailPath: `/qc-stock/${i.id}`,
-        status: i.status,
-        reservedFor: (i as any).reservedFor,
-      }));
+        const categoryMap: Record<string, ProductCategory> = {
+          'ND2': 'ND2',
+          'TRICA 3D': 'TRICA3D',
+          'QUATTRO': 'QUATTRO',
+          'PICOHI300': 'PICOHI',
+          'FREEZERO': 'FREEZERO',
+          'CARTRIDGE': 'CARTRIDGE',
+        };
 
-    mockTrica3DStock
-      .filter(i => i.status === 'พร้อมขาย' || i.status === 'ติดจอง')
-      .forEach(i => items.push({
-        id: i.id,
-        category: 'TRICA3D',
-        serialNumber: i.serialNumber,
-        subInfo: '—',
-        storageLocation: i.storageLocation || '—',
-        receivedDate: i.receivedDate || '—',
-        detailPath: `/qc-stock/trica3d/${i.id}`,
-        status: i.status,
-        reservedFor: (i as any).reservedFor,
-      }));
+        const detailPrefixMap: Record<string, string> = {
+          'ND2': '/qc-stock',
+          'TRICA 3D': '/qc-stock/trica3d',
+          'QUATTRO': '/qc-stock/quattro',
+          'PICOHI300': '/qc-stock/picohi',
+          'FREEZERO': '/qc-stock/freezero',
+          'CARTRIDGE': '/qc-stock/cartridge',
+        };
 
-    mockQuattroStock
-      .filter(i => i.status === 'พร้อมขาย' || i.status === 'ติดจอง')
-      .forEach(i => items.push({
-        id: i.id,
-        category: 'QUATTRO',
-        serialNumber: i.serialNumber,
-        subInfo: `HP: ${i.handpiece || '—'}`,
-        storageLocation: i.storageLocation || '—',
-        receivedDate: i.receivedDate || '—',
-        detailPath: `/qc-stock/quattro/${i.id}`,
-        status: i.status,
-        reservedFor: (i as any).reservedFor,
-      }));
+        const items: InventoryItem[] = data.map(row => {
+          const cat = categoryMap[row.product_type] || 'ND2';
+          const prefix = detailPrefixMap[row.product_type] || '/qc-stock';
+          let subInfo = '—';
+          if (row.product_type === 'ND2') subInfo = `HRM: ${row.hrm || '—'}`;
+          else if (row.product_type === 'CARTRIDGE') subInfo = row.cartridge_type || '—';
+          else if (['QUATTRO', 'PICOHI300', 'FREEZERO'].includes(row.product_type)) subInfo = `HP: ${row.handpiece || '—'}`;
 
-    mockPicohiStock
-      .filter(i => i.status === 'พร้อมขาย' || i.status === 'ติดจอง')
-      .forEach(i => items.push({
-        id: i.id,
-        category: 'PICOHI',
-        serialNumber: i.serialNumber,
-        subInfo: `HP: ${i.handpiece || '—'}`,
-        storageLocation: i.storageLocation || '—',
-        receivedDate: i.receivedDate || '—',
-        detailPath: `/qc-stock/picohi/${i.id}`,
-        status: i.status,
-        reservedFor: (i as any).reservedFor,
-      }));
+          return {
+            id: row.id,
+            category: cat,
+            serialNumber: row.serial_number || '',
+            subInfo,
+            storageLocation: row.storage_location || '—',
+            receivedDate: row.received_date || '—',
+            detailPath: `${prefix}/${row.id}`,
+            status: (row.status || 'พร้อมขาย') as UnifiedStockStatus,
+            reservedFor: row.reserved_for || undefined,
+          };
+        });
 
-    mockFreezeroStock
-      .filter(i => i.status === 'พร้อมขาย' || i.status === 'ติดจอง')
-      .forEach(i => items.push({
-        id: i.id,
-        category: 'FREEZERO',
-        serialNumber: i.serialNumber,
-        subInfo: `HP: ${i.handpiece || '—'}`,
-        storageLocation: i.storageLocation || '—',
-        receivedDate: i.receivedDate || '—',
-        detailPath: `/qc-stock/freezero/${i.id}`,
-        status: i.status,
-        reservedFor: (i as any).reservedFor,
-      }));
-
-    mockCartridgeStock
-      .filter(i => i.status === 'พร้อมขาย' || i.status === 'ติดจอง')
-      .forEach(i => items.push({
-        id: i.id,
-        category: 'CARTRIDGE',
-        serialNumber: i.serialNumber,
-        subInfo: i.cartridgeType,
-        storageLocation: i.storageLocation || '—',
-        receivedDate: i.receivedDate || '—',
-        detailPath: `/qc-stock/cartridge/${i.id}`,
-        status: i.status,
-        reservedFor: (i as any).reservedFor,
-      }));
-
-    return items;
+        setAllItems(items);
+      });
   }, []);
 
   const filtered = useMemo(() => {
