@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { Bold, List } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -18,7 +18,7 @@ function ToolbarButton({
 }: {
   active?: boolean;
   onClick: () => void;
-  children: React.ReactNode;
+  children: ReactNode;
   title?: string;
 }) {
   return (
