@@ -1,0 +1,3 @@
+﻿product_type,serial_number,cartridge_type,status,clinic,account_id,install_date,warranty_days,warranty_expiry,notes
+CARTRIDGE,CART-001,A2.0,พร้อมขาย,,,,,,
+CARTRIDGE,CART-002,A3.0,ติดตั้งแล้ว,Example Clinic,,2025-01-15,365,2026-01-15,ตัวอย่าง

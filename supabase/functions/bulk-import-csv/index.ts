@@ -114,18 +114,28 @@ Deno.serve(async (req) => {
     }
 
     if (table === 'qc_stock_items') {
-      const rows = parseCSV(csv).filter(r => r.product_type).map(r => ({
-        product_type: r.product_type, serial_number: nullIfEmpty(r.serial_number),
-        status: r.status || 'พร้อมขาย', clinic: nullIfEmpty(r.clinic),
-        hfl1: nullIfEmpty(r.hfl1), hfl2: nullIfEmpty(r.hfl2),
-        hsd1: nullIfEmpty(r.hsd1), hsd2: nullIfEmpty(r.hsd2),
-        hrm: nullIfEmpty(r.hrm), hrm_sell_or_keep: nullIfEmpty(r.hrm_sell_or_keep),
-        ups_stabilizer: nullIfEmpty(r.ups_stabilizer),
-        received_date: nullIfEmpty(r.received_date),
-        storage_location: nullIfEmpty(r.storage_location),
-        inspection_doc: nullIfEmpty(r.inspection_doc),
-        fail_reason: nullIfEmpty(r.fail_reason), notes: nullIfEmpty(r.notes),
-      }));
+      const rows = parseCSV(csv).filter(r => r.product_type).map(r => {
+        const pt = (r.product_type || '').toUpperCase().trim();
+        const normalizedType = pt === 'TRICA3D' ? 'TRICA 3D' : pt === 'PICOHI' ? 'PICOHI300' : pt;
+        return {
+          product_type: normalizedType, serial_number: nullIfEmpty(r.serial_number),
+          status: r.status || 'พร้อมขาย', clinic: nullIfEmpty(r.clinic),
+          hfl1: nullIfEmpty(r.hfl1), hfl2: nullIfEmpty(r.hfl2),
+          hsd1: nullIfEmpty(r.hsd1), hsd2: nullIfEmpty(r.hsd2),
+          hrm: nullIfEmpty(r.hrm), hrm_sell_or_keep: nullIfEmpty(r.hrm_sell_or_keep),
+          ups_stabilizer: nullIfEmpty(r.ups_stabilizer),
+          received_date: nullIfEmpty(r.received_date),
+          storage_location: nullIfEmpty(r.storage_location),
+          inspection_doc: nullIfEmpty(r.inspection_doc),
+          fail_reason: nullIfEmpty(r.fail_reason), notes: nullIfEmpty(r.notes),
+          cartridge_type: nullIfEmpty(r.cartridge_type),
+          handpiece: nullIfEmpty(r.handpiece),
+          account_id: nullIfEmpty(r.account_id),
+          install_date: nullIfEmpty(r.install_date),
+          warranty_days: r.warranty_days ? parseInt(r.warranty_days) : null,
+          warranty_expiry: nullIfEmpty(r.warranty_expiry),
+        };
+      });
       // Clear existing and re-insert
       await supabase.from('qc_stock_items').delete().neq('id', '00000000-0000-0000-0000-000000000000');
       let totalDone = 0;

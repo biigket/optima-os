@@ -13,7 +13,7 @@ import type { QuattroStockItem } from '@/data/quattroMockData';
 import type { PicohiStockItem } from '@/data/picohiMockData';
 import type { FreezeroStockItem } from '@/data/freezeroMockData';
 import { unifiedStatuses, unifiedStatusColor, type UnifiedStockStatus } from '@/data/unifiedStockStatus';
-import { mapND2, mapTrica3D, mapGenericStock, mapCartridge } from '@/data/qcStockMapper';
+import { mapND2, mapTrica3D, mapGenericStock, mapCartridge, normalizeProductType } from '@/data/qcStockMapper';
 import { supabase } from '@/integrations/supabase/client';
 import ND2IntakeForm from '@/components/qc-stock/ND2IntakeForm';
 import CartridgeIntakeForm from '@/components/qc-stock/CartridgeIntakeForm';
@@ -80,12 +80,13 @@ export default function QcStockPage() {
   useEffect(() => {
     supabase.from('qc_stock_items').select('*').order('created_at', { ascending: false }).then(({ data }) => {
       if (!data) return;
-      setItems(data.filter(r => r.product_type === 'ND2').map(mapND2));
-      setCartridgeItems(data.filter(r => r.product_type === 'CARTRIDGE').map(mapCartridge));
-      setTrica3dItems(data.filter(r => r.product_type === 'TRICA 3D').map(mapTrica3D));
-      setQuattroItems(data.filter(r => r.product_type === 'QUATTRO').map(mapGenericStock));
-      setPicohiItems(data.filter(r => r.product_type === 'PICOHI300').map(mapGenericStock));
-      setFreezeroItems(data.filter(r => r.product_type === 'FREEZERO').map(mapGenericStock));
+      const normalized = data.map(r => ({ ...r, _pt: normalizeProductType(r.product_type) }));
+      setItems(normalized.filter(r => r._pt === 'ND2').map(mapND2));
+      setCartridgeItems(normalized.filter(r => r._pt === 'CARTRIDGE').map(mapCartridge));
+      setTrica3dItems(normalized.filter(r => r._pt === 'TRICA 3D').map(mapTrica3D));
+      setQuattroItems(normalized.filter(r => r._pt === 'QUATTRO').map(mapGenericStock));
+      setPicohiItems(normalized.filter(r => r._pt === 'PICOHI300').map(mapGenericStock));
+      setFreezeroItems(normalized.filter(r => r._pt === 'FREEZERO').map(mapGenericStock));
     });
   }, []);
 

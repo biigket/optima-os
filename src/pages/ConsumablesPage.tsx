@@ -36,7 +36,7 @@ export default function ConsumablesPage() {
     const { data } = await supabase
       .from('qc_stock_items')
       .select('id, cartridge_type, serial_number, clinic, account_id, install_date, warranty_days, warranty_expiry, depleted, notes')
-      .eq('product_type', 'Cartridge')
+      .in('product_type', ['Cartridge', 'CARTRIDGE', 'cartridge'])
       .eq('status', 'ติดตั้งแล้ว')
       .order('install_date', { ascending: false });
 

@@ -9,6 +9,7 @@ import { toast } from 'sonner';
 import { inventoryPrices, getPrice, setPrice } from '@/data/inventoryPricing';
 import type { UnifiedStockStatus } from '@/data/unifiedStockStatus';
 import { unifiedStatusColor } from '@/data/unifiedStockStatus';
+import { normalizeStatus, normalizeProductType } from '@/data/qcStockMapper';
 import { supabase } from '@/integrations/supabase/client';
 
 type ProductCategory = 'ALL' | 'ND2' | 'TRICA3D' | 'QUATTRO' | 'PICOHI' | 'FREEZERO' | 'CARTRIDGE';
@@ -58,7 +59,6 @@ export default function InventoryPage() {
     supabase
       .from('qc_stock_items')
       .select('*')
-      .in('status', ['พร้อมขาย', 'ติดจอง'])
       .order('created_at', { ascending: false })
       .then(({ data }) => {
         if (!data) return;
@@ -81,26 +81,32 @@ export default function InventoryPage() {
           'CARTRIDGE': '/qc-stock/cartridge',
         };
 
-        const items: InventoryItem[] = data.map(row => {
-          const cat = categoryMap[row.product_type] || 'ND2';
-          const prefix = detailPrefixMap[row.product_type] || '/qc-stock';
-          let subInfo = '—';
-          if (row.product_type === 'ND2') subInfo = `HRM: ${row.hrm || '—'}`;
-          else if (row.product_type === 'CARTRIDGE') subInfo = row.cartridge_type || '—';
-          else if (['QUATTRO', 'PICOHI300', 'FREEZERO'].includes(row.product_type)) subInfo = `HP: ${row.handpiece || '—'}`;
+        const items: InventoryItem[] = data
+          .filter(row => {
+            const status = normalizeStatus(row.status);
+            return status === 'พร้อมขาย' || status === 'ติดจอง';
+          })
+          .map(row => {
+            const pt = normalizeProductType(row.product_type);
+            const cat = categoryMap[pt] || 'ND2';
+            const prefix = detailPrefixMap[pt] || '/qc-stock';
+            let subInfo = '—';
+            if (pt === 'ND2') subInfo = `HRM: ${row.hrm || '—'}`;
+            else if (pt === 'CARTRIDGE') subInfo = row.cartridge_type || '—';
+            else if (['QUATTRO', 'PICOHI300', 'FREEZERO'].includes(pt)) subInfo = `HP: ${row.handpiece || '—'}`;
 
-          return {
-            id: row.id,
-            category: cat,
-            serialNumber: row.serial_number || '',
-            subInfo,
-            storageLocation: row.storage_location || '—',
-            receivedDate: row.received_date || '—',
-            detailPath: `${prefix}/${row.id}`,
-            status: (row.status || 'พร้อมขาย') as UnifiedStockStatus,
-            reservedFor: row.reserved_for || undefined,
-          };
-        });
+            return {
+              id: row.id,
+              category: cat,
+              serialNumber: row.serial_number || '',
+              subInfo,
+              storageLocation: row.storage_location || '—',
+              receivedDate: row.received_date || '—',
+              detailPath: `${prefix}/${row.id}`,
+              status: normalizeStatus(row.status),
+              reservedFor: row.reserved_for || undefined,
+            };
+          });
 
         setAllItems(items);
       });
