@@ -9,6 +9,7 @@ import { toast } from 'sonner';
 import { inventoryPrices, getPrice, setPrice } from '@/data/inventoryPricing';
 import type { UnifiedStockStatus } from '@/data/unifiedStockStatus';
 import { unifiedStatusColor } from '@/data/unifiedStockStatus';
+import { normalizeStatus, normalizeProductType } from '@/data/qcStockMapper';
 import { supabase } from '@/integrations/supabase/client';
 
 type ProductCategory = 'ALL' | 'ND2' | 'TRICA3D' | 'QUATTRO' | 'PICOHI' | 'FREEZERO' | 'CARTRIDGE';
