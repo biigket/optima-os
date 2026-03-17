@@ -83,6 +83,24 @@ export default function CustomerRightPanel({ accountId, clinicName }: Props) {
   const documents = getDocumentsForAccount(accountId);
   const marketing = getMarketingForAccount(accountId);
 
+  const [installBaseDevices, setInstallBaseDevices] = useState<any[]>([]);
+
+  useEffect(() => {
+    supabase.from('installations').select('*, products(product_name, category)')
+      .eq('account_id', accountId)
+      .then(({ data }) => {
+        if (data) setInstallBaseDevices(data.map((d: any) => ({
+          id: d.id,
+          productCategory: d.products?.category || '',
+          serialNumber: d.serial_number || '',
+          installDate: d.install_date || '',
+          warrantyExpiry: d.warranty_expiry || '',
+          province: d.province || '',
+          pmReports: [],
+        })));
+      });
+  }, [accountId]);
+
   const [qtDocs, setQtDocs] = useState<QuotationDoc[]>([]);
   const [purchases, setPurchases] = useState<any[]>([]);
   const [paidRevenue, setPaidRevenue] = useState(0);

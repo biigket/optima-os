@@ -207,6 +207,33 @@ export default function CustomerCardPage() {
     supabase.from('contracts').select('*').eq('account_id', id)
       .order('created_at', { ascending: false })
       .then(({ data }) => { if (data) setAccountContracts(data); });
+    // Install base devices
+    supabase.from('installations').select('*, products(product_name, category)')
+      .eq('account_id', id)
+      .then(({ data }) => {
+        if (data) setInstallBaseDevices(data.map((d: any) => ({
+          id: d.id,
+          productCategory: d.products?.category || '',
+          serialNumber: d.serial_number || '',
+          installDate: d.install_date || '',
+          warrantyExpiry: d.warranty_expiry || '',
+          province: d.province || '',
+          pmReports: [],
+        })));
+      });
+    // Consumable base
+    supabase.from('qc_stock_items').select('*')
+      .eq('account_id', id)
+      .in('product_type', ['CARTRIDGE', 'Cartridge FL', 'Cartridge SD', 'Cartridge RM'])
+      .then(({ data }) => {
+        if (data) setConsumableBase(data.map((c: any) => ({
+          id: c.id,
+          cartridgeType: c.cartridge_type || c.product_type || '',
+          serialNumber: c.serial_number || '',
+          deliveryDate: c.install_date || c.received_date || '',
+          warrantyExpiry: c.warranty_expiry || '',
+        })));
+      });
   }, [id, opportunities]);
 
   const fetchAccountDocs = useCallback(async () => {
