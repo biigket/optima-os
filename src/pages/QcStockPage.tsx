@@ -13,7 +13,7 @@ import type { QuattroStockItem } from '@/data/quattroMockData';
 import type { PicohiStockItem } from '@/data/picohiMockData';
 import type { FreezeroStockItem } from '@/data/freezeroMockData';
 import { unifiedStatuses, unifiedStatusColor, type UnifiedStockStatus } from '@/data/unifiedStockStatus';
-import { mapND2, mapTrica3D, mapGenericStock, mapCartridge } from '@/data/qcStockMapper';
+import { mapND2, mapTrica3D, mapGenericStock, mapCartridge, normalizeProductType } from '@/data/qcStockMapper';
 import { supabase } from '@/integrations/supabase/client';
 import ND2IntakeForm from '@/components/qc-stock/ND2IntakeForm';
 import CartridgeIntakeForm from '@/components/qc-stock/CartridgeIntakeForm';
