@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -30,10 +30,9 @@ import { toast } from '@/hooks/use-toast';
 export default function InstallBaseDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const [inst, setInst] = useState(() => {
-    const found = mockInstallations.find(i => i.id === id);
-    return found ? { ...found } : null;
-  });
+  const [inst, setInst] = useState<Installation | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [qcItem, setQcItem] = useState<any>(null);
   const [pmCount, setPmCount] = useState(2);
   const [deletedPMs, setDeletedPMs] = useState<number[]>([]);
   const [pmToDelete, setPmToDelete] = useState<number | null>(null);
@@ -43,7 +42,6 @@ export default function InstallBaseDetailPage() {
   const [selectedPmDate, setSelectedPmDate] = useState('');
   const [selectedReport, setSelectedReport] = useState<PMReport | undefined>();
 
-  // Edit mode
   const [editing, setEditing] = useState(false);
   const [editForm, setEditForm] = useState({
     serialNumber: '',
@@ -61,12 +59,60 @@ export default function InstallBaseDetailPage() {
     hrmSellOrKeep: '' as string,
   });
 
-  // Replacement dialog
   const [replaceDialogOpen, setReplaceDialogOpen] = useState(false);
   const [replaceType, setReplaceType] = useState<'SWAP' | 'LOANER'>('SWAP');
   const [replaceNewSN, setReplaceNewSN] = useState('');
   const [replaceReason, setReplaceReason] = useState('');
   const [replaceNote, setReplaceNote] = useState('');
+
+  useEffect(() => {
+    async function load() {
+      if (!id) return;
+      const { data: row } = await supabase
+        .from('installations')
+        .select('*, products(product_name, category), accounts(clinic_name)')
+        .eq('id', id)
+        .single();
+      if (!row) { setLoading(false); return; }
+
+      const installation: Installation = {
+        id: row.id,
+        qcStockItemId: '',
+        productCategory: (row.products as any)?.category || 'ND2',
+        serialNumber: row.serial_number || '',
+        clinic: (row.accounts as any)?.clinic_name || '',
+        accountId: row.account_id || undefined,
+        installDate: row.install_date || '',
+        warrantyDays: row.warranty_days || 365,
+        warrantyExpiry: row.warranty_expiry || '',
+        province: row.province || '',
+        region: row.region || '',
+        notes: '',
+        pmReports: [],
+        replacementHistory: [],
+      };
+
+      if (row.serial_number) {
+        const { data: qc } = await supabase
+          .from('qc_stock_items')
+          .select('*')
+          .eq('serial_number', row.serial_number)
+          .maybeSingle();
+        if (qc) {
+          installation.qcStockItemId = qc.id;
+          setQcItem(qc);
+        }
+      }
+
+      setInst(installation);
+      setLoading(false);
+    }
+    load();
+  }, [id]);
+
+  if (loading) {
+    return <div className="text-center py-20 text-muted-foreground">กำลังโหลด...</div>;
+  }
 
   if (!inst) {
     return (
@@ -79,23 +125,10 @@ export default function InstallBaseDetailPage() {
 
   const hasLoaner = !!inst.loanerSerialNumber;
   const pmSchedule = generatePMSchedule(inst.installDate, pmCount).filter(pm => !deletedPMs.includes(pm.number));
-
-  // Lookup QC stock item for handpiece data
-  const qcItem = inst.productCategory === 'ND2'
-    ? mockND2Stock.find(q => q.id === inst.qcStockItemId)
-    : null;
   const today = new Date().toISOString().split('T')[0];
   const warrantyExpired = inst.warrantyExpiry < today;
 
-  function syncToMock(updated: Installation) {
-    const idx = mockInstallations.findIndex(i => i.id === updated.id);
-    if (idx !== -1) mockInstallations[idx] = { ...updated };
-    setInst({ ...updated });
-  }
-
-  // === EDIT ===
   function startEdit() {
-    const qc = inst!.productCategory === 'ND2' ? mockND2Stock.find(q => q.id === inst!.qcStockItemId) : null;
     setEditForm({
       serialNumber: inst!.serialNumber,
       installDate: inst!.installDate,
@@ -104,17 +137,17 @@ export default function InstallBaseDetailPage() {
       province: inst!.province,
       region: inst!.region,
       notes: inst!.notes,
-      hfl1: qc?.hfl1 || '',
-      hfl2: qc?.hfl2 || '',
-      hsd1: qc?.hsd1 || '',
-      hsd2: qc?.hsd2 || '',
-      hrm: qc?.hrm || '',
-      hrmSellOrKeep: qc?.hrmSellOrKeep || 'ขาย',
+      hfl1: qcItem?.hfl1 || '',
+      hfl2: qcItem?.hfl2 || '',
+      hsd1: qcItem?.hsd1 || '',
+      hsd2: qcItem?.hsd2 || '',
+      hrm: qcItem?.hrm || '',
+      hrmSellOrKeep: qcItem?.hrm_sell_or_keep || 'ขาย',
     });
     setEditing(true);
   }
 
-  function saveEdit() {
+  async function saveEdit() {
     const wDays = parseInt(editForm.warrantyDays) || inst!.warrantyDays;
     const expiry = new Date(editForm.installDate);
     expiry.setDate(expiry.getDate() + wDays);
@@ -129,29 +162,33 @@ export default function InstallBaseDetailPage() {
       region: editForm.region,
       notes: editForm.notes,
     };
-    syncToMock(updated);
 
-    // Sync handpiece data back to QC stock
-    if (inst!.productCategory === 'ND2') {
-      const qcIdx = mockND2Stock.findIndex(q => q.id === inst!.qcStockItemId);
-      if (qcIdx !== -1) {
-        mockND2Stock[qcIdx] = {
-          ...mockND2Stock[qcIdx],
-          hfl1: editForm.hfl1,
-          hfl2: editForm.hfl2,
-          hsd1: editForm.hsd1,
-          hsd2: editForm.hsd2,
-          hrm: editForm.hrm,
-          hrmSellOrKeep: editForm.hrmSellOrKeep as 'ขาย' | 'เก็บ',
-        };
-      }
+    await supabase.from('installations').update({
+      serial_number: editForm.serialNumber,
+      install_date: editForm.installDate,
+      warranty_days: wDays,
+      warranty_expiry: editForm.warrantyExpiry || expiry.toISOString().split('T')[0],
+      province: editForm.province,
+      region: editForm.region,
+    }).eq('id', inst!.id);
+
+    if (inst!.productCategory === 'ND2' && qcItem) {
+      await supabase.from('qc_stock_items').update({
+        hfl1: editForm.hfl1,
+        hfl2: editForm.hfl2,
+        hsd1: editForm.hsd1,
+        hsd2: editForm.hsd2,
+        hrm: editForm.hrm,
+        hrm_sell_or_keep: editForm.hrmSellOrKeep,
+      }).eq('id', qcItem.id);
+      setQcItem({ ...qcItem, hfl1: editForm.hfl1, hfl2: editForm.hfl2, hsd1: editForm.hsd1, hsd2: editForm.hsd2, hrm: editForm.hrm, hrm_sell_or_keep: editForm.hrmSellOrKeep });
     }
 
+    setInst(updated);
     setEditing(false);
     toast({ title: 'บันทึกการแก้ไขแล้ว' });
   }
 
-  // === REPLACEMENT ===
   function openReplaceDialog(type: 'SWAP' | 'LOANER') {
     setReplaceType(type);
     setReplaceNewSN('');
@@ -160,7 +197,7 @@ export default function InstallBaseDetailPage() {
     setReplaceDialogOpen(true);
   }
 
-  function handleReplace() {
+  async function handleReplace() {
     if (!replaceNewSN.trim()) return;
 
     const record: ReplacementRecord = {
@@ -177,15 +214,14 @@ export default function InstallBaseDetailPage() {
 
     let updated: Installation;
     if (replaceType === 'SWAP') {
-      // Permanent swap: replace S/N entirely
       updated = {
         ...inst!,
         serialNumber: replaceNewSN.trim(),
         replacementHistory: [...(inst!.replacementHistory || []), record],
       };
+      await supabase.from('installations').update({ serial_number: replaceNewSN.trim() }).eq('id', inst!.id);
       toast({ title: 'เปลี่ยนเครื่องถาวรแล้ว', description: `${record.oldSerialNumber} → ${record.newSerialNumber}` });
     } else {
-      // Loaner: keep original, mark loaner active
       updated = {
         ...inst!,
         originalSerialNumber: inst!.serialNumber,
@@ -193,14 +229,15 @@ export default function InstallBaseDetailPage() {
         serialNumber: replaceNewSN.trim(),
         replacementHistory: [...(inst!.replacementHistory || []), record],
       };
+      await supabase.from('installations').update({ serial_number: replaceNewSN.trim() }).eq('id', inst!.id);
       toast({ title: 'ให้เครื่องยืมแล้ว', description: `เครื่องยืม: ${replaceNewSN.trim()}` });
     }
 
-    syncToMock(updated);
+    setInst(updated);
     setReplaceDialogOpen(false);
   }
 
-  function handleReturnLoaner() {
+  async function handleReturnLoaner() {
     if (!inst!.originalSerialNumber) return;
 
     const record: ReplacementRecord = {
@@ -223,7 +260,8 @@ export default function InstallBaseDetailPage() {
       replacementHistory: [...(inst!.replacementHistory || []), record],
     };
 
-    syncToMock(updated);
+    await supabase.from('installations').update({ serial_number: inst!.originalSerialNumber }).eq('id', inst!.id);
+    setInst(updated);
     toast({ title: 'คืนเครื่องยืมแล้ว', description: `กลับไปใช้เครื่องเดิม: ${updated.serialNumber}` });
   }
 
@@ -251,7 +289,7 @@ export default function InstallBaseDetailPage() {
     } else {
       inst!.pmReports.push(report);
     }
-    syncToMock({ ...inst!, pmReports: [...inst!.pmReports] });
+    setInst({ ...inst!, pmReports: [...inst!.pmReports] });
   }
 
   function handleDeletePM(pmNumber: number) {
@@ -259,7 +297,7 @@ export default function InstallBaseDetailPage() {
     const existingIndex = inst!.pmReports.findIndex(r => r.maintenanceNumber === pmNumber);
     if (existingIndex >= 0) {
       inst!.pmReports.splice(existingIndex, 1);
-      syncToMock({ ...inst!, pmReports: [...inst!.pmReports] });
+      setInst({ ...inst!, pmReports: [...inst!.pmReports] });
     }
     setPmToDelete(null);
   }
@@ -322,7 +360,6 @@ export default function InstallBaseDetailPage() {
 
       {/* Info cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {/* Installation info + Handpiece in one card */}
         <Card>
           <CardHeader className="pb-2"><CardTitle className="text-sm">ข้อมูลการติดตั้ง</CardTitle></CardHeader>
           <CardContent className="space-y-2 text-sm">
@@ -351,7 +388,6 @@ export default function InstallBaseDetailPage() {
                   <Textarea value={editForm.notes} onChange={e => setEditForm(f => ({ ...f, notes: e.target.value }))} rows={2} />
                 </div>
 
-                {/* Handpiece edit */}
                 {inst.productCategory === 'ND2' && (
                   <>
                     <Separator className="my-2" />
@@ -388,7 +424,6 @@ export default function InstallBaseDetailPage() {
                 <p><span className="text-muted-foreground">ภูมิภาค:</span> {inst.region || '-'}</p>
                 {inst.notes && <p><span className="text-muted-foreground">หมายเหตุ:</span> {inst.notes}</p>}
 
-                {/* Handpiece table */}
                 {qcItem && (
                   <>
                     <Separator className="my-3" />
@@ -412,7 +447,7 @@ export default function InstallBaseDetailPage() {
                           </TableCell>
                           <TableCell className="font-mono text-xs px-2 py-1.5 align-top whitespace-nowrap">
                             <div>{qcItem.hrm}</div>
-                            <div className="text-muted-foreground">({qcItem.hrmSellOrKeep})</div>
+                            <div className="text-muted-foreground">({qcItem.hrm_sell_or_keep})</div>
                           </TableCell>
                         </TableRow>
                       </TableBody>
