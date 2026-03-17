@@ -9,6 +9,33 @@ import type { UnifiedStockStatus } from './unifiedStockStatus';
 
 type DbRow = Record<string, any>;
 
+/** Normalize diverse DB statuses to the 6 unified statuses */
+export function normalizeStatus(raw: string | null): UnifiedStockStatus {
+  if (!raw) return 'พร้อมขาย';
+  const s = raw.trim();
+  if (s === 'พร้อมขาย' || s.includes('พร้อมส่ง')) return 'พร้อมขาย';
+  if (s === 'ติดจอง') return 'ติดจอง';
+  if (s === 'ติดตั้งแล้ว') return 'ติดตั้งแล้ว';
+  if (s.startsWith('DEMO') || s === 'ยืม') return 'DEMO/ยืม';
+  if (s === 'รอซ่อม/รอ QC' || s === 'เครื่องเสีย') return 'รอซ่อม/รอ QC';
+  if (s === 'รอเคลม ตปท.') return 'รอเคลม ตปท.';
+  // Fallback for others like เครื่องอะไหล่, รับกลับบริษัท
+  if (s === 'เครื่องอะไหล่' || s === 'รับกลับบริษัท') return 'รอซ่อม/รอ QC';
+  return 'พร้อมขาย';
+}
+
+/** Normalize product_type from DB to standard keys */
+export function normalizeProductType(raw: string): string {
+  const upper = raw.toUpperCase().trim();
+  if (upper === 'ND2') return 'ND2';
+  if (upper === 'TRICA 3D' || upper === 'TRICA3D') return 'TRICA 3D';
+  if (upper === 'QUATTRO') return 'QUATTRO';
+  if (upper === 'PICOHI300' || upper === 'PICOHI') return 'PICOHI300';
+  if (upper === 'FREEZERO') return 'FREEZERO';
+  if (upper === 'CARTRIDGE') return 'CARTRIDGE';
+  return raw;
+}
+
 export function mapND2(row: DbRow): ND2StockItem {
   return {
     id: row.id,
