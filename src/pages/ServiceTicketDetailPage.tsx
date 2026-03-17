@@ -41,7 +41,7 @@ export default function ServiceTicketDetailPage() {
           ticketNumber: row.ticket_number || '',
           accountId: row.account_id || '',
           clinic: row.clinic || '',
-          itemType: row.item_type || 'DEVICE',
+          itemType: (row.item_type || 'DEVICE') as 'DEVICE' | 'CONSUMABLE',
           itemId: row.item_id || '',
           itemName: row.item_name || '',
           serialNumber: row.serial_number || '',
