@@ -59,7 +59,6 @@ export default function InventoryPage() {
     supabase
       .from('qc_stock_items')
       .select('*')
-      .in('status', ['พร้อมขาย', 'ติดจอง'])
       .order('created_at', { ascending: false })
       .then(({ data }) => {
         if (!data) return;
