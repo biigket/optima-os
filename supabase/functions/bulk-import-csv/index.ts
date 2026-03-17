@@ -50,12 +50,25 @@ Deno.serve(async (req) => {
     Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
   );
 
-  const { table, csvContent } = await req.json();
+  const body = await req.json();
+  const { table, csvContent, csvUrl } = body;
   const results: Record<string, any> = {};
 
   try {
-    if (table === 'products' && csvContent) {
-      const rows = parseCSV(csvContent).filter(r => r.product_id).map(r => ({
+    // Get CSV content either from body or from URL
+    let csv = csvContent;
+    if (!csv && csvUrl) {
+      const resp = await fetch(csvUrl);
+      csv = await resp.text();
+    }
+    if (!csv) {
+      return new Response(JSON.stringify({ success: false, error: 'No CSV content provided' }), {
+        status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    if (table === 'products') {
+      const rows = parseCSV(csv).filter(r => r.product_id).map(r => ({
         id: r.product_id, product_name: r.product_name, product_code: nullIfEmpty(r.product_code),
         category: r.category || 'DEVICE', description: nullIfEmpty(r.description),
         base_price: r.base_price ? parseFloat(r.base_price) : null,
@@ -64,8 +77,8 @@ Deno.serve(async (req) => {
       results.products = { count: rows.length, error: error?.message || null };
     }
 
-    if (table === 'accounts' && csvContent) {
-      const rows = parseCSV(csvContent).filter(r => r.account_id && r.clinic_name).map(r => ({
+    if (table === 'accounts') {
+      const rows = parseCSV(csv).filter(r => r.account_id && r.clinic_name).map(r => ({
         id: r.account_id, clinic_name: r.clinic_name, company_name: nullIfEmpty(r.company_name),
         address: nullIfEmpty(r.address), tax_id: nullIfEmpty(r.tax_id),
         entity_type: nullIfEmpty(r.entity_type), branch_type: nullIfEmpty(r.branch_type),
@@ -78,14 +91,14 @@ Deno.serve(async (req) => {
       for (let i = 0; i < rows.length; i += 50) {
         const batch = rows.slice(i, i + 50);
         const { error } = await supabase.from('accounts').upsert(batch, { onConflict: 'id' });
-        if (error) { results.accounts = { count: totalDone, error: error.message }; break; }
+        if (error) { results.accounts = { count: totalDone, error: error.message, failedBatch: i }; break; }
         totalDone += batch.length;
       }
       if (!results.accounts) results.accounts = { count: totalDone, error: null };
     }
 
-    if (table === 'contacts' && csvContent) {
-      const rows = parseCSV(csvContent).filter(r => r.account_id && r.name).map(r => ({
+    if (table === 'contacts') {
+      const rows = parseCSV(csv).filter(r => r.account_id && r.name).map(r => ({
         account_id: r.account_id, name: r.name, role: nullIfEmpty(r.role),
         phone: nullIfEmpty(r.phone), email: nullIfEmpty(r.email),
         line_id: nullIfEmpty(r.line_id),
@@ -93,13 +106,15 @@ Deno.serve(async (req) => {
       }));
       // Delete existing then insert to avoid duplicates
       const accountIds = [...new Set(rows.map(r => r.account_id))];
-      await supabase.from('contacts').delete().in('account_id', accountIds);
+      for (const aid of accountIds) {
+        await supabase.from('contacts').delete().eq('account_id', aid);
+      }
       const { error } = await supabase.from('contacts').insert(rows);
       results.contacts = { count: rows.length, error: error?.message || null };
     }
 
-    if (table === 'qc_stock_items' && csvContent) {
-      const rows = parseCSV(csvContent).filter(r => r.product_type).map(r => ({
+    if (table === 'qc_stock_items') {
+      const rows = parseCSV(csv).filter(r => r.product_type).map(r => ({
         product_type: r.product_type, serial_number: nullIfEmpty(r.serial_number),
         status: r.status || 'พร้อมขาย', clinic: nullIfEmpty(r.clinic),
         hfl1: nullIfEmpty(r.hfl1), hfl2: nullIfEmpty(r.hfl2),
@@ -123,8 +138,8 @@ Deno.serve(async (req) => {
       if (!results.qc_stock_items) results.qc_stock_items = { count: totalDone, error: null };
     }
 
-    if (table === 'installations' && csvContent) {
-      const rows = parseCSV(csvContent).filter(r => r.account_id && r.product_id).map(r => {
+    if (table === 'installations') {
+      const rows = parseCSV(csv).filter(r => r.account_id && r.product_id).map(r => {
         const wd = r.warranty_days ? parseInt(r.warranty_days) : null;
         let installDate = nullIfEmpty(r.install_date);
         if (installDate && installDate < '2000') installDate = null;
