@@ -1291,6 +1291,112 @@ export type Database = {
         }
         Relationships: []
       }
+      service_ticket_updates: {
+        Row: {
+          created_at: string
+          id: string
+          message: string
+          new_status: string | null
+          photos: string[] | null
+          ticket_id: string
+          updated_by: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          message?: string
+          new_status?: string | null
+          photos?: string[] | null
+          ticket_id: string
+          updated_by?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          message?: string
+          new_status?: string | null
+          photos?: string[] | null
+          ticket_id?: string
+          updated_by?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "service_ticket_updates_ticket_id_fkey"
+            columns: ["ticket_id"]
+            isOneToOne: false
+            referencedRelation: "service_tickets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      service_tickets: {
+        Row: {
+          account_id: string | null
+          assigned_to: string
+          clinic: string
+          closed_at: string | null
+          created_at: string
+          id: string
+          item_id: string
+          item_name: string
+          item_type: string
+          priority: string
+          resolution: string | null
+          serial_number: string
+          status: string
+          symptom: string
+          symptom_photos: string[] | null
+          ticket_number: string
+          updated_at: string
+        }
+        Insert: {
+          account_id?: string | null
+          assigned_to?: string
+          clinic?: string
+          closed_at?: string | null
+          created_at?: string
+          id?: string
+          item_id?: string
+          item_name?: string
+          item_type?: string
+          priority?: string
+          resolution?: string | null
+          serial_number?: string
+          status?: string
+          symptom?: string
+          symptom_photos?: string[] | null
+          ticket_number: string
+          updated_at?: string
+        }
+        Update: {
+          account_id?: string | null
+          assigned_to?: string
+          clinic?: string
+          closed_at?: string | null
+          created_at?: string
+          id?: string
+          item_id?: string
+          item_name?: string
+          item_type?: string
+          priority?: string
+          resolution?: string | null
+          serial_number?: string
+          status?: string
+          symptom?: string
+          symptom_photos?: string[] | null
+          ticket_number?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "service_tickets_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "accounts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       visit_plans: {
         Row: {
           account_id: string
