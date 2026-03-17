@@ -1,10 +1,10 @@
-// Install Base mock data - tracks installed devices with PM schedules
+// Install Base types — data now stored in Supabase installations table
 
 export type ProductCategory = 'ND2' | 'Trica 3D' | 'Quattro' | 'Picohi' | 'Freezero';
 
 export interface PMCheckItem {
   name: string;
-  pass: boolean | null; // null = N/A
+  pass: boolean | null;
   remark: string;
 }
 
@@ -20,11 +20,10 @@ export interface PMCartridgeEntry {
 export interface PMReport {
   id: string;
   installationId: string;
-  maintenanceNumber: number; // PM ครั้งที่ 1, 2, 3...
+  maintenanceNumber: number;
   scheduledDate: string;
   actualDate: string;
   status: 'PENDING' | 'COMPLETED' | 'OVERDUE';
-  // ND2-specific
   swVer: string;
   fwVer: string;
   fwFlLr: string;
@@ -60,7 +59,7 @@ export interface ReplacementRecord {
 
 export interface Installation {
   id: string;
-  qcStockItemId: string; // links back to QC stock item
+  qcStockItemId: string;
   productCategory: ProductCategory;
   serialNumber: string;
   clinic: string;
@@ -72,13 +71,11 @@ export interface Installation {
   region: string;
   notes: string;
   pmReports: PMReport[];
-  // Replacement tracking
   replacementHistory: ReplacementRecord[];
-  loanerSerialNumber?: string; // currently active loaner S/N
-  originalSerialNumber?: string; // original S/N if loaner is active
+  loanerSerialNumber?: string;
+  originalSerialNumber?: string;
 }
 
-// Helper: generate PM schedule every 6 months from install date
 export function generatePMSchedule(installDate: string, count: number = 2): { number: number; date: string }[] {
   const schedule: { number: number; date: string }[] = [];
   const base = new Date(installDate);
@@ -90,7 +87,6 @@ export function generatePMSchedule(installDate: string, count: number = 2): { nu
   return schedule;
 }
 
-// Default ND2 checklists
 export function getND2OperationChecklist(): PMCheckItem[] {
   return [
     { name: 'Handpiece FL-Left', pass: null, remark: '' },
@@ -117,15 +113,4 @@ export function getND2CoolingChecklist(): PMCheckItem[] {
   return [
     { name: 'Fan', pass: null, remark: '' },
   ];
-}
-
-// Pre-populated installations from QC stock items with status ติดตั้งแล้ว
-export const mockInstallations: Installation[] = [];
-
-// Get installations for a specific account (by accountId or clinic name match)
-export function getInstallationsForAccount(accountId: string, clinicName?: string): Installation[] {
-  return mockInstallations.filter(inst => 
-    inst.accountId === accountId || 
-    (clinicName && inst.clinic.toLowerCase() === clinicName.toLowerCase())
-  );
 }

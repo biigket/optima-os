@@ -7,8 +7,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { mockCartridgeStock, type CartridgeType } from '@/data/cartridgeMockData';
-import { mockConsumableInstallations, type ConsumableInstallation } from '@/data/consumableBaseMockData';
+import type { CartridgeType } from '@/data/cartridgeMockData';
+import type { ConsumableInstallation } from '@/data/consumableBaseMockData';
 import { unifiedStatusColor } from '@/data/unifiedStockStatus';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
@@ -44,11 +44,28 @@ export default function AddConsumableDialog({ open, onOpenChange, onAdded }: Pro
   const [accounts, setAccounts] = useState<AccountOption[]>([]);
   const [accountSearch, setAccountSearch] = useState('');
   const [accountPopoverOpen, setAccountPopoverOpen] = useState(false);
+  const [availableItems, setAvailableItems] = useState<AvailableCartridge[]>([]);
 
   useEffect(() => {
     if (!open) return;
     supabase.from('accounts').select('id, clinic_name').order('clinic_name')
       .then(({ data }) => { if (data) setAccounts(data); });
+
+    // Fetch cartridges from DB
+    supabase.from('qc_stock_items').select('id, cartridge_type, serial_number, status, reserved_for')
+      .eq('product_type', 'CARTRIDGE')
+      .in('status', ['พร้อมขาย', 'ติดจอง'])
+      .then(({ data }) => {
+        if (data) {
+          setAvailableItems(data.map(r => ({
+            id: r.id,
+            cartridgeType: (r.cartridge_type || 'A2.0') as CartridgeType,
+            serialNumber: r.serial_number || '',
+            status: r.status || 'พร้อมขาย',
+            reservedFor: r.reserved_for || undefined,
+          })));
+        }
+      });
   }, [open]);
 
   const filteredAccounts = accountSearch
@@ -56,23 +73,9 @@ export default function AddConsumableDialog({ open, onOpenChange, onAdded }: Pro
     : accounts;
 
   const selectedAccount = accounts.find(a => a.id === selectedAccountId);
-
-  const availableItems = useMemo(() => {
-    const validStatuses = ['พร้อมขาย', 'ติดจอง'];
-    return mockCartridgeStock
-      .filter(i => validStatuses.includes(i.status))
-      .map(i => ({
-        id: i.id,
-        cartridgeType: i.cartridgeType,
-        serialNumber: i.serialNumber,
-        status: i.status,
-        reservedFor: i.reservedFor,
-      })) as AvailableCartridge[];
-  }, []);
-
   const selectedItem = availableItems.find(i => i.id === selectedItemId);
 
-  function handleSubmit() {
+  async function handleSubmit() {
     const clinicName = selectedAccount?.clinic_name || clinic;
     if (!selectedItem || !clinicName || !deliveryDate) {
       toast({ title: 'กรุณากรอกข้อมูลให้ครบ', variant: 'destructive' });
@@ -83,8 +86,18 @@ export default function AddConsumableDialog({ open, onOpenChange, onAdded }: Pro
     const expiry = new Date(deliveryDate);
     expiry.setDate(expiry.getDate() + wDays);
 
+    // Update QC stock item
+    await supabase.from('qc_stock_items').update({
+      status: 'ติดตั้งแล้ว',
+      clinic: clinicName,
+      account_id: selectedAccountId || null,
+      install_date: deliveryDate,
+      warranty_days: wDays,
+      warranty_expiry: expiry.toISOString().split('T')[0],
+    }).eq('id', selectedItem.id);
+
     const newItem: ConsumableInstallation = {
-      id: `cons-${Date.now()}`,
+      id: selectedItem.id,
       qcStockItemId: selectedItem.id,
       cartridgeType: selectedItem.cartridgeType,
       serialNumber: selectedItem.serialNumber,
@@ -96,12 +109,6 @@ export default function AddConsumableDialog({ open, onOpenChange, onAdded }: Pro
       notes,
     };
 
-    // Update cartridge stock status
-    const stockItem = mockCartridgeStock.find(i => i.id === selectedItem.id);
-    if (stockItem) {
-      stockItem.status = 'ติดตั้งแล้ว';
-    }
-
     onAdded(newItem);
     onOpenChange(false);
     resetForm();
@@ -109,24 +116,16 @@ export default function AddConsumableDialog({ open, onOpenChange, onAdded }: Pro
   }
 
   function resetForm() {
-    setSelectedItemId('');
-    setSelectedAccountId('');
-    setClinic('');
+    setSelectedItemId(''); setSelectedAccountId(''); setClinic('');
     setDeliveryDate(new Date().toISOString().split('T')[0]);
-    setWarrantyDays('180');
-    setNotes('');
-    setAccountSearch('');
+    setWarrantyDays('180'); setNotes(''); setAccountSearch('');
   }
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>ส่งมอบวัสดุสิ้นเปลือง (Cartridge)</DialogTitle>
-        </DialogHeader>
-
+        <DialogHeader><DialogTitle>ส่งมอบวัสดุสิ้นเปลือง (Cartridge)</DialogTitle></DialogHeader>
         <div className="space-y-4">
-          {/* Select cartridge from QC stock */}
           <div>
             <Label>เลือก Cartridge จาก QC Stock</Label>
             <Select value={selectedItemId} onValueChange={setSelectedItemId}>
@@ -153,7 +152,6 @@ export default function AddConsumableDialog({ open, onOpenChange, onAdded }: Pro
             </div>
           )}
 
-          {/* Customer / Account selector */}
           <div>
             <Label>ชื่อคลินิก / ลูกค้า *</Label>
             <Popover open={accountPopoverOpen} onOpenChange={setAccountPopoverOpen}>
@@ -168,65 +166,28 @@ export default function AddConsumableDialog({ open, onOpenChange, onAdded }: Pro
               <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-2" align="start">
                 <div className="flex items-center gap-2 mb-2">
                   <Search className="h-4 w-4 text-muted-foreground shrink-0" />
-                  <Input
-                    value={accountSearch}
-                    onChange={e => {
-                      setAccountSearch(e.target.value);
-                      if (selectedAccountId) setSelectedAccountId('');
-                      setClinic(e.target.value);
-                    }}
-                    placeholder="ค้นหาคลินิก..."
-                    className="h-8 text-sm border-0 shadow-none focus-visible:ring-0 p-0"
-                  />
+                  <Input value={accountSearch} onChange={e => { setAccountSearch(e.target.value); if (selectedAccountId) setSelectedAccountId(''); setClinic(e.target.value); }} placeholder="ค้นหาคลินิก..." className="h-8 text-sm border-0 shadow-none focus-visible:ring-0 p-0" />
                 </div>
                 <div className="max-h-[200px] overflow-y-auto space-y-0.5">
                   {filteredAccounts.map(acc => (
-                    <button
-                      key={acc.id}
-                      onClick={() => {
-                        setSelectedAccountId(acc.id);
-                        setClinic(acc.clinic_name);
-                        setAccountSearch('');
-                        setAccountPopoverOpen(false);
-                      }}
-                      className={cn(
-                        'w-full text-left px-2 py-1.5 text-sm rounded-sm hover:bg-accent flex items-center gap-2',
-                        selectedAccountId === acc.id && 'bg-accent'
-                      )}
-                    >
+                    <button key={acc.id} onClick={() => { setSelectedAccountId(acc.id); setClinic(acc.clinic_name); setAccountSearch(''); setAccountPopoverOpen(false); }} className={cn('w-full text-left px-2 py-1.5 text-sm rounded-sm hover:bg-accent flex items-center gap-2', selectedAccountId === acc.id && 'bg-accent')}>
                       {selectedAccountId === acc.id && <Check className="h-3.5 w-3.5 text-primary shrink-0" />}
                       <span className={selectedAccountId !== acc.id ? 'pl-5' : ''}>{acc.clinic_name}</span>
                     </button>
                   ))}
-                  {filteredAccounts.length === 0 && accountSearch && (
-                    <p className="text-xs text-muted-foreground text-center py-2">
-                      ไม่พบในระบบ — จะใช้ชื่อ "{accountSearch}" เป็นข้อความอิสระ
-                    </p>
-                  )}
+                  {filteredAccounts.length === 0 && accountSearch && <p className="text-xs text-muted-foreground text-center py-2">ไม่พบในระบบ — จะใช้ชื่อ "{accountSearch}" เป็นข้อความอิสระ</p>}
                 </div>
               </PopoverContent>
             </Popover>
-            {selectedAccount && (
-              <p className="text-[11px] text-primary mt-1">✓ เชื่อมกับบัตรลูกค้า: {selectedAccount.clinic_name}</p>
-            )}
+            {selectedAccount && <p className="text-[11px] text-primary mt-1">✓ เชื่อมกับบัตรลูกค้า: {selectedAccount.clinic_name}</p>}
           </div>
 
           <div className="grid grid-cols-2 gap-3">
-            <div>
-              <Label>วันที่ส่งมอบ *</Label>
-              <Input type="date" value={deliveryDate} onChange={e => setDeliveryDate(e.target.value)} />
-            </div>
-            <div>
-              <Label>ระยะประกัน (วัน)</Label>
-              <Input type="number" value={warrantyDays} onChange={e => setWarrantyDays(e.target.value)} />
-            </div>
+            <div><Label>วันที่ส่งมอบ *</Label><Input type="date" value={deliveryDate} onChange={e => setDeliveryDate(e.target.value)} /></div>
+            <div><Label>ระยะประกัน (วัน)</Label><Input type="number" value={warrantyDays} onChange={e => setWarrantyDays(e.target.value)} /></div>
           </div>
 
-          <div>
-            <Label>หมายเหตุ</Label>
-            <Textarea value={notes} onChange={e => setNotes(e.target.value)} rows={2} />
-          </div>
-
+          <div><Label>หมายเหตุ</Label><Textarea value={notes} onChange={e => setNotes(e.target.value)} rows={2} /></div>
           <div className="flex justify-end gap-2 pt-2">
             <Button variant="outline" onClick={() => onOpenChange(false)}>ยกเลิก</Button>
             <Button onClick={handleSubmit}>ยืนยันส่งมอบ</Button>

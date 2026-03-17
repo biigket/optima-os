@@ -15,10 +15,10 @@ import {
   Pencil, Save, X, RefreshCw, ArrowRightLeft, Undo2,
 } from 'lucide-react';
 import {
-  mockInstallations, generatePMSchedule,
+  generatePMSchedule,
   type PMReport, type Installation, type ReplacementRecord, type ReplacementType,
 } from '@/data/installBaseMockData';
-import { mockND2Stock } from '@/data/qcMockData';
+import { supabase } from '@/integrations/supabase/client';
 import PMReportForm from '@/components/install-base/PMReportForm';
 import PMReportViewDialog from '@/components/install-base/PMReportViewDialog';
 import {

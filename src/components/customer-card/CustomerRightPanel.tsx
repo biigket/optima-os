@@ -15,7 +15,7 @@ import {
   getDevicesForAccount, getConsumablesForAccount, getServiceForAccount,
   getDocumentsForAccount, getMarketingForAccount,
 } from '@/data/customerCardMockData';
-import { getInstallationsForAccount } from '@/data/installBaseMockData';
+// Install base data now comes from Supabase directly
 import { supabase } from '@/integrations/supabase/client';
 import { getPaymentConditionLabel } from '@/components/quotations/PaymentConditionSelector';
 import StatusBadge from '@/components/ui/StatusBadge';

@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -11,11 +11,12 @@ import {
   Building2, Calendar,
 } from 'lucide-react';
 import {
-  mockServiceTickets, type ServiceTicket,
+  type ServiceTicket,
   ticketStatusLabels, ticketStatusColors,
   ticketPriorityLabels, ticketPriorityColors,
   type TicketStatus,
 } from '@/data/serviceTicketMockData';
+import { supabase } from '@/integrations/supabase/client';
 import CreateTicketWizard from '@/components/maintenance/CreateTicketWizard';
 
 const statusIcons: Record<TicketStatus, React.ReactNode> = {
@@ -26,12 +27,58 @@ const statusIcons: Record<TicketStatus, React.ReactNode> = {
   CLOSED: <CheckCircle size={14} />,
 };
 
+function mapTicketRow(row: any, updates: any[]): ServiceTicket {
+  return {
+    id: row.id,
+    ticketNumber: row.ticket_number || '',
+    accountId: row.account_id || '',
+    clinic: row.clinic || '',
+    itemType: row.item_type || 'DEVICE',
+    itemId: row.item_id || '',
+    itemName: row.item_name || '',
+    serialNumber: row.serial_number || '',
+    symptom: row.symptom || '',
+    symptomPhotos: row.symptom_photos || [],
+    status: (row.status || 'OPEN') as TicketStatus,
+    priority: row.priority || 'NORMAL',
+    assignedTo: row.assigned_to || '',
+    resolution: row.resolution || '',
+    createdAt: row.created_at || '',
+    updatedAt: row.updated_at || '',
+    closedAt: row.closed_at || undefined,
+    updates: updates
+      .filter(u => u.ticket_id === row.id)
+      .map(u => ({
+        id: u.id,
+        ticketId: u.ticket_id,
+        message: u.message || '',
+        photos: u.photos || [],
+        updatedBy: u.updated_by || '',
+        newStatus: u.new_status || undefined,
+        createdAt: u.created_at || '',
+      })),
+  };
+}
+
 export default function MaintenancePage() {
   const navigate = useNavigate();
-  const [tickets, setTickets] = useState<ServiceTicket[]>(mockServiceTickets);
+  const [tickets, setTickets] = useState<ServiceTicket[]>([]);
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('ALL');
   const [showWizard, setShowWizard] = useState(false);
+
+  useEffect(() => {
+    async function fetchTickets() {
+      const [{ data: ticketRows }, { data: updateRows }] = await Promise.all([
+        supabase.from('service_tickets').select('*').order('created_at', { ascending: false }),
+        supabase.from('service_ticket_updates').select('*').order('created_at', { ascending: true }),
+      ]);
+      if (ticketRows) {
+        setTickets(ticketRows.map(r => mapTicketRow(r, updateRows || [])));
+      }
+    }
+    fetchTickets();
+  }, []);
 
   const filtered = useMemo(() => {
     return tickets.filter(t => {
@@ -57,6 +104,10 @@ export default function MaintenancePage() {
     { label: 'ด่วน/สูง', value: urgentCount, icon: <AlertTriangle size={20} />, color: 'text-destructive bg-destructive/10' },
   ];
 
+  const handleTicketCreated = (ticket: ServiceTicket) => {
+    setTickets(prev => [ticket, ...prev]);
+  };
+
   return (
     <div className="space-y-6 animate-fade-in">
       <div className="flex items-center justify-between">
@@ -69,7 +120,6 @@ export default function MaintenancePage() {
         </Button>
       </div>
 
-      {/* KPI Cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         {kpis.map(k => (
           <Card key={k.label}>
@@ -84,21 +134,13 @@ export default function MaintenancePage() {
         ))}
       </div>
 
-      {/* Filters */}
       <div className="flex flex-col sm:flex-row gap-3">
         <div className="relative flex-1">
           <Search size={14} className="absolute left-3 top-3 text-muted-foreground" />
-          <Input
-            placeholder="ค้นหา Ticket, คลินิก, S/N..."
-            value={search}
-            onChange={e => setSearch(e.target.value)}
-            className="pl-9"
-          />
+          <Input placeholder="ค้นหา Ticket, คลินิก, S/N..." value={search} onChange={e => setSearch(e.target.value)} className="pl-9" />
         </div>
         <Select value={statusFilter} onValueChange={setStatusFilter}>
-          <SelectTrigger className="w-full sm:w-48">
-            <SelectValue placeholder="สถานะ" />
-          </SelectTrigger>
+          <SelectTrigger className="w-full sm:w-48"><SelectValue placeholder="สถานะ" /></SelectTrigger>
           <SelectContent>
             <SelectItem value="ALL">ทุกสถานะ</SelectItem>
             <SelectItem value="OPEN">เปิด</SelectItem>
@@ -110,7 +152,6 @@ export default function MaintenancePage() {
         </Select>
       </div>
 
-      {/* Ticket Table */}
       <Card>
         <CardContent className="p-0">
           <Table>
@@ -132,11 +173,7 @@ export default function MaintenancePage() {
                 </TableRow>
               )}
               {filtered.map(t => (
-                <TableRow
-                  key={t.id}
-                  className="cursor-pointer hover:bg-accent/50"
-                  onClick={() => navigate(`/maintenance/${t.id}`)}
-                >
+                <TableRow key={t.id} className="cursor-pointer hover:bg-accent/50" onClick={() => navigate(`/maintenance/${t.id}`)}>
                   <TableCell className="font-mono text-xs">{t.ticketNumber}</TableCell>
                   <TableCell>
                     <div className="flex items-center gap-1.5">
@@ -170,11 +207,7 @@ export default function MaintenancePage() {
         </CardContent>
       </Card>
 
-      <CreateTicketWizard
-        open={showWizard}
-        onOpenChange={setShowWizard}
-        onCreated={(ticket) => setTickets(prev => [...prev, ticket])}
-      />
+      <CreateTicketWizard open={showWizard} onOpenChange={setShowWizard} onCreated={handleTicketCreated} />
     </div>
   );
 }

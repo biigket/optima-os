@@ -1,4 +1,4 @@
-// Service Ticket mock data
+// Service Ticket types — data now stored in Supabase service_tickets table
 
 export type TicketStatus = 'OPEN' | 'IN_PROGRESS' | 'WAITING_PART' | 'RESOLVED' | 'CLOSED';
 export type TicketPriority = 'LOW' | 'NORMAL' | 'HIGH' | 'URGENT';
@@ -19,33 +19,20 @@ export interface ServiceTicket {
   ticketNumber: string;
   accountId: string;
   clinic: string;
-  // linked item
   itemType: TicketItemType;
-  itemId: string; // installation id or consumable id
-  itemName: string; // e.g. "ND2 - SN: xxx" or "A2.0 - SN: xxx"
+  itemId: string;
+  itemName: string;
   serialNumber: string;
-  // symptom
   symptom: string;
   symptomPhotos: string[];
-  // management
   status: TicketStatus;
   priority: TicketPriority;
   assignedTo: string;
   resolution: string;
-  // timestamps
   createdAt: string;
   updatedAt: string;
   closedAt?: string;
-  // updates log
   updates: ServiceTicketUpdate[];
-}
-
-export const mockServiceTickets: ServiceTicket[] = [];
-
-let ticketCounter = 0;
-export function getNextTicketNumber(): string {
-  ticketCounter++;
-  return `SR-2026-${String(ticketCounter).padStart(4, '0')}`;
 }
 
 export const ticketStatusLabels: Record<TicketStatus, string> = {
