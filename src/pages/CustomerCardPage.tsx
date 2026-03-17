@@ -130,6 +130,8 @@ export default function CustomerCardPage() {
   const [qtDocs, setQtDocs] = useState<{ id: string; qt_number: string | null; qt_date: string | null; qt_attachment: string | null; product: string | null; price: number | null; approval_status: string | null; customer_signed_at: string | null; payment_status: string | null; payment_condition: string | null; sale_assigned: string | null; deposit_value: number | null; deposit_slip_status: string | null }[]>([]);
   const [installmentsByQt, setInstallmentsByQt] = useState<Record<string, { paid: number; total: number }>>({});
   const [accountContracts, setAccountContracts] = useState<any[]>([]);
+  const [installBaseDevices, setInstallBaseDevices] = useState<any[]>([]);
+  const [consumableBase, setConsumableBase] = useState<any[]>([]);
 
   // Fetch activities, stage history, and notes for this account
   useEffect(() => {
@@ -205,6 +207,33 @@ export default function CustomerCardPage() {
     supabase.from('contracts').select('*').eq('account_id', id)
       .order('created_at', { ascending: false })
       .then(({ data }) => { if (data) setAccountContracts(data); });
+    // Install base devices
+    supabase.from('installations').select('*, products(product_name, category)')
+      .eq('account_id', id)
+      .then(({ data }) => {
+        if (data) setInstallBaseDevices(data.map((d: any) => ({
+          id: d.id,
+          productCategory: d.products?.category || '',
+          serialNumber: d.serial_number || '',
+          installDate: d.install_date || '',
+          warrantyExpiry: d.warranty_expiry || '',
+          province: d.province || '',
+          pmReports: [],
+        })));
+      });
+    // Consumable base
+    supabase.from('qc_stock_items').select('*')
+      .eq('account_id', id)
+      .in('product_type', ['CARTRIDGE', 'Cartridge FL', 'Cartridge SD', 'Cartridge RM'])
+      .then(({ data }) => {
+        if (data) setConsumableBase(data.map((c: any) => ({
+          id: c.id,
+          cartridgeType: c.cartridge_type || c.product_type || '',
+          serialNumber: c.serial_number || '',
+          deliveryDate: c.install_date || c.received_date || '',
+          warrantyExpiry: c.warranty_expiry || '',
+        })));
+      });
   }, [id, opportunities]);
 
   const fetchAccountDocs = useCallback(async () => {
@@ -338,12 +367,10 @@ export default function CustomerCardPage() {
   const primaryContact = contacts[0];
   // revenue now calculated from real qtDocs below
   const devices = getDevicesForAccount(account.id);
-  const installBaseDevices = getInstallationsForAccount(account.id, account.clinic_name);
   const visits = getVisitsForAccount(account.id);
   const timeline = getTimelineForAccount(account.id);
   const reports = getReportsForAccount(account.id);
   const consumables = getConsumablesForAccount(account.id);
-  const consumableBase = getConsumableBaseForAccount(account.id, account.clinic_name);
   const services = getServiceForAccount(account.id);
   const documents = getDocumentsForAccount(account.id);
   const marketing = getMarketingForAccount(account.id);
