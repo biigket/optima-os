@@ -48,7 +48,7 @@ export function mapND2(row: DbRow): ND2StockItem {
     hrm: row.hrm || '',
     hrmSellOrKeep: (row.hrm_sell_or_keep || 'ขาย') as HrmSellOrKeep,
     upsStabilizer: row.ups_stabilizer || '',
-    status: (row.status || 'พร้อมขาย') as UnifiedStockStatus,
+    status: normalizeStatus(row.status),
     reservedFor: row.reserved_for || '',
     clinic: row.clinic || '',
     qcFailReason: row.fail_reason || '',
