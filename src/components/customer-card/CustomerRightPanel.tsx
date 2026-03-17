@@ -78,7 +78,6 @@ const DOC_ICONS: Record<string, string> = {
 export default function CustomerRightPanel({ accountId, clinicName }: Props) {
   const navigate = useNavigate();
   const devices = getDevicesForAccount(accountId);
-  const installBaseDevices = getInstallationsForAccount(accountId, clinicName);
   const consumables = getConsumablesForAccount(accountId);
   const services = getServiceForAccount(accountId);
   const documents = getDocumentsForAccount(accountId);
