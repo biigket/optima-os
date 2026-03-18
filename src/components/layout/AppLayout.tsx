@@ -17,6 +17,7 @@ const navGroups = [
     label: 'ANALYTICS',
     items: [
       { to: '/', icon: LayoutDashboard, label: 'แดชบอร์ด', moduleKey: 'dashboard' },
+      { to: '/chatbot', icon: MessageCircle, label: 'Optima AI', moduleKey: 'dashboard' },
     ],
   },
   {

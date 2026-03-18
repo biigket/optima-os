@@ -59,6 +59,7 @@ function AuthedAppRoutes() {
     <AppLayout>
       <Routes>
         <Route path="/" element={<Dashboard />} />
+        <Route path="/chatbot" element={<ChatbotPage />} />
         <Route path="/leads" element={<LeadsPage />} />
         <Route path="/leads/:id" element={<CustomerCardPage />} />
         <Route path="/opportunities" element={<OpportunitiesPage />} />
