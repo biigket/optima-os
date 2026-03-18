@@ -274,7 +274,55 @@ export default function PMReportForm({ open, onOpenChange, installation, mainten
             </div>
           )}
 
-          {/* Note / Remark */}
+          {/* Energy Test — Quattro only */}
+          {category === 'Quattro' && (
+            <div>
+              <h4 className="font-semibold text-sm mb-2">Energy Test</h4>
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Tip Size O</TableHead>
+                      <TableHead className="w-[50px] text-center">P/F</TableHead>
+                      <TableHead>Tip Size S</TableHead>
+                      <TableHead className="w-[50px] text-center">P/F</TableHead>
+                      <TableHead>Tip Size M</TableHead>
+                      <TableHead className="w-[50px] text-center">P/F</TableHead>
+                      <TableHead>Water Flow Rate (r/s)</TableHead>
+                      <TableHead>Status RENT</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {energyTest.map((row, i) => (
+                      <TableRow key={i}>
+                        <TableCell><Input value={row.tipSizeO} onChange={e => { const u = [...energyTest]; u[i] = { ...u[i], tipSizeO: e.target.value }; setEnergyTest(u); }} className="h-7 text-xs w-32" /></TableCell>
+                        <TableCell className="text-center">
+                          <button onClick={() => { const u = [...energyTest]; u[i] = { ...u[i], tipSizeOPF: !u[i].tipSizeOPF }; setEnergyTest(u); }} className={`px-2 py-1 rounded text-xs font-medium ${row.tipSizeOPF ? 'bg-emerald-100 text-emerald-800' : 'bg-red-100 text-red-800'}`}>
+                            {row.tipSizeOPF ? 'P' : 'F'}
+                          </button>
+                        </TableCell>
+                        <TableCell><Input value={row.tipSizeS} onChange={e => { const u = [...energyTest]; u[i] = { ...u[i], tipSizeS: e.target.value }; setEnergyTest(u); }} className="h-7 text-xs w-32" /></TableCell>
+                        <TableCell className="text-center">
+                          <button onClick={() => { const u = [...energyTest]; u[i] = { ...u[i], tipSizeSPF: !u[i].tipSizeSPF }; setEnergyTest(u); }} className={`px-2 py-1 rounded text-xs font-medium ${row.tipSizeSPF ? 'bg-emerald-100 text-emerald-800' : 'bg-red-100 text-red-800'}`}>
+                            {row.tipSizeSPF ? 'P' : 'F'}
+                          </button>
+                        </TableCell>
+                        <TableCell><Input value={row.tipSizeM} onChange={e => { const u = [...energyTest]; u[i] = { ...u[i], tipSizeM: e.target.value }; setEnergyTest(u); }} className="h-7 text-xs w-32" /></TableCell>
+                        <TableCell className="text-center">
+                          <button onClick={() => { const u = [...energyTest]; u[i] = { ...u[i], tipSizeMPF: !u[i].tipSizeMPF }; setEnergyTest(u); }} className={`px-2 py-1 rounded text-xs font-medium ${row.tipSizeMPF ? 'bg-emerald-100 text-emerald-800' : 'bg-red-100 text-red-800'}`}>
+                            {row.tipSizeMPF ? 'P' : 'F'}
+                          </button>
+                        </TableCell>
+                        <TableCell><Input value={row.waterFlowRate} onChange={e => { const u = [...energyTest]; u[i] = { ...u[i], waterFlowRate: e.target.value }; setEnergyTest(u); }} className="h-7 text-xs w-28" /></TableCell>
+                        <TableCell><Input value={row.statusRent} onChange={e => { const u = [...energyTest]; u[i] = { ...u[i], statusRent: e.target.value }; setEnergyTest(u); }} className="h-7 text-xs w-20" /></TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            </div>
+          )}
+
           <div>
             <Label>Note</Label>
             <Textarea value={remark} onChange={e => setRemark(e.target.value)} rows={3} placeholder="เครื่องสามารถใช้งานได้ปกติ" />
