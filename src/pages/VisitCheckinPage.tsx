@@ -34,6 +34,8 @@ interface VisitPlan {
 }
 
 export default function VisitCheckinPage() {
+  const { currentUser } = useMockAuth();
+  const canSeeAll = useCanSeeAll();
   const [plans, setPlans] = useState<VisitPlan[]>([]);
   const [loading, setLoading] = useState(true);
   const [checkinPlan, setCheckinPlan] = useState<VisitPlan | null>(null);
