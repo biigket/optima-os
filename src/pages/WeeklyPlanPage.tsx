@@ -22,6 +22,7 @@ interface VisitPlan {
   objective?: string | null;
   products_presented?: string | null;
   notes?: string | null;
+  created_by?: string | null;
   accounts?: { id: string; clinic_name: string; customer_status: string } | null;
 }
 
