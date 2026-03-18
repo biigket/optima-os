@@ -96,9 +96,18 @@ Deno.serve(async (req) => {
   );
 
   try {
-    const { csvUrl } = await req.json();
-    const resp = await fetch(csvUrl);
-    const csvText = await resp.text();
+    const body = await req.json();
+    let csvText: string;
+    if (body.csvContent) {
+      csvText = body.csvContent;
+    } else if (body.csvUrl) {
+      const resp = await fetch(body.csvUrl);
+      csvText = await resp.text();
+    } else {
+      return new Response(JSON.stringify({ success: false, error: 'No CSV provided' }), {
+        status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
 
     const allRows = parseFullCSV(csvText);
     console.log(`Parsed ${allRows.length} rows (incl header)`);
