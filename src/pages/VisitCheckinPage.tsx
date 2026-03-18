@@ -422,6 +422,9 @@ export default function VisitCheckinPage() {
                       <Building2 size={14} className="text-muted-foreground" />
                       <p className="text-sm font-semibold text-foreground">{plan.accounts?.clinic_name}</p>
                     </div>
+                    {canSeeAll && plan.created_by && (
+                      <div className="text-[11px] text-muted-foreground mt-0.5">👤 {plan.created_by}</div>
+                    )}
                     <Badge className="text-[10px] mt-1 bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400">รายงานแล้ว</Badge>
                   </div>
                 </div>

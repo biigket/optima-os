@@ -196,6 +196,9 @@ export default function WeeklyPlanPage() {
                 {plan?.products_presented && (
                   <div className="opacity-70 text-[10px] truncate mt-0.5">🔧 {plan.products_presented}</div>
                 )}
+                {canSeeAll && plan?.created_by && (
+                  <div className="opacity-70 text-[10px] truncate mt-0.5">👤 {plan.created_by}</div>
+                )}
                 {plan?.notes && (
                   <div className="opacity-60 text-[10px] truncate mt-0.5">📝 {plan.notes}</div>
                 )}
