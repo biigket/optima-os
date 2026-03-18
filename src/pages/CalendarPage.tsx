@@ -298,7 +298,7 @@ export default function CalendarPage() {
           </div>
 
           {/* Employee filter */}
-          {isAdmin && uniqueAssignees.length > 0 && (
+          {canSeeAll && uniqueAssignees.length > 0 && (
             <div className="rounded-lg border bg-card p-3">
               <div className="text-xs font-medium text-muted-foreground mb-2">กรองตามพนักงาน</div>
               <Select value={assigneeFilter} onValueChange={setAssigneeFilter}>
