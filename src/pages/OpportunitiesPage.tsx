@@ -274,7 +274,7 @@ export default function OpportunitiesPage() {
                 <th className="px-4 py-3 text-right font-medium text-muted-foreground">มูลค่า</th>
                 <th className="px-4 py-3 text-right font-medium text-muted-foreground">Weighted</th>
                 <th className="px-4 py-3 text-left font-medium text-muted-foreground">วันปิด</th>
-                <th className="px-4 py-3 text-center font-medium text-muted-foreground">วัน</th>
+                <th className="px-4 py-3 text-center font-medium text-muted-foreground">อายุ</th>
               </tr>
             </thead>
             <tbody>
