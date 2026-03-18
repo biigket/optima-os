@@ -44,14 +44,19 @@ export default function WeeklyPlanPage() {
     const ref = date || calendarDate;
     const ws = startOfWeek(ref, { weekStartsOn: 1 });
     const we = endOfWeek(ref, { weekStartsOn: 1 });
-    const { data } = await supabase
+    let query = supabase
       .from('visit_plans')
       .select('*, accounts(id, clinic_name, customer_status)')
       .gte('plan_date', format(ws, 'yyyy-MM-dd'))
       .lte('plan_date', format(we, 'yyyy-MM-dd'))
       .order('created_at');
+    // Sales users only see their own plans
+    if (!canSeeAll && currentUser) {
+      query = query.eq('created_by', currentUser.name);
+    }
+    const { data } = await query;
     if (data) setPlans(data as unknown as VisitPlan[]);
-  }, [calendarDate]);
+  }, [calendarDate, canSeeAll, currentUser]);
 
   useEffect(() => { fetchPlans(); }, [fetchPlans]);
 
