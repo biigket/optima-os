@@ -47,6 +47,7 @@ export interface PMReport {
   safetyChecklist: PMCheckItem[];
   coolingChecklist: PMCheckItem[];
   cartridges: PMCartridgeEntry[];
+  energyTest?: PMEnergyTestRow[];
   remark: string;
   resultStatus?: PMResultStatus;
   resultOther?: string;
