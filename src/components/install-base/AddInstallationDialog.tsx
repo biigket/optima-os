@@ -119,6 +119,11 @@ export default function AddInstallationDialog({ open, onOpenChange, onInstalled 
       account_id: selectedAccountId || null,
     }).eq('id', selectedItem.id);
 
+    // Update account status to PURCHASED
+    if (selectedAccountId) {
+      await supabase.from('accounts').update({ customer_status: 'PURCHASED' }).eq('id', selectedAccountId);
+    }
+
     if (inserted) {
       const newInst: Installation = {
         id: inserted.id,
