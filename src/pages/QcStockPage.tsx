@@ -444,6 +444,45 @@ export default function QcStockPage() {
             </Button>
           </div>
 
+          {/* Cartridge type breakdown - พร้อมขาย */}
+          {(() => {
+            const typeCounts: Record<string, number> = {};
+            cartridgeItems.forEach(item => {
+              if (item.status === 'พร้อมขาย') {
+                typeCounts[item.cartridgeType] = (typeCounts[item.cartridgeType] || 0) + 1;
+              }
+            });
+            const typeOrder = ['A2.0', 'A3.0', 'A4.5', 'A6.0', 'L1.5', 'L3.0', 'L4.5', 'L9.0', 'N49', 'I49', 'N25', 'I25'];
+            const typeColors: Record<string, { bg: string; text: string }> = {
+              'A2.0': { bg: 'from-sky-500/10 to-sky-500/5 border-sky-500/20', text: 'text-sky-600' },
+              'A3.0': { bg: 'from-blue-500/10 to-blue-500/5 border-blue-500/20', text: 'text-blue-600' },
+              'A4.5': { bg: 'from-indigo-500/10 to-indigo-500/5 border-indigo-500/20', text: 'text-indigo-600' },
+              'A6.0': { bg: 'from-amber-500/10 to-amber-500/5 border-amber-500/20', text: 'text-amber-600' },
+              'L1.5': { bg: 'from-orange-500/10 to-orange-500/5 border-orange-500/20', text: 'text-orange-600' },
+              'L3.0': { bg: 'from-blue-500/10 to-blue-500/5 border-blue-500/20', text: 'text-blue-600' },
+              'L4.5': { bg: 'from-indigo-500/10 to-indigo-500/5 border-indigo-500/20', text: 'text-indigo-600' },
+              'L9.0': { bg: 'from-amber-500/10 to-amber-500/5 border-amber-500/20', text: 'text-amber-600' },
+              'N49': { bg: 'from-emerald-500/10 to-emerald-500/5 border-emerald-500/20', text: 'text-emerald-600' },
+              'I49': { bg: 'from-teal-500/10 to-teal-500/5 border-teal-500/20', text: 'text-teal-600' },
+              'N25': { bg: 'from-cyan-500/10 to-cyan-500/5 border-cyan-500/20', text: 'text-cyan-600' },
+              'I25': { bg: 'from-purple-500/10 to-purple-500/5 border-purple-500/20', text: 'text-purple-600' },
+            };
+            return (
+              <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-3">
+                {typeOrder.map(type => {
+                  const count = typeCounts[type] || 0;
+                  const colors = typeColors[type] || { bg: 'from-muted to-muted border-border', text: 'text-foreground' };
+                  return (
+                    <div key={type} className={`rounded-xl border bg-gradient-to-br ${colors.bg} p-3`}>
+                      <p className="text-xs font-medium text-muted-foreground">{type} พร้อมขาย</p>
+                      <p className={`text-3xl font-bold ${colors.text} mt-1`}>{count}</p>
+                    </div>
+                  );
+                })}
+              </div>
+            );
+          })()}
+
           <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3">
             {buildKpis(cartridgeCounts).map(kpi => (
               <div key={kpi.label} className={`rounded-xl border bg-gradient-to-br p-3 space-y-1 ${kpiColorMap[kpi.label] || ''}`}>
@@ -452,7 +491,6 @@ export default function QcStockPage() {
               </div>
             ))}
           </div>
-
           <div className="flex flex-wrap items-center gap-3">
             <div className="relative max-w-sm flex-1">
               <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
