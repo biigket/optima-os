@@ -17,6 +17,17 @@ export interface PMCartridgeEntry {
   passFail: boolean;
 }
 
+export interface PMEnergyTestRow {
+  tipSizeO: string;
+  tipSizeOPF: boolean;
+  tipSizeS: string;
+  tipSizeSPF: boolean;
+  tipSizeM: string;
+  tipSizeMPF: boolean;
+  waterFlowRate: string;
+  statusRent: string;
+}
+
 export type PMResultStatus = 'complete' | 'claim' | 'repair' | 'other';
 
 export interface PMReport {
