@@ -569,63 +569,75 @@ export default function InstallBaseDetailPage() {
           </Button>
         </CardHeader>
         <CardContent className="p-0">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>ครั้งที่</TableHead>
-                <TableHead>กำหนดวัน PM</TableHead>
-                <TableHead>วันที่ทำจริง</TableHead>
-                <TableHead>สถานะ</TableHead>
-                <TableHead className="text-right">จัดการ</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {pmSchedule.map(pm => {
-                const report = getReportForPM(pm.number);
-                const isOverdue = !report && pm.date < today;
-                const isPending = !report && pm.date >= today;
-                return (
-                  <TableRow key={pm.number} className={isOverdue ? 'bg-destructive/5' : ''}>
-                    <TableCell className="font-medium">PM {pm.number}</TableCell>
-                    <TableCell>{pm.date}</TableCell>
-                    <TableCell>{report?.actualDate || '-'}</TableCell>
-                    <TableCell>
-                      {report ? (
-                        <Badge className="bg-emerald-100 text-emerald-800 border-emerald-200">
-                          <CheckCircle size={12} className="mr-1" />เสร็จแล้ว
-                        </Badge>
-                      ) : isOverdue ? (
-                        <Badge className="bg-destructive/10 text-destructive">
-                          <AlertTriangle size={12} className="mr-1" />เกินกำหนด
-                        </Badge>
-                      ) : (
-                        <Badge className="bg-blue-100 text-blue-800 border-blue-200">
-                          <Clock size={12} className="mr-1" />รอดำเนินการ
-                        </Badge>
-                      )}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex justify-end gap-2">
-                        {report && (
-                          <Button variant="outline" size="sm" onClick={() => handleViewReport(report)}>
-                            <Eye size={14} className="mr-1" />ดู Report
-                          </Button>
+          {pmSchedule.length === 0 ? (
+            <div className="p-6 text-center text-muted-foreground text-sm">
+              <AlertTriangle size={20} className="mx-auto mb-2 text-amber-500" />
+              <p>ไม่สามารถสร้างตาราง PM ได้ — กรุณาระบุ <strong>วันที่ติดตั้ง</strong> ก่อน</p>
+              {!editing && (
+                <Button size="sm" variant="outline" className="mt-3" onClick={startEdit}>
+                  <Pencil size={14} className="mr-1" /> แก้ไขข้อมูล
+                </Button>
+              )}
+            </div>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>ครั้งที่</TableHead>
+                  <TableHead>กำหนดวัน PM</TableHead>
+                  <TableHead>วันที่ทำจริง</TableHead>
+                  <TableHead>สถานะ</TableHead>
+                  <TableHead className="text-right">จัดการ</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {pmSchedule.map(pm => {
+                  const report = getReportForPM(pm.number);
+                  const isOverdue = !report && pm.date < today;
+                  const isPending = !report && pm.date >= today;
+                  return (
+                    <TableRow key={pm.number} className={isOverdue ? 'bg-destructive/5' : ''}>
+                      <TableCell className="font-medium">PM {pm.number}</TableCell>
+                      <TableCell>{pm.date}</TableCell>
+                      <TableCell>{report?.actualDate || '-'}</TableCell>
+                      <TableCell>
+                        {report ? (
+                          <Badge className="bg-emerald-100 text-emerald-800 border-emerald-200">
+                            <CheckCircle size={12} className="mr-1" />เสร็จแล้ว
+                          </Badge>
+                        ) : isOverdue ? (
+                          <Badge className="bg-destructive/10 text-destructive">
+                            <AlertTriangle size={12} className="mr-1" />เกินกำหนด
+                          </Badge>
+                        ) : (
+                          <Badge className="bg-blue-100 text-blue-800 border-blue-200">
+                            <Clock size={12} className="mr-1" />รอดำเนินการ
+                          </Badge>
                         )}
-                        <Button variant={report ? 'outline' : 'default'} size="sm" onClick={() => handleOpenPMForm(pm.number, pm.date)}>
-                          <FileText size={14} className="mr-1" />{report ? 'แก้ไข' : 'กรอก PM Report'}
-                        </Button>
-                        {isPending && (
-                          <Button variant="ghost" size="sm" className="text-destructive hover:text-destructive hover:bg-destructive/10" onClick={() => setPmToDelete(pm.number)}>
-                            <Trash2 size={14} />
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <div className="flex justify-end gap-2">
+                          {report && (
+                            <Button variant="outline" size="sm" onClick={() => handleViewReport(report)}>
+                              <Eye size={14} className="mr-1" />ดู Report
+                            </Button>
+                          )}
+                          <Button variant={report ? 'outline' : 'default'} size="sm" onClick={() => handleOpenPMForm(pm.number, pm.date)}>
+                            <FileText size={14} className="mr-1" />{report ? 'แก้ไข' : 'กรอก PM Report'}
                           </Button>
-                        )}
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                );
-              })}
-            </TableBody>
-          </Table>
+                          {isPending && (
+                            <Button variant="ghost" size="sm" className="text-destructive hover:text-destructive hover:bg-destructive/10" onClick={() => setPmToDelete(pm.number)}>
+                              <Trash2 size={14} />
+                            </Button>
+                          )}
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
+              </TableBody>
+            </Table>
+          )}
         </CardContent>
       </Card>
 
