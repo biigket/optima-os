@@ -118,6 +118,10 @@ export default function PMReportForm({ open, onOpenChange, installation, mainten
     existingReport?.cartridges || []
   );
 
+  const [energyTest, setEnergyTest] = useState<PMEnergyTestRow[]>(
+    existingReport?.energyTest || (category === 'Quattro' ? getQuattroDefaultEnergyTest() : [])
+  );
+
   const [remark, setRemark] = useState(existingReport?.remark || '');
   const [resultStatus, setResultStatus] = useState<PMResultStatus>(existingReport?.resultStatus || 'complete');
   const [resultOther, setResultOther] = useState(existingReport?.resultOther || '');
