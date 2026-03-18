@@ -97,6 +97,7 @@ const DOC_ICONS: Record<string, string> = {
 export default function CustomerCardPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const salesUsers = useSalesUsers();
   const isMobile = useIsMobile();
   const [notes, setNotes] = useState('');
   const [editOpen, setEditOpen] = useState(false);
