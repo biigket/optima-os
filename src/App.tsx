@@ -50,7 +50,7 @@ import CsvImportPage from "@/pages/CsvImportPage";
 import QtArImportPage from "@/pages/QtArImportPage";
 import ChatbotPage from "@/pages/ChatbotPage";
 import UserGuidePage from "@/pages/UserGuidePage";
-import { MockAuthProvider } from "@/hooks/useMockAuth";
+import { MockAuthProvider, useMockAuth } from "@/hooks/useMockAuth";
 
 const queryClient = new QueryClient();
 
@@ -105,6 +105,20 @@ function AuthedAppRoutes() {
 }
 
 function AppRoutes() {
+  const { currentUser } = useMockAuth();
+
+  if (!currentUser) {
+    return (
+      <Routes>
+        <Route path="/sign/quotation" element={<CustomerSignQuotationPage />} />
+        <Route path="/register" element={<CustomerRegisterPage />} />
+        <Route path="/registration" element={<RegistrationExportPage />} />
+        <Route path="/payment-result" element={<PaymentResultPage />} />
+        <Route path="*" element={<MockLoginPage />} />
+      </Routes>
+    );
+  }
+
   return (
     <Routes>
       {/* Public pages (no AppLayout) */}
