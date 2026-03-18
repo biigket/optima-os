@@ -53,6 +53,7 @@ function isFollowUp(account: Account): boolean {
 
 const STATUS_OPTIONS = [
   { value: 'ALL', label: 'ทั้งหมด' },
+  { value: 'NEW_LEAD', label: 'ลูกค้าใหม่' },
   { value: 'PROSPECT', label: 'ยังไม่ซื้อ' },
   { value: 'PURCHASED', label: 'ซื้อแล้ว' },
   { value: 'DORMANT', label: 'ไม่เคลื่อนไหว' },
@@ -246,8 +247,10 @@ export default function LeadsPage() {
 
   const filtered = myAccounts.filter(a => {
     let matchStatus = true;
-    if (statusFilter === 'PROSPECT') {
-      matchStatus = !isFollowUp(a) && a.customer_status !== 'PURCHASED' && a.customer_status !== 'DORMANT';
+    if (statusFilter === 'NEW_LEAD') {
+      matchStatus = a.customer_status === 'NEW_LEAD';
+    } else if (statusFilter === 'PROSPECT') {
+      matchStatus = !isFollowUp(a) && a.customer_status !== 'PURCHASED' && a.customer_status !== 'DORMANT' && a.customer_status !== 'NEW_LEAD';
     } else if (statusFilter === 'FOLLOW_UP') {
       matchStatus = isFollowUp(a);
     } else if (statusFilter !== 'ALL') {
@@ -540,8 +543,8 @@ export default function LeadsPage() {
             <div className="space-y-1.5">
               <Label>เกรด</Label>
               <StarRating
-                value={parseInt(form.grade) || 0}
-                onChange={v => updateField('grade', v.toString())}
+                value={form.grade === 'A' ? 3 : form.grade === 'B' ? 2 : form.grade === 'C' ? 1 : 0}
+                onChange={v => updateField('grade', v === 3 ? 'A' : v === 2 ? 'B' : v === 1 ? 'C' : '')}
               />
             </div>
 
