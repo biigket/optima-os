@@ -93,6 +93,7 @@ export default function PMReportForm({ open, onOpenChange, installation, mainten
   const firmwareFields = getFirmwareFields(category);
   const cartridgeTypes = getCartridgeTypes(category);
   const displayName = getProductDisplayName(category);
+  const sectionTitles = getSectionTitles(category);
 
   // Firmware versions as a dynamic map
   const [fwValues, setFwValues] = useState<Record<string, string>>(() => {
