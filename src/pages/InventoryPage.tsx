@@ -124,33 +124,31 @@ export default function InventoryPage() {
 
   // KPI counts
   const kpis = useMemo(() => {
-    const counts: Record<ProductCategory, number> = { ALL: allItems.length, ND2: 0, TRICA3D: 0, QUATTRO: 0, PICOHI: 0, FREEZERO: 0, CARTRIDGE: 0 };
+    const readyCounts: Record<ProductCategory, number> = { ALL: 0, ND2: 0, TRICA3D: 0, QUATTRO: 0, PICOHI: 0, FREEZERO: 0, CARTRIDGE: 0 };
     const reservedCounts: Record<ProductCategory, number> = { ALL: 0, ND2: 0, TRICA3D: 0, QUATTRO: 0, PICOHI: 0, FREEZERO: 0, CARTRIDGE: 0 };
     
     allItems.forEach(i => { 
-      counts[i.category]++; 
       if (i.status === 'ติดจอง') {
         reservedCounts[i.category]++;
         reservedCounts.ALL++;
+      } else {
+        readyCounts[i.category]++;
+        readyCounts.ALL++;
       }
     });
 
     const priced = allItems.filter(i => getPrice(i.id) !== null).length;
     const unpriced = allItems.length - priced;
-    return { counts, priced, unpriced, reservedCounts };
+    return { readyCounts, reservedCounts, priced, unpriced };
   }, [allItems]);
 
-  const kpiCards = [
-    { label: 'ทั้งหมดพร้อมขาย', count: kpis.counts.ALL, color: 'from-emerald-500/15 to-emerald-500/5 border-emerald-500/20', textColor: 'text-emerald-700' },
-    { label: 'ND2', count: kpis.counts.ND2, color: 'from-blue-500/15 to-blue-500/5 border-blue-500/20', textColor: 'text-blue-700' },
-    { label: 'Trica 3D', count: kpis.counts.TRICA3D, color: 'from-purple-500/15 to-purple-500/5 border-purple-500/20', textColor: 'text-purple-700' },
-    { label: 'Quattro', count: kpis.counts.QUATTRO, color: 'from-cyan-500/15 to-cyan-500/5 border-cyan-500/20', textColor: 'text-cyan-700' },
-    { label: 'Picohi', count: kpis.counts.PICOHI, color: 'from-pink-500/15 to-pink-500/5 border-pink-500/20', textColor: 'text-pink-700' },
-    { label: 'Freezero', count: kpis.counts.FREEZERO, color: 'from-sky-500/15 to-sky-500/5 border-sky-500/20', textColor: 'text-sky-700' },
-    { label: 'Cartridge', count: kpis.counts.CARTRIDGE, color: 'from-amber-500/15 to-amber-500/5 border-amber-500/20', textColor: 'text-amber-700' },
-    { label: 'ตั้งราคาแล้ว', count: kpis.priced, color: 'from-primary/15 to-primary/5 border-primary/20', textColor: 'text-primary' },
-    { label: 'ยังไม่ตั้งราคา', count: kpis.unpriced, color: 'from-orange-500/15 to-orange-500/5 border-orange-500/20', textColor: 'text-orange-700' },
-    { label: 'ติดจอง', count: kpis.reservedCounts.ALL, color: 'from-amber-500/20 to-amber-500/10 border-amber-500/30', textColor: 'text-amber-700' },
+  const productTypes: { label: string; key: ProductCategory; color: string; readyText: string; reservedText: string }[] = [
+    { label: 'ND2', key: 'ND2', color: 'border-blue-500/20', readyText: 'text-blue-600', reservedText: 'text-amber-600' },
+    { label: 'Trica 3D', key: 'TRICA3D', color: 'border-purple-500/20', readyText: 'text-purple-600', reservedText: 'text-amber-600' },
+    { label: 'Quattro', key: 'QUATTRO', color: 'border-cyan-500/20', readyText: 'text-cyan-600', reservedText: 'text-amber-600' },
+    { label: 'Picohi', key: 'PICOHI', color: 'border-pink-500/20', readyText: 'text-pink-600', reservedText: 'text-amber-600' },
+    { label: 'Freezero', key: 'FREEZERO', color: 'border-sky-500/20', readyText: 'text-sky-600', reservedText: 'text-amber-600' },
+    { label: 'Cartridge', key: 'CARTRIDGE', color: 'border-amber-500/20', readyText: 'text-amber-700', reservedText: 'text-amber-600' },
   ];
 
   const handleStartEdit = (id: string) => {
@@ -190,19 +188,47 @@ export default function InventoryPage() {
     <div className="space-y-6 animate-fade-in">
       <div>
         <h1 className="text-2xl font-bold text-foreground">คลังสินค้า</h1>
-        <p className="text-sm text-muted-foreground">สินค้าทั้งหมด {allItems.length} รายการ (รวม พร้อมขาย + ติดจอง)</p>
+        <p className="text-sm text-muted-foreground">สินค้าทั้งหมด {allItems.length} รายการ (พร้อมขาย {kpis.readyCounts.ALL} | ติดจอง {kpis.reservedCounts.ALL})</p>
       </div>
 
-      {/* KPI Dashboard */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-3">
-        {kpiCards.map(kpi => (
-          <div key={kpi.label} className={`rounded-xl border bg-gradient-to-br ${kpi.color} p-3 text-center`}>
-            <p className={`text-2xl font-bold ${kpi.textColor}`}>{kpi.count}</p>
-            <p className="text-[11px] text-muted-foreground font-medium mt-0.5">{kpi.label}</p>
+      {/* Summary cards */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <div className="rounded-xl border bg-gradient-to-br from-emerald-500/15 to-emerald-500/5 border-emerald-500/20 p-3 text-center">
+          <p className="text-3xl font-bold text-emerald-700">{kpis.readyCounts.ALL}</p>
+          <p className="text-xs text-muted-foreground font-medium mt-0.5">พร้อมขายทั้งหมด</p>
+        </div>
+        <div className="rounded-xl border bg-gradient-to-br from-amber-500/15 to-amber-500/5 border-amber-500/20 p-3 text-center">
+          <p className="text-3xl font-bold text-amber-700">{kpis.reservedCounts.ALL}</p>
+          <p className="text-xs text-muted-foreground font-medium mt-0.5">ติดจองทั้งหมด</p>
+        </div>
+        <div className="rounded-xl border bg-gradient-to-br from-primary/15 to-primary/5 border-primary/20 p-3 text-center">
+          <p className="text-3xl font-bold text-primary">{kpis.priced}</p>
+          <p className="text-xs text-muted-foreground font-medium mt-0.5">ตั้งราคาแล้ว</p>
+        </div>
+        <div className="rounded-xl border bg-gradient-to-br from-orange-500/15 to-orange-500/5 border-orange-500/20 p-3 text-center">
+          <p className="text-3xl font-bold text-orange-700">{kpis.unpriced}</p>
+          <p className="text-xs text-muted-foreground font-medium mt-0.5">ยังไม่ตั้งราคา</p>
+        </div>
+      </div>
+
+      {/* Per-product dashboard */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+        {productTypes.map(pt => (
+          <div key={pt.key} className={`rounded-xl border ${pt.color} bg-card p-4`}>
+            <p className="text-sm font-semibold text-foreground mb-2">{pt.label}</p>
+            <div className="flex items-end justify-between">
+              <div>
+                <p className={`text-2xl font-bold ${pt.readyText}`}>{kpis.readyCounts[pt.key]}</p>
+                <p className="text-[10px] text-muted-foreground">พร้อมขาย</p>
+              </div>
+              <div className="text-right">
+                <p className={`text-2xl font-bold ${pt.reservedText}`}>{kpis.reservedCounts[pt.key]}</p>
+                <p className="text-[10px] text-muted-foreground">ติดจอง</p>
+              </div>
+            </div>
           </div>
         ))}
       </div>
-
       {/* Tabs & Search */}
       <div className="flex flex-wrap items-center gap-3">
         <div className="relative max-w-sm flex-1">
@@ -220,7 +246,7 @@ export default function InventoryPage() {
             >
               {c.icon} {c.label}
               {c.value !== 'ALL' && (
-                <span className="ml-1 text-[10px] opacity-70">({kpis.counts[c.value]})</span>
+                <span className="ml-1 text-[10px] opacity-70">({(kpis.readyCounts[c.value] || 0) + (kpis.reservedCounts[c.value] || 0)})</span>
               )}
             </Button>
           ))}
