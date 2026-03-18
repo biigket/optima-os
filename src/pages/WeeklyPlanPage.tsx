@@ -149,11 +149,26 @@ export default function WeeklyPlanPage() {
 
   return (
     <div className="space-y-4 animate-fade-in">
-      <div>
-        <h1 className="text-2xl font-bold text-foreground">แผนเยี่ยมรายสัปดาห์</h1>
-        <p className="text-sm text-muted-foreground">
-          {isMobile ? 'กดค้างเพื่อลาก · กดที่แผนเพื่อดู/แก้ไข' : 'คลิกหรือลากบนปฏิทินเพื่อเพิ่มแผนเยี่ยม · กดที่แผนเพื่อดู/แก้ไขรายละเอียด'}
-        </p>
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold text-foreground">แผนเยี่ยมรายสัปดาห์</h1>
+          <p className="text-sm text-muted-foreground">
+            {isMobile ? 'กดค้างเพื่อลาก · กดที่แผนเพื่อดู/แก้ไข' : 'คลิกหรือลากบนปฏิทินเพื่อเพิ่มแผนเยี่ยม · กดที่แผนเพื่อดู/แก้ไขรายละเอียด'}
+          </p>
+        </div>
+        {canSeeAll && (
+          <Select value={filterUser} onValueChange={setFilterUser}>
+            <SelectTrigger className="w-[140px]">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="ALL">ทั้งหมด</SelectItem>
+              {salesUsers.map(u => (
+                <SelectItem key={u.id} value={u.name}>{u.name}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        )}
       </div>
 
       <div className="bg-card rounded-lg border p-2 sm:p-4 weekly-plan-calendar">

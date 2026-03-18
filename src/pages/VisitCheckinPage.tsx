@@ -325,9 +325,24 @@ export default function VisitCheckinPage() {
 
   return (
     <div className="space-y-6 animate-fade-in">
-      <div>
-        <h1 className="text-2xl font-bold text-foreground">เช็คอินเยี่ยมลูกค้า</h1>
-        <p className="text-sm text-muted-foreground">วันนี้ {format(new Date(), 'd MMMM yyyy', { locale: th })}</p>
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold text-foreground">เช็คอินเยี่ยมลูกค้า</h1>
+          <p className="text-sm text-muted-foreground">วันนี้ {format(new Date(), 'd MMMM yyyy', { locale: th })}</p>
+        </div>
+        {canSeeAll && (
+          <Select value={filterUser} onValueChange={setFilterUser}>
+            <SelectTrigger className="w-[140px]">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="ALL">ทั้งหมด</SelectItem>
+              {salesUsers.map(u => (
+                <SelectItem key={u.id} value={u.name}>{u.name}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        )}
       </div>
 
       {loading ? (

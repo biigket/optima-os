@@ -238,9 +238,24 @@ export default function VisitReportsPage() {
 
   return (
     <div className="space-y-6 animate-fade-in">
-      <div>
-        <h1 className="text-2xl font-bold text-foreground">รายงานเยี่ยมลูกค้า</h1>
-        <p className="text-sm text-muted-foreground">สรุปผลการเข้าเยี่ยมลูกค้า</p>
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold text-foreground">รายงานเยี่ยมลูกค้า</h1>
+          <p className="text-sm text-muted-foreground">สรุปผลการเข้าเยี่ยมลูกค้า</p>
+        </div>
+        {canSeeAll && (
+          <Select value={filterUser} onValueChange={setFilterUser}>
+            <SelectTrigger className="w-[140px]">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="ALL">ทั้งหมด</SelectItem>
+              {salesUsers.map(u => (
+                <SelectItem key={u.id} value={u.name}>{u.name}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        )}
       </div>
 
       {loading ? (
