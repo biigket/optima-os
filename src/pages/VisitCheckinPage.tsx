@@ -76,6 +76,8 @@ export default function VisitCheckinPage() {
       .order('created_at');
     if (!canSeeAll && currentUser) {
       query = query.eq('created_by', currentUser.name);
+    } else if (canSeeAll && filterUser !== 'ALL') {
+      query = query.eq('created_by', filterUser);
     }
     const { data } = await query;
     
