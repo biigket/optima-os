@@ -39,7 +39,7 @@ interface AccountInfo {
 export default function DemosPage() {
   const navigate = useNavigate();
   const { currentUser } = useMockAuth();
-  const isAdmin = currentUser?.role === 'ADMIN';
+  const canSeeAll = useCanSeeAll();
 
   const [demos, setDemos] = useState<DemoRow[]>([]);
   const [accounts, setAccounts] = useState<Record<string, AccountInfo>>({});
