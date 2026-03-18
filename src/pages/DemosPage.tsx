@@ -84,6 +84,11 @@ export default function DemosPage() {
     return demos.filter(d => {
       const acc = d.account_id ? accounts[d.account_id] : null;
       const matchSearch = !search || acc?.clinic_name.toLowerCase().includes(search.toLowerCase());
+      // Role-based: sales only see demos they're assigned to (visited_by) or demos of their accounts
+      if (!canSeeAll) {
+        const isMyDemo = d.visited_by?.includes(currentUser?.name || '') || acc?.assigned_sale === currentUser?.name;
+        if (!isMyDemo) return false;
+      }
       const isConfirmed = !!d.confirmed;
       const isDone = !!d.report_submitted || (d.demo_date != null && d.demo_date < today);
       if (statusFilter === 'SHOW_ALL') return matchSearch;
@@ -92,7 +97,7 @@ export default function DemosPage() {
       if (statusFilter === 'PAST') return matchSearch && isDone;
       return matchSearch;
     });
-  }, [demos, accounts, search, statusFilter, today]);
+  }, [demos, accounts, search, statusFilter, today, canSeeAll, currentUser?.name]);
 
   const isDone = (d: DemoRow) => !!d.report_submitted || (d.demo_date != null && d.demo_date < today);
   const pendingCount = demos.filter(d => !d.confirmed && !isDone(d)).length;

@@ -57,7 +57,7 @@ for (let h = 7; h <= 21; h++) {
 
 export default function CalendarPage() {
   const { currentUser } = useMockAuth();
-  const isAdmin = currentUser?.role === 'ADMIN';
+  const canSeeAll = useCanSeeAll();
   const calendarRef = useRef<InstanceType<typeof FullCalendar>>(null);
 
   const [demos, setDemos] = useState<DemoRow[]>([]);
