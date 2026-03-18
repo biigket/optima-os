@@ -166,9 +166,9 @@ export default function TasksPage() {
     return Array.from(names).sort();
   }, [rows]);
 
-  // Filter by assigned user (ADMIN sees all or filtered)
-  const isAdmin = currentUser?.role === 'ADMIN';
-  const myRows = isAdmin
+  // Filter by assigned user (Admin/Manager/Owner sees all or filtered)
+  const canSeeAll = useCanSeeAll();
+  const myRows = canSeeAll
     ? (assigneeFilter === 'ALL' ? rows : rows.filter(r => r.assigned_to?.includes(assigneeFilter)))
     : rows.filter(r => r.assigned_to?.includes(currentUser?.name || ''));
 
