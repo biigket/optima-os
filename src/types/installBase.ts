@@ -17,6 +17,8 @@ export interface PMCartridgeEntry {
   passFail: boolean;
 }
 
+export type PMResultStatus = 'complete' | 'claim' | 'repair' | 'other';
+
 export interface PMReport {
   id: string;
   installationId: string;
@@ -35,6 +37,8 @@ export interface PMReport {
   coolingChecklist: PMCheckItem[];
   cartridges: PMCartridgeEntry[];
   remark: string;
+  resultStatus?: PMResultStatus;
+  resultOther?: string;
   serviceEngineer: string;
   serviceDate: string;
   serviceTel: string;
