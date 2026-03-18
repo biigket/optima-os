@@ -82,10 +82,14 @@ export type InstallationDetail = Installation;
 export function generatePMSchedule(installDate: string, count: number = 2): { number: number; date: string }[] {
   const schedule: { number: number; date: string }[] = [];
   const base = new Date(installDate);
+  if (isNaN(base.getTime())) return schedule;
   for (let i = 1; i <= count; i++) {
     const d = new Date(base);
     d.setMonth(d.getMonth() + 6 * i);
-    schedule.push({ number: i, date: d.toISOString().split('T')[0] });
+    const yyyy = d.getFullYear();
+    const mm = String(d.getMonth() + 1).padStart(2, '0');
+    const dd = String(d.getDate()).padStart(2, '0');
+    schedule.push({ number: i, date: `${yyyy}-${mm}-${dd}` });
   }
   return schedule;
 }
