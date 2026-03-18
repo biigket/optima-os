@@ -44,8 +44,10 @@ const CUSTOMER_TYPES = [
 export default function VisitReportsPage() {
   const { currentUser } = useMockAuth();
   const canSeeAll = useCanSeeAll();
+  const salesUsers = useSalesUsers();
   const [reports, setReports] = useState<VisitReport[]>([]);
   const [loading, setLoading] = useState(true);
+  const [filterUser, setFilterUser] = useState<string>('ALL');
   const [editingReport, setEditingReport] = useState<VisitReport | null>(null);
   const [formOpen, setFormOpen] = useState(false);
   const [searchParams] = useSearchParams();
