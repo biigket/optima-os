@@ -1,0 +1,1 @@
+ALTER TABLE public.maintenance_records ADD COLUMN IF NOT EXISTS report_data jsonb DEFAULT NULL;

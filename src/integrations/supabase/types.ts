@@ -626,6 +626,7 @@ export type Database = {
           installation_id: string
           maintenance_number: number
           photos: string[] | null
+          report_data: Json | null
           report_file: string | null
           scheduled_date: string | null
           status: string | null
@@ -637,6 +638,7 @@ export type Database = {
           installation_id: string
           maintenance_number: number
           photos?: string[] | null
+          report_data?: Json | null
           report_file?: string | null
           scheduled_date?: string | null
           status?: string | null
@@ -648,6 +650,7 @@ export type Database = {
           installation_id?: string
           maintenance_number?: number
           photos?: string[] | null
+          report_data?: Json | null
           report_file?: string | null
           scheduled_date?: string | null
           status?: string | null
