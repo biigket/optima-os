@@ -630,17 +630,15 @@ export default function InstallBaseDetailPage() {
       </Card>
 
       {/* PM Report Form & View */}
-      {inst.productCategory === 'ND2' && (
-        <PMReportForm
-          open={pmFormOpen}
-          onOpenChange={setPmFormOpen}
-          installation={inst}
-          maintenanceNumber={selectedPmNumber}
-          scheduledDate={selectedPmDate}
-          existingReport={selectedReport}
-          onSave={handleSavePM}
-        />
-      )}
+      <PMReportForm
+        open={pmFormOpen}
+        onOpenChange={setPmFormOpen}
+        installation={inst}
+        maintenanceNumber={selectedPmNumber}
+        scheduledDate={selectedPmDate}
+        existingReport={selectedReport}
+        onSave={handleSavePM}
+      />
       <PMReportViewDialog open={pmViewOpen} onOpenChange={setPmViewOpen} report={selectedReport} installation={inst} />
 
       {/* Delete PM Confirmation */}
