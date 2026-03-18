@@ -394,6 +394,9 @@ export default function VisitCheckinPage() {
                       <Building2 size={14} className="text-muted-foreground" />
                       <p className="text-sm font-semibold text-foreground">{plan.accounts?.clinic_name}</p>
                     </div>
+                    {canSeeAll && plan.created_by && (
+                      <div className="text-[11px] text-muted-foreground mt-0.5">👤 {plan.created_by}</div>
+                    )}
                     <div className="flex items-center gap-1.5 text-xs text-muted-foreground mt-1">
                       <Clock size={12} /> เช็คอินแล้ว
                     </div>
