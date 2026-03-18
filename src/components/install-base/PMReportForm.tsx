@@ -8,8 +8,8 @@ import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Plus, Trash2, CheckCircle, XCircle, MinusCircle } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
-import type { PMReport, PMCheckItem, PMCartridgeEntry, PMResultStatus, Installation } from '@/types/installBase';
-import { getChecklistsByCategory, getFirmwareFields, getProductDisplayName, getCartridgeTypes, getSectionTitles } from '@/types/installBase';
+import type { PMReport, PMCheckItem, PMCartridgeEntry, PMResultStatus, PMEnergyTestRow, Installation } from '@/types/installBase';
+import { getChecklistsByCategory, getFirmwareFields, getProductDisplayName, getCartridgeTypes, getSectionTitles, getQuattroDefaultEnergyTest } from '@/types/installBase';
 import ComboSelect from '@/components/ui/ComboSelect';
 
 // Shared version options that grow as users add new ones
