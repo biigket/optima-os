@@ -247,8 +247,10 @@ export default function LeadsPage() {
 
   const filtered = myAccounts.filter(a => {
     let matchStatus = true;
-    if (statusFilter === 'PROSPECT') {
-      matchStatus = !isFollowUp(a) && a.customer_status !== 'PURCHASED' && a.customer_status !== 'DORMANT';
+    if (statusFilter === 'NEW_LEAD') {
+      matchStatus = a.customer_status === 'NEW_LEAD';
+    } else if (statusFilter === 'PROSPECT') {
+      matchStatus = !isFollowUp(a) && a.customer_status !== 'PURCHASED' && a.customer_status !== 'DORMANT' && a.customer_status !== 'NEW_LEAD';
     } else if (statusFilter === 'FOLLOW_UP') {
       matchStatus = isFollowUp(a);
     } else if (statusFilter !== 'ALL') {
