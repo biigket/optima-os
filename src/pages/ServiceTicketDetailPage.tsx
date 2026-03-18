@@ -15,7 +15,7 @@ import {
   type ServiceTicket, type ServiceTicketUpdate, type TicketStatus,
   ticketStatusLabels, ticketStatusColors,
   ticketPriorityLabels, ticketPriorityColors,
-} from '@/data/serviceTicketMockData';
+} from '@/types/service';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 
@@ -48,7 +48,7 @@ export default function ServiceTicketDetailPage() {
           symptom: row.symptom || '',
           symptomPhotos: row.symptom_photos || [],
           status: (row.status || 'OPEN') as TicketStatus,
-          priority: (row.priority || 'NORMAL') as import('@/data/serviceTicketMockData').TicketPriority,
+          priority: (row.priority || 'NORMAL') as import('@/types/service').TicketPriority,
           assignedTo: row.assigned_to || '',
           resolution: row.resolution || '',
           createdAt: row.created_at || '',

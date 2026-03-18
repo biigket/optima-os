@@ -8,7 +8,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
 import { toast } from 'sonner';
-import type { Trica3DStockItem } from '@/data/trica3dMockData';
+import type { Trica3DStockItem } from '@/types/stock';
 import { unifiedStatuses, unifiedStatusColor, type UnifiedStockStatus } from '@/data/unifiedStockStatus';
 import { mapTrica3D, toDbRow } from '@/data/qcStockMapper';
 import { supabase } from '@/integrations/supabase/client';

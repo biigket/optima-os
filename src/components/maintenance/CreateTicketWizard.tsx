@@ -8,9 +8,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Badge } from '@/components/ui/badge';
 import { Search, Building2, Cpu, Package, ChevronRight, ChevronLeft, AlertTriangle } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
-import type { Installation } from '@/data/installBaseMockData';
-import type { ConsumableInstallation } from '@/data/consumableBaseMockData';
-import { type ServiceTicket, type TicketPriority, type TicketItemType } from '@/data/serviceTicketMockData';
+import type { Installation } from '@/types/installBase';
+import type { ConsumableInstallation } from '@/types/consumable';
+import { type ServiceTicket, type TicketPriority, type TicketItemType } from '@/types/service';
 import { toast } from '@/hooks/use-toast';
 
 interface Props {

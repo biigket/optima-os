@@ -15,7 +15,7 @@ import {
   ticketStatusLabels, ticketStatusColors,
   ticketPriorityLabels, ticketPriorityColors,
   type TicketStatus,
-} from '@/data/serviceTicketMockData';
+} from '@/types/service';
 import { supabase } from '@/integrations/supabase/client';
 import CreateTicketWizard from '@/components/maintenance/CreateTicketWizard';
 

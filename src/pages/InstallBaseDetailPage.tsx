@@ -17,7 +17,7 @@ import {
 import {
   generatePMSchedule,
   type PMReport, type Installation, type ReplacementRecord, type ReplacementType,
-} from '@/data/installBaseMockData';
+} from '@/types/installBase';
 import { supabase } from '@/integrations/supabase/client';
 import PMReportForm from '@/components/install-base/PMReportForm';
 import PMReportViewDialog from '@/components/install-base/PMReportViewDialog';

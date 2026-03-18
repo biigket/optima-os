@@ -1,4 +1,4 @@
-// Customer Card types — data now comes from Supabase
+// Customer Card types — data fetched from Supabase in components
 
 export interface InstalledDevice {
   id: string;

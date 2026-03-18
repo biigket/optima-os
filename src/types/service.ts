@@ -1,4 +1,4 @@
-// Service Ticket types — data now stored in Supabase service_tickets table
+// Service Ticket types — data stored in Supabase service_tickets table
 
 export type TicketStatus = 'OPEN' | 'IN_PROGRESS' | 'WAITING_PART' | 'RESOLVED' | 'CLOSED';
 export type TicketPriority = 'LOW' | 'NORMAL' | 'HIGH' | 'URGENT';

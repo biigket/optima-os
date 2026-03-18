@@ -1,4 +1,4 @@
-// Install Base types — data now stored in Supabase installations table
+// Install Base types — data stored in Supabase installations table
 
 export type ProductCategory = 'ND2' | 'Trica 3D' | 'Quattro' | 'Picohi' | 'Freezero';
 
@@ -75,6 +75,9 @@ export interface Installation {
   loanerSerialNumber?: string;
   originalSerialNumber?: string;
 }
+
+// Alias for backward compat
+export type InstallationDetail = Installation;
 
 export function generatePMSchedule(installDate: string, count: number = 2): { number: number; date: string }[] {
   const schedule: { number: number; date: string }[] = [];

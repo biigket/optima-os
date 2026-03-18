@@ -17,14 +17,9 @@ import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import QuickNoteButtons from '@/components/ui/QuickNoteButtons';
 import PaymentConditionSelector, { getPaymentConditionLabel } from './PaymentConditionSelector';
-import { mockND2Stock } from '@/data/qcMockData';
-import { mockTrica3DStock } from '@/data/trica3dMockData';
-import { mockQuattroStock } from '@/data/quattroMockData';
-import { mockCartridgeStock } from '@/data/cartridgeMockData';
-import { mockPicohiStock } from '@/data/picohiMockData';
-import { mockFreezeroStock } from '@/data/freezeroMockData';
 import { getPrice } from '@/data/inventoryPricing';
 import { addReservation } from '@/data/inventoryReservation';
+import { normalizeStatus, normalizeProductType } from '@/data/qcStockMapper';
 
 // === Constants ===
 
@@ -46,26 +41,19 @@ interface InventoryProduct {
   price: number;
 }
 
-function getInventoryProducts(): InventoryProduct[] {
+async function fetchInventoryProducts(): Promise<InventoryProduct[]> {
+  const { data } = await supabase.from('qc_stock_items').select('*').not('status', 'is', null);
+  if (!data) return [];
   const items: InventoryProduct[] = [];
-  mockND2Stock.filter(i => i.status === 'พร้อมขาย').forEach(i =>
-    items.push({ id: i.id, name: `ND2 (${i.hntSerialNumber})`, category: 'ND2', serialNumber: i.hntSerialNumber, price: getPrice(i.id) ?? 0 })
-  );
-  mockTrica3DStock.filter(i => i.status === 'พร้อมขาย').forEach(i =>
-    items.push({ id: i.id, name: `Trica 3D (${i.serialNumber})`, category: 'Trica 3D', serialNumber: i.serialNumber, price: getPrice(i.id) ?? 0 })
-  );
-  mockQuattroStock.filter(i => i.status === 'พร้อมขาย').forEach(i =>
-    items.push({ id: i.id, name: `Quattro (${i.serialNumber})`, category: 'Quattro', serialNumber: i.serialNumber, price: getPrice(i.id) ?? 0 })
-  );
-  mockCartridgeStock.filter(i => i.status === 'พร้อมขาย').forEach(i =>
-    items.push({ id: i.id, name: `Cartridge ${i.cartridgeType} (${i.serialNumber})`, category: 'Cartridge', serialNumber: i.serialNumber, price: getPrice(i.id) ?? 0 })
-  );
-  mockPicohiStock.filter(i => i.status === 'พร้อมขาย').forEach(i =>
-    items.push({ id: i.id, name: `Picohi (${i.serialNumber})`, category: 'Picohi', serialNumber: i.serialNumber, price: getPrice(i.id) ?? 0 })
-  );
-  mockFreezeroStock.filter(i => i.status === 'พร้อมขาย').forEach(i =>
-    items.push({ id: i.id, name: `Freezero (${i.serialNumber})`, category: 'Freezero', serialNumber: i.serialNumber, price: getPrice(i.id) ?? 0 })
-  );
+  for (const row of data) {
+    const status = normalizeStatus(row.status);
+    if (status !== 'พร้อมขาย') continue;
+    const sn = row.serial_number || '';
+    const label = normalizeProductType(row.product_type) === 'CARTRIDGE'
+      ? `Cartridge ${row.cartridge_type || ''} (${sn})`
+      : `${row.product_type} (${sn})`;
+    items.push({ id: row.id, name: label, category: row.product_type, serialNumber: sn, price: getPrice(row.id) ?? 0 });
+  }
   return items;
 }
 
@@ -186,6 +174,7 @@ export default function CreateQuotationWizard({ open, onOpenChange, onCreated }:
   });
 
   // Step 1: Products
+  const [inventoryItems, setInventoryItems] = useState<InventoryProduct[]>([]);
   const [productLines, setProductLines] = useState<ProductLine[]>([]);
   const [discountPercent, setDiscountPercent] = useState(0);
   const [discountAmount, setDiscountAmount] = useState(0);
@@ -208,6 +197,7 @@ export default function CreateQuotationWizard({ open, onOpenChange, onCreated }:
     if (open) {
       resetAll();
       fetchAccounts();
+      fetchInventoryProducts().then(setInventoryItems);
     }
   }, [open]);
 
@@ -502,12 +492,9 @@ export default function CreateQuotationWizard({ open, onOpenChange, onCreated }:
           <div className="space-y-4">
             <div>
               <Label className="text-xs text-muted-foreground mb-2 block">เลือกสินค้าจากคลังสินค้า (พร้อมขาย)</Label>
-              {(() => {
-                const inventoryItems = getInventoryProducts();
-                if (inventoryItems.length === 0) {
-                  return <p className="text-sm text-muted-foreground py-4 text-center">ไม่มีสินค้าพร้อมขายในคลัง</p>;
-                }
-                return (
+              {inventoryItems.length === 0 ? (
+                <p className="text-sm text-muted-foreground py-4 text-center">ไม่มีสินค้าพร้อมขายในคลัง</p>
+              ) : (
                   <div className="space-y-1.5 max-h-[200px] overflow-y-auto rounded-lg border p-2">
                     {inventoryItems.map(p => {
                       const added = productLines.some(l => l.name === p.name);
@@ -535,8 +522,7 @@ export default function CreateQuotationWizard({ open, onOpenChange, onCreated }:
                       );
                     })}
                   </div>
-                );
-              })()}
+              )}
             </div>
 
             {productLines.length > 0 && (

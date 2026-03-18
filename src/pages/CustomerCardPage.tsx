@@ -31,7 +31,7 @@ import {
   getTimelineForAccount, getReportsForAccount,
   getConsumablesForAccount, getServiceForAccount,
   getDocumentsForAccount, getMarketingForAccount
-} from '@/data/customerCardMockData';
+} from '@/types/customerCard';
 // Install base and consumable data now comes from Supabase directly
 import type { Opportunity, Activity } from '@/types';
 import HistoryTimeline from '@/components/opportunity-detail/HistoryTimeline';

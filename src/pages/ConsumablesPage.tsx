@@ -7,9 +7,9 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Plus, Search, Package, CheckCircle, AlertTriangle, CircleOff } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
-import { cartridgeTypes } from '@/data/cartridgeMockData';
+import { cartridgeTypes } from '@/types/stock';
 import AddConsumableDialog from '@/components/consumables/AddConsumableDialog';
-import type { ConsumableInstallation } from '@/data/consumableBaseMockData';
+import type { ConsumableInstallation } from '@/types/consumable';
 
 interface ConsumableRow {
   id: string;

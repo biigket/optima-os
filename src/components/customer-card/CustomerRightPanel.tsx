@@ -14,7 +14,7 @@ import { toast } from 'sonner';
 import {
   getDevicesForAccount, getConsumablesForAccount, getServiceForAccount,
   getDocumentsForAccount, getMarketingForAccount,
-} from '@/data/customerCardMockData';
+} from '@/types/customerCard';
 // Install base data now comes from Supabase directly
 import { supabase } from '@/integrations/supabase/client';
 import { getPaymentConditionLabel } from '@/components/quotations/PaymentConditionSelector';

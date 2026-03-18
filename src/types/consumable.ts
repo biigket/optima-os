@@ -1,6 +1,6 @@
-// Consumable Base types — data now stored in Supabase qc_stock_items table
+// Consumable Base types — data stored in Supabase qc_stock_items table
 
-import type { CartridgeType } from './cartridgeMockData';
+import type { CartridgeType } from './stock';
 
 export interface ConsumableInstallation {
   id: string;

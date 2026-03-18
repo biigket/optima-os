@@ -2,7 +2,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { CheckCircle, XCircle, MinusCircle } from 'lucide-react';
-import type { PMReport, Installation } from '@/data/installBaseMockData';
+import type { PMReport, Installation } from '@/types/installBase';
 
 interface Props {
   open: boolean;

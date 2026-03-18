@@ -7,7 +7,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
 import { toast } from 'sonner';
-import { type CartridgeStockItem, type CartridgeType, cartridgeTypes } from '@/data/cartridgeMockData';
+import { type CartridgeStockItem, type CartridgeType, cartridgeTypes } from '@/types/stock';
 import { unifiedStatuses, type UnifiedStockStatus } from '@/data/unifiedStockStatus';
 
 interface CartridgeIntakeFormProps {

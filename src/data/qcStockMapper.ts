@@ -1,10 +1,5 @@
 // Maps qc_stock_items DB rows to local TypeScript types
-import type { ND2StockItem, HrmSellOrKeep } from './qcMockData';
-import type { Trica3DStockItem } from './trica3dMockData';
-import type { QuattroStockItem } from './quattroMockData';
-import type { PicohiStockItem } from './picohiMockData';
-import type { FreezeroStockItem } from './freezeroMockData';
-import type { CartridgeStockItem, CartridgeType } from './cartridgeMockData';
+import type { ND2StockItem, HrmSellOrKeep, Trica3DStockItem, QuattroStockItem, PicohiStockItem, FreezeroStockItem, CartridgeStockItem, CartridgeType } from '@/types/stock';
 import type { UnifiedStockStatus } from './unifiedStockStatus';
 
 type DbRow = Record<string, any>;
