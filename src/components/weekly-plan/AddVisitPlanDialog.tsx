@@ -234,6 +234,7 @@ export default function AddVisitPlanDialog({
       objective: resolvedObjective || null,
       products_presented: productsPresented.trim() || null,
       notes: planNotes.trim() || null,
+      created_by: currentUser?.name || null,
     });
 
     // If custom objective, add to saved options

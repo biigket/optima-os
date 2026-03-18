@@ -10,6 +10,7 @@ import { format } from 'date-fns';
 import { th } from 'date-fns/locale';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
+import { useMockAuth, useCanSeeAll } from '@/hooks/useMockAuth';
 import {
   Dialog,
   DialogContent,
@@ -33,6 +34,8 @@ interface VisitPlan {
 }
 
 export default function VisitCheckinPage() {
+  const { currentUser } = useMockAuth();
+  const canSeeAll = useCanSeeAll();
   const [plans, setPlans] = useState<VisitPlan[]>([]);
   const [loading, setLoading] = useState(true);
   const [checkinPlan, setCheckinPlan] = useState<VisitPlan | null>(null);
@@ -62,11 +65,15 @@ export default function VisitCheckinPage() {
 
   async function fetchPlans() {
     setLoading(true);
-    const { data } = await supabase
+    let query = supabase
       .from('visit_plans')
       .select('*, accounts(id, clinic_name)')
       .eq('plan_date', today)
       .order('created_at');
+    if (!canSeeAll && currentUser) {
+      query = query.eq('created_by', currentUser.name);
+    }
+    const { data } = await query;
     
     if (data) {
       // Fetch primary contacts for each account

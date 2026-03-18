@@ -12,6 +12,7 @@ import { format } from 'date-fns';
 import { th } from 'date-fns/locale';
 import { toast } from 'sonner';
 import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useMockAuth, useCanSeeAll } from '@/hooks/useMockAuth';
 
 interface VisitReport {
   id: string;
@@ -40,6 +41,8 @@ const CUSTOMER_TYPES = [
 ];
 
 export default function VisitReportsPage() {
+  const { currentUser } = useMockAuth();
+  const canSeeAll = useCanSeeAll();
   const [reports, setReports] = useState<VisitReport[]>([]);
   const [loading, setLoading] = useState(true);
   const [editingReport, setEditingReport] = useState<VisitReport | null>(null);
@@ -70,11 +73,15 @@ export default function VisitReportsPage() {
 
   async function fetchReports() {
     setLoading(true);
-    const { data } = await supabase
+    let query = supabase
       .from('visit_reports')
       .select('*, accounts(id, clinic_name)')
       .order('created_at', { ascending: false })
       .limit(50);
+    if (!canSeeAll && currentUser) {
+      query = query.eq('created_by', currentUser.name);
+    }
+    const { data } = await query;
     if (data) setReports(data as unknown as VisitReport[]);
     setLoading(false);
   }
