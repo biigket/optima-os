@@ -8,7 +8,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
 import { toast } from 'sonner';
-import type { PicohiStockItem } from '@/data/picohiMockData';
+import type { PicohiStockItem } from '@/types/stock';
 import { unifiedStatuses, unifiedStatusColor, type UnifiedStockStatus } from '@/data/unifiedStockStatus';
 import { mapGenericStock, toDbRow } from '@/data/qcStockMapper';
 import { supabase } from '@/integrations/supabase/client';

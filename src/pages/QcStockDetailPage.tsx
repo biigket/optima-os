@@ -8,7 +8,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
 import { toast } from 'sonner';
-import type { ND2StockItem, HrmSellOrKeep } from '@/data/qcMockData';
+import type { ND2StockItem, HrmSellOrKeep } from '@/types/stock';
 import { unifiedStatuses, unifiedStatusColor, type UnifiedStockStatus } from '@/data/unifiedStockStatus';
 import { mapND2, toDbRow } from '@/data/qcStockMapper';
 import { supabase } from '@/integrations/supabase/client';

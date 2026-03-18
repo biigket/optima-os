@@ -15,7 +15,7 @@ import { toast } from 'sonner';
 import {
   getTimelineForAccount, getVisitsForAccount,
   getLifetimeRevenue, getDevicesForAccount
-} from '@/data/customerCardMockData';
+} from '@/types/customerCard';
 
 import { supabase } from '@/integrations/supabase/client';
 import type { OpportunityNote } from '@/hooks/useOpportunityNotes';

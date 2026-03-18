@@ -7,7 +7,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
 import { toast } from 'sonner';
-import type { ND2StockItem, HrmSellOrKeep } from '@/data/qcMockData';
+import type { ND2StockItem, HrmSellOrKeep } from '@/types/stock';
 import { unifiedStatuses, type UnifiedStockStatus } from '@/data/unifiedStockStatus';
 
 interface ND2IntakeFormProps {

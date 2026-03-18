@@ -8,7 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
 import { toast } from 'sonner';
-import { cartridgeTypes, type CartridgeStockItem, type CartridgeType } from '@/data/cartridgeMockData';
+import { cartridgeTypes, type CartridgeStockItem, type CartridgeType } from '@/types/stock';
 import { unifiedStatuses, unifiedStatusColor, type UnifiedStockStatus } from '@/data/unifiedStockStatus';
 import { mapCartridge, toDbRow } from '@/data/qcStockMapper';
 import { supabase } from '@/integrations/supabase/client';

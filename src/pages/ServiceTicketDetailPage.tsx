@@ -15,7 +15,7 @@ import {
   type ServiceTicket, type ServiceTicketUpdate, type TicketStatus,
   ticketStatusLabels, ticketStatusColors,
   ticketPriorityLabels, ticketPriorityColors,
-} from '@/data/serviceTicketMockData';
+} from '@/types/service';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 

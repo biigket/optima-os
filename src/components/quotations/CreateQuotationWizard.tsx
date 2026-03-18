@@ -17,12 +17,7 @@ import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import QuickNoteButtons from '@/components/ui/QuickNoteButtons';
 import PaymentConditionSelector, { getPaymentConditionLabel } from './PaymentConditionSelector';
-import { mockND2Stock } from '@/data/qcMockData';
-import { mockTrica3DStock } from '@/data/trica3dMockData';
-import { mockQuattroStock } from '@/data/quattroMockData';
-import { mockCartridgeStock } from '@/data/cartridgeMockData';
-import { mockPicohiStock } from '@/data/picohiMockData';
-import { mockFreezeroStock } from '@/data/freezeroMockData';
+// Mock stock arrays removed — inventory now fetched from DB in getInventoryProducts
 import { getPrice } from '@/data/inventoryPricing';
 import { addReservation } from '@/data/inventoryReservation';
 

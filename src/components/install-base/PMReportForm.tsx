@@ -9,8 +9,8 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Plus, Trash2, CheckCircle, XCircle, MinusCircle } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
-import type { PMReport, PMCheckItem, PMCartridgeEntry, Installation } from '@/data/installBaseMockData';
-import { getND2OperationChecklist, getND2SafetyChecklist, getND2CoolingChecklist } from '@/data/installBaseMockData';
+import type { PMReport, PMCheckItem, PMCartridgeEntry, InstallationDetail } from '@/types/installBase';
+import { getND2OperationChecklist, getND2SafetyChecklist, getND2CoolingChecklist } from '@/types/installBase';
 import ComboSelect from '@/components/ui/ComboSelect';
 
 // Shared version options that grow as users add new ones

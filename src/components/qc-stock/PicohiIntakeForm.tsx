@@ -6,7 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { unifiedStatuses, type UnifiedStockStatus } from '@/data/unifiedStockStatus';
-import type { PicohiStockItem } from '@/data/picohiMockData';
+import type { PicohiStockItem } from '@/types/stock';
 
 interface Props {
   open: boolean;
