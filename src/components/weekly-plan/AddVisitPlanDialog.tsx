@@ -12,7 +12,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { format } from 'date-fns';
 import { th } from 'date-fns/locale';
 import { toast } from 'sonner';
-import { useMockAuth, MOCK_SALES } from '@/hooks/useMockAuth';
+import { useMockAuth, useSalesUsers } from '@/hooks/useMockAuth';
 import { Star } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
