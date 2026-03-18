@@ -270,10 +270,37 @@ export default function PMReportForm({ open, onOpenChange, installation, mainten
             </div>
           )}
 
-          {/* Remark */}
+          {/* Note / Remark */}
           <div>
-            <Label>Remark</Label>
-            <Textarea value={remark} onChange={e => setRemark(e.target.value)} rows={3} />
+            <Label>Note</Label>
+            <Textarea value={remark} onChange={e => setRemark(e.target.value)} rows={3} placeholder="เครื่องสามารถใช้งานได้ปกติ" />
+          </div>
+
+          {/* Result */}
+          <div>
+            <Label className="text-sm font-semibold">Result</Label>
+            <div className="flex flex-wrap gap-4 mt-2">
+              {([
+                { value: 'complete' as PMResultStatus, label: 'Complete' },
+                { value: 'claim' as PMResultStatus, label: 'Claim' },
+                { value: 'repair' as PMResultStatus, label: 'Repair' },
+                { value: 'other' as PMResultStatus, label: 'Other' },
+              ]).map(opt => (
+                <label key={opt.value} className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="radio"
+                    name="resultStatus"
+                    checked={resultStatus === opt.value}
+                    onChange={() => setResultStatus(opt.value)}
+                    className="accent-primary w-4 h-4"
+                  />
+                  <span className="text-sm">{opt.label}</span>
+                </label>
+              ))}
+            </div>
+            {resultStatus === 'other' && (
+              <Input value={resultOther} onChange={e => setResultOther(e.target.value)} className="mt-2 h-8" placeholder="ระบุรายละเอียด..." />
+            )}
           </div>
 
           {/* Signatures */}
