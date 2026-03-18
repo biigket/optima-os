@@ -11,7 +11,7 @@ import { Phone, Users, Building2, Target, Presentation, ChevronDown, ChevronUp, 
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
-import { useMockAuth, MOCK_SALES } from '@/hooks/useMockAuth';
+import { useMockAuth } from '@/hooks/useMockAuth';
 import type { Activity, ActivityType, ActivityPriority } from '@/types';
 import StructuredNotes from './StructuredNotes';
 import RichTextEditor from '@/components/ui/RichTextEditor';
