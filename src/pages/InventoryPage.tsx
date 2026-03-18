@@ -151,7 +151,38 @@ export default function InventoryPage() {
     { label: 'Cartridge', key: 'CARTRIDGE', color: 'border-amber-500/20', readyText: 'text-amber-700', reservedText: 'text-amber-600' },
   ];
 
-  // ... keep existing code for handleStartEdit, handleSavePrice, handleCancelEdit, formatPrice ...
+  const handleStartEdit = (id: string) => {
+    setEditingId(id);
+    const current = getPrice(id);
+    setEditPrice(current !== null ? String(current) : '');
+  };
+
+  const handleSavePrice = (id: string) => {
+    const val = editPrice.trim();
+    if (val === '') {
+      setPrice(id, null);
+    } else {
+      const num = parseFloat(val);
+      if (isNaN(num) || num < 0) {
+        toast.error('กรุณากรอกราคาเป็นตัวเลข');
+        return;
+      }
+      setPrice(id, num);
+    }
+    setEditingId(null);
+    setTick(t => t + 1);
+    toast.success('บันทึกราคาเรียบร้อย');
+  };
+
+  const handleCancelEdit = () => {
+    setEditingId(null);
+    setEditPrice('');
+  };
+
+  const formatPrice = (price: number | null) => {
+    if (price === null) return '—';
+    return price.toLocaleString('th-TH', { minimumFractionDigits: 0 }) + ' ฿';
+  };
 
   return (
     <div className="space-y-6 animate-fade-in">
