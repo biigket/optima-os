@@ -30,13 +30,14 @@ async function gatherContext(supabase: any, userMessage: string) {
   context.push(`ภาพรวมระบบ: ลูกค้า ${accountCount} ราย, โอกาสขาย ${oppCount} รายการ, เดโม ${demoCount} ครั้ง, ใบเสนอราคา ${quotationCount} ใบ, เครื่องติดตั้ง ${installCount} เครื่อง, ใบแจ้งซ่อม ${ticketCount} ใบ`);
 
   // Stock queries
-  if (msg.includes("สต็อก") || msg.includes("stock") || msg.includes("คลัง") || msg.includes("สินค้า") || msg.includes("เครื่อง") || msg.includes("พร้อมขาย") || msg.includes("qc")) {
+  if (msg.includes("สต็อก") || msg.includes("stock") || msg.includes("คลัง") || msg.includes("สินค้า") || msg.includes("เครื่อง") || msg.includes("พร้อมขาย") || msg.includes("qc") || msg.includes("หัว") || msg.includes("cartridge") || msg.includes("คาร์ทริดจ์") || msg.includes("ติดจอง")) {
     const { data: stockItems } = await supabase
       .from("qc_stock_items")
-      .select("product_type, status")
-      .limit(1000);
+      .select("product_type, status, cartridge_type")
+      .limit(2000);
 
     if (stockItems?.length) {
+      // Summary by product_type
       const summary: Record<string, Record<string, number>> = {};
       for (const item of stockItems) {
         if (!summary[item.product_type]) summary[item.product_type] = {};
@@ -48,6 +49,23 @@ async function gatherContext(supabase: any, userMessage: string) {
         const details = Object.entries(statuses).map(([s, c]) => `${s}: ${c}`).join(", ");
         stockText += `- ${type} (รวม ${total}): ${details}\n`;
       }
+
+      // Cartridge breakdown by cartridge_type
+      const cartridgeItems = stockItems.filter((i: any) => i.product_type === 'CARTRIDGE');
+      if (cartridgeItems.length > 0) {
+        const byType: Record<string, Record<string, number>> = {};
+        for (const item of cartridgeItems) {
+          const ct = item.cartridge_type || 'ไม่ระบุ';
+          if (!byType[ct]) byType[ct] = {};
+          byType[ct][item.status || 'ไม่ระบุ'] = (byType[ct][item.status || 'ไม่ระบุ'] || 0) + 1;
+        }
+        stockText += "\nCartridge แยกตามชนิด:\n";
+        for (const [ct, statuses] of Object.entries(byType).sort((a, b) => a[0].localeCompare(b[0]))) {
+          const details = Object.entries(statuses).map(([s, c]) => `${s}: ${c}`).join(", ");
+          stockText += `- ${ct}: ${details}\n`;
+        }
+      }
+
       context.push(stockText);
     }
   }
