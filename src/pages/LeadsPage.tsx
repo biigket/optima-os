@@ -516,7 +516,7 @@ export default function LeadsPage() {
               <Select value={form.assigned_sale || ''} onValueChange={v => updateField('assigned_sale', v)}>
                 <SelectTrigger><SelectValue placeholder="เลือกเซลล์" /></SelectTrigger>
                 <SelectContent>
-                  {MOCK_SALES.map(s => <SelectItem key={s.id} value={s.name}>{s.name}</SelectItem>)}
+                  {salesUsers.map(s => <SelectItem key={s.id} value={s.name}>{s.name}</SelectItem>)}
                 </SelectContent>
               </Select>
             </div>
