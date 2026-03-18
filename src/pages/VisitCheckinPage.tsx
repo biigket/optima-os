@@ -65,7 +65,7 @@ export default function VisitCheckinPage() {
 
   const today = format(new Date(), 'yyyy-MM-dd');
 
-  useEffect(() => { fetchPlans(); }, []);
+  useEffect(() => { fetchPlans(); }, [filterUser]);
 
   async function fetchPlans() {
     setLoading(true);
