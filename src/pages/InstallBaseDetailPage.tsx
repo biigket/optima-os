@@ -611,11 +611,9 @@ export default function InstallBaseDetailPage() {
                             <Eye size={14} className="mr-1" />ดู Report
                           </Button>
                         )}
-                        {inst.productCategory === 'ND2' && (
-                          <Button variant={report ? 'outline' : 'default'} size="sm" onClick={() => handleOpenPMForm(pm.number, pm.date)}>
-                            <FileText size={14} className="mr-1" />{report ? 'แก้ไข' : 'กรอก PM Report'}
-                          </Button>
-                        )}
+                        <Button variant={report ? 'outline' : 'default'} size="sm" onClick={() => handleOpenPMForm(pm.number, pm.date)}>
+                          <FileText size={14} className="mr-1" />{report ? 'แก้ไข' : 'กรอก PM Report'}
+                        </Button>
                         {isPending && (
                           <Button variant="ghost" size="sm" className="text-destructive hover:text-destructive hover:bg-destructive/10" onClick={() => setPmToDelete(pm.number)}>
                             <Trash2 size={14} />
@@ -632,17 +630,15 @@ export default function InstallBaseDetailPage() {
       </Card>
 
       {/* PM Report Form & View */}
-      {inst.productCategory === 'ND2' && (
-        <PMReportForm
-          open={pmFormOpen}
-          onOpenChange={setPmFormOpen}
-          installation={inst}
-          maintenanceNumber={selectedPmNumber}
-          scheduledDate={selectedPmDate}
-          existingReport={selectedReport}
-          onSave={handleSavePM}
-        />
-      )}
+      <PMReportForm
+        open={pmFormOpen}
+        onOpenChange={setPmFormOpen}
+        installation={inst}
+        maintenanceNumber={selectedPmNumber}
+        scheduledDate={selectedPmDate}
+        existingReport={selectedReport}
+        onSave={handleSavePM}
+      />
       <PMReportViewDialog open={pmViewOpen} onOpenChange={setPmViewOpen} report={selectedReport} installation={inst} />
 
       {/* Delete PM Confirmation */}
