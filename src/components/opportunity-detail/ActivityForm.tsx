@@ -71,7 +71,7 @@ export default function ActivityForm({
   editingActivity, onActivityUpdated, onCancelEdit, onFormChange,
   quickScheduleDefaults, clinicName, currentStage, interestedProducts,
 }: ActivityFormProps) {
-  const { currentUser } = useMockAuth();
+  const { currentUser, allUsers } = useMockAuth();
   const [selectedType, setSelectedType] = useState<ActivityType>('CALL');
   const [title, setTitle] = useState('');
   const [activityDate, setActivityDate] = useState(quickScheduleDefaults?.activity_date || new Date().toISOString().split('T')[0]);
