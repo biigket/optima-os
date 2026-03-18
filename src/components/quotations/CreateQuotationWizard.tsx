@@ -522,8 +522,7 @@ export default function CreateQuotationWizard({ open, onOpenChange, onCreated }:
                       );
                     })}
                   </div>
-                );
-              })()}
+              )}
             </div>
 
             {productLines.length > 0 && (
