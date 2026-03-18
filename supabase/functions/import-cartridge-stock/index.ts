@@ -5,68 +5,67 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-function parseCSVLine(line: string): string[] {
-  const result: string[] = [];
-  let current = '';
-  let inQuotes = false;
-  for (let i = 0; i < line.length; i++) {
-    const ch = line[i];
-    if (inQuotes) {
-      if (ch === '"' && line[i + 1] === '"') { current += '"'; i++; }
-      else if (ch === '"') { inQuotes = false; }
-      else { current += ch; }
-    } else {
-      if (ch === '"') { inQuotes = true; }
-      else if (ch === ',') { result.push(current); current = ''; }
-      else { current += ch; }
-    }
-  }
-  result.push(current);
-  return result;
-}
-
-function parseCSVWithMultiline(text: string): string[][] {
+/**
+ * Full CSV parser that handles multiline quoted fields correctly.
+ * Returns array of string arrays (rows x columns).
+ */
+function parseFullCSV(text: string): string[][] {
+  const clean = text.replace(/^\uFEFF/, '');
   const rows: string[][] = [];
-  const lines = text.replace(/^\uFEFF/, '').split('\n');
-  let currentLine = '';
+  let currentRow: string[] = [];
+  let currentField = '';
   let inQuotes = false;
-
-  for (const line of lines) {
-    if (!inQuotes) {
-      currentLine = line.replace(/\r$/, '');
+  
+  for (let i = 0; i < clean.length; i++) {
+    const ch = clean[i];
+    
+    if (inQuotes) {
+      if (ch === '"') {
+        if (i + 1 < clean.length && clean[i + 1] === '"') {
+          currentField += '"';
+          i++; // skip escaped quote
+        } else {
+          inQuotes = false;
+        }
+      } else {
+        currentField += ch;
+      }
     } else {
-      currentLine += '\n' + line.replace(/\r$/, '');
-    }
-
-    // Count unescaped quotes
-    let quoteCount = 0;
-    for (let i = 0; i < currentLine.length; i++) {
-      if (currentLine[i] === '"') {
-        if (currentLine[i + 1] === '"') { i++; }
-        else { quoteCount++; }
+      if (ch === '"') {
+        inQuotes = true;
+      } else if (ch === ',') {
+        currentRow.push(currentField);
+        currentField = '';
+      } else if (ch === '\r') {
+        // skip carriage return
+      } else if (ch === '\n') {
+        currentRow.push(currentField);
+        currentField = '';
+        // Only add row if it has some content
+        if (currentRow.some(f => f.trim().length > 0)) {
+          rows.push(currentRow);
+        }
+        currentRow = [];
+      } else {
+        currentField += ch;
       }
-    }
-    inQuotes = quoteCount % 2 !== 0;
-
-    if (!inQuotes) {
-      if (currentLine.trim().length > 0) {
-        rows.push(parseCSVLine(currentLine));
-      }
-      currentLine = '';
     }
   }
+  
+  // Last field/row
+  currentRow.push(currentField);
+  if (currentRow.some(f => f.trim().length > 0)) {
+    rows.push(currentRow);
+  }
+  
   return rows;
 }
 
 function parseDateDMY(s: string): string | null {
   if (!s || !s.trim()) return null;
-  const clean = s.trim();
-  // DD/MM/YYYY
-  const m = clean.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+  const m = s.trim().match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
   if (m) {
-    const day = m[1].padStart(2, '0');
-    const month = m[2].padStart(2, '0');
-    return `${m[3]}-${month}-${day}`;
+    return `${m[3]}-${m[2].padStart(2, '0')}-${m[1].padStart(2, '0')}`;
   }
   return null;
 }
@@ -82,6 +81,12 @@ function normalizeStatus(raw: string): string {
   return 'พร้อมขาย';
 }
 
+function cleanField(s: string | undefined): string | null {
+  if (!s) return null;
+  const v = s.replace(/\n/g, ' ').replace(/\r/g, '').trim();
+  return v.length > 0 ? v : null;
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
@@ -95,17 +100,16 @@ Deno.serve(async (req) => {
     const resp = await fetch(csvUrl);
     const csvText = await resp.text();
 
-    const allRows = parseCSVWithMultiline(csvText);
+    const allRows = parseFullCSV(csvText);
+    console.log(`Parsed ${allRows.length} rows (incl header)`);
     if (allRows.length < 2) {
-      return new Response(JSON.stringify({ success: false, error: 'No data rows' }), {
+      return new Response(JSON.stringify({ success: false, error: 'No data rows', rowCount: allRows.length }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    // Header indices (Thai headers)
-    // 0: Cartridge S/N, 1: STATUS, 2: Cartridge, 3: สาเหตุไม่ผ่าน QC,
-    // 4: วันที่รับเข้า Stock x, 5: วันที่รับเข้า Stock, 6: Clinic, 7: Clinic x,
-    // 8: เก็บที่, 9: Note, 10: Sale ที่เบิก, 11: เบิกเพื่อ, 12: วันที่เบิก
+    // Skip header row (index 0)
+    // Columns: 0=S/N, 1=STATUS, 2=Cartridge, 3=สาเหตุ, 4=วันที่ x, 5=วันที่, 6=Clinic, 7=Clinic x, 8=เก็บที่, 9=Note
     const dataRows = allRows.slice(1);
 
     // Deduplicate by serial number - keep first occurrence
@@ -118,25 +122,27 @@ Deno.serve(async (req) => {
       seen.add(sn);
 
       const status = normalizeStatus(cols[1] || '');
-      const cartridgeType = (cols[2] || '').trim() || null;
-      const failReason = (cols[3] || '').trim().replace(/\n/g, ' ').trim() || null;
+      const cartridgeType = cleanField(cols[2]);
+      const failReason = cleanField(cols[3]);
       const receivedDate = parseDateDMY(cols[4] || '') || parseDateDMY(cols[5] || '');
-      const clinic = (cols[6] || '').trim().replace(/\n/g, ' ').trim() || (cols[7] || '').trim().replace(/\n/g, ' ').trim() || null;
-      const storageLocation = (cols[8] || '').trim() || null;
-      const notes = (cols[9] || '').trim() || null;
+      const clinic = cleanField(cols[6]) || cleanField(cols[7]);
+      const storageLocation = cleanField(cols[8]);
+      const notes = cleanField(cols[9]);
 
       records.push({
         product_type: 'CARTRIDGE',
         serial_number: sn,
         cartridge_type: cartridgeType,
         status,
-        fail_reason: failReason || null,
+        fail_reason: failReason,
         received_date: receivedDate,
-        clinic: clinic,
+        clinic,
         storage_location: storageLocation,
-        notes: notes,
+        notes,
       });
     }
+
+    console.log(`Unique records to insert: ${records.length}`);
 
     // Delete existing CARTRIDGE items first
     await supabase.from('qc_stock_items').delete().eq('product_type', 'CARTRIDGE');
@@ -153,6 +159,7 @@ Deno.serve(async (req) => {
           inserted: totalDone,
           total: records.length,
           failedBatch: i,
+          sampleRecord: batch[0],
         }), {
           status: 500,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
