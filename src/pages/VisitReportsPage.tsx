@@ -41,6 +41,8 @@ const CUSTOMER_TYPES = [
 ];
 
 export default function VisitReportsPage() {
+  const { currentUser } = useMockAuth();
+  const canSeeAll = useCanSeeAll();
   const [reports, setReports] = useState<VisitReport[]>([]);
   const [loading, setLoading] = useState(true);
   const [editingReport, setEditingReport] = useState<VisitReport | null>(null);
