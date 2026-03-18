@@ -546,7 +546,7 @@ export default function ActivityForm({
               <SelectValue placeholder="+ เพิ่ม" />
             </SelectTrigger>
             <SelectContent>
-              {MOCK_SALES.filter(u => !assignedTo.includes(u.name)).map(u => (
+              {allUsers.filter(u => !assignedTo.includes(u.name)).map(u => (
                 <SelectItem key={u.id} value={u.name} className="text-xs">{u.name}</SelectItem>
               ))}
             </SelectContent>
