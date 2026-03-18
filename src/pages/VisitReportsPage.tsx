@@ -31,6 +31,7 @@ interface VisitReport {
   new_contact_phone: string | null;
   photo: string | null;
   created_at: string;
+  created_by: string | null;
   accounts?: { id: string; clinic_name: string } | null;
 }
 
@@ -213,6 +214,7 @@ export default function VisitReportsPage() {
               <div>
                 <p className="text-sm font-semibold text-foreground">{report.clinic_name || report.accounts?.clinic_name || '-'}</p>
                 <div className="flex items-center gap-3 text-xs text-muted-foreground mt-1">
+                  {canSeeAll && report.created_by && <span className="flex items-center gap-1">👤 {report.created_by}</span>}
                   {report.met_who && <span className="flex items-center gap-1"><User size={12} /> {report.met_who}</span>}
                   {report.check_in_at && (
                     <span className="flex items-center gap-1">
