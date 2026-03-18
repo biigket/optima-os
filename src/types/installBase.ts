@@ -309,6 +309,27 @@ export function getProductDisplayName(cat: ProductCategory): string {
   }
 }
 
+// ─── Section titles per category ───
+export interface ChecklistSectionTitles {
+  operation: string;
+  safety: string;
+  cooling: string;
+}
+export function getSectionTitles(cat: ProductCategory): ChecklistSectionTitles {
+  switch (cat) {
+    case 'Trica 3D': return {
+      operation: '1. Operation System',
+      safety: '2. Safety System',
+      cooling: '3. Analysis Processing System',
+    };
+    default: return {
+      operation: '1. Operation System and Handpiece',
+      safety: '2. Safety System',
+      cooling: '3. Cooling System',
+    };
+  }
+}
+
 // ─── Cartridge types per category ───
 export function getCartridgeTypes(cat: ProductCategory): string[] | null {
   switch (cat) {
