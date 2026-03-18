@@ -493,9 +493,9 @@ export default function CreateQuotationWizard({ open, onOpenChange, onCreated }:
             <div>
               <Label className="text-xs text-muted-foreground mb-2 block">เลือกสินค้าจากคลังสินค้า (พร้อมขาย)</Label>
               {(() => {
-                const inventoryItems = getInventoryProducts();
                 if (inventoryItems.length === 0) {
                   return <p className="text-sm text-muted-foreground py-4 text-center">ไม่มีสินค้าพร้อมขายในคลัง</p>;
+                }
                 }
                 return (
                   <div className="space-y-1.5 max-h-[200px] overflow-y-auto rounded-lg border p-2">
