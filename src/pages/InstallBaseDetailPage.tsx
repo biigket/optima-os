@@ -104,6 +104,23 @@ export default function InstallBaseDetailPage() {
         }
       }
 
+      // Load PM reports from maintenance_records
+      const { data: pmRecords } = await supabase
+        .from('maintenance_records')
+        .select('*')
+        .eq('installation_id', id)
+        .order('maintenance_number', { ascending: true });
+
+      if (pmRecords && pmRecords.length > 0) {
+        const maxPm = Math.max(...pmRecords.map(r => r.maintenance_number));
+        if (maxPm > 2) {
+          setPmCount(Math.ceil(maxPm / 2) * 2);
+        }
+        installation.pmReports = pmRecords
+          .filter(r => r.report_data)
+          .map(r => r.report_data as unknown as PMReport);
+      }
+
       setInst(installation);
       setLoading(false);
     }
@@ -282,10 +299,36 @@ export default function InstallBaseDetailPage() {
     setPmViewOpen(true);
   }
 
-  function handleSavePM(report: PMReport) {
-    const existing = inst!.pmReports.findIndex(r => r.maintenanceNumber === report.maintenanceNumber);
-    if (existing >= 0) {
-      inst!.pmReports[existing] = report;
+  async function handleSavePM(report: PMReport) {
+    // Upsert to maintenance_records
+    const { data: existing } = await supabase
+      .from('maintenance_records')
+      .select('id')
+      .eq('installation_id', inst!.id)
+      .eq('maintenance_number', report.maintenanceNumber)
+      .maybeSingle();
+
+    if (existing) {
+      await supabase.from('maintenance_records').update({
+        actual_date: report.actualDate || report.serviceDate,
+        status: 'COMPLETED',
+        report_data: report as any,
+      }).eq('id', existing.id);
+    } else {
+      await supabase.from('maintenance_records').insert({
+        installation_id: inst!.id,
+        maintenance_number: report.maintenanceNumber,
+        scheduled_date: report.scheduledDate,
+        actual_date: report.actualDate || report.serviceDate,
+        status: 'COMPLETED',
+        report_data: report as any,
+      });
+    }
+
+    // Update local state
+    const idx = inst!.pmReports.findIndex(r => r.maintenanceNumber === report.maintenanceNumber);
+    if (idx >= 0) {
+      inst!.pmReports[idx] = report;
     } else {
       inst!.pmReports.push(report);
     }
