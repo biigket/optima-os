@@ -197,6 +197,7 @@ export default function CreateQuotationWizard({ open, onOpenChange, onCreated }:
     if (open) {
       resetAll();
       fetchAccounts();
+      fetchInventoryProducts().then(setInventoryItems);
     }
   }, [open]);
 
