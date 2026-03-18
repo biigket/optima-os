@@ -240,7 +240,7 @@ export default function TasksPage() {
             <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
             <Input placeholder="ค้นหางาน..." value={search} onChange={e => setSearch(e.target.value)} className="pl-9" />
           </div>
-          {isAdmin && (
+          {canSeeAll && (
             <Select value={assigneeFilter} onValueChange={setAssigneeFilter}>
               <SelectTrigger className="w-[160px]">
                 <SelectValue placeholder="ทั้งหมด" />
