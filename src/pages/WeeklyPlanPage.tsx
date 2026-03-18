@@ -61,7 +61,7 @@ export default function WeeklyPlanPage() {
     }
     const { data } = await query;
     if (data) setPlans(data as unknown as VisitPlan[]);
-  }, [calendarDate, canSeeAll, currentUser]);
+  }, [calendarDate, canSeeAll, currentUser, filterUser]);
 
   useEffect(() => { fetchPlans(); }, [fetchPlans]);
 
