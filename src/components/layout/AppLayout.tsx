@@ -90,6 +90,7 @@ const navGroups = [
     items: [
       { to: '/settings', icon: Settings, label: 'ตั้งค่า', moduleKey: 'settings' },
       { to: '/csv-import', icon: FileSpreadsheet, label: 'นำเข้า CSV', moduleKey: 'csv-import' },
+      { to: '/user-guide', icon: BookOpen, label: 'คู่มือการใช้งาน', moduleKey: 'settings' },
     ],
   },
 ];
