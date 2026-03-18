@@ -30,8 +30,10 @@ interface VisitPlan {
 export default function WeeklyPlanPage() {
   const { currentUser } = useMockAuth();
   const canSeeAll = useCanSeeAll();
+  const salesUsers = useSalesUsers();
   const isMobile = useIsMobile();
   const [plans, setPlans] = useState<VisitPlan[]>([]);
+  const [filterUser, setFilterUser] = useState<string>('ALL');
   const [dialogOpen, setDialogOpen] = useState(false);
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [selectedStart, setSelectedStart] = useState('09:00');
