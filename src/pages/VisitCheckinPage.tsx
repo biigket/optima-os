@@ -28,6 +28,7 @@ interface VisitPlan {
   notes?: string | null;
   start_time?: string | null;
   end_time?: string | null;
+  created_by?: string | null;
   accounts?: { id: string; clinic_name: string } | null;
   contact_name?: string | null;
   contact_phone?: string | null;
