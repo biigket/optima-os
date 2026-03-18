@@ -246,7 +246,7 @@ export default function InventoryPage() {
             >
               {c.icon} {c.label}
               {c.value !== 'ALL' && (
-                <span className="ml-1 text-[10px] opacity-70">({kpis.counts[c.value]})</span>
+                <span className="ml-1 text-[10px] opacity-70">({(kpis.readyCounts[c.value] || 0) + (kpis.reservedCounts[c.value] || 0)})</span>
               )}
             </Button>
           ))}
