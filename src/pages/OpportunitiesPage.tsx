@@ -161,7 +161,7 @@ export default function OpportunitiesPage() {
             <span>รวม ฿{totalValue.toLocaleString()}</span>
             <span className="text-muted-foreground/40">·</span>
             <span>Weighted ฿{totalWeighted.toLocaleString()}</span>
-            {!isAdmin && currentUser && (
+            {!canSeeAll && currentUser && (
               <>
                 <span className="text-muted-foreground/40">·</span>
                 <span className="text-primary font-medium">{currentUser.name}</span>
