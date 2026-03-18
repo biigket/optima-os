@@ -31,6 +31,7 @@ interface VisitReport {
   new_contact_phone: string | null;
   photo: string | null;
   created_at: string;
+  created_by: string | null;
   accounts?: { id: string; clinic_name: string } | null;
 }
 
