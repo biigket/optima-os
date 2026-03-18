@@ -50,7 +50,7 @@ import CsvImportPage from "@/pages/CsvImportPage";
 import QtArImportPage from "@/pages/QtArImportPage";
 import ChatbotPage from "@/pages/ChatbotPage";
 import UserGuidePage from "@/pages/UserGuidePage";
-import { MockAuthProvider } from "@/hooks/useMockAuth";
+import { MockAuthProvider, useMockAuth } from "@/hooks/useMockAuth";
 
 const queryClient = new QueryClient();
 
