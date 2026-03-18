@@ -175,27 +175,38 @@ export function getTrica3DCoolingChecklist(): PMCheckItem[] {
 // ─── Quattro ───
 export function getQuattroOperationChecklist(): PMCheckItem[] {
   return [
-    { name: 'Handpiece A ทำงานปกติ', pass: null, remark: '' },
-    { name: 'Handpiece B ทำงานปกติ', pass: null, remark: '' },
-    { name: 'Touch screen แสดงผลปกติ', pass: null, remark: '' },
-    { name: 'ระบบเสียง/Volume', pass: null, remark: '' },
-    { name: 'RF output ตามมาตรฐาน', pass: null, remark: '' },
-    { name: 'Alarm แจ้งเตือน', pass: null, remark: '' },
+    { name: 'Main Body', pass: null, remark: '' },
+    { name: 'Handpiece + LCD', pass: null, remark: '' },
+    { name: 'Laser Bar', pass: null, remark: '' },
+    { name: 'Tip Size O (Facial)', pass: null, remark: '' },
+    { name: 'Tip Size S (Small)', pass: null, remark: '' },
+    { name: 'Tip Size M (Medium)', pass: null, remark: '' },
+    { name: 'Handpiece holder', pass: null, remark: '' },
+    { name: 'LCD (Touch screen)', pass: null, remark: '' },
+    { name: 'Protect Goggles + Eye Shield', pass: null, remark: '' },
+    { name: 'Wheel (brake wheels)', pass: null, remark: '' },
   ];
 }
 export function getQuattroSafetyChecklist(): PMCheckItem[] {
   return [
+    { name: 'Switch', pass: null, remark: '' },
     { name: 'Emergency stop', pass: null, remark: '' },
-    { name: 'Key switch', pass: null, remark: '' },
-    { name: 'Foot switch', pass: null, remark: '' },
-    { name: 'AC Plug / สายไฟ', pass: null, remark: '' },
-    { name: 'UPS / Stabilizer', pass: null, remark: '' },
+    { name: 'Foot Switch', pass: null, remark: '' },
+    { name: 'AC Plug', pass: null, remark: '' },
   ];
 }
 export function getQuattroCoolingChecklist(): PMCheckItem[] {
   return [
-    { name: 'พัดลมระบายความร้อน', pass: null, remark: '' },
-    { name: 'อุณหภูมิขณะทำงาน', pass: null, remark: '' },
+    { name: 'Fan', pass: null, remark: '' },
+    { name: 'Water Filter', pass: null, remark: '' },
+    { name: 'Water Pump', pass: null, remark: '' },
+    { name: 'Valve Water IN / Over Flow / OUT', pass: null, remark: '' },
+  ];
+}
+export function getQuattroDefaultEnergyTest(): PMEnergyTestRow[] {
+  return [
+    { tipSizeO: 'Fluence 10 J/cm²', tipSizeOPF: true, tipSizeS: 'Fluence 10 J/cm²', tipSizeSPF: true, tipSizeM: 'Fluence 10 J/cm²', tipSizeMPF: true, waterFlowRate: '21 r/s Normal', statusRent: 'OFF' },
+    { tipSizeO: 'Fluence 15 J/cm²', tipSizeOPF: true, tipSizeS: 'Fluence 15 J/cm²', tipSizeSPF: true, tipSizeM: 'Fluence 15 J/cm²', tipSizeMPF: true, waterFlowRate: '', statusRent: '' },
   ];
 }
 
