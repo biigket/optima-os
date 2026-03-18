@@ -8,20 +8,20 @@ export interface MockSaleUser {
   name: string;
   username: string;
   password: string;
-  role: 'SALE' | 'ADMIN';
+  role: 'USER' | 'ADMIN';
   position: Position;
 }
 
 // Fallback hardcoded users (used while DB loads)
 const FALLBACK_USERS: MockSaleUser[] = [
   { id: 's0', name: 'ADMIN', username: 'admin', password: 'admin1234', role: 'ADMIN', position: 'OWNER' },
-  { id: 's1', name: 'FORD', username: 'ford', password: 'ford1234', role: 'SALE', position: 'SALES' },
-  { id: 's2', name: 'VARN', username: 'varn', password: 'varn1234', role: 'SALE', position: 'SALES' },
-  { id: 's3', name: 'PETCH', username: 'petch', password: 'petch1234', role: 'SALE', position: 'SALES' },
-  { id: 's4', name: 'FAH', username: 'fah', password: 'fah1234', role: 'SALE', position: 'SALES_MANAGER' },
-  { id: 's5', name: 'VI', username: 'vi', password: 'vi1234', role: 'SALE', position: 'PRODUCT' },
-  { id: 's6', name: 'NOT', username: 'not', password: 'not1234', role: 'SALE', position: 'SERVICE' },
-  { id: 's7', name: 'GAME', username: 'game', password: 'game1234', role: 'SALE', position: 'FINANCE' },
+  { id: 's1', name: 'FORD', username: 'ford', password: 'ford1234', role: 'USER', position: 'SALES' },
+  { id: 's2', name: 'VARN', username: 'varn', password: 'varn1234', role: 'USER', position: 'SALES' },
+  { id: 's3', name: 'PETCH', username: 'petch', password: 'petch1234', role: 'USER', position: 'SALES' },
+  { id: 's4', name: 'FAH', username: 'fah', password: 'fah1234', role: 'USER', position: 'SALES_MANAGER' },
+  { id: 's5', name: 'VI', username: 'vi', password: 'vi1234', role: 'USER', position: 'PRODUCT' },
+  { id: 's6', name: 'NOT', username: 'not', password: 'not1234', role: 'USER', position: 'SERVICE' },
+  { id: 's7', name: 'GAME', username: 'game', password: 'game1234', role: 'USER', position: 'FINANCE' },
 ];
 
 interface MockAuthContextType {
@@ -60,7 +60,7 @@ export function MockAuthProvider({ children }: { children: ReactNode }) {
         name: u.name,
         username: u.username,
         password: u.password,
-        role: u.role as 'SALE' | 'ADMIN',
+        role: (u.role === 'SALE' ? 'USER' : u.role) as 'USER' | 'ADMIN',
         position: u.position as Position,
       }));
       setAllUsers(mapped);

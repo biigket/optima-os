@@ -23,7 +23,7 @@ const POSITIONS: { value: Position; label: string }[] = [
 
 const ROLES: { value: string; label: string }[] = [
   { value: 'ADMIN', label: 'ADMIN' },
-  { value: 'SALE', label: 'SALE' },
+  { value: 'USER', label: 'USER' },
 ];
 
 interface UserForm {
@@ -34,7 +34,7 @@ interface UserForm {
   position: string;
 }
 
-const emptyForm: UserForm = { name: '', username: '', password: '', role: 'SALE', position: 'SALES' };
+const emptyForm: UserForm = { name: '', username: '', password: '', role: 'USER', position: 'SALES' };
 
 export default function UserManagement() {
   const { allUsers, refreshUsers } = useMockAuth();
