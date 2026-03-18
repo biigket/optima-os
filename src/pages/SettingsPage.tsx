@@ -23,7 +23,9 @@ const MODULE_GROUPS = [
 
 export default function SettingsPage() {
   const { loading, togglePermission, getPermission } = useAllRolePermissions();
+  const { currentUser } = useMockAuth();
   const navigate = useNavigate();
+  const isAdmin = currentUser?.role === 'ADMIN';
 
   const handleToggle = async (roleKey: string, moduleKey: string) => {
     const current = getPermission(roleKey, moduleKey);
