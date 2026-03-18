@@ -111,6 +111,7 @@ export default function AddVisitPlanDialog({
   open, onOpenChange, selectedDate, startTime, endTime, onSuccess
 }: AddVisitPlanDialogProps) {
   const { currentUser } = useMockAuth();
+  const salesUsers = useSalesUsers();
   const [step, setStep] = useState(0);
   const [search, setSearch] = useState('');
   const [accounts, setAccounts] = useState<Account[]>([]);
