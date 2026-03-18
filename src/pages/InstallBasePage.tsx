@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Plus, Search, Cpu, Wrench, AlertTriangle, CheckCircle, Clock } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import AddInstallationDialog from '@/components/install-base/AddInstallationDialog';
-import type { InstallationDetail } from '@/types/installBase';
+import type { Installation } from '@/types/installBase';
 
 interface InstallRow {
   id: string;

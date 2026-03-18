@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import type { InstallationDetail, ProductCategory } from '@/types/installBase';
+import type { Installation, ProductCategory } from '@/types/installBase';
 import { unifiedStatusColor } from '@/data/unifiedStockStatus';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';

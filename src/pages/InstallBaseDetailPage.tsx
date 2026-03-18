@@ -16,7 +16,7 @@ import {
 } from 'lucide-react';
 import {
   generatePMSchedule,
-  type PMReport, type InstallationDetail, type ReplacementRecord, type ReplacementType,
+  type PMReport, type Installation, type ReplacementRecord, type ReplacementType,
 } from '@/types/installBase';
 import { supabase } from '@/integrations/supabase/client';
 import PMReportForm from '@/components/install-base/PMReportForm';

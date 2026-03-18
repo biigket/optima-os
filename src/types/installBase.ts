@@ -57,7 +57,7 @@ export interface ReplacementRecord {
   createdAt: string;
 }
 
-export interface InstallationDetail {
+export interface Installation {
   id: string;
   qcStockItemId: string;
   productCategory: ProductCategory;
@@ -75,6 +75,9 @@ export interface InstallationDetail {
   loanerSerialNumber?: string;
   originalSerialNumber?: string;
 }
+
+// Alias for backward compat
+export type InstallationDetail = Installation;
 
 export function generatePMSchedule(installDate: string, count: number = 2): { number: number; date: string }[] {
   const schedule: { number: number; date: string }[] = [];
