@@ -147,7 +147,8 @@ export default function LeadsPage() {
 
   // Admin/Manager/Owner sees all, sales see only their own
   const canSeeAll = useCanSeeAll();
-  const myAccounts = canSeeAll ? accounts : accounts.filter(a => a.assigned_sale === currentUser?.name);
+  // In Leads module, all sales can see all accounts
+  const myAccounts = accounts;
 
   const closeDialog = () => {
     setDialogOpen(false);
