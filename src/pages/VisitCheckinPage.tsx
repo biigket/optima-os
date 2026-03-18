@@ -70,9 +70,6 @@ export default function VisitCheckinPage() {
       .select('*, accounts(id, clinic_name)')
       .eq('plan_date', today)
       .order('created_at');
-    if (!canSeeAll && currentUser) {
-      query = query.eq('created_by', currentUser.name);
-    }
     const { data } = await query;
     
     if (data) {

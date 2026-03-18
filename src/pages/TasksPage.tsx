@@ -166,11 +166,9 @@ export default function TasksPage() {
     return Array.from(names).sort();
   }, [rows]);
 
-  // Filter by assigned user (Admin/Manager/Owner sees all or filtered)
+  // Filter by assigned user
   const canSeeAll = useCanSeeAll();
-  const myRows = canSeeAll
-    ? (assigneeFilter === 'ALL' ? rows : rows.filter(r => r.assigned_to?.includes(assigneeFilter)))
-    : rows.filter(r => r.assigned_to?.includes(currentUser?.name || ''));
+  const myRows = assigneeFilter === 'ALL' ? rows : rows.filter(r => r.assigned_to?.includes(assigneeFilter));
 
   // List: show only undone
   const listRows = myRows.filter(r => !r.is_done && r.title.toLowerCase().includes(search.toLowerCase()));
