@@ -123,7 +123,11 @@ export default function OpportunityDetailPage() {
   }
 
   const stageIdx = STAGES.indexOf(opp.stage);
-  const daysInStage = Math.floor((Date.now() - new Date(opp.created_at || Date.now()).getTime()) / 86400000);
+  // Calculate days in current stage using stage history
+  const lastStageChange = stageHistory.length > 0 
+    ? stageHistory.reduce((latest, h) => new Date(h.date) > new Date(latest.date) ? h : latest, stageHistory[0]).date 
+    : opp.created_at;
+  const daysInStage = Math.floor((Date.now() - new Date(lastStageChange || opp.created_at || Date.now()).getTime()) / 86400000);
   const isStuck = daysInStage > 14 && !['WON', 'LOST'].includes(opp.stage);
   const prob = opp.probability ?? 0;
   const weighted = Math.round((opp.expected_value || 0) * prob / 100);
