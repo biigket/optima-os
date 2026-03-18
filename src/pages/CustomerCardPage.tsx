@@ -469,7 +469,7 @@ export default function CustomerCardPage() {
                   <SelectValue placeholder="ยังไม่ระบุ" />
                 </SelectTrigger>
                 <SelectContent>
-                  {useSalesUsers().map(s => <SelectItem key={s.id} value={s.name}>{s.name}</SelectItem>)}
+                  {salesUsers.map(s => <SelectItem key={s.id} value={s.name}>{s.name}</SelectItem>)}
                 </SelectContent>
               </Select>
             </div>
