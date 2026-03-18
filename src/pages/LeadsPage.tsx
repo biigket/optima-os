@@ -117,6 +117,7 @@ function daysSince(dateStr: string | null): string {
 export default function LeadsPage() {
   const navigate = useNavigate();
   const { currentUser } = useMockAuth();
+  const salesUsers = useSalesUsers();
   const [accounts, setAccounts] = useState<Account[]>([]);
   const [contacts, setContacts] = useState<Contact[]>([]);
   const [products, setProducts] = useState<{ id: string; product_name: string }[]>([]);
