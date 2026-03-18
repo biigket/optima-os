@@ -159,7 +159,7 @@ export default function PMReportForm({ open, onOpenChange, installation, mainten
       fwRm: fwValues.fwRm || '',
       fwAmp: fwValues.fwAmp || '',
       operationChecklist, safetyChecklist, coolingChecklist,
-      cartridges, remark,
+      cartridges, remark, resultStatus, resultOther,
       serviceEngineer, serviceDate, serviceTel,
       customerName, customerDate, customerTel,
     };
