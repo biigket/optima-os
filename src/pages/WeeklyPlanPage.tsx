@@ -7,7 +7,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { format, startOfWeek, endOfWeek } from 'date-fns';
 import { toast } from 'sonner';
 import { useIsMobile } from '@/hooks/use-mobile';
-import { useMockAuth, useCanSeeAll } from '@/hooks/useMockAuth';
+import { useMockAuth, useCanSeeAll, useSalesUsers } from '@/hooks/useMockAuth';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import AddVisitPlanDialog from '@/components/weekly-plan/AddVisitPlanDialog';
 import EditVisitPlanDialog from '@/components/weekly-plan/EditVisitPlanDialog';
 
