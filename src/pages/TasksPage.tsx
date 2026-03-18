@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Search, Phone, Circle, CheckCircle2, List, CalendarDays, Users, ClipboardList, AlertCircle, Monitor, ArrowUp, ChevronLeft, ChevronRight } from 'lucide-react';
-import { useMockAuth } from '@/hooks/useMockAuth';
+import { useMockAuth, useCanSeeAll } from '@/hooks/useMockAuth';
 import CalendarEventDialog from '@/components/tasks/CalendarEventDialog';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
