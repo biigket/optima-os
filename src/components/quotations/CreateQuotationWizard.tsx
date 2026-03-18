@@ -174,6 +174,7 @@ export default function CreateQuotationWizard({ open, onOpenChange, onCreated }:
   });
 
   // Step 1: Products
+  const [inventoryItems, setInventoryItems] = useState<InventoryProduct[]>([]);
   const [productLines, setProductLines] = useState<ProductLine[]>([]);
   const [discountPercent, setDiscountPercent] = useState(0);
   const [discountAmount, setDiscountAmount] = useState(0);
