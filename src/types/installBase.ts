@@ -235,7 +235,6 @@ export function getFreezeroCoolingChecklist(): PMCheckItem[] {
 }
 
 // ─── Helper: get checklists by product category ───
-export type ProductCategory = 'ND2' | 'Trica 3D' | 'Quattro' | 'Picohi' | 'Freezero';
 
 export function getChecklistsByCategory(cat: ProductCategory): {
   operation: PMCheckItem[];
