@@ -63,7 +63,7 @@ export default function VisitReportsPage() {
   const [newContactName, setNewContactName] = useState('');
   const [newContactPhone, setNewContactPhone] = useState('');
 
-  useEffect(() => { fetchReports(); }, []);
+  useEffect(() => { fetchReports(); }, [filterUser]);
 
   useEffect(() => {
     // Auto-open form if coming from check-in
