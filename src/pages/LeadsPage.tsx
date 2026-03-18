@@ -145,9 +145,9 @@ export default function LeadsPage() {
 
   useEffect(() => { fetchData(); }, []);
 
-  // Admin sees all, sales see only their own
-  const isAdmin = currentUser?.role === 'ADMIN';
-  const myAccounts = isAdmin ? accounts : accounts.filter(a => a.assigned_sale === currentUser?.name);
+  // Admin/Manager/Owner sees all, sales see only their own
+  const canSeeAll = useCanSeeAll();
+  const myAccounts = canSeeAll ? accounts : accounts.filter(a => a.assigned_sale === currentUser?.name);
 
   const closeDialog = () => {
     setDialogOpen(false);
