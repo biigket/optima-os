@@ -12,7 +12,7 @@ import { format } from 'date-fns';
 import { th } from 'date-fns/locale';
 import { toast } from 'sonner';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { useMockAuth, useCanSeeAll } from '@/hooks/useMockAuth';
+import { useMockAuth, useCanSeeAll, useSalesUsers } from '@/hooks/useMockAuth';
 
 interface VisitReport {
   id: string;
@@ -44,8 +44,10 @@ const CUSTOMER_TYPES = [
 export default function VisitReportsPage() {
   const { currentUser } = useMockAuth();
   const canSeeAll = useCanSeeAll();
+  const salesUsers = useSalesUsers();
   const [reports, setReports] = useState<VisitReport[]>([]);
   const [loading, setLoading] = useState(true);
+  const [filterUser, setFilterUser] = useState<string>('ALL');
   const [editingReport, setEditingReport] = useState<VisitReport | null>(null);
   const [formOpen, setFormOpen] = useState(false);
   const [searchParams] = useSearchParams();
@@ -61,7 +63,7 @@ export default function VisitReportsPage() {
   const [newContactName, setNewContactName] = useState('');
   const [newContactPhone, setNewContactPhone] = useState('');
 
-  useEffect(() => { fetchReports(); }, []);
+  useEffect(() => { fetchReports(); }, [filterUser]);
 
   useEffect(() => {
     // Auto-open form if coming from check-in
@@ -81,6 +83,8 @@ export default function VisitReportsPage() {
       .limit(50);
     if (!canSeeAll && currentUser) {
       query = query.eq('created_by', currentUser.name);
+    } else if (canSeeAll && filterUser !== 'ALL') {
+      query = query.eq('created_by', filterUser);
     }
     const { data } = await query;
     if (data) setReports(data as unknown as VisitReport[]);
@@ -234,9 +238,24 @@ export default function VisitReportsPage() {
 
   return (
     <div className="space-y-6 animate-fade-in">
-      <div>
-        <h1 className="text-2xl font-bold text-foreground">รายงานเยี่ยมลูกค้า</h1>
-        <p className="text-sm text-muted-foreground">สรุปผลการเข้าเยี่ยมลูกค้า</p>
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold text-foreground">รายงานเยี่ยมลูกค้า</h1>
+          <p className="text-sm text-muted-foreground">สรุปผลการเข้าเยี่ยมลูกค้า</p>
+        </div>
+        {canSeeAll && (
+          <Select value={filterUser} onValueChange={setFilterUser}>
+            <SelectTrigger className="w-[140px]">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="ALL">ทั้งหมด</SelectItem>
+              {salesUsers.map(u => (
+                <SelectItem key={u.id} value={u.name}>{u.name}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        )}
       </div>
 
       {loading ? (

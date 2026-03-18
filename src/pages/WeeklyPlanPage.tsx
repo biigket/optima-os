@@ -7,7 +7,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { format, startOfWeek, endOfWeek } from 'date-fns';
 import { toast } from 'sonner';
 import { useIsMobile } from '@/hooks/use-mobile';
-import { useMockAuth, useCanSeeAll } from '@/hooks/useMockAuth';
+import { useMockAuth, useCanSeeAll, useSalesUsers } from '@/hooks/useMockAuth';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import AddVisitPlanDialog from '@/components/weekly-plan/AddVisitPlanDialog';
 import EditVisitPlanDialog from '@/components/weekly-plan/EditVisitPlanDialog';
 
@@ -29,8 +30,10 @@ interface VisitPlan {
 export default function WeeklyPlanPage() {
   const { currentUser } = useMockAuth();
   const canSeeAll = useCanSeeAll();
+  const salesUsers = useSalesUsers();
   const isMobile = useIsMobile();
   const [plans, setPlans] = useState<VisitPlan[]>([]);
+  const [filterUser, setFilterUser] = useState<string>('ALL');
   const [dialogOpen, setDialogOpen] = useState(false);
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [selectedStart, setSelectedStart] = useState('09:00');
@@ -51,13 +54,14 @@ export default function WeeklyPlanPage() {
       .gte('plan_date', format(ws, 'yyyy-MM-dd'))
       .lte('plan_date', format(we, 'yyyy-MM-dd'))
       .order('created_at');
-    // Sales users only see their own plans
     if (!canSeeAll && currentUser) {
       query = query.eq('created_by', currentUser.name);
+    } else if (canSeeAll && filterUser !== 'ALL') {
+      query = query.eq('created_by', filterUser);
     }
     const { data } = await query;
     if (data) setPlans(data as unknown as VisitPlan[]);
-  }, [calendarDate, canSeeAll, currentUser]);
+  }, [calendarDate, canSeeAll, currentUser, filterUser]);
 
   useEffect(() => { fetchPlans(); }, [fetchPlans]);
 
@@ -145,11 +149,26 @@ export default function WeeklyPlanPage() {
 
   return (
     <div className="space-y-4 animate-fade-in">
-      <div>
-        <h1 className="text-2xl font-bold text-foreground">แผนเยี่ยมรายสัปดาห์</h1>
-        <p className="text-sm text-muted-foreground">
-          {isMobile ? 'กดค้างเพื่อลาก · กดที่แผนเพื่อดู/แก้ไข' : 'คลิกหรือลากบนปฏิทินเพื่อเพิ่มแผนเยี่ยม · กดที่แผนเพื่อดู/แก้ไขรายละเอียด'}
-        </p>
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold text-foreground">แผนเยี่ยมรายสัปดาห์</h1>
+          <p className="text-sm text-muted-foreground">
+            {isMobile ? 'กดค้างเพื่อลาก · กดที่แผนเพื่อดู/แก้ไข' : 'คลิกหรือลากบนปฏิทินเพื่อเพิ่มแผนเยี่ยม · กดที่แผนเพื่อดู/แก้ไขรายละเอียด'}
+          </p>
+        </div>
+        {canSeeAll && (
+          <Select value={filterUser} onValueChange={setFilterUser}>
+            <SelectTrigger className="w-[140px]">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="ALL">ทั้งหมด</SelectItem>
+              {salesUsers.map(u => (
+                <SelectItem key={u.id} value={u.name}>{u.name}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        )}
       </div>
 
       <div className="bg-card rounded-lg border p-2 sm:p-4 weekly-plan-calendar">

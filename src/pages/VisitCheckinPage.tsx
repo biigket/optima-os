@@ -10,7 +10,8 @@ import { format } from 'date-fns';
 import { th } from 'date-fns/locale';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
-import { useMockAuth, useCanSeeAll } from '@/hooks/useMockAuth';
+import { useMockAuth, useCanSeeAll, useSalesUsers } from '@/hooks/useMockAuth';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import {
   Dialog,
   DialogContent,
@@ -37,8 +38,10 @@ interface VisitPlan {
 export default function VisitCheckinPage() {
   const { currentUser } = useMockAuth();
   const canSeeAll = useCanSeeAll();
+  const salesUsers = useSalesUsers();
   const [plans, setPlans] = useState<VisitPlan[]>([]);
   const [loading, setLoading] = useState(true);
+  const [filterUser, setFilterUser] = useState<string>('ALL');
   const [checkinPlan, setCheckinPlan] = useState<VisitPlan | null>(null);
   const [capturedPhoto, setCapturedPhoto] = useState<string | null>(null);
   const [capturedBlob, setCapturedBlob] = useState<Blob | null>(null);
@@ -62,7 +65,7 @@ export default function VisitCheckinPage() {
 
   const today = format(new Date(), 'yyyy-MM-dd');
 
-  useEffect(() => { fetchPlans(); }, []);
+  useEffect(() => { fetchPlans(); }, [filterUser]);
 
   async function fetchPlans() {
     setLoading(true);
@@ -73,6 +76,8 @@ export default function VisitCheckinPage() {
       .order('created_at');
     if (!canSeeAll && currentUser) {
       query = query.eq('created_by', currentUser.name);
+    } else if (canSeeAll && filterUser !== 'ALL') {
+      query = query.eq('created_by', filterUser);
     }
     const { data } = await query;
     
@@ -320,9 +325,24 @@ export default function VisitCheckinPage() {
 
   return (
     <div className="space-y-6 animate-fade-in">
-      <div>
-        <h1 className="text-2xl font-bold text-foreground">เช็คอินเยี่ยมลูกค้า</h1>
-        <p className="text-sm text-muted-foreground">วันนี้ {format(new Date(), 'd MMMM yyyy', { locale: th })}</p>
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold text-foreground">เช็คอินเยี่ยมลูกค้า</h1>
+          <p className="text-sm text-muted-foreground">วันนี้ {format(new Date(), 'd MMMM yyyy', { locale: th })}</p>
+        </div>
+        {canSeeAll && (
+          <Select value={filterUser} onValueChange={setFilterUser}>
+            <SelectTrigger className="w-[140px]">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="ALL">ทั้งหมด</SelectItem>
+              {salesUsers.map(u => (
+                <SelectItem key={u.id} value={u.name}>{u.name}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        )}
       </div>
 
       {loading ? (
