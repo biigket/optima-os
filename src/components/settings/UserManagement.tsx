@@ -34,7 +34,7 @@ interface UserForm {
   position: string;
 }
 
-const emptyForm: UserForm = { name: '', username: '', password: '', role: 'SALE', position: 'SALES' };
+const emptyForm: UserForm = { name: '', username: '', password: '', role: 'USER', position: 'SALES' };
 
 export default function UserManagement() {
   const { allUsers, refreshUsers } = useMockAuth();

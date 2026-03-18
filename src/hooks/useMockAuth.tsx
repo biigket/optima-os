@@ -8,7 +8,7 @@ export interface MockSaleUser {
   name: string;
   username: string;
   password: string;
-  role: 'SALE' | 'ADMIN';
+  role: 'USER' | 'ADMIN';
   position: Position;
 }
 
