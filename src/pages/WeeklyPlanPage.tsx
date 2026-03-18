@@ -26,6 +26,8 @@ interface VisitPlan {
 }
 
 export default function WeeklyPlanPage() {
+  const { currentUser } = useMockAuth();
+  const canSeeAll = useCanSeeAll();
   const isMobile = useIsMobile();
   const [plans, setPlans] = useState<VisitPlan[]>([]);
   const [dialogOpen, setDialogOpen] = useState(false);
