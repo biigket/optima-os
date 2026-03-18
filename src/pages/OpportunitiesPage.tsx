@@ -67,12 +67,9 @@ export default function OpportunitiesPage() {
 
   // Role-based filtering
   const roleFiltered = useMemo(() => {
-    if (canSeeAll) {
-      if (saleFilter === 'ALL') return opportunities;
-      return opportunities.filter(o => o.assigned_sale === saleFilter);
-    }
-    return opportunities.filter(o => o.assigned_sale === currentUser?.name);
-  }, [opportunities, canSeeAll, saleFilter, currentUser?.name]);
+    if (saleFilter === 'ALL') return opportunities;
+    return opportunities.filter(o => o.assigned_sale === saleFilter);
+  }, [opportunities, saleFilter]);
 
   const filtered = roleFiltered.filter(o => {
     const acc = accountCache[o.account_id];
@@ -161,12 +158,6 @@ export default function OpportunitiesPage() {
             <span>รวม ฿{totalValue.toLocaleString()}</span>
             <span className="text-muted-foreground/40">·</span>
             <span>Weighted ฿{totalWeighted.toLocaleString()}</span>
-            {!canSeeAll && currentUser && (
-              <>
-                <span className="text-muted-foreground/40">·</span>
-                <span className="text-primary font-medium">{currentUser.name}</span>
-              </>
-            )}
           </div>
         </div>
         <Button size="sm" className="gap-1.5" onClick={() => setCreateFormOpen(true)}>

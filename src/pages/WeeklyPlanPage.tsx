@@ -50,10 +50,6 @@ export default function WeeklyPlanPage() {
       .gte('plan_date', format(ws, 'yyyy-MM-dd'))
       .lte('plan_date', format(we, 'yyyy-MM-dd'))
       .order('created_at');
-    // Sales users only see their own plans
-    if (!canSeeAll && currentUser) {
-      query = query.eq('created_by', currentUser.name);
-    }
     const { data } = await query;
     if (data) setPlans(data as unknown as VisitPlan[]);
   }, [calendarDate, canSeeAll, currentUser]);
