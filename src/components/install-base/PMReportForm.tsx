@@ -212,13 +212,13 @@ export default function PMReportForm({ open, onOpenChange, installation, mainten
           </div>
 
           {/* 1. Operation System */}
-          <ChecklistSection title="1. Operation System and Handpiece" items={operationChecklist} onChange={setOperationChecklist} />
+          <ChecklistSection title={sectionTitles.operation} items={operationChecklist} onChange={setOperationChecklist} />
 
           {/* 2. Safety System */}
-          <ChecklistSection title="2. Safety System" items={safetyChecklist} onChange={setSafetyChecklist} />
+          <ChecklistSection title={sectionTitles.safety} items={safetyChecklist} onChange={setSafetyChecklist} />
 
-          {/* 3. Cooling System */}
-          <ChecklistSection title="3. Cooling System" items={coolingChecklist} onChange={setCoolingChecklist} />
+          {/* 3. Cooling / Analysis System */}
+          <ChecklistSection title={sectionTitles.cooling} items={coolingChecklist} onChange={setCoolingChecklist} />
 
           {/* 4. Cartridge — only for categories that have cartridges */}
           {cartridgeTypes && (
