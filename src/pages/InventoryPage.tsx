@@ -233,9 +233,9 @@ export default function InventoryPage() {
           <TableHeader>
             <TableRow>
               <TableHead>สถานะ</TableHead>
-              <TableHead>ประเภท</TableHead>
+              <TableHead>ชนิด</TableHead>
               <TableHead>S/N</TableHead>
-              <TableHead>ข้อมูลเพิ่มเติม</TableHead>
+              <TableHead>ประเภท</TableHead>
               <TableHead>สถานที่เก็บ</TableHead>
               <TableHead>วันที่รับเข้า</TableHead>
               <TableHead className="text-right">ราคาขาย</TableHead>
