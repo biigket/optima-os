@@ -4,7 +4,7 @@ import {
   LayoutDashboard, Users, Target, MapPin, FileText, Presentation, CalendarDays,
   ListTodo, Calendar, Cpu, Package, Wrench, ChevronLeft, ChevronRight, Bell,
   FileSpreadsheet, ShoppingCart, Warehouse, Receipt, CreditCard,
-  TrendingUp, BarChart3,
+  TrendingUp, BarChart3, MessageCircle,
   Lock, LogOut, Menu, X, ClipboardCheck, Fingerprint, BarChart, Settings
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
