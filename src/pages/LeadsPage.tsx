@@ -543,8 +543,8 @@ export default function LeadsPage() {
             <div className="space-y-1.5">
               <Label>เกรด</Label>
               <StarRating
-                value={parseInt(form.grade) || 0}
-                onChange={v => updateField('grade', v.toString())}
+                value={form.grade === 'A' ? 3 : form.grade === 'B' ? 2 : form.grade === 'C' ? 1 : 0}
+                onChange={v => updateField('grade', v === 3 ? 'A' : v === 2 ? 'B' : v === 1 ? 'C' : '')}
               />
             </div>
 
