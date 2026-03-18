@@ -38,8 +38,10 @@ interface VisitPlan {
 export default function VisitCheckinPage() {
   const { currentUser } = useMockAuth();
   const canSeeAll = useCanSeeAll();
+  const salesUsers = useSalesUsers();
   const [plans, setPlans] = useState<VisitPlan[]>([]);
   const [loading, setLoading] = useState(true);
+  const [filterUser, setFilterUser] = useState<string>('ALL');
   const [checkinPlan, setCheckinPlan] = useState<VisitPlan | null>(null);
   const [capturedPhoto, setCapturedPhoto] = useState<string | null>(null);
   const [capturedBlob, setCapturedBlob] = useState<Blob | null>(null);
