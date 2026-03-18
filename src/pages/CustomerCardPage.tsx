@@ -468,7 +468,7 @@ export default function CustomerCardPage() {
                   <SelectValue placeholder="ยังไม่ระบุ" />
                 </SelectTrigger>
                 <SelectContent>
-                  {MOCK_SALES.map(s => <SelectItem key={s.id} value={s.name}>{s.name}</SelectItem>)}
+                  {useSalesUsers().map(s => <SelectItem key={s.id} value={s.name}>{s.name}</SelectItem>)}
                 </SelectContent>
               </Select>
             </div>
