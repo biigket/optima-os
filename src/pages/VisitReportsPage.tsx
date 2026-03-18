@@ -78,6 +78,9 @@ export default function VisitReportsPage() {
       .select('*, accounts(id, clinic_name)')
       .order('created_at', { ascending: false })
       .limit(50);
+    if (!canSeeAll && currentUser) {
+      query = query.eq('created_by', currentUser.name);
+    }
     const { data } = await query;
     if (data) setReports(data as unknown as VisitReport[]);
     setLoading(false);
