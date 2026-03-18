@@ -65,11 +65,15 @@ export default function VisitCheckinPage() {
 
   async function fetchPlans() {
     setLoading(true);
-    const { data } = await supabase
+    let query = supabase
       .from('visit_plans')
       .select('*, accounts(id, clinic_name)')
       .eq('plan_date', today)
       .order('created_at');
+    if (!canSeeAll && currentUser) {
+      query = query.eq('created_by', currentUser.name);
+    }
+    const { data } = await query;
     
     if (data) {
       // Fetch primary contacts for each account

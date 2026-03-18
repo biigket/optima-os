@@ -73,11 +73,15 @@ export default function VisitReportsPage() {
 
   async function fetchReports() {
     setLoading(true);
-    const { data } = await supabase
+    let query = supabase
       .from('visit_reports')
       .select('*, accounts(id, clinic_name)')
       .order('created_at', { ascending: false })
       .limit(50);
+    if (!canSeeAll && currentUser) {
+      query = query.eq('created_by', currentUser.name);
+    }
+    const { data } = await query;
     if (data) setReports(data as unknown as VisitReport[]);
     setLoading(false);
   }
