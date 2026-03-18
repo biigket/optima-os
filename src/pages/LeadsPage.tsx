@@ -285,7 +285,7 @@ export default function LeadsPage() {
               className="pl-9 w-64"
             />
           </div>
-          {isAdmin && (
+          {canSeeAll && (
             <Select value={saleFilter} onValueChange={setSaleFilter}>
               <SelectTrigger className="w-[130px] h-9 text-xs">
                 <SelectValue placeholder="เซลล์ทั้งหมด" />

@@ -192,7 +192,7 @@ export default function OpportunitiesPage() {
           ))}
         </div>
 
-        {isAdmin && (
+        {canSeeAll && (
           <div className="flex items-center gap-1.5">
             <Filter size={12} className="text-muted-foreground" />
             <Select value={saleFilter} onValueChange={setSaleFilter}>
