@@ -7,6 +7,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { format, startOfWeek, endOfWeek } from 'date-fns';
 import { toast } from 'sonner';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { useMockAuth, useCanSeeAll } from '@/hooks/useMockAuth';
 import AddVisitPlanDialog from '@/components/weekly-plan/AddVisitPlanDialog';
 import EditVisitPlanDialog from '@/components/weekly-plan/EditVisitPlanDialog';
 
@@ -25,6 +26,8 @@ interface VisitPlan {
 }
 
 export default function WeeklyPlanPage() {
+  const { currentUser } = useMockAuth();
+  const canSeeAll = useCanSeeAll();
   const isMobile = useIsMobile();
   const [plans, setPlans] = useState<VisitPlan[]>([]);
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -41,14 +44,19 @@ export default function WeeklyPlanPage() {
     const ref = date || calendarDate;
     const ws = startOfWeek(ref, { weekStartsOn: 1 });
     const we = endOfWeek(ref, { weekStartsOn: 1 });
-    const { data } = await supabase
+    let query = supabase
       .from('visit_plans')
       .select('*, accounts(id, clinic_name, customer_status)')
       .gte('plan_date', format(ws, 'yyyy-MM-dd'))
       .lte('plan_date', format(we, 'yyyy-MM-dd'))
       .order('created_at');
+    // Sales users only see their own plans
+    if (!canSeeAll && currentUser) {
+      query = query.eq('created_by', currentUser.name);
+    }
+    const { data } = await query;
     if (data) setPlans(data as unknown as VisitPlan[]);
-  }, [calendarDate]);
+  }, [calendarDate, canSeeAll, currentUser]);
 
   useEffect(() => { fetchPlans(); }, [fetchPlans]);
 
