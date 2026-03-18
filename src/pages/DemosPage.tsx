@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
-import { useMockAuth } from '@/hooks/useMockAuth';
+import { useMockAuth, useCanSeeAll } from '@/hooks/useMockAuth';
 import CreateDemoWizard from '@/components/demos/CreateDemoWizard';
 import EditDemoDialog from '@/components/demos/EditDemoDialog';
 import ConfirmDemoDialog from '@/components/demos/ConfirmDemoDialog';
