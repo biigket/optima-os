@@ -35,7 +35,7 @@ export function getCachedAccount(id: string) { return accountCache[id]; }
 export default function OpportunitiesPage() {
   const navigate = useNavigate();
   const { currentUser } = useMockAuth();
-  const isAdmin = currentUser?.role === 'ADMIN';
+  const canSeeAll = useCanSeeAll();
   const salesUsers = MOCK_SALES.filter(u => u.role === 'USER');
 
   const [search, setSearch] = useState('');
