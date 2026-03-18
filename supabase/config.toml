@@ -23,3 +23,6 @@ verify_jwt = false
 
 [functions.bulk-import-csv]
 verify_jwt = false
+
+[functions.company-chat]
+verify_jwt = false
