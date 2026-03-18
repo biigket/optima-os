@@ -5,12 +5,11 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
-import { Checkbox } from '@/components/ui/checkbox';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Plus, Trash2, CheckCircle, XCircle, MinusCircle } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import type { PMReport, PMCheckItem, PMCartridgeEntry, Installation } from '@/types/installBase';
-import { getND2OperationChecklist, getND2SafetyChecklist, getND2CoolingChecklist } from '@/types/installBase';
+import { getChecklistsByCategory, getFirmwareFields, getProductDisplayName, getCartridgeTypes } from '@/types/installBase';
 import ComboSelect from '@/components/ui/ComboSelect';
 
 // Shared version options that grow as users add new ones
@@ -89,21 +88,29 @@ function ChecklistSection({ title, items, onChange }: { title: string; items: PM
 }
 
 export default function PMReportForm({ open, onOpenChange, installation, maintenanceNumber, scheduledDate, existingReport, onSave }: Props) {
-  const [swVer, setSwVer] = useState(existingReport?.swVer || '');
-  const [fwVer, setFwVer] = useState(existingReport?.fwVer || '');
-  const [fwFlLr, setFwFlLr] = useState(existingReport?.fwFlLr || '');
-  const [fwSdLr, setFwSdLr] = useState(existingReport?.fwSdLr || '');
-  const [fwRm, setFwRm] = useState(existingReport?.fwRm || '');
-  const [fwAmp, setFwAmp] = useState(existingReport?.fwAmp || '');
+  const category = installation.productCategory;
+  const defaultChecklists = getChecklistsByCategory(category);
+  const firmwareFields = getFirmwareFields(category);
+  const cartridgeTypes = getCartridgeTypes(category);
+  const displayName = getProductDisplayName(category);
+
+  // Firmware versions as a dynamic map
+  const [fwValues, setFwValues] = useState<Record<string, string>>(() => {
+    const defaults: Record<string, string> = {};
+    firmwareFields.forEach(f => {
+      defaults[f.key] = (existingReport as any)?.[f.key] || '';
+    });
+    return defaults;
+  });
 
   const [operationChecklist, setOperationChecklist] = useState<PMCheckItem[]>(
-    existingReport?.operationChecklist || getND2OperationChecklist()
+    existingReport?.operationChecklist || defaultChecklists.operation
   );
   const [safetyChecklist, setSafetyChecklist] = useState<PMCheckItem[]>(
-    existingReport?.safetyChecklist || getND2SafetyChecklist()
+    existingReport?.safetyChecklist || defaultChecklists.safety
   );
   const [coolingChecklist, setCoolingChecklist] = useState<PMCheckItem[]>(
-    existingReport?.coolingChecklist || getND2CoolingChecklist()
+    existingReport?.coolingChecklist || defaultChecklists.cooling
   );
 
   const [cartridges, setCartridges] = useState<PMCartridgeEntry[]>(
@@ -120,7 +127,8 @@ export default function PMReportForm({ open, onOpenChange, installation, mainten
   const [, forceUpdate] = useState(0);
 
   function addCartridge() {
-    setCartridges([...cartridges, { type: 'A2.0', serialNumber: '', remainShot: 0, shotTestRemain: 0, shotTestTotal: 5, passFail: true }]);
+    const defaultType = cartridgeTypes?.[0] || '';
+    setCartridges([...cartridges, { type: defaultType, serialNumber: '', remainShot: 0, shotTestRemain: 0, shotTestTotal: 5, passFail: true }]);
   }
 
   function removeCartridge(index: number) {
@@ -141,7 +149,12 @@ export default function PMReportForm({ open, onOpenChange, installation, mainten
       scheduledDate,
       actualDate: serviceDate,
       status: 'COMPLETED',
-      swVer, fwVer, fwFlLr, fwSdLr, fwRm, fwAmp,
+      swVer: fwValues.swVer || '',
+      fwVer: fwValues.fwVer || '',
+      fwFlLr: fwValues.fwFlLr || '',
+      fwSdLr: fwValues.fwSdLr || '',
+      fwRm: fwValues.fwRm || '',
+      fwAmp: fwValues.fwAmp || '',
       operationChecklist, safetyChecklist, coolingChecklist,
       cartridges, remark,
       serviceEngineer, serviceDate, serviceTel,
@@ -152,14 +165,12 @@ export default function PMReportForm({ open, onOpenChange, installation, mainten
     toast({ title: `บันทึก PM Report ครั้งที่ ${maintenanceNumber} เรียบร้อย` });
   }
 
-  const cartridgeTypes = ['A2.0', 'A3.0', 'A4.5', 'A6.0', 'L1.5', 'L3.0', 'L4.5', 'L9.0'];
-
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <span>New Doublo 2.0 Maintenance Report</span>
+            <span>{displayName} Maintenance Report</span>
             <Badge variant="outline">PM ครั้งที่ {maintenanceNumber}</Badge>
           </DialogTitle>
         </DialogHeader>
@@ -172,35 +183,31 @@ export default function PMReportForm({ open, onOpenChange, installation, mainten
             <div><Label className="text-xs text-muted-foreground">กำหนดการ PM</Label><p className="text-sm">{scheduledDate}</p></div>
           </div>
 
-          {/* Firmware versions */}
+          {/* Firmware versions — dynamic per category */}
           <div>
-           <h4 className="font-semibold text-sm mb-2">Firmware / Software Version</h4>
-            <div className="grid grid-cols-3 md:grid-cols-6 gap-2">
-              {([
-                ['SW Ver', 'swVer', swVer, setSwVer],
-                ['FW Ver', 'fwVer', fwVer, setFwVer],
-                ['FW FL-LR', 'fwFlLr', fwFlLr, setFwFlLr],
-                ['FW SD-LR', 'fwSdLr', fwSdLr, setFwSdLr],
-                ['FW RM', 'fwRm', fwRm, setFwRm],
-                ['FW AMP', 'fwAmp', fwAmp, setFwAmp],
-              ] as [string, string, string, (v: string) => void][]).map(([label, key, val, setter]) => (
-                <div key={key}>
-                  <Label className="text-xs">{label}</Label>
-                  <ComboSelect
-                    value={val}
-                    onChange={setter}
-                    options={versionStore[key]}
-                    onAddOption={opt => { if (!versionStore[key].includes(opt)) { versionStore[key] = [...versionStore[key], opt]; forceUpdate(n => n + 1); } }}
-                    onRemoveOption={opt => { versionStore[key] = versionStore[key].filter(v => v !== opt); forceUpdate(n => n + 1); }}
-                    placeholder="เลือก..."
-                    className="h-8 text-xs w-full"
-                  />
-                </div>
-              ))}
+            <h4 className="font-semibold text-sm mb-2">Firmware / Software Version</h4>
+            <div className={`grid gap-2 ${firmwareFields.length <= 2 ? 'grid-cols-2' : 'grid-cols-3 md:grid-cols-6'}`}>
+              {firmwareFields.map(({ key, label }) => {
+                if (!versionStore[key]) versionStore[key] = ['1.0.0', '1.1.0', '2.0.0'];
+                return (
+                  <div key={key}>
+                    <Label className="text-xs">{label}</Label>
+                    <ComboSelect
+                      value={fwValues[key] || ''}
+                      onChange={v => setFwValues(prev => ({ ...prev, [key]: v }))}
+                      options={versionStore[key]}
+                      onAddOption={opt => { if (!versionStore[key].includes(opt)) { versionStore[key] = [...versionStore[key], opt]; forceUpdate(n => n + 1); } }}
+                      onRemoveOption={opt => { versionStore[key] = versionStore[key].filter(v => v !== opt); forceUpdate(n => n + 1); }}
+                      placeholder="เลือก..."
+                      className="h-8 text-xs w-full"
+                    />
+                  </div>
+                );
+              })}
             </div>
           </div>
 
-          {/* 1. Operation System & Handpiece */}
+          {/* 1. Operation System */}
           <ChecklistSection title="1. Operation System and Handpiece" items={operationChecklist} onChange={setOperationChecklist} />
 
           {/* 2. Safety System */}
@@ -209,53 +216,55 @@ export default function PMReportForm({ open, onOpenChange, installation, mainten
           {/* 3. Cooling System */}
           <ChecklistSection title="3. Cooling System" items={coolingChecklist} onChange={setCoolingChecklist} />
 
-          {/* 4. Cartridge */}
-          <div>
-            <div className="flex items-center justify-between mb-2">
-              <h4 className="font-semibold text-sm">4. Cartridge</h4>
-              <Button variant="outline" size="sm" onClick={addCartridge}><Plus size={14} className="mr-1" />เพิ่ม Cartridge</Button>
-            </div>
-            {cartridges.length > 0 && (
-              <div className="overflow-x-auto">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Type</TableHead>
-                      <TableHead>Serial No.</TableHead>
-                      <TableHead>Remain Shot</TableHead>
-                      <TableHead>Shot Test Remain</TableHead>
-                      <TableHead>Shot Test Total</TableHead>
-                      <TableHead>Pass/Fail</TableHead>
-                      <TableHead className="w-[40px]"></TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {cartridges.map((c, i) => (
-                      <TableRow key={i}>
-                        <TableCell>
-                          <select className="border rounded px-2 py-1 text-xs bg-background" value={c.type} onChange={e => updateCartridge(i, 'type', e.target.value)}>
-                            {cartridgeTypes.map(t => <option key={t} value={t}>{t}</option>)}
-                          </select>
-                        </TableCell>
-                        <TableCell><Input value={c.serialNumber} onChange={e => updateCartridge(i, 'serialNumber', e.target.value)} className="h-7 text-xs w-36" /></TableCell>
-                        <TableCell><Input type="number" value={c.remainShot} onChange={e => updateCartridge(i, 'remainShot', parseInt(e.target.value) || 0)} className="h-7 text-xs w-24" /></TableCell>
-                        <TableCell><Input type="number" value={c.shotTestRemain} onChange={e => updateCartridge(i, 'shotTestRemain', parseInt(e.target.value) || 0)} className="h-7 text-xs w-24" /></TableCell>
-                        <TableCell><Input type="number" value={c.shotTestTotal} onChange={e => updateCartridge(i, 'shotTestTotal', parseInt(e.target.value) || 0)} className="h-7 text-xs w-20" /></TableCell>
-                        <TableCell>
-                          <button onClick={() => updateCartridge(i, 'passFail', !c.passFail)} className={`px-2 py-1 rounded text-xs font-medium ${c.passFail ? 'bg-emerald-100 text-emerald-800' : 'bg-red-100 text-red-800'}`}>
-                            {c.passFail ? 'Pass' : 'Fail'}
-                          </button>
-                        </TableCell>
-                        <TableCell>
-                          <button onClick={() => removeCartridge(i)} className="text-red-500 hover:text-red-700"><Trash2 size={14} /></button>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
+          {/* 4. Cartridge — only for categories that have cartridges */}
+          {cartridgeTypes && (
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <h4 className="font-semibold text-sm">4. Cartridge</h4>
+                <Button variant="outline" size="sm" onClick={addCartridge}><Plus size={14} className="mr-1" />เพิ่ม Cartridge</Button>
               </div>
-            )}
-          </div>
+              {cartridges.length > 0 && (
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Type</TableHead>
+                        <TableHead>Serial No.</TableHead>
+                        <TableHead>Remain Shot</TableHead>
+                        <TableHead>Shot Test Remain</TableHead>
+                        <TableHead>Shot Test Total</TableHead>
+                        <TableHead>Pass/Fail</TableHead>
+                        <TableHead className="w-[40px]"></TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {cartridges.map((c, i) => (
+                        <TableRow key={i}>
+                          <TableCell>
+                            <select className="border rounded px-2 py-1 text-xs bg-background" value={c.type} onChange={e => updateCartridge(i, 'type', e.target.value)}>
+                              {cartridgeTypes.map(t => <option key={t} value={t}>{t}</option>)}
+                            </select>
+                          </TableCell>
+                          <TableCell><Input value={c.serialNumber} onChange={e => updateCartridge(i, 'serialNumber', e.target.value)} className="h-7 text-xs w-36" /></TableCell>
+                          <TableCell><Input type="number" value={c.remainShot} onChange={e => updateCartridge(i, 'remainShot', parseInt(e.target.value) || 0)} className="h-7 text-xs w-24" /></TableCell>
+                          <TableCell><Input type="number" value={c.shotTestRemain} onChange={e => updateCartridge(i, 'shotTestRemain', parseInt(e.target.value) || 0)} className="h-7 text-xs w-24" /></TableCell>
+                          <TableCell><Input type="number" value={c.shotTestTotal} onChange={e => updateCartridge(i, 'shotTestTotal', parseInt(e.target.value) || 0)} className="h-7 text-xs w-20" /></TableCell>
+                          <TableCell>
+                            <button onClick={() => updateCartridge(i, 'passFail', !c.passFail)} className={`px-2 py-1 rounded text-xs font-medium ${c.passFail ? 'bg-emerald-100 text-emerald-800' : 'bg-red-100 text-red-800'}`}>
+                              {c.passFail ? 'Pass' : 'Fail'}
+                            </button>
+                          </TableCell>
+                          <TableCell>
+                            <button onClick={() => removeCartridge(i)} className="text-red-500 hover:text-red-700"><Trash2 size={14} /></button>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              )}
+            </div>
+          )}
 
           {/* Remark */}
           <div>
