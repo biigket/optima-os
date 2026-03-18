@@ -48,6 +48,7 @@ import SettingsPage from "@/pages/SettingsPage";
 import ContractsPage from "@/pages/ContractsPage";
 import CsvImportPage from "@/pages/CsvImportPage";
 import QtArImportPage from "@/pages/QtArImportPage";
+import ChatbotPage from "@/pages/ChatbotPage";
 import { MockAuthProvider } from "@/hooks/useMockAuth";
 
 const queryClient = new QueryClient();
@@ -58,6 +59,7 @@ function AuthedAppRoutes() {
     <AppLayout>
       <Routes>
         <Route path="/" element={<Dashboard />} />
+        <Route path="/chatbot" element={<ChatbotPage />} />
         <Route path="/leads" element={<LeadsPage />} />
         <Route path="/leads/:id" element={<CustomerCardPage />} />
         <Route path="/opportunities" element={<OpportunitiesPage />} />

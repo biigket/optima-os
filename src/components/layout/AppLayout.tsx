@@ -4,7 +4,7 @@ import {
   LayoutDashboard, Users, Target, MapPin, FileText, Presentation, CalendarDays,
   ListTodo, Calendar, Cpu, Package, Wrench, ChevronLeft, ChevronRight, Bell,
   FileSpreadsheet, ShoppingCart, Warehouse, Receipt, CreditCard,
-  TrendingUp, BarChart3,
+  TrendingUp, BarChart3, MessageCircle,
   Lock, LogOut, Menu, X, ClipboardCheck, Fingerprint, BarChart, Settings
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -17,6 +17,7 @@ const navGroups = [
     label: 'ANALYTICS',
     items: [
       { to: '/', icon: LayoutDashboard, label: 'แดชบอร์ด', moduleKey: 'dashboard' },
+      { to: '/chatbot', icon: MessageCircle, label: 'Optima AI', moduleKey: 'dashboard' },
     ],
   },
   {
