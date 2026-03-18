@@ -23,7 +23,7 @@ const POSITIONS: { value: Position; label: string }[] = [
 
 const ROLES: { value: string; label: string }[] = [
   { value: 'ADMIN', label: 'ADMIN' },
-  { value: 'SALE', label: 'SALE' },
+  { value: 'USER', label: 'USER' },
 ];
 
 interface UserForm {
