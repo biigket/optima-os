@@ -216,7 +216,7 @@ export default function OpportunitiesPage() {
               ['next_activity', 'กิจกรรมถัดไป'],
               ['value', 'มูลค่า'],
               ['close_date', 'วันปิด'],
-              ['days_in_stage', 'วันในสถานะ'],
+              ['days_in_stage', 'อายุดีล'],
             ] as [SortKey, string][]).map(([key, label]) => (
               <button
                 key={key}
