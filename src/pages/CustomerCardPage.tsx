@@ -17,7 +17,7 @@ import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { th } from 'date-fns/locale';
-import { MOCK_SALES } from '@/hooks/useMockAuth';
+import { useSalesUsers } from '@/hooks/useMockAuth';
 import {
   ArrowLeft, Phone, MessageCircle, StickyNote, CalendarPlus, ListPlus, Pencil,
   DollarSign, Monitor, Handshake, MapPin, Building2, Users, Mail,
@@ -97,6 +97,7 @@ const DOC_ICONS: Record<string, string> = {
 export default function CustomerCardPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const salesUsers = useSalesUsers();
   const isMobile = useIsMobile();
   const [notes, setNotes] = useState('');
   const [editOpen, setEditOpen] = useState(false);
@@ -468,7 +469,7 @@ export default function CustomerCardPage() {
                   <SelectValue placeholder="ยังไม่ระบุ" />
                 </SelectTrigger>
                 <SelectContent>
-                  {MOCK_SALES.map(s => <SelectItem key={s.id} value={s.name}>{s.name}</SelectItem>)}
+                  {salesUsers.map(s => <SelectItem key={s.id} value={s.name}>{s.name}</SelectItem>)}
                 </SelectContent>
               </Select>
             </div>

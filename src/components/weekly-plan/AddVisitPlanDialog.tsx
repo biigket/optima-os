@@ -12,7 +12,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { format } from 'date-fns';
 import { th } from 'date-fns/locale';
 import { toast } from 'sonner';
-import { useMockAuth, MOCK_SALES } from '@/hooks/useMockAuth';
+import { useMockAuth, useSalesUsers } from '@/hooks/useMockAuth';
 import { Star } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -111,6 +111,7 @@ export default function AddVisitPlanDialog({
   open, onOpenChange, selectedDate, startTime, endTime, onSuccess
 }: AddVisitPlanDialogProps) {
   const { currentUser } = useMockAuth();
+  const salesUsers = useSalesUsers();
   const [step, setStep] = useState(0);
   const [search, setSearch] = useState('');
   const [accounts, setAccounts] = useState<Account[]>([]);
@@ -340,7 +341,7 @@ export default function AddVisitPlanDialog({
               <Select value={form.assigned_sale || ''} onValueChange={v => updateField('assigned_sale', v)}>
                 <SelectTrigger><SelectValue placeholder="เลือกเซลล์" /></SelectTrigger>
                 <SelectContent>
-                  {MOCK_SALES.map(s => <SelectItem key={s.id} value={s.name}>{s.name}</SelectItem>)}
+                  {salesUsers.map(s => <SelectItem key={s.id} value={s.name}>{s.name}</SelectItem>)}
                 </SelectContent>
               </Select>
             </div>

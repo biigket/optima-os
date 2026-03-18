@@ -11,7 +11,7 @@ import { Phone, Users, Building2, Target, Presentation, ChevronDown, ChevronUp, 
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
-import { useMockAuth, MOCK_SALES } from '@/hooks/useMockAuth';
+import { useMockAuth } from '@/hooks/useMockAuth';
 import type { Activity, ActivityType, ActivityPriority } from '@/types';
 import StructuredNotes from './StructuredNotes';
 import RichTextEditor from '@/components/ui/RichTextEditor';
@@ -71,7 +71,7 @@ export default function ActivityForm({
   editingActivity, onActivityUpdated, onCancelEdit, onFormChange,
   quickScheduleDefaults, clinicName, currentStage, interestedProducts,
 }: ActivityFormProps) {
-  const { currentUser } = useMockAuth();
+  const { currentUser, allUsers } = useMockAuth();
   const [selectedType, setSelectedType] = useState<ActivityType>('CALL');
   const [title, setTitle] = useState('');
   const [activityDate, setActivityDate] = useState(quickScheduleDefaults?.activity_date || new Date().toISOString().split('T')[0]);
@@ -546,7 +546,7 @@ export default function ActivityForm({
               <SelectValue placeholder="+ เพิ่ม" />
             </SelectTrigger>
             <SelectContent>
-              {MOCK_SALES.filter(u => !assignedTo.includes(u.name)).map(u => (
+              {allUsers.filter(u => !assignedTo.includes(u.name)).map(u => (
                 <SelectItem key={u.id} value={u.name} className="text-xs">{u.name}</SelectItem>
               ))}
             </SelectContent>

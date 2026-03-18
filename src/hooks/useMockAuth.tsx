@@ -133,5 +133,11 @@ export function useCanSeeAll() {
   return ['SALES_MANAGER', 'OWNER'].includes(currentUser.position);
 }
 
+/** Returns only sales-related users (SALES, SALES_MANAGER, OWNER positions) from allUsers */
+export function useSalesUsers() {
+  const { allUsers } = useMockAuth();
+  return allUsers.filter(u => ['SALES', 'SALES_MANAGER', 'OWNER'].includes(u.position));
+}
+
 // Keep MOCK_SALES export for backward compatibility (login page test accounts display)
 export const MOCK_SALES = FALLBACK_USERS;

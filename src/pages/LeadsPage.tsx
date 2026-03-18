@@ -11,7 +11,7 @@ import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import StatusBadge from '@/components/ui/StatusBadge';
 import { toast } from 'sonner';
-import { useMockAuth, useCanSeeAll, MOCK_SALES } from '@/hooks/useMockAuth';
+import { useMockAuth, useCanSeeAll, useSalesUsers } from '@/hooks/useMockAuth';
 import { supabase } from '@/integrations/supabase/client';
 import QuickNoteButtons from '@/components/ui/QuickNoteButtons';
 
@@ -117,6 +117,7 @@ function daysSince(dateStr: string | null): string {
 export default function LeadsPage() {
   const navigate = useNavigate();
   const { currentUser } = useMockAuth();
+  const salesUsers = useSalesUsers();
   const [accounts, setAccounts] = useState<Account[]>([]);
   const [contacts, setContacts] = useState<Contact[]>([]);
   const [products, setProducts] = useState<{ id: string; product_name: string }[]>([]);
@@ -293,7 +294,7 @@ export default function LeadsPage() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="ALL">เซลล์ทั้งหมด</SelectItem>
-                {MOCK_SALES.map(s => <SelectItem key={s.id} value={s.name}>{s.name}</SelectItem>)}
+                {salesUsers.map(s => <SelectItem key={s.id} value={s.name}>{s.name}</SelectItem>)}
               </SelectContent>
             </Select>
           )}
@@ -515,7 +516,7 @@ export default function LeadsPage() {
               <Select value={form.assigned_sale || ''} onValueChange={v => updateField('assigned_sale', v)}>
                 <SelectTrigger><SelectValue placeholder="เลือกเซลล์" /></SelectTrigger>
                 <SelectContent>
-                  {MOCK_SALES.map(s => <SelectItem key={s.id} value={s.name}>{s.name}</SelectItem>)}
+                  {salesUsers.map(s => <SelectItem key={s.id} value={s.name}>{s.name}</SelectItem>)}
                 </SelectContent>
               </Select>
             </div>
