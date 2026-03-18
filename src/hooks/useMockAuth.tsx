@@ -125,5 +125,13 @@ export function MockAuthProvider({ children }: { children: ReactNode }) {
 
 export const useMockAuth = () => useContext(MockAuthContext);
 
+/** Returns true if the current user can see all data (ADMIN role, or SALES_MANAGER/OWNER position) */
+export function useCanSeeAll() {
+  const { currentUser } = useMockAuth();
+  if (!currentUser) return false;
+  if (currentUser.role === 'ADMIN') return true;
+  return ['SALES_MANAGER', 'OWNER'].includes(currentUser.position);
+}
+
 // Keep MOCK_SALES export for backward compatibility (login page test accounts display)
 export const MOCK_SALES = FALLBACK_USERS;

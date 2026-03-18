@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { useMockAuth, MOCK_SALES } from '@/hooks/useMockAuth';
+import { useMockAuth, useCanSeeAll, MOCK_SALES } from '@/hooks/useMockAuth';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -57,7 +57,7 @@ for (let h = 7; h <= 21; h++) {
 
 export default function CalendarPage() {
   const { currentUser } = useMockAuth();
-  const isAdmin = currentUser?.role === 'ADMIN';
+  const canSeeAll = useCanSeeAll();
   const calendarRef = useRef<InstanceType<typeof FullCalendar>>(null);
 
   const [demos, setDemos] = useState<DemoRow[]>([]);
@@ -298,7 +298,7 @@ export default function CalendarPage() {
           </div>
 
           {/* Employee filter */}
-          {isAdmin && uniqueAssignees.length > 0 && (
+          {canSeeAll && uniqueAssignees.length > 0 && (
             <div className="rounded-lg border bg-card p-3">
               <div className="text-xs font-medium text-muted-foreground mb-2">กรองตามพนักงาน</div>
               <Select value={assigneeFilter} onValueChange={setAssigneeFilter}>

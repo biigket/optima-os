@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Search, Phone, Circle, CheckCircle2, List, CalendarDays, Users, ClipboardList, AlertCircle, Monitor, ArrowUp, ChevronLeft, ChevronRight } from 'lucide-react';
-import { useMockAuth } from '@/hooks/useMockAuth';
+import { useMockAuth, useCanSeeAll } from '@/hooks/useMockAuth';
 import CalendarEventDialog from '@/components/tasks/CalendarEventDialog';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
@@ -166,9 +166,9 @@ export default function TasksPage() {
     return Array.from(names).sort();
   }, [rows]);
 
-  // Filter by assigned user (ADMIN sees all or filtered)
-  const isAdmin = currentUser?.role === 'ADMIN';
-  const myRows = isAdmin
+  // Filter by assigned user (Admin/Manager/Owner sees all or filtered)
+  const canSeeAll = useCanSeeAll();
+  const myRows = canSeeAll
     ? (assigneeFilter === 'ALL' ? rows : rows.filter(r => r.assigned_to?.includes(assigneeFilter)))
     : rows.filter(r => r.assigned_to?.includes(currentUser?.name || ''));
 
@@ -240,7 +240,7 @@ export default function TasksPage() {
             <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
             <Input placeholder="ค้นหางาน..." value={search} onChange={e => setSearch(e.target.value)} className="pl-9" />
           </div>
-          {isAdmin && (
+          {canSeeAll && (
             <Select value={assigneeFilter} onValueChange={setAssigneeFilter}>
               <SelectTrigger className="w-[160px]">
                 <SelectValue placeholder="ทั้งหมด" />
@@ -395,7 +395,7 @@ export default function TasksPage() {
                   })()}
                 </div>
               </div>
-              {isAdmin && (
+              {canSeeAll && (
                 <div className="rounded-lg border bg-card p-3">
                   <div className="text-xs font-medium text-muted-foreground mb-2">กรองตามพนักงาน</div>
                   <Select value={assigneeFilter} onValueChange={setAssigneeFilter}>

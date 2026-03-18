@@ -8,7 +8,7 @@ import StatusBadge from '@/components/ui/StatusBadge';
 import OpportunityKanban from '@/components/opportunities/OpportunityKanban';
 import CreateOpportunityForm from '@/components/opportunities/CreateOpportunityForm';
 import { supabase } from '@/integrations/supabase/client';
-import { useMockAuth, MOCK_SALES } from '@/hooks/useMockAuth';
+import { useMockAuth, useCanSeeAll, MOCK_SALES } from '@/hooks/useMockAuth';
 import { toast } from 'sonner';
 import type { Account, Opportunity, OpportunityStage } from '@/types';
 
@@ -35,7 +35,7 @@ export function getCachedAccount(id: string) { return accountCache[id]; }
 export default function OpportunitiesPage() {
   const navigate = useNavigate();
   const { currentUser } = useMockAuth();
-  const isAdmin = currentUser?.role === 'ADMIN';
+  const canSeeAll = useCanSeeAll();
   const salesUsers = MOCK_SALES.filter(u => u.role === 'USER');
 
   const [search, setSearch] = useState('');
@@ -67,12 +67,12 @@ export default function OpportunitiesPage() {
 
   // Role-based filtering
   const roleFiltered = useMemo(() => {
-    if (isAdmin) {
+    if (canSeeAll) {
       if (saleFilter === 'ALL') return opportunities;
       return opportunities.filter(o => o.assigned_sale === saleFilter);
     }
     return opportunities.filter(o => o.assigned_sale === currentUser?.name);
-  }, [opportunities, isAdmin, saleFilter, currentUser?.name]);
+  }, [opportunities, canSeeAll, saleFilter, currentUser?.name]);
 
   const filtered = roleFiltered.filter(o => {
     const acc = accountCache[o.account_id];
@@ -161,7 +161,7 @@ export default function OpportunitiesPage() {
             <span>รวม ฿{totalValue.toLocaleString()}</span>
             <span className="text-muted-foreground/40">·</span>
             <span>Weighted ฿{totalWeighted.toLocaleString()}</span>
-            {!isAdmin && currentUser && (
+            {!canSeeAll && currentUser && (
               <>
                 <span className="text-muted-foreground/40">·</span>
                 <span className="text-primary font-medium">{currentUser.name}</span>
@@ -192,7 +192,7 @@ export default function OpportunitiesPage() {
           ))}
         </div>
 
-        {isAdmin && (
+        {canSeeAll && (
           <div className="flex items-center gap-1.5">
             <Filter size={12} className="text-muted-foreground" />
             <Select value={saleFilter} onValueChange={setSaleFilter}>

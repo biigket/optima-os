@@ -11,7 +11,7 @@ import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import StatusBadge from '@/components/ui/StatusBadge';
 import { toast } from 'sonner';
-import { useMockAuth, MOCK_SALES } from '@/hooks/useMockAuth';
+import { useMockAuth, useCanSeeAll, MOCK_SALES } from '@/hooks/useMockAuth';
 import { supabase } from '@/integrations/supabase/client';
 import QuickNoteButtons from '@/components/ui/QuickNoteButtons';
 
@@ -145,9 +145,9 @@ export default function LeadsPage() {
 
   useEffect(() => { fetchData(); }, []);
 
-  // Admin sees all, sales see only their own
-  const isAdmin = currentUser?.role === 'ADMIN';
-  const myAccounts = isAdmin ? accounts : accounts.filter(a => a.assigned_sale === currentUser?.name);
+  // Admin/Manager/Owner sees all, sales see only their own
+  const canSeeAll = useCanSeeAll();
+  const myAccounts = canSeeAll ? accounts : accounts.filter(a => a.assigned_sale === currentUser?.name);
 
   const closeDialog = () => {
     setDialogOpen(false);
@@ -285,7 +285,7 @@ export default function LeadsPage() {
               className="pl-9 w-64"
             />
           </div>
-          {isAdmin && (
+          {canSeeAll && (
             <Select value={saleFilter} onValueChange={setSaleFilter}>
               <SelectTrigger className="w-[130px] h-9 text-xs">
                 <SelectValue placeholder="เซลล์ทั้งหมด" />
