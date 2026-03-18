@@ -60,7 +60,7 @@ export function MockAuthProvider({ children }: { children: ReactNode }) {
         name: u.name,
         username: u.username,
         password: u.password,
-        role: u.role as 'SALE' | 'ADMIN',
+        role: (u.role === 'SALE' ? 'USER' : u.role) as 'USER' | 'ADMIN',
         position: u.position as Position,
       }));
       setAllUsers(mapped);
