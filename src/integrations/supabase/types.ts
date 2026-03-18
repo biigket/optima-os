@@ -665,6 +665,39 @@ export type Database = {
           },
         ]
       }
+      mock_users: {
+        Row: {
+          created_at: string
+          id: string
+          is_active: boolean
+          name: string
+          password: string
+          position: string
+          role: string
+          username: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name: string
+          password: string
+          position?: string
+          role?: string
+          username: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name?: string
+          password?: string
+          position?: string
+          role?: string
+          username?: string
+        }
+        Relationships: []
+      }
       opportunities: {
         Row: {
           account_id: string

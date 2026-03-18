@@ -4,13 +4,13 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { LogIn, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
-import { useMockAuth, MOCK_SALES } from '@/hooks/useMockAuth';
+import { useMockAuth } from '@/hooks/useMockAuth';
 
 export default function MockLoginPage() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
-  const { login } = useMockAuth();
+  const { login, allUsers } = useMockAuth();
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -67,7 +67,7 @@ export default function MockLoginPage() {
         <div className="rounded-lg border bg-muted/50 p-3">
           <p className="text-[10px] font-semibold text-muted-foreground mb-2 uppercase tracking-wider">บัญชีทดสอบ</p>
           <div className="space-y-1">
-            {MOCK_SALES.map(u => (
+            {allUsers.map(u => (
               <div key={u.id} className="flex items-center justify-between text-xs text-muted-foreground">
                 <span className="font-medium text-foreground">{u.name}</span>
                 <span>{u.username} / {u.password}</span>

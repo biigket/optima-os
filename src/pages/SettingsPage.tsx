@@ -5,7 +5,8 @@ import { Button } from '@/components/ui/button';
 import { Settings, Shield, Loader2, FileSpreadsheet, ArrowRight } from 'lucide-react';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
-
+import { useMockAuth } from '@/hooks/useMockAuth';
+import UserManagement from '@/components/settings/UserManagement';
 const MODULE_GROUPS = [
   { label: 'ANALYTICS', modules: ['dashboard'] },
   { label: 'CRM', modules: ['leads', 'opportunities'] },
@@ -22,7 +23,9 @@ const MODULE_GROUPS = [
 
 export default function SettingsPage() {
   const { loading, togglePermission, getPermission } = useAllRolePermissions();
+  const { currentUser } = useMockAuth();
   const navigate = useNavigate();
+  const isAdmin = currentUser?.role === 'ADMIN';
 
   const handleToggle = async (roleKey: string, moduleKey: string) => {
     const current = getPermission(roleKey, moduleKey);
@@ -47,6 +50,8 @@ export default function SettingsPage() {
           <p className="text-sm text-muted-foreground">กำหนดว่าแต่ละตำแหน่งจะเห็น module ไหนบ้าง</p>
         </div>
       </div>
+
+      {isAdmin && <UserManagement />}
 
       <Card>
         <CardHeader className="pb-3">
