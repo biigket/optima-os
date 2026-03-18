@@ -75,10 +75,19 @@ export default function InstallBaseDetailPage() {
         .single();
       if (!row) { setLoading(false); return; }
 
+      // Derive productCategory from product_name
+      const productName = ((row.products as any)?.product_name || '').toUpperCase();
+      let productCategory: Installation['productCategory'] = 'ND2';
+      if (productName.includes('TRICA')) productCategory = 'Trica 3D';
+      else if (productName.includes('QUATTRO')) productCategory = 'Quattro';
+      else if (productName.includes('PICOHI') || productName.includes('PICO')) productCategory = 'Picohi';
+      else if (productName.includes('FREEZERO')) productCategory = 'Freezero';
+      else if (productName.includes('ND2') || productName.includes('DOUBLO')) productCategory = 'ND2';
+
       const installation: Installation = {
         id: row.id,
         qcStockItemId: '',
-        productCategory: (row.products as any)?.category || 'ND2',
+        productCategory,
         serialNumber: row.serial_number || '',
         clinic: (row.accounts as any)?.clinic_name || '',
         accountId: row.account_id || undefined,
