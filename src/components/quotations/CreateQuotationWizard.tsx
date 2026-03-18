@@ -17,9 +17,9 @@ import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import QuickNoteButtons from '@/components/ui/QuickNoteButtons';
 import PaymentConditionSelector, { getPaymentConditionLabel } from './PaymentConditionSelector';
-// Mock stock arrays removed — inventory now fetched from DB in getInventoryProducts
 import { getPrice } from '@/data/inventoryPricing';
 import { addReservation } from '@/data/inventoryReservation';
+import { normalizeStatus, normalizeProductType } from '@/data/qcStockMapper';
 
 // === Constants ===
 
@@ -41,26 +41,19 @@ interface InventoryProduct {
   price: number;
 }
 
-function getInventoryProducts(): InventoryProduct[] {
+async function fetchInventoryProducts(): Promise<InventoryProduct[]> {
+  const { data } = await supabase.from('qc_stock_items').select('*').not('status', 'is', null);
+  if (!data) return [];
   const items: InventoryProduct[] = [];
-  mockND2Stock.filter(i => i.status === 'พร้อมขาย').forEach(i =>
-    items.push({ id: i.id, name: `ND2 (${i.hntSerialNumber})`, category: 'ND2', serialNumber: i.hntSerialNumber, price: getPrice(i.id) ?? 0 })
-  );
-  mockTrica3DStock.filter(i => i.status === 'พร้อมขาย').forEach(i =>
-    items.push({ id: i.id, name: `Trica 3D (${i.serialNumber})`, category: 'Trica 3D', serialNumber: i.serialNumber, price: getPrice(i.id) ?? 0 })
-  );
-  mockQuattroStock.filter(i => i.status === 'พร้อมขาย').forEach(i =>
-    items.push({ id: i.id, name: `Quattro (${i.serialNumber})`, category: 'Quattro', serialNumber: i.serialNumber, price: getPrice(i.id) ?? 0 })
-  );
-  mockCartridgeStock.filter(i => i.status === 'พร้อมขาย').forEach(i =>
-    items.push({ id: i.id, name: `Cartridge ${i.cartridgeType} (${i.serialNumber})`, category: 'Cartridge', serialNumber: i.serialNumber, price: getPrice(i.id) ?? 0 })
-  );
-  mockPicohiStock.filter(i => i.status === 'พร้อมขาย').forEach(i =>
-    items.push({ id: i.id, name: `Picohi (${i.serialNumber})`, category: 'Picohi', serialNumber: i.serialNumber, price: getPrice(i.id) ?? 0 })
-  );
-  mockFreezeroStock.filter(i => i.status === 'พร้อมขาย').forEach(i =>
-    items.push({ id: i.id, name: `Freezero (${i.serialNumber})`, category: 'Freezero', serialNumber: i.serialNumber, price: getPrice(i.id) ?? 0 })
-  );
+  for (const row of data) {
+    const status = normalizeStatus(row.status);
+    if (status !== 'พร้อมขาย') continue;
+    const sn = row.serial_number || '';
+    const label = normalizeProductType(row.product_type) === 'CARTRIDGE'
+      ? `Cartridge ${row.cartridge_type || ''} (${sn})`
+      : `${row.product_type} (${sn})`;
+    items.push({ id: row.id, name: label, category: row.product_type, serialNumber: sn, price: getPrice(row.id) ?? 0 });
+  }
   return items;
 }
 
