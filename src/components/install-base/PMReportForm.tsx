@@ -8,8 +8,8 @@ import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Plus, Trash2, CheckCircle, XCircle, MinusCircle } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
-import type { PMReport, PMCheckItem, PMCartridgeEntry, Installation } from '@/types/installBase';
-import { getChecklistsByCategory, getFirmwareFields, getProductDisplayName, getCartridgeTypes } from '@/types/installBase';
+import type { PMReport, PMCheckItem, PMCartridgeEntry, PMResultStatus, Installation } from '@/types/installBase';
+import { getChecklistsByCategory, getFirmwareFields, getProductDisplayName, getCartridgeTypes, getSectionTitles } from '@/types/installBase';
 import ComboSelect from '@/components/ui/ComboSelect';
 
 // Shared version options that grow as users add new ones
@@ -93,6 +93,7 @@ export default function PMReportForm({ open, onOpenChange, installation, mainten
   const firmwareFields = getFirmwareFields(category);
   const cartridgeTypes = getCartridgeTypes(category);
   const displayName = getProductDisplayName(category);
+  const sectionTitles = getSectionTitles(category);
 
   // Firmware versions as a dynamic map
   const [fwValues, setFwValues] = useState<Record<string, string>>(() => {
@@ -118,6 +119,8 @@ export default function PMReportForm({ open, onOpenChange, installation, mainten
   );
 
   const [remark, setRemark] = useState(existingReport?.remark || '');
+  const [resultStatus, setResultStatus] = useState<PMResultStatus>(existingReport?.resultStatus || 'complete');
+  const [resultOther, setResultOther] = useState(existingReport?.resultOther || '');
   const [serviceEngineer, setServiceEngineer] = useState(existingReport?.serviceEngineer || '');
   const [serviceDate, setServiceDate] = useState(existingReport?.serviceDate || new Date().toISOString().split('T')[0]);
   const [serviceTel, setServiceTel] = useState(existingReport?.serviceTel || '');
@@ -156,7 +159,7 @@ export default function PMReportForm({ open, onOpenChange, installation, mainten
       fwRm: fwValues.fwRm || '',
       fwAmp: fwValues.fwAmp || '',
       operationChecklist, safetyChecklist, coolingChecklist,
-      cartridges, remark,
+      cartridges, remark, resultStatus, resultOther,
       serviceEngineer, serviceDate, serviceTel,
       customerName, customerDate, customerTel,
     };
@@ -170,8 +173,9 @@ export default function PMReportForm({ open, onOpenChange, installation, mainten
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <span>{displayName} Maintenance Report</span>
-            <Badge variant="outline">PM ครั้งที่ {maintenanceNumber}</Badge>
+            <span>QC : {displayName}</span>
+            <Badge variant="outline">Equipment Inspection Report</Badge>
+            <Badge variant="secondary">PM ครั้งที่ {maintenanceNumber}</Badge>
           </DialogTitle>
         </DialogHeader>
 
@@ -208,13 +212,13 @@ export default function PMReportForm({ open, onOpenChange, installation, mainten
           </div>
 
           {/* 1. Operation System */}
-          <ChecklistSection title="1. Operation System and Handpiece" items={operationChecklist} onChange={setOperationChecklist} />
+          <ChecklistSection title={sectionTitles.operation} items={operationChecklist} onChange={setOperationChecklist} />
 
           {/* 2. Safety System */}
-          <ChecklistSection title="2. Safety System" items={safetyChecklist} onChange={setSafetyChecklist} />
+          <ChecklistSection title={sectionTitles.safety} items={safetyChecklist} onChange={setSafetyChecklist} />
 
-          {/* 3. Cooling System */}
-          <ChecklistSection title="3. Cooling System" items={coolingChecklist} onChange={setCoolingChecklist} />
+          {/* 3. Cooling / Analysis System */}
+          <ChecklistSection title={sectionTitles.cooling} items={coolingChecklist} onChange={setCoolingChecklist} />
 
           {/* 4. Cartridge — only for categories that have cartridges */}
           {cartridgeTypes && (
@@ -266,10 +270,37 @@ export default function PMReportForm({ open, onOpenChange, installation, mainten
             </div>
           )}
 
-          {/* Remark */}
+          {/* Note / Remark */}
           <div>
-            <Label>Remark</Label>
-            <Textarea value={remark} onChange={e => setRemark(e.target.value)} rows={3} />
+            <Label>Note</Label>
+            <Textarea value={remark} onChange={e => setRemark(e.target.value)} rows={3} placeholder="เครื่องสามารถใช้งานได้ปกติ" />
+          </div>
+
+          {/* Result */}
+          <div>
+            <Label className="text-sm font-semibold">Result</Label>
+            <div className="flex flex-wrap gap-4 mt-2">
+              {([
+                { value: 'complete' as PMResultStatus, label: 'Complete' },
+                { value: 'claim' as PMResultStatus, label: 'Claim' },
+                { value: 'repair' as PMResultStatus, label: 'Repair' },
+                { value: 'other' as PMResultStatus, label: 'Other' },
+              ]).map(opt => (
+                <label key={opt.value} className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="radio"
+                    name="resultStatus"
+                    checked={resultStatus === opt.value}
+                    onChange={() => setResultStatus(opt.value)}
+                    className="accent-primary w-4 h-4"
+                  />
+                  <span className="text-sm">{opt.label}</span>
+                </label>
+              ))}
+            </div>
+            {resultStatus === 'other' && (
+              <Input value={resultOther} onChange={e => setResultOther(e.target.value)} className="mt-2 h-8" placeholder="ระบุรายละเอียด..." />
+            )}
           </div>
 
           {/* Signatures */}

@@ -17,6 +17,8 @@ export interface PMCartridgeEntry {
   passFail: boolean;
 }
 
+export type PMResultStatus = 'complete' | 'claim' | 'repair' | 'other';
+
 export interface PMReport {
   id: string;
   installationId: string;
@@ -35,6 +37,8 @@ export interface PMReport {
   coolingChecklist: PMCheckItem[];
   cartridges: PMCartridgeEntry[];
   remark: string;
+  resultStatus?: PMResultStatus;
+  resultOther?: string;
   serviceEngineer: string;
   serviceDate: string;
   serviceTel: string;
@@ -122,29 +126,37 @@ export function getND2CoolingChecklist(): PMCheckItem[] {
 // ─── Trica 3D ───
 export function getTrica3DOperationChecklist(): PMCheckItem[] {
   return [
-    { name: 'Handpiece ทำงานปกติ', pass: null, remark: '' },
-    { name: 'Touch screen แสดงผลปกติ', pass: null, remark: '' },
-    { name: 'ระบบเสียง/Volume', pass: null, remark: '' },
-    { name: 'Alarm แจ้งเตือน', pass: null, remark: '' },
-    { name: 'Laser output ได้ค่าตามมาตรฐาน', pass: null, remark: '' },
-    { name: 'Aiming beam ตรงตำแหน่ง', pass: null, remark: '' },
+    { name: 'Main Body', pass: null, remark: '' },
+    { name: 'HD Camera (Center)', pass: null, remark: '' },
+    { name: 'Right depth Camera', pass: null, remark: '' },
+    { name: 'Right depth Camera', pass: null, remark: '' },
+    { name: 'Mirror (Right/Left)', pass: null, remark: '' },
+    { name: 'LED Light', pass: null, remark: '' },
+    { name: 'UV Light', pass: null, remark: '' },
+    { name: 'Chin rest', pass: null, remark: '' },
+    { name: 'Shade cloth', pass: null, remark: '' },
+    { name: 'Shawl', pass: null, remark: '' },
   ];
 }
 export function getTrica3DSafetyChecklist(): PMCheckItem[] {
   return [
-    { name: 'Emergency stop', pass: null, remark: '' },
-    { name: 'Key switch', pass: null, remark: '' },
-    { name: 'Interlock', pass: null, remark: '' },
-    { name: 'Foot switch', pass: null, remark: '' },
-    { name: 'AC Plug / สายไฟ', pass: null, remark: '' },
+    { name: 'AC Plug + Adapter', pass: null, remark: '' },
+    { name: 'Speaker', pass: null, remark: '' },
   ];
 }
 export function getTrica3DCoolingChecklist(): PMCheckItem[] {
   return [
-    { name: 'Water flow ปกติ', pass: null, remark: '' },
-    { name: 'Water level ปกติ', pass: null, remark: '' },
-    { name: 'พัดลมระบายความร้อน', pass: null, remark: '' },
-    { name: 'อุณหภูมิขณะทำงาน', pass: null, remark: '' },
+    { name: 'Natural Light', pass: null, remark: '' },
+    { name: 'Cross Light', pass: null, remark: '' },
+    { name: 'UV Light', pass: null, remark: '' },
+    { name: 'Parallel Light', pass: null, remark: '' },
+    { name: 'Cold Light', pass: null, remark: '' },
+    { name: 'Red Blood', pass: null, remark: '' },
+    { name: 'Red Zone', pass: null, remark: '' },
+    { name: 'Brown', pass: null, remark: '' },
+    { name: 'Ultraviolet', pass: null, remark: '' },
+    { name: 'Red Heat Map', pass: null, remark: '' },
+    { name: 'Brown Heat Map', pass: null, remark: '' },
   ];
 }
 
@@ -294,6 +306,27 @@ export function getProductDisplayName(cat: ProductCategory): string {
     case 'Picohi': return 'Picohi';
     case 'Freezero': return 'Freezero';
     default: return cat;
+  }
+}
+
+// ─── Section titles per category ───
+export interface ChecklistSectionTitles {
+  operation: string;
+  safety: string;
+  cooling: string;
+}
+export function getSectionTitles(cat: ProductCategory): ChecklistSectionTitles {
+  switch (cat) {
+    case 'Trica 3D': return {
+      operation: '1. Operation System',
+      safety: '2. Safety System',
+      cooling: '3. Analysis Processing System',
+    };
+    default: return {
+      operation: '1. Operation System and Handpiece',
+      safety: '2. Safety System',
+      cooling: '3. Cooling System',
+    };
   }
 }
 
