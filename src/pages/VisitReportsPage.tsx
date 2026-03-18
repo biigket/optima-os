@@ -83,6 +83,8 @@ export default function VisitReportsPage() {
       .limit(50);
     if (!canSeeAll && currentUser) {
       query = query.eq('created_by', currentUser.name);
+    } else if (canSeeAll && filterUser !== 'ALL') {
+      query = query.eq('created_by', filterUser);
     }
     const { data } = await query;
     if (data) setReports(data as unknown as VisitReport[]);
