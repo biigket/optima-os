@@ -10,7 +10,7 @@ export default function MockLoginPage() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
-  const { login } = useMockAuth();
+  const { login, allUsers } = useMockAuth();
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
