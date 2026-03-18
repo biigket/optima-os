@@ -173,8 +173,9 @@ export default function PMReportForm({ open, onOpenChange, installation, mainten
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <span>{displayName} Maintenance Report</span>
-            <Badge variant="outline">PM ครั้งที่ {maintenanceNumber}</Badge>
+            <span>QC : {displayName}</span>
+            <Badge variant="outline">Equipment Inspection Report</Badge>
+            <Badge variant="secondary">PM ครั้งที่ {maintenanceNumber}</Badge>
           </DialogTitle>
         </DialogHeader>
 
