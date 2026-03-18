@@ -8,7 +8,7 @@ import StatusBadge from '@/components/ui/StatusBadge';
 import OpportunityKanban from '@/components/opportunities/OpportunityKanban';
 import CreateOpportunityForm from '@/components/opportunities/CreateOpportunityForm';
 import { supabase } from '@/integrations/supabase/client';
-import { useMockAuth, useCanSeeAll, MOCK_SALES } from '@/hooks/useMockAuth';
+import { useMockAuth, useCanSeeAll, useSalesUsers } from '@/hooks/useMockAuth';
 import { toast } from 'sonner';
 import type { Account, Opportunity, OpportunityStage } from '@/types';
 
