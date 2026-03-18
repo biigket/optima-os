@@ -119,6 +119,8 @@ export default function PMReportForm({ open, onOpenChange, installation, mainten
   );
 
   const [remark, setRemark] = useState(existingReport?.remark || '');
+  const [resultStatus, setResultStatus] = useState<PMResultStatus>(existingReport?.resultStatus || 'complete');
+  const [resultOther, setResultOther] = useState(existingReport?.resultOther || '');
   const [serviceEngineer, setServiceEngineer] = useState(existingReport?.serviceEngineer || '');
   const [serviceDate, setServiceDate] = useState(existingReport?.serviceDate || new Date().toISOString().split('T')[0]);
   const [serviceTel, setServiceTel] = useState(existingReport?.serviceTel || '');
