@@ -5,7 +5,8 @@ import { Button } from '@/components/ui/button';
 import { Settings, Shield, Loader2, FileSpreadsheet, ArrowRight } from 'lucide-react';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
-
+import { useMockAuth } from '@/hooks/useMockAuth';
+import UserManagement from '@/components/settings/UserManagement';
 const MODULE_GROUPS = [
   { label: 'ANALYTICS', modules: ['dashboard'] },
   { label: 'CRM', modules: ['leads', 'opportunities'] },
