@@ -36,7 +36,7 @@ export default function OpportunitiesPage() {
   const navigate = useNavigate();
   const { currentUser } = useMockAuth();
   const canSeeAll = useCanSeeAll();
-  const salesUsers = MOCK_SALES.filter(u => u.role === 'USER');
+  const salesUsers = useSalesUsers();
 
   const [search, setSearch] = useState('');
   const [stageFilter, setStageFilter] = useState<OpportunityStage | 'ALL'>('ALL');
