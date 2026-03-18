@@ -67,12 +67,12 @@ export default function OpportunitiesPage() {
 
   // Role-based filtering
   const roleFiltered = useMemo(() => {
-    if (isAdmin) {
+    if (canSeeAll) {
       if (saleFilter === 'ALL') return opportunities;
       return opportunities.filter(o => o.assigned_sale === saleFilter);
     }
     return opportunities.filter(o => o.assigned_sale === currentUser?.name);
-  }, [opportunities, isAdmin, saleFilter, currentUser?.name]);
+  }, [opportunities, canSeeAll, saleFilter, currentUser?.name]);
 
   const filtered = roleFiltered.filter(o => {
     const acc = accountCache[o.account_id];
