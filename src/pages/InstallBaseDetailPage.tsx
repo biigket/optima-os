@@ -104,6 +104,23 @@ export default function InstallBaseDetailPage() {
         }
       }
 
+      // Load PM reports from maintenance_records
+      const { data: pmRecords } = await supabase
+        .from('maintenance_records')
+        .select('*')
+        .eq('installation_id', id)
+        .order('maintenance_number', { ascending: true });
+
+      if (pmRecords && pmRecords.length > 0) {
+        const maxPm = Math.max(...pmRecords.map(r => r.maintenance_number));
+        if (maxPm > 2) {
+          setPmCount(Math.ceil(maxPm / 2) * 2);
+        }
+        installation.pmReports = pmRecords
+          .filter(r => r.report_data)
+          .map(r => r.report_data as unknown as PMReport);
+      }
+
       setInst(installation);
       setLoading(false);
     }
