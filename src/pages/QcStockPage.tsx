@@ -188,6 +188,14 @@ export default function QcStockPage() {
   const handleAddPicohi = (item: PicohiStockItem) => { setPicohiItems(prev => [item, ...prev]); };
   const handleAddFreezero = (item: FreezeroStockItem) => { setFreezeroItems(prev => [item, ...prev]); };
 
+  // Quick status update handlers
+  const updateND2Status = (id: string, s: UnifiedStockStatus) => setItems(prev => prev.map(i => i.id === id ? { ...i, status: s } : i));
+  const updateCartridgeStatus = (id: string, s: UnifiedStockStatus) => setCartridgeItems(prev => prev.map(i => i.id === id ? { ...i, status: s } : i));
+  const updateTrica3dStatus = (id: string, s: UnifiedStockStatus) => setTrica3dItems(prev => prev.map(i => i.id === id ? { ...i, status: s } : i));
+  const updateQuattroStatus = (id: string, s: UnifiedStockStatus) => setQuattroItems(prev => prev.map(i => i.id === id ? { ...i, status: s } : i));
+  const updatePicohiStatus = (id: string, s: UnifiedStockStatus) => setPicohiItems(prev => prev.map(i => i.id === id ? { ...i, status: s } : i));
+  const updateFreezeroStatus = (id: string, s: UnifiedStockStatus) => setFreezeroItems(prev => prev.map(i => i.id === id ? { ...i, status: s } : i));
+
   const cartridgeCounts = useMemo(() => makeCounts(cartridgeItems), [cartridgeItems]);
   const trica3dCounts = useMemo(() => makeCounts(trica3dItems), [trica3dItems]);
   const quattroCounts = useMemo(() => makeCounts(quattroItems), [quattroItems]);
