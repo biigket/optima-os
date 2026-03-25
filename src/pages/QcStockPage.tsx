@@ -6,6 +6,8 @@ import { Button } from '@/components/ui/button';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { toast } from 'sonner';
 import type { ND2StockItem, CartridgeStockItem, Trica3DStockItem, QuattroStockItem, PicohiStockItem, FreezeroStockItem } from '@/types/stock';
 import { unifiedStatuses, unifiedStatusColor, type UnifiedStockStatus } from '@/data/unifiedStockStatus';
 import { mapND2, mapTrica3D, mapGenericStock, mapCartridge, normalizeProductType } from '@/data/qcStockMapper';
@@ -29,6 +31,30 @@ function StatusChip({ status }: { status: UnifiedStockStatus }) {
     <span className={`inline-flex items-center rounded-full border px-2 py-0.5 text-xs font-medium ${unifiedStatusColor[status] || 'bg-muted text-muted-foreground'}`}>
       {status}
     </span>
+  );
+}
+
+function QuickStatusSelect({ id, status, onStatusChanged }: { id: string; status: UnifiedStockStatus; onStatusChanged: (id: string, newStatus: UnifiedStockStatus) => void }) {
+  const handleChange = async (newStatus: string) => {
+    await supabase.from('qc_stock_items').update({ status: newStatus }).eq('id', id);
+    onStatusChanged(id, newStatus as UnifiedStockStatus);
+    toast.success('อัปเดตสถานะเรียบร้อย');
+  };
+  return (
+    <div onClick={e => e.stopPropagation()}>
+      <Select value={status} onValueChange={handleChange}>
+        <SelectTrigger className={`h-7 w-auto min-w-[120px] text-xs font-medium rounded-full border ${unifiedStatusColor[status] || ''}`}>
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          {unifiedStatuses.map(s => (
+            <SelectItem key={s} value={s}>
+              <span className={`inline-flex items-center rounded-full border px-1.5 py-0.5 text-xs ${unifiedStatusColor[s]}`}>{s}</span>
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+    </div>
   );
 }
 
@@ -162,6 +188,14 @@ export default function QcStockPage() {
   const handleAddPicohi = (item: PicohiStockItem) => { setPicohiItems(prev => [item, ...prev]); };
   const handleAddFreezero = (item: FreezeroStockItem) => { setFreezeroItems(prev => [item, ...prev]); };
 
+  // Quick status update handlers
+  const updateND2Status = (id: string, s: UnifiedStockStatus) => setItems(prev => prev.map(i => i.id === id ? { ...i, status: s } : i));
+  const updateCartridgeStatus = (id: string, s: UnifiedStockStatus) => setCartridgeItems(prev => prev.map(i => i.id === id ? { ...i, status: s } : i));
+  const updateTrica3dStatus = (id: string, s: UnifiedStockStatus) => setTrica3dItems(prev => prev.map(i => i.id === id ? { ...i, status: s } : i));
+  const updateQuattroStatus = (id: string, s: UnifiedStockStatus) => setQuattroItems(prev => prev.map(i => i.id === id ? { ...i, status: s } : i));
+  const updatePicohiStatus = (id: string, s: UnifiedStockStatus) => setPicohiItems(prev => prev.map(i => i.id === id ? { ...i, status: s } : i));
+  const updateFreezeroStatus = (id: string, s: UnifiedStockStatus) => setFreezeroItems(prev => prev.map(i => i.id === id ? { ...i, status: s } : i));
+
   const cartridgeCounts = useMemo(() => makeCounts(cartridgeItems), [cartridgeItems]);
   const trica3dCounts = useMemo(() => makeCounts(trica3dItems), [trica3dItems]);
   const quattroCounts = useMemo(() => makeCounts(quattroItems), [quattroItems]);
@@ -203,6 +237,7 @@ export default function QcStockPage() {
     setFilterVal: (v: FilterTab) => void,
     setFormOpenFn: (v: boolean) => void,
     detailPrefix: string,
+    onStatusChanged: (id: string, s: UnifiedStockStatus) => void,
   ) => (
     <div className="space-y-4">
       <div className="flex justify-end">
@@ -259,7 +294,7 @@ export default function QcStockPage() {
                 <TableRow key={item.id} className="cursor-pointer hover:bg-muted/50" onClick={() => navigate(`/qc-stock/${detailPrefix}/${item.id}`)}>
                   <TableCell className="font-mono font-medium text-foreground">{item.serialNumber}</TableCell>
                   <TableCell className="text-sm">{item.handpiece || '—'}</TableCell>
-                  <TableCell><StatusChip status={item.status} /></TableCell>
+                  <TableCell><QuickStatusSelect id={item.id} status={item.status} onStatusChanged={onStatusChanged} /></TableCell>
                   <TableCell className="text-sm text-muted-foreground max-w-[200px] truncate">{item.failReason || '—'}</TableCell>
                   <TableCell className="text-sm text-muted-foreground">{item.receivedDate || '—'}</TableCell>
                   <TableCell className="text-sm text-muted-foreground">{item.storageLocation || '—'}</TableCell>
@@ -352,7 +387,7 @@ export default function QcStockPage() {
                         <div>{item.hrm}</div><div className="text-[10px]">({item.hrmSellOrKeep})</div>
                       </TableCell>
                       <TableCell>
-                        <StatusChip status={item.status} />
+                        <QuickStatusSelect id={item.id} status={item.status} onStatusChanged={updateND2Status} />
                         {item.qcFailReason && <p className="text-[10px] text-destructive mt-0.5">{item.qcFailReason}</p>}
                       </TableCell>
                       <TableCell className="text-sm text-muted-foreground">{item.receivedDate || '—'}</TableCell>
@@ -422,7 +457,7 @@ export default function QcStockPage() {
                     <TableRow key={item.id} className="cursor-pointer hover:bg-muted/50" onClick={() => navigate(`/qc-stock/trica3d/${item.id}`)}>
                       <TableCell className="font-mono font-medium text-foreground text-xs">{item.serialNumber}</TableCell>
                       <TableCell className="text-sm">{item.clinic || '—'}</TableCell>
-                      <TableCell><StatusChip status={item.status} /></TableCell>
+                      <TableCell><QuickStatusSelect id={item.id} status={item.status} onStatusChanged={updateTrica3dStatus} /></TableCell>
                       <TableCell className="text-sm text-muted-foreground">{item.receivedDate || '—'}</TableCell>
                       <TableCell className="text-sm text-muted-foreground">{item.installDate || '—'}</TableCell>
                       <TableCell className="text-sm text-muted-foreground max-w-[180px] truncate">{item.failReason || '—'}</TableCell>
@@ -529,7 +564,7 @@ export default function QcStockPage() {
                     <TableRow key={item.id} className="cursor-pointer hover:bg-muted/50" onClick={() => navigate(`/qc-stock/cartridge/${item.id}`)}>
                       <TableCell className="font-mono font-medium text-foreground">{item.serialNumber}</TableCell>
                       <TableCell><Badge variant="outline" className="font-mono">{item.cartridgeType}</Badge></TableCell>
-                      <TableCell><StatusChip status={item.status} /></TableCell>
+                      <TableCell><QuickStatusSelect id={item.id} status={item.status} onStatusChanged={updateCartridgeStatus} /></TableCell>
                       <TableCell className="text-sm text-muted-foreground max-w-[200px] truncate">{item.qcFailReason || '—'}</TableCell>
                       <TableCell className="text-sm text-muted-foreground">{item.receivedDate || '—'}</TableCell>
                       <TableCell className="text-sm text-muted-foreground">{item.storageLocation || '—'}</TableCell>
@@ -543,17 +578,17 @@ export default function QcStockPage() {
 
         {/* ==================== Quattro Tab ==================== */}
         <TabsContent value="quattro">
-          {renderSimpleDeviceTab('Quattro', filteredQuattro, quattroCounts, quattroSearch, setQuattroSearch, quattroFilter, setQuattroFilter, setQuattroFormOpen, 'quattro')}
+          {renderSimpleDeviceTab('Quattro', filteredQuattro, quattroCounts, quattroSearch, setQuattroSearch, quattroFilter, setQuattroFilter, setQuattroFormOpen, 'quattro', updateQuattroStatus)}
         </TabsContent>
 
         {/* ==================== Picohi Tab ==================== */}
         <TabsContent value="picohi">
-          {renderSimpleDeviceTab('Picohi', filteredPicohi, picohiCounts, picohiSearch, setPicohiSearch, picohiFilter, setPicohiFilter, setPicohiFormOpen, 'picohi')}
+          {renderSimpleDeviceTab('Picohi', filteredPicohi, picohiCounts, picohiSearch, setPicohiSearch, picohiFilter, setPicohiFilter, setPicohiFormOpen, 'picohi', updatePicohiStatus)}
         </TabsContent>
 
         {/* ==================== Freezero Tab ==================== */}
         <TabsContent value="freezero">
-          {renderSimpleDeviceTab('Freezero', filteredFreezero, freezeroCounts, freezeroSearch, setFreezeroSearch, freezeroFilter, setFreezeroFilter, setFreezeroFormOpen, 'freezero')}
+          {renderSimpleDeviceTab('Freezero', filteredFreezero, freezeroCounts, freezeroSearch, setFreezeroSearch, freezeroFilter, setFreezeroFilter, setFreezeroFormOpen, 'freezero', updateFreezeroStatus)}
         </TabsContent>
       </Tabs>
 
