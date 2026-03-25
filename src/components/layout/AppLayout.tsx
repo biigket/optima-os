@@ -143,6 +143,7 @@ function SidebarNav({ collapsed, onNavigate, canView }: { collapsed: boolean; on
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [pwDialogOpen, setPwDialogOpen] = useState(false);
   const { currentUser, logout } = useMockAuth();
   const { canView, loading: permLoading } = useRolePermissions();
   const displayName = currentUser?.name || 'Guest';
