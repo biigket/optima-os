@@ -456,7 +456,7 @@ export default function QcStockPage() {
                     <TableRow key={item.id} className="cursor-pointer hover:bg-muted/50" onClick={() => navigate(`/qc-stock/trica3d/${item.id}`)}>
                       <TableCell className="font-mono font-medium text-foreground text-xs">{item.serialNumber}</TableCell>
                       <TableCell className="text-sm">{item.clinic || '—'}</TableCell>
-                      <TableCell><StatusChip status={item.status} /></TableCell>
+                      <TableCell><QuickStatusSelect id={item.id} status={item.status} onStatusChanged={updateTrica3dStatus} /></TableCell>
                       <TableCell className="text-sm text-muted-foreground">{item.receivedDate || '—'}</TableCell>
                       <TableCell className="text-sm text-muted-foreground">{item.installDate || '—'}</TableCell>
                       <TableCell className="text-sm text-muted-foreground max-w-[180px] truncate">{item.failReason || '—'}</TableCell>
