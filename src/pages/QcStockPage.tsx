@@ -578,17 +578,17 @@ export default function QcStockPage() {
 
         {/* ==================== Quattro Tab ==================== */}
         <TabsContent value="quattro">
-          {renderSimpleDeviceTab('Quattro', filteredQuattro, quattroCounts, quattroSearch, setQuattroSearch, quattroFilter, setQuattroFilter, setQuattroFormOpen, 'quattro')}
+          {renderSimpleDeviceTab('Quattro', filteredQuattro, quattroCounts, quattroSearch, setQuattroSearch, quattroFilter, setQuattroFilter, setQuattroFormOpen, 'quattro', updateQuattroStatus)}
         </TabsContent>
 
         {/* ==================== Picohi Tab ==================== */}
         <TabsContent value="picohi">
-          {renderSimpleDeviceTab('Picohi', filteredPicohi, picohiCounts, picohiSearch, setPicohiSearch, picohiFilter, setPicohiFilter, setPicohiFormOpen, 'picohi')}
+          {renderSimpleDeviceTab('Picohi', filteredPicohi, picohiCounts, picohiSearch, setPicohiSearch, picohiFilter, setPicohiFilter, setPicohiFormOpen, 'picohi', updatePicohiStatus)}
         </TabsContent>
 
         {/* ==================== Freezero Tab ==================== */}
         <TabsContent value="freezero">
-          {renderSimpleDeviceTab('Freezero', filteredFreezero, freezeroCounts, freezeroSearch, setFreezeroSearch, freezeroFilter, setFreezeroFilter, setFreezeroFormOpen, 'freezero')}
+          {renderSimpleDeviceTab('Freezero', filteredFreezero, freezeroCounts, freezeroSearch, setFreezeroSearch, freezeroFilter, setFreezeroFilter, setFreezeroFormOpen, 'freezero', updateFreezeroStatus)}
         </TabsContent>
       </Tabs>
 
