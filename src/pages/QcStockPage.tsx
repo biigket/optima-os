@@ -386,7 +386,7 @@ export default function QcStockPage() {
                         <div>{item.hrm}</div><div className="text-[10px]">({item.hrmSellOrKeep})</div>
                       </TableCell>
                       <TableCell>
-                        <StatusChip status={item.status} />
+                        <QuickStatusSelect id={item.id} status={item.status} onStatusChanged={updateND2Status} />
                         {item.qcFailReason && <p className="text-[10px] text-destructive mt-0.5">{item.qcFailReason}</p>}
                       </TableCell>
                       <TableCell className="text-sm text-muted-foreground">{item.receivedDate || '—'}</TableCell>
