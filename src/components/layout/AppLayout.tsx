@@ -5,12 +5,13 @@ import {
   ListTodo, Calendar, Cpu, Package, Wrench, ChevronLeft, ChevronRight, Bell,
   FileSpreadsheet, ShoppingCart, Warehouse, Receipt, CreditCard,
   TrendingUp, BarChart3, MessageCircle,
-  Lock, LogOut, Menu, X, ClipboardCheck, Fingerprint, BarChart, Settings, BookOpen
+  Lock, LogOut, Menu, X, ClipboardCheck, Fingerprint, BarChart, Settings, BookOpen, KeyRound
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useMockAuth } from '@/hooks/useMockAuth';
 import { useRolePermissions, ROLE_LABELS } from '@/hooks/useRolePermissions';
 import { Sheet, SheetContent } from '@/components/ui/sheet';
+import ChangePasswordDialog from './ChangePasswordDialog';
 
 const navGroups = [
   {
