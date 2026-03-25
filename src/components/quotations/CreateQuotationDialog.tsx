@@ -39,13 +39,12 @@ export default function CreateQuotationDialog({ open, onOpenChange, onCreated }:
     },
   });
 
-  const { data: products = [] } = useQuery({
-    queryKey: ['products-select'],
-    queryFn: async () => {
-      const { data } = await supabase.from('products').select('id, product_name, base_price').order('product_name');
-      return data || [];
-    },
-  });
+  const productOptions = [
+    'Doublo neo', 'Doublo full 3', 'Doublo full 5', 'Trica3D', 'Quattro',
+    'Cartridge A2.0', 'Cartridge A3.0', 'Cartridge A4.5', 'Cartridge A6.0',
+    'Cartridge L1.5', 'Cartridge L3.0', 'Cartridge L4.5', 'Cartridge L9.0',
+    'Cartridge N25', 'Cartridge N49', 'Cartridge I25', 'Cartridge I49',
+  ];
 
   const reset = () => setForm({
     qt_number: '', account_id: '', product: '', price: '',
