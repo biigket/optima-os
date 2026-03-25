@@ -6,6 +6,8 @@ import { Button } from '@/components/ui/button';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { toast } from 'sonner';
 import type { ND2StockItem, CartridgeStockItem, Trica3DStockItem, QuattroStockItem, PicohiStockItem, FreezeroStockItem } from '@/types/stock';
 import { unifiedStatuses, unifiedStatusColor, type UnifiedStockStatus } from '@/data/unifiedStockStatus';
 import { mapND2, mapTrica3D, mapGenericStock, mapCartridge, normalizeProductType } from '@/data/qcStockMapper';
