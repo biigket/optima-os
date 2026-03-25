@@ -69,9 +69,9 @@ export default function OpportunitiesPage() {
   const roleFiltered = useMemo(() => {
     if (canSeeAll) {
       if (saleFilter === 'ALL') return opportunities;
-      return opportunities.filter(o => o.assigned_sale === saleFilter);
+      return opportunities.filter(o => (o as any).created_by === saleFilter);
     }
-    return opportunities.filter(o => o.assigned_sale === currentUser?.name);
+    return opportunities.filter(o => (o as any).created_by === currentUser?.name);
   }, [opportunities, canSeeAll, saleFilter, currentUser?.name]);
 
   const filtered = roleFiltered.filter(o => {
@@ -110,7 +110,7 @@ export default function OpportunitiesPage() {
   }, 0);
 
   const handleSave = async (data: Opportunity) => {
-    const { id, quantity, stuck_reason, ...rest } = data;
+    const { id, quantity, stuck_reason, created_by, ...rest } = data;
     const insertPayload = {
       account_id: rest.account_id,
       stage: rest.stage,
@@ -128,6 +128,7 @@ export default function OpportunitiesPage() {
       competitors: rest.competitors || null,
       
       order_frequency: rest.order_frequency || null,
+      created_by: created_by || currentUser?.name || null,
     };
     const { error } = await supabase.from('opportunities').insert(insertPayload);
     if (error) { toast.error('สร้างโอกาสขายไม่สำเร็จ'); return; }

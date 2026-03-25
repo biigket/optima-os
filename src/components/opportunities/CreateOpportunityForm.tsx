@@ -17,6 +17,7 @@ import { supabase } from '@/integrations/supabase/client';
 import type { Account, OpportunityStage, Opportunity } from '@/types';
 import { differenceInDays } from 'date-fns';
 import { cn } from '@/lib/utils';
+import { useMockAuth } from '@/hooks/useMockAuth';
 
 const BUDGET_RANGES = [
   { value: '<500K', label: 'ต่ำกว่า 500K' },
@@ -169,6 +170,7 @@ function MultiSelectWithCustom({ label, options: defaultOptions, selected, onCha
 
 export default function CreateOpportunityForm({ open, onOpenChange, onSave, customer: preselectedCustomer }: CreateOpportunityFormProps) {
   const navigate = useNavigate();
+  const { currentUser } = useMockAuth();
   const [step, setStep] = useState(0);
 
   // Step 1: customer selection
@@ -314,6 +316,7 @@ export default function CreateOpportunityForm({ open, onOpenChange, onSave, cust
       authority_contact_id: form.authority_contact_id || undefined,
       needs: undefined,
       created_at: new Date().toISOString(),
+      created_by: currentUser?.name || undefined,
     };
 
     onSave(newOpp);

@@ -80,6 +80,7 @@ export interface Opportunity {
   authority_contact_id?: string;
   needs?: string[];
   created_at: string;
+  created_by?: string;
 }
 
 export interface Demo {
