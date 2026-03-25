@@ -237,6 +237,7 @@ export default function QcStockPage() {
     setFilterVal: (v: FilterTab) => void,
     setFormOpenFn: (v: boolean) => void,
     detailPrefix: string,
+    onStatusChanged: (id: string, s: UnifiedStockStatus) => void,
   ) => (
     <div className="space-y-4">
       <div className="flex justify-end">
