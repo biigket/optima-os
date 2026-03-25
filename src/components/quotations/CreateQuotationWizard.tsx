@@ -352,16 +352,6 @@ export default function CreateQuotationWizard({ open, onOpenChange, onCreated }:
       return;
     }
 
-    // Store reservation mapping: quotation → inventory item IDs
-    if (inserted) {
-      const inventoryItemIds = productLines
-        .map(p => p.inventoryItemId)
-        .filter((id): id is string => !!id);
-      if (inventoryItemIds.length > 0) {
-        addReservation(inserted.id, inventoryItemIds);
-      }
-    }
-
     toast.success('สร้างใบเสนอราคาสำเร็จ');
     onOpenChange(false);
     onCreated();
