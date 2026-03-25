@@ -17,10 +17,6 @@ import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import QuickNoteButtons from '@/components/ui/QuickNoteButtons';
 import PaymentConditionSelector, { getPaymentConditionLabel } from './PaymentConditionSelector';
-import { getPrice } from '@/data/inventoryPricing';
-import { addReservation } from '@/data/inventoryReservation';
-import { normalizeStatus, normalizeProductType } from '@/data/qcStockMapper';
-
 // === Constants ===
 
 const SELLER_INFO = {
@@ -32,38 +28,35 @@ const SELLER_INFO = {
   website: 'www.optimaaesthetic.com',
 };
 
-// Build inventory items (พร้อมขาย) from QC Stock
-interface InventoryProduct {
-  id: string;
+// Fixed product catalog
+interface CatalogProduct {
   name: string;
   category: string;
-  serialNumber: string;
-  price: number;
 }
 
-async function fetchInventoryProducts(): Promise<InventoryProduct[]> {
-  const { data } = await supabase.from('qc_stock_items').select('*').not('status', 'is', null);
-  if (!data) return [];
-  const items: InventoryProduct[] = [];
-  for (const row of data) {
-    const status = normalizeStatus(row.status);
-    if (status !== 'พร้อมขาย') continue;
-    const sn = row.serial_number || '';
-    const label = normalizeProductType(row.product_type) === 'CARTRIDGE'
-      ? `Cartridge ${row.cartridge_type || ''} (${sn})`
-      : `${row.product_type} (${sn})`;
-    items.push({ id: row.id, name: label, category: row.product_type, serialNumber: sn, price: getPrice(row.id) ?? 0 });
-  }
-  return items;
-}
+const PRODUCT_CATALOG: CatalogProduct[] = [
+  { name: 'Doublo neo', category: 'DEVICE' },
+  { name: 'Doublo full 3', category: 'DEVICE' },
+  { name: 'Doublo full 5', category: 'DEVICE' },
+  { name: 'Trica3D', category: 'DEVICE' },
+  { name: 'Quattro', category: 'DEVICE' },
+  { name: 'Cartridge A2.0', category: 'CARTRIDGE' },
+  { name: 'Cartridge A3.0', category: 'CARTRIDGE' },
+  { name: 'Cartridge A4.5', category: 'CARTRIDGE' },
+  { name: 'Cartridge A6.0', category: 'CARTRIDGE' },
+  { name: 'Cartridge L1.5', category: 'CARTRIDGE' },
+  { name: 'Cartridge L3.0', category: 'CARTRIDGE' },
+  { name: 'Cartridge L4.5', category: 'CARTRIDGE' },
+  { name: 'Cartridge L9.0', category: 'CARTRIDGE' },
+  { name: 'Cartridge N25', category: 'CARTRIDGE' },
+  { name: 'Cartridge N49', category: 'CARTRIDGE' },
+  { name: 'Cartridge I25', category: 'CARTRIDGE' },
+  { name: 'Cartridge I49', category: 'CARTRIDGE' },
+];
 
 const categoryBadge: Record<string, string> = {
-  ND2: 'bg-blue-100 text-blue-800',
-  'Trica 3D': 'bg-purple-100 text-purple-800',
-  Quattro: 'bg-emerald-100 text-emerald-800',
-  Picohi: 'bg-pink-100 text-pink-800',
-  Freezero: 'bg-cyan-100 text-cyan-800',
-  Cartridge: 'bg-amber-100 text-amber-800',
+  DEVICE: 'bg-blue-100 text-blue-800',
+  CARTRIDGE: 'bg-amber-100 text-amber-800',
 };
 
 const DEFAULT_SALES_TERMS = [
@@ -174,7 +167,7 @@ export default function CreateQuotationWizard({ open, onOpenChange, onCreated }:
   });
 
   // Step 1: Products
-  const [inventoryItems, setInventoryItems] = useState<InventoryProduct[]>([]);
+  const [productSearch, setProductSearch] = useState('');
   const [productLines, setProductLines] = useState<ProductLine[]>([]);
   const [discountPercent, setDiscountPercent] = useState(0);
   const [discountAmount, setDiscountAmount] = useState(0);
@@ -197,7 +190,6 @@ export default function CreateQuotationWizard({ open, onOpenChange, onCreated }:
     if (open) {
       resetAll();
       fetchAccounts();
-      fetchInventoryProducts().then(setInventoryItems);
     }
   }, [open]);
 
@@ -360,16 +352,6 @@ export default function CreateQuotationWizard({ open, onOpenChange, onCreated }:
       return;
     }
 
-    // Store reservation mapping: quotation → inventory item IDs
-    if (inserted) {
-      const inventoryItemIds = productLines
-        .map(p => p.inventoryItemId)
-        .filter((id): id is string => !!id);
-      if (inventoryItemIds.length > 0) {
-        addReservation(inserted.id, inventoryItemIds);
-      }
-    }
-
     toast.success('สร้างใบเสนอราคาสำเร็จ');
     onOpenChange(false);
     onCreated();
@@ -487,42 +469,43 @@ export default function CreateQuotationWizard({ open, onOpenChange, onCreated }:
           </div>
         )}
 
-        {/* Step 1: Products — pull from คลังสินค้า (พร้อมขาย) */}
+        {/* Step 1: Products */}
         {step === 1 && (
           <div className="space-y-4">
             <div>
-              <Label className="text-xs text-muted-foreground mb-2 block">เลือกสินค้าจากคลังสินค้า (พร้อมขาย)</Label>
-              {inventoryItems.length === 0 ? (
-                <p className="text-sm text-muted-foreground py-4 text-center">ไม่มีสินค้าพร้อมขายในคลัง</p>
-              ) : (
-                  <div className="space-y-1.5 max-h-[200px] overflow-y-auto rounded-lg border p-2">
-                    {inventoryItems.map(p => {
-                      const added = productLines.some(l => l.name === p.name);
-                      return (
-                        <button
-                          key={p.id}
-                          onClick={() => !added && addProduct(p.name, p.price, p.id)}
-                          disabled={added}
-                          className={cn(
-                            'w-full flex items-center gap-2 px-3 py-2 rounded-lg text-left text-sm border transition-colors',
-                            added
-                              ? 'bg-primary/10 border-primary/30 cursor-not-allowed'
-                              : 'bg-background border-input hover:border-primary/50 hover:bg-muted/30'
-                          )}
-                        >
-                          <span className={cn('inline-flex items-center rounded-full px-1.5 py-0.5 text-[10px] font-semibold', categoryBadge[p.category] || 'bg-muted text-muted-foreground')}>
-                            {p.category}
-                          </span>
-                          <span className="font-mono text-xs text-foreground flex-1 truncate">{p.serialNumber}</span>
-                          <span className="text-xs text-muted-foreground shrink-0">
-                            {p.price > 0 ? `฿${p.price.toLocaleString()}` : 'ยังไม่ตั้งราคา'}
-                          </span>
-                          <span className="text-xs shrink-0">{added ? '✓' : '+'}</span>
-                        </button>
-                      );
-                    })}
-                  </div>
-              )}
+              <Label className="text-xs text-muted-foreground mb-2 block">เลือกสินค้า</Label>
+              <Input
+                placeholder="ค้นหาสินค้า..."
+                value={productSearch}
+                onChange={e => setProductSearch(e.target.value)}
+                className="h-9 text-sm mb-2"
+              />
+              <div className="space-y-1.5 max-h-[200px] overflow-y-auto rounded-lg border p-2">
+                {PRODUCT_CATALOG
+                  .filter(p => !productSearch || p.name.toLowerCase().includes(productSearch.toLowerCase()))
+                  .map(p => {
+                    const added = productLines.some(l => l.name === p.name);
+                    return (
+                      <button
+                        key={p.name}
+                        onClick={() => !added && addProduct(p.name, 0)}
+                        disabled={added}
+                        className={cn(
+                          'w-full flex items-center gap-2 px-3 py-2 rounded-lg text-left text-sm border transition-colors',
+                          added
+                            ? 'bg-primary/10 border-primary/30 cursor-not-allowed'
+                            : 'bg-background border-input hover:border-primary/50 hover:bg-muted/30'
+                        )}
+                      >
+                        <span className={cn('inline-flex items-center rounded-full px-1.5 py-0.5 text-[10px] font-semibold', categoryBadge[p.category] || 'bg-muted text-muted-foreground')}>
+                          {p.category === 'CARTRIDGE' ? 'Cartridge' : 'Device'}
+                        </span>
+                        <span className="text-sm text-foreground flex-1">{p.name}</span>
+                        <span className="text-xs shrink-0">{added ? '✓' : '+'}</span>
+                      </button>
+                    );
+                  })}
+              </div>
             </div>
 
             {productLines.length > 0 && (
