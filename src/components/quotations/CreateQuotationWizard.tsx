@@ -17,10 +17,6 @@ import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import QuickNoteButtons from '@/components/ui/QuickNoteButtons';
 import PaymentConditionSelector, { getPaymentConditionLabel } from './PaymentConditionSelector';
-import { getPrice } from '@/data/inventoryPricing';
-import { addReservation } from '@/data/inventoryReservation';
-import { normalizeStatus, normalizeProductType } from '@/data/qcStockMapper';
-
 // === Constants ===
 
 const SELLER_INFO = {
@@ -32,38 +28,35 @@ const SELLER_INFO = {
   website: 'www.optimaaesthetic.com',
 };
 
-// Build inventory items (พร้อมขาย) from QC Stock
-interface InventoryProduct {
-  id: string;
+// Fixed product catalog
+interface CatalogProduct {
   name: string;
   category: string;
-  serialNumber: string;
-  price: number;
 }
 
-async function fetchInventoryProducts(): Promise<InventoryProduct[]> {
-  const { data } = await supabase.from('qc_stock_items').select('*').not('status', 'is', null);
-  if (!data) return [];
-  const items: InventoryProduct[] = [];
-  for (const row of data) {
-    const status = normalizeStatus(row.status);
-    if (status !== 'พร้อมขาย') continue;
-    const sn = row.serial_number || '';
-    const label = normalizeProductType(row.product_type) === 'CARTRIDGE'
-      ? `Cartridge ${row.cartridge_type || ''} (${sn})`
-      : `${row.product_type} (${sn})`;
-    items.push({ id: row.id, name: label, category: row.product_type, serialNumber: sn, price: getPrice(row.id) ?? 0 });
-  }
-  return items;
-}
+const PRODUCT_CATALOG: CatalogProduct[] = [
+  { name: 'Doublo neo', category: 'DEVICE' },
+  { name: 'Doublo full 3', category: 'DEVICE' },
+  { name: 'Doublo full 5', category: 'DEVICE' },
+  { name: 'Trica3D', category: 'DEVICE' },
+  { name: 'Quattro', category: 'DEVICE' },
+  { name: 'Cartridge A2.0', category: 'CARTRIDGE' },
+  { name: 'Cartridge A3.0', category: 'CARTRIDGE' },
+  { name: 'Cartridge A4.5', category: 'CARTRIDGE' },
+  { name: 'Cartridge A6.0', category: 'CARTRIDGE' },
+  { name: 'Cartridge L1.5', category: 'CARTRIDGE' },
+  { name: 'Cartridge L3.0', category: 'CARTRIDGE' },
+  { name: 'Cartridge L4.5', category: 'CARTRIDGE' },
+  { name: 'Cartridge L9.0', category: 'CARTRIDGE' },
+  { name: 'Cartridge N25', category: 'CARTRIDGE' },
+  { name: 'Cartridge N49', category: 'CARTRIDGE' },
+  { name: 'Cartridge I25', category: 'CARTRIDGE' },
+  { name: 'Cartridge I49', category: 'CARTRIDGE' },
+];
 
 const categoryBadge: Record<string, string> = {
-  ND2: 'bg-blue-100 text-blue-800',
-  'Trica 3D': 'bg-purple-100 text-purple-800',
-  Quattro: 'bg-emerald-100 text-emerald-800',
-  Picohi: 'bg-pink-100 text-pink-800',
-  Freezero: 'bg-cyan-100 text-cyan-800',
-  Cartridge: 'bg-amber-100 text-amber-800',
+  DEVICE: 'bg-blue-100 text-blue-800',
+  CARTRIDGE: 'bg-amber-100 text-amber-800',
 };
 
 const DEFAULT_SALES_TERMS = [
