@@ -17,6 +17,7 @@ import { supabase } from '@/integrations/supabase/client';
 import type { Account, OpportunityStage, Opportunity } from '@/types';
 import { differenceInDays } from 'date-fns';
 import { cn } from '@/lib/utils';
+import { useMockAuth } from '@/hooks/useMockAuth';
 
 const BUDGET_RANGES = [
   { value: '<500K', label: 'ต่ำกว่า 500K' },

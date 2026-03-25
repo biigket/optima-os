@@ -69,9 +69,9 @@ export default function OpportunitiesPage() {
   const roleFiltered = useMemo(() => {
     if (canSeeAll) {
       if (saleFilter === 'ALL') return opportunities;
-      return opportunities.filter(o => o.assigned_sale === saleFilter);
+      return opportunities.filter(o => (o as any).created_by === saleFilter);
     }
-    return opportunities.filter(o => o.assigned_sale === currentUser?.name);
+    return opportunities.filter(o => (o as any).created_by === currentUser?.name);
   }, [opportunities, canSeeAll, saleFilter, currentUser?.name]);
 
   const filtered = roleFiltered.filter(o => {
