@@ -34,6 +34,30 @@ function StatusChip({ status }: { status: UnifiedStockStatus }) {
   );
 }
 
+function QuickStatusSelect({ id, status, onStatusChanged }: { id: string; status: UnifiedStockStatus; onStatusChanged: (id: string, newStatus: UnifiedStockStatus) => void }) {
+  const handleChange = async (newStatus: string) => {
+    await supabase.from('qc_stock_items').update({ status: newStatus }).eq('id', id);
+    onStatusChanged(id, newStatus as UnifiedStockStatus);
+    toast.success('อัปเดตสถานะเรียบร้อย');
+  };
+  return (
+    <div onClick={e => e.stopPropagation()}>
+      <Select value={status} onValueChange={handleChange}>
+        <SelectTrigger className={`h-7 w-auto min-w-[120px] text-xs font-medium rounded-full border ${unifiedStatusColor[status] || ''}`}>
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          {unifiedStatuses.map(s => (
+            <SelectItem key={s} value={s}>
+              <span className={`inline-flex items-center rounded-full border px-1.5 py-0.5 text-xs ${unifiedStatusColor[s]}`}>{s}</span>
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+    </div>
+  );
+}
+
 export default function QcStockPage() {
   const navigate = useNavigate();
 
