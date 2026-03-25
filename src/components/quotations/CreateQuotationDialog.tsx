@@ -115,14 +115,11 @@ export default function CreateQuotationDialog({ open, onOpenChange, onCreated }:
 
           <div className="space-y-1.5">
             <Label>สินค้า *</Label>
-            <Select value={form.product} onValueChange={v => {
-              const p = products.find(p => p.product_name === v);
-              setForm(f => ({ ...f, product: v, price: p?.base_price ? String(p.base_price) : f.price }));
-            }}>
+            <Select value={form.product} onValueChange={v => setForm(f => ({ ...f, product: v }))}>
               <SelectTrigger><SelectValue placeholder="เลือกสินค้า" /></SelectTrigger>
               <SelectContent>
-                {products.map(p => (
-                  <SelectItem key={p.id} value={p.product_name}>{p.product_name}</SelectItem>
+                {productOptions.map(p => (
+                  <SelectItem key={p} value={p}>{p}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
