@@ -563,7 +563,7 @@ export default function QcStockPage() {
                     <TableRow key={item.id} className="cursor-pointer hover:bg-muted/50" onClick={() => navigate(`/qc-stock/cartridge/${item.id}`)}>
                       <TableCell className="font-mono font-medium text-foreground">{item.serialNumber}</TableCell>
                       <TableCell><Badge variant="outline" className="font-mono">{item.cartridgeType}</Badge></TableCell>
-                      <TableCell><StatusChip status={item.status} /></TableCell>
+                      <TableCell><QuickStatusSelect id={item.id} status={item.status} onStatusChanged={updateCartridgeStatus} /></TableCell>
                       <TableCell className="text-sm text-muted-foreground max-w-[200px] truncate">{item.qcFailReason || '—'}</TableCell>
                       <TableCell className="text-sm text-muted-foreground">{item.receivedDate || '—'}</TableCell>
                       <TableCell className="text-sm text-muted-foreground">{item.storageLocation || '—'}</TableCell>
