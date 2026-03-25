@@ -228,6 +228,9 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                   <p className="text-[10px] text-sidebar-muted truncate">{positionLabel}</p>
                 )}
               </div>
+              <button onClick={() => { setPwDialogOpen(true); setMobileOpen(false); }} className="p-1 rounded hover:bg-sidebar-accent text-sidebar-muted" title="เปลี่ยนรหัสผ่าน">
+                <KeyRound size={14} />
+              </button>
               <button onClick={() => { logout(); setMobileOpen(false); }} className="p-1 rounded hover:bg-sidebar-accent text-sidebar-muted" title="ออกจากระบบ">
                 <LogOut size={14} />
               </button>
@@ -235,6 +238,8 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           </div>
         </SheetContent>
       </Sheet>
+
+      <ChangePasswordDialog open={pwDialogOpen} onOpenChange={setPwDialogOpen} />
 
       <div className="flex flex-1 flex-col overflow-hidden">
         <header className="flex h-14 items-center justify-between border-b bg-card px-4 md:px-6">
