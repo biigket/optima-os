@@ -188,6 +188,9 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                     <p className="text-[10px] text-sidebar-muted truncate">{positionLabel}</p>
                   )}
                 </div>
+                <button onClick={() => setPwDialogOpen(true)} className="p-1 rounded hover:bg-sidebar-accent text-sidebar-muted" title="เปลี่ยนรหัสผ่าน">
+                  <KeyRound size={14} />
+                </button>
                 <button onClick={logout} className="p-1 rounded hover:bg-sidebar-accent text-sidebar-muted" title="ออกจากระบบ">
                   <LogOut size={14} />
                 </button>
