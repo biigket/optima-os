@@ -170,6 +170,7 @@ function MultiSelectWithCustom({ label, options: defaultOptions, selected, onCha
 
 export default function CreateOpportunityForm({ open, onOpenChange, onSave, customer: preselectedCustomer }: CreateOpportunityFormProps) {
   const navigate = useNavigate();
+  const { currentUser } = useMockAuth();
   const [step, setStep] = useState(0);
 
   // Step 1: customer selection
