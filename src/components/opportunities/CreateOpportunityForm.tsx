@@ -315,6 +315,7 @@ export default function CreateOpportunityForm({ open, onOpenChange, onSave, cust
       authority_contact_id: form.authority_contact_id || undefined,
       needs: undefined,
       created_at: new Date().toISOString(),
+      created_by: currentUser?.name || undefined,
     };
 
     onSave(newOpp);
