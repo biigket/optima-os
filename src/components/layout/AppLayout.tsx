@@ -5,12 +5,13 @@ import {
   ListTodo, Calendar, Cpu, Package, Wrench, ChevronLeft, ChevronRight, Bell,
   FileSpreadsheet, ShoppingCart, Warehouse, Receipt, CreditCard,
   TrendingUp, BarChart3, MessageCircle,
-  Lock, LogOut, Menu, X, ClipboardCheck, Fingerprint, BarChart, Settings, BookOpen
+  Lock, LogOut, Menu, X, ClipboardCheck, Fingerprint, BarChart, Settings, BookOpen, KeyRound
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useMockAuth } from '@/hooks/useMockAuth';
 import { useRolePermissions, ROLE_LABELS } from '@/hooks/useRolePermissions';
 import { Sheet, SheetContent } from '@/components/ui/sheet';
+import ChangePasswordDialog from './ChangePasswordDialog';
 
 const navGroups = [
   {
@@ -142,6 +143,7 @@ function SidebarNav({ collapsed, onNavigate, canView }: { collapsed: boolean; on
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [pwDialogOpen, setPwDialogOpen] = useState(false);
   const { currentUser, logout } = useMockAuth();
   const { canView, loading: permLoading } = useRolePermissions();
   const displayName = currentUser?.name || 'Guest';
@@ -186,6 +188,9 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                     <p className="text-[10px] text-sidebar-muted truncate">{positionLabel}</p>
                   )}
                 </div>
+                <button onClick={() => setPwDialogOpen(true)} className="p-1 rounded hover:bg-sidebar-accent text-sidebar-muted" title="เปลี่ยนรหัสผ่าน">
+                  <KeyRound size={14} />
+                </button>
                 <button onClick={logout} className="p-1 rounded hover:bg-sidebar-accent text-sidebar-muted" title="ออกจากระบบ">
                   <LogOut size={14} />
                 </button>
@@ -223,6 +228,9 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                   <p className="text-[10px] text-sidebar-muted truncate">{positionLabel}</p>
                 )}
               </div>
+              <button onClick={() => { setPwDialogOpen(true); setMobileOpen(false); }} className="p-1 rounded hover:bg-sidebar-accent text-sidebar-muted" title="เปลี่ยนรหัสผ่าน">
+                <KeyRound size={14} />
+              </button>
               <button onClick={() => { logout(); setMobileOpen(false); }} className="p-1 rounded hover:bg-sidebar-accent text-sidebar-muted" title="ออกจากระบบ">
                 <LogOut size={14} />
               </button>
@@ -230,6 +238,8 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           </div>
         </SheetContent>
       </Sheet>
+
+      <ChangePasswordDialog open={pwDialogOpen} onOpenChange={setPwDialogOpen} />
 
       <div className="flex flex-1 flex-col overflow-hidden">
         <header className="flex h-14 items-center justify-between border-b bg-card px-4 md:px-6">
