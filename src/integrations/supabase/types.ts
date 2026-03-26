@@ -220,6 +220,63 @@ export type Database = {
         }
         Relationships: []
       }
+      campaign_targets: {
+        Row: {
+          assigned_sale: string | null
+          campaign_name: string
+          clinic_name: string
+          contact_status: string
+          created_at: string
+          device_type: string | null
+          facebook: string | null
+          id: string
+          line_id: string | null
+          notes: string | null
+          phone: string | null
+          priority_group: string | null
+          products_used: string | null
+          province: string | null
+          visited_at: string | null
+          zone: string | null
+        }
+        Insert: {
+          assigned_sale?: string | null
+          campaign_name?: string
+          clinic_name: string
+          contact_status?: string
+          created_at?: string
+          device_type?: string | null
+          facebook?: string | null
+          id?: string
+          line_id?: string | null
+          notes?: string | null
+          phone?: string | null
+          priority_group?: string | null
+          products_used?: string | null
+          province?: string | null
+          visited_at?: string | null
+          zone?: string | null
+        }
+        Update: {
+          assigned_sale?: string | null
+          campaign_name?: string
+          clinic_name?: string
+          contact_status?: string
+          created_at?: string
+          device_type?: string | null
+          facebook?: string | null
+          id?: string
+          line_id?: string | null
+          notes?: string | null
+          phone?: string | null
+          priority_group?: string | null
+          products_used?: string | null
+          province?: string | null
+          visited_at?: string | null
+          zone?: string | null
+        }
+        Relationships: []
+      }
       company_events: {
         Row: {
           all_day: boolean
