@@ -62,7 +62,8 @@ export default function CampaignTrackerPage() {
 
   const roleFiltered = useMemo(() => {
     if (isManager) return targets;
-    return targets.filter(t => t.assigned_sale === currentUser?.name);
+    const userName = currentUser?.name?.toUpperCase();
+    return targets.filter(t => t.assigned_sale?.toUpperCase() === userName);
   }, [targets, isManager, currentUser?.name]);
 
   const filtered = useMemo(() => {
