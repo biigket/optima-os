@@ -34,7 +34,7 @@ export const NEXT_STEP_PLACEHOLDERS: Record<string, string> = {
 };
 
 const ZONES = ['ALL', 'BKK1', 'BKK2', 'BKK3', 'BKK4', 'BKK5'];
-const ZONE_SALES: Record<string, string> = { BKK1: 'Ford', BKK2: 'Fah', BKK3: 'Chananpas', BKK4: 'Varn', BKK5: 'Vi' };
+const ZONE_SALES: Record<string, string> = { BKK1: 'Ford', BKK2: 'Fah', BKK3: 'Petch', BKK4: 'Varn', BKK5: 'Vi' };
 
 export { STATUS_OPTIONS };
 
