@@ -1,0 +1,1 @@
+UPDATE campaign_targets SET assigned_sale = UPPER(assigned_sale) WHERE assigned_sale IS NOT NULL;
