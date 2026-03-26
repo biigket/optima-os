@@ -31,6 +31,7 @@ const navGroups = [
   {
     label: 'PRE-CRM',
     items: [
+      { to: '/campaign-tracker', icon: Target, label: 'Campaign Tracker', moduleKey: 'campaign-tracker' },
       { to: '/weekly-plan', icon: CalendarDays, label: 'แผนเยี่ยมรายสัปดาห์', moduleKey: 'weekly-plan' },
       { to: '/visit-checkin', icon: MapPin, label: 'เช็คอินเยี่ยมลูกค้า', moduleKey: 'visit-checkin' },
       { to: '/visit-reports', icon: FileText, label: 'รายงานเยี่ยมลูกค้า', moduleKey: 'visit-reports' },

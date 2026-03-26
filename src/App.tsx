@@ -49,6 +49,7 @@ import ContractsPage from "@/pages/ContractsPage";
 import CsvImportPage from "@/pages/CsvImportPage";
 import QtArImportPage from "@/pages/QtArImportPage";
 import ChatbotPage from "@/pages/ChatbotPage";
+import CampaignTrackerPage from "@/pages/CampaignTrackerPage";
 import UserGuidePage from "@/pages/UserGuidePage";
 import { MockAuthProvider, useMockAuth } from "@/hooks/useMockAuth";
 
@@ -91,6 +92,7 @@ function AuthedAppRoutes() {
         <Route path="/payments" element={<PaymentsPage />} />
         <Route path="/payments/:quotationId" element={<PaymentDetailPage />} />
         <Route path="/qr-register" element={<QRCodePage />} />
+        <Route path="/campaign-tracker" element={<CampaignTrackerPage />} />
         <Route path="/qc-stock" element={<QcStockPage />} />
         <Route path="/qc-stock/:id" element={<QcStockDetailPage />} />
         <Route path="/qc-stock/trica3d/:id" element={<Trica3DDetailPage />} />
