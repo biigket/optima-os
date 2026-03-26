@@ -231,6 +231,8 @@ export type Database = {
           facebook: string | null
           id: string
           line_id: string | null
+          next_step: string | null
+          next_step_date: string | null
           notes: string | null
           phone: string | null
           priority_group: string | null
@@ -249,6 +251,8 @@ export type Database = {
           facebook?: string | null
           id?: string
           line_id?: string | null
+          next_step?: string | null
+          next_step_date?: string | null
           notes?: string | null
           phone?: string | null
           priority_group?: string | null
@@ -267,6 +271,8 @@ export type Database = {
           facebook?: string | null
           id?: string
           line_id?: string | null
+          next_step?: string | null
+          next_step_date?: string | null
           notes?: string | null
           phone?: string | null
           priority_group?: string | null
