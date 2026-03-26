@@ -3,14 +3,15 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useMockAuth } from '@/hooks/useMockAuth';
 import { Card, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Progress } from '@/components/ui/progress';
-import { Search, Phone, ExternalLink, MapPin, Filter, CheckCircle2, Clock, XCircle, MessageCircle } from 'lucide-react';
+import { Search, Phone, ExternalLink, MapPin, Filter, CheckCircle2, Clock, XCircle, MessageCircle, AlertTriangle, CalendarCheck } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
+import CampaignTargetCard from '@/components/campaign/CampaignTargetCard';
+import CampaignKpiBar from '@/components/campaign/CampaignKpiBar';
 
 const STATUS_OPTIONS = [
   { value: 'ยังไม่ติดต่อ', label: 'ยังไม่ติดต่อ', color: 'bg-muted text-muted-foreground' },
@@ -19,10 +20,23 @@ const STATUS_OPTIONS = [
   { value: 'เยี่ยมแล้ว', label: 'เยี่ยมแล้ว', color: 'bg-green-100 text-green-800' },
   { value: 'สนใจ', label: 'สนใจ', color: 'bg-emerald-100 text-emerald-800' },
   { value: 'ไม่สนใจ', label: 'ไม่สนใจ', color: 'bg-red-100 text-red-800' },
+  { value: 'ปิดดีลแล้ว', label: 'ปิดดีลแล้ว', color: 'bg-purple-100 text-purple-800' },
 ];
+
+export const NEXT_STEP_PLACEHOLDERS: Record<string, string> = {
+  'ยังไม่ติดต่อ': 'โทรครั้งแรก/ทัก LINE แนะนำโปรแกรม Switch to Doublo',
+  'ติดต่อแล้ว': 'โทรขอคุยกับหมอ/เจ้าของ และขอนัดเยี่ยม/ประเมินเครื่อง',
+  'นัดเยี่ยมแล้ว': 'เข้าเยี่ยม/ประเมินเครื่องตามวันนัด',
+  'เยี่ยมแล้ว': 'สรุปผลประเมิน + เสนอ Switch Value / เตรียม proposal',
+  'สนใจ': 'ส่ง proposal + โทรตามผล / คุยเงื่อนไขปิดดีล',
+  'ไม่สนใจ': 'บันทึกเหตุผล + กำหนดวันทักอีกครั้ง (เช่น 6 เดือน)',
+  'ปิดดีลแล้ว': 'ประสานทีมติดตั้ง + นัด Training / ทำสื่อการตลาดให้คลินิก',
+};
 
 const ZONES = ['ALL', 'BKK1', 'BKK2', 'BKK3', 'BKK4', 'BKK5'];
 const ZONE_SALES: Record<string, string> = { BKK1: 'Ford', BKK2: 'Fah', BKK3: 'Chananpas', BKK4: 'Varn', BKK5: 'Vi' };
+
+export { STATUS_OPTIONS };
 
 export default function CampaignTrackerPage() {
   const { currentUser } = useMockAuth();
@@ -46,10 +60,8 @@ export default function CampaignTrackerPage() {
     },
   });
 
-  // Filter targets based on role
   const roleFiltered = useMemo(() => {
     if (isManager) return targets;
-    // Sales see only their zone
     return targets.filter(t => t.assigned_sale === currentUser?.name);
   }, [targets, isManager, currentUser?.name]);
 
@@ -72,10 +84,11 @@ export default function CampaignTrackerPage() {
   const stats = useMemo(() => {
     const total = roleFiltered.length;
     const contacted = roleFiltered.filter(t => t.contact_status !== 'ยังไม่ติดต่อ').length;
-    const visited = roleFiltered.filter(t => t.contact_status === 'เยี่ยมแล้ว' || t.contact_status === 'สนใจ').length;
+    const visited = roleFiltered.filter(t => ['เยี่ยมแล้ว', 'สนใจ', 'ปิดดีลแล้ว'].includes(t.contact_status)).length;
     const interested = roleFiltered.filter(t => t.contact_status === 'สนใจ').length;
+    const closed = roleFiltered.filter(t => t.contact_status === 'ปิดดีลแล้ว').length;
     const notInterested = roleFiltered.filter(t => t.contact_status === 'ไม่สนใจ').length;
-    return { total, contacted, visited, interested, notInterested, progress: total ? Math.round((contacted / total) * 100) : 0 };
+    return { total, contacted, visited, interested, closed, notInterested, progress: total ? Math.round((contacted / total) * 100) : 0 };
   }, [roleFiltered]);
 
   // Zone stats for manager view
@@ -89,9 +102,21 @@ export default function CampaignTrackerPage() {
     });
   }, [targets, isManager]);
 
-  const handleStatusChange = async (id: string, newStatus: string) => {
-    const updateData: any = { contact_status: newStatus };
-    if (newStatus === 'เยี่ยมแล้ว' || newStatus === 'สนใจ') {
+  // Today's tasks: next_step_date is today or overdue
+  const todayStr = new Date().toISOString().slice(0, 10);
+  const todayTasks = useMemo(() => {
+    return roleFiltered
+      .filter(t => t.next_step_date && t.next_step_date <= todayStr && t.contact_status !== 'ปิดดีลแล้ว')
+      .sort((a, b) => (a.next_step_date || '').localeCompare(b.next_step_date || ''));
+  }, [roleFiltered, todayStr]);
+
+  const handleSave = async (id: string, data: { contact_status: string; next_step: string; next_step_date: string }) => {
+    const updateData: any = {
+      contact_status: data.contact_status,
+      next_step: data.next_step || null,
+      next_step_date: data.next_step_date || null,
+    };
+    if (data.contact_status === 'เยี่ยมแล้ว' || data.contact_status === 'สนใจ' || data.contact_status === 'ปิดดีลแล้ว') {
       updateData.visited_at = new Date().toISOString();
     }
     const { error } = await supabase.from('campaign_targets').update(updateData).eq('id', id);
@@ -108,29 +133,7 @@ export default function CampaignTrackerPage() {
         <p className="text-sm text-muted-foreground">Trade-In UF3 → Doublo | 🔴 1st Priority</p>
       </div>
 
-      {/* KPI Summary */}
-      <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
-        <Card><CardContent className="p-3 text-center">
-          <div className="text-2xl font-bold">{stats.total}</div>
-          <div className="text-xs text-muted-foreground">เป้าหมายทั้งหมด</div>
-        </CardContent></Card>
-        <Card><CardContent className="p-3 text-center">
-          <div className="text-2xl font-bold text-blue-600">{stats.contacted}</div>
-          <div className="text-xs text-muted-foreground">ติดต่อแล้ว</div>
-        </CardContent></Card>
-        <Card><CardContent className="p-3 text-center">
-          <div className="text-2xl font-bold text-green-600">{stats.visited}</div>
-          <div className="text-xs text-muted-foreground">เยี่ยมแล้ว</div>
-        </CardContent></Card>
-        <Card><CardContent className="p-3 text-center">
-          <div className="text-2xl font-bold text-emerald-600">{stats.interested}</div>
-          <div className="text-xs text-muted-foreground">สนใจ</div>
-        </CardContent></Card>
-        <Card><CardContent className="p-3 text-center">
-          <div className="text-2xl font-bold text-red-500">{stats.notInterested}</div>
-          <div className="text-xs text-muted-foreground">ไม่สนใจ</div>
-        </CardContent></Card>
-      </div>
+      <CampaignKpiBar stats={stats} />
 
       {/* Overall Progress */}
       <Card><CardContent className="p-3">
@@ -158,6 +161,31 @@ export default function CampaignTrackerPage() {
             </Card>
           ))}
         </div>
+      )}
+
+      {/* Today's Tasks */}
+      {todayTasks.length > 0 && (
+        <Card className="border-amber-300 bg-amber-50/50">
+          <CardContent className="p-3">
+            <div className="flex items-center gap-2 mb-2">
+              <CalendarCheck size={16} className="text-amber-600" />
+              <span className="text-sm font-bold text-amber-800">งานวันนี้ ({todayTasks.length})</span>
+            </div>
+            <div className="space-y-1.5 max-h-[200px] overflow-y-auto">
+              {todayTasks.map(t => (
+                <div key={t.id} className="flex items-center gap-2 text-xs bg-white rounded px-2 py-1.5 border border-amber-200">
+                  {t.next_step_date < todayStr && (
+                    <AlertTriangle size={12} className="text-red-500 shrink-0" />
+                  )}
+                  <span className="font-medium truncate min-w-0">{t.clinic_name}</span>
+                  <Badge variant="outline" className="text-[10px] shrink-0">{t.contact_status}</Badge>
+                  <span className="text-muted-foreground truncate min-w-0 flex-1">{t.next_step}</span>
+                  <span className="text-muted-foreground shrink-0">{t.next_step_date}</span>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
       )}
 
       {/* Filters */}
@@ -192,67 +220,12 @@ export default function CampaignTrackerPage() {
       ) : (
         <div className="space-y-2">
           {filtered.map(target => (
-            <Card key={target.id} className={cn(
-              "transition-all",
-              target.contact_status === 'เยี่ยมแล้ว' && 'border-green-200 bg-green-50/30',
-              target.contact_status === 'สนใจ' && 'border-emerald-200 bg-emerald-50/30',
-              target.contact_status === 'ไม่สนใจ' && 'opacity-60',
-            )}>
-              <CardContent className="p-3">
-                <div className="flex flex-col md:flex-row md:items-center gap-2">
-                  {/* Clinic info */}
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <span className="font-semibold text-sm truncate">{target.clinic_name}</span>
-                      {isManager && <Badge variant="outline" className="text-[10px] shrink-0">{target.zone} · {target.assigned_sale}</Badge>}
-                    </div>
-                    <div className="flex items-center gap-3 mt-1 text-xs text-muted-foreground flex-wrap">
-                      {target.province && <span className="flex items-center gap-0.5"><MapPin size={11} />{target.province}</span>}
-                      {target.phone && target.phone !== '-' && (
-                        <a href={`tel:${target.phone}`} className="flex items-center gap-0.5 text-blue-600 hover:underline">
-                          <Phone size={11} />{target.phone}
-                        </a>
-                      )}
-                      {target.facebook && target.facebook !== '-' && (
-                        <a href={target.facebook} target="_blank" rel="noopener" className="flex items-center gap-0.5 text-blue-600 hover:underline">
-                          <ExternalLink size={11} />FB
-                        </a>
-                      )}
-                      {target.line_id && target.line_id !== '-' && (
-                        <span className="flex items-center gap-0.5"><MessageCircle size={11} />{target.line_id}</span>
-                      )}
-                    </div>
-                    {target.products_used && (
-                      <div className="text-[11px] text-muted-foreground mt-1 truncate">🔧 {target.products_used}</div>
-                    )}
-                    {target.device_type && (
-                      <div className="text-[11px] mt-0.5 truncate">{target.device_type}</div>
-                    )}
-                  </div>
-
-                  {/* Status selector */}
-                  <div className="shrink-0">
-                    <Select value={target.contact_status} onValueChange={(v) => handleStatusChange(target.id, v)}>
-                      <SelectTrigger className={cn("w-[140px] h-8 text-xs",
-                        STATUS_OPTIONS.find(s => s.value === target.contact_status)?.color
-                      )}>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {STATUS_OPTIONS.map(s => (
-                          <SelectItem key={s.value} value={s.value}>
-                            {s.value === 'ยังไม่ติดต่อ' && <Clock className="inline mr-1" size={12} />}
-                            {s.value === 'เยี่ยมแล้ว' && <CheckCircle2 className="inline mr-1" size={12} />}
-                            {s.value === 'ไม่สนใจ' && <XCircle className="inline mr-1" size={12} />}
-                            {s.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+            <CampaignTargetCard
+              key={target.id}
+              target={target}
+              isManager={isManager}
+              onSave={handleSave}
+            />
           ))}
         </div>
       )}
