@@ -10,7 +10,7 @@ import UserManagement from '@/components/settings/UserManagement';
 const MODULE_GROUPS = [
   { label: 'ANALYTICS', modules: ['dashboard'] },
   { label: 'CRM', modules: ['leads', 'opportunities'] },
-  { label: 'PRE-CRM', modules: ['weekly-plan', 'visit-checkin', 'visit-reports'] },
+  { label: 'PRE-CRM', modules: ['campaign-tracker', 'weekly-plan', 'visit-checkin', 'visit-reports'] },
   { label: 'SALES OPERATION', modules: ['demos'] },
   { label: 'ATTENDANCE', modules: ['work-checkin', 'attendance'] },
   { label: 'OPERATION', modules: ['tasks', 'calendar'] },

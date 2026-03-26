@@ -22,6 +22,7 @@ export const MODULE_LABELS: Record<string, string> = {
   dashboard: 'แดชบอร์ด',
   leads: 'ลูกค้า',
   opportunities: 'โอกาสขาย',
+  'campaign-tracker': 'Campaign Tracker',
   'weekly-plan': 'แผนเยี่ยมรายสัปดาห์',
   'visit-checkin': 'เช็คอินเยี่ยมลูกค้า',
   'visit-reports': 'รายงานเยี่ยมลูกค้า',
