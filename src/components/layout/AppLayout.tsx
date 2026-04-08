@@ -12,84 +12,55 @@ import { useMockAuth } from '@/hooks/useMockAuth';
 import { useRolePermissions, ROLE_LABELS } from '@/hooks/useRolePermissions';
 import { Sheet, SheetContent } from '@/components/ui/sheet';
 import ChangePasswordDialog from './ChangePasswordDialog';
+import FloatingCopilot from './FloatingCopilot';
 
 const navGroups = [
   {
-    label: 'ANALYTICS',
+    label: 'HOME',
     items: [
       { to: '/', icon: LayoutDashboard, label: 'แดชบอร์ด', moduleKey: 'dashboard' },
       { to: '/chatbot', icon: MessageCircle, label: 'Optima AI', moduleKey: 'dashboard' },
     ],
   },
   {
-    label: 'CRM',
-    items: [
-      { to: '/leads', icon: Users, label: 'ลูกค้า', moduleKey: 'leads' },
-      { to: '/opportunities', icon: Target, label: 'โอกาสขาย', moduleKey: 'opportunities' },
-    ],
-  },
-  {
-    label: 'PRE-CRM',
+    label: 'SALES PIPELINE',
     items: [
       { to: '/campaign-tracker', icon: Target, label: 'Campaign Tracker', moduleKey: 'campaign-tracker' },
-      { to: '/weekly-plan', icon: CalendarDays, label: 'แผนเยี่ยมรายสัปดาห์', moduleKey: 'weekly-plan' },
-      { to: '/visit-checkin', icon: MapPin, label: 'เช็คอินเยี่ยมลูกค้า', moduleKey: 'visit-checkin' },
-      { to: '/visit-reports', icon: FileText, label: 'รายงานเยี่ยมลูกค้า', moduleKey: 'visit-reports' },
-    ],
-  },
-  {
-    label: 'SALES OPERATION',
-    items: [
+      { to: '/leads', icon: Users, label: 'ลูกค้า', moduleKey: 'leads' },
+      { to: '/opportunities', icon: Target, label: 'โอกาสขาย', moduleKey: 'opportunities' },
       { to: '/demos', icon: Presentation, label: 'สาธิตสินค้า', moduleKey: 'demos' },
     ],
   },
   {
-    label: 'ATTENDANCE',
-    items: [
-      { to: '/work-checkin', icon: Fingerprint, label: 'เช็คอินทำงาน', moduleKey: 'work-checkin' },
-      { to: '/attendance', icon: BarChart, label: 'สรุปการเข้างาน', moduleKey: 'attendance' },
-    ],
-  },
-  {
-    label: 'OPERATION',
-    items: [
-      { to: '/tasks', icon: ListTodo, label: 'งาน', moduleKey: 'tasks' },
-      { to: '/calendar', icon: Calendar, label: 'ปฏิทิน', moduleKey: 'calendar' },
-    ],
-  },
-  {
-    label: 'INSTALLED BASE',
-    items: [
-      { to: '/install-base', icon: Cpu, label: 'Install Base', moduleKey: 'install-base' },
-      { to: '/consumables', icon: Package, label: 'วัสดุสิ้นเปลือง', moduleKey: 'consumables' },
-    ],
-  },
-  {
-    label: 'SERVICE',
-    items: [
-      { to: '/maintenance', icon: Wrench, label: 'ซ่อมบำรุง', moduleKey: 'maintenance' },
-      { to: '/qc-stock', icon: ClipboardCheck, label: 'QC สินค้า/สถานะสินค้า', moduleKey: 'qc-stock' },
-    ],
-  },
-  {
-    label: 'ERP',
+    label: 'ERP / FINANCE',
     items: [
       { to: '/quotations', icon: FileSpreadsheet, label: 'ใบเสนอราคา', moduleKey: 'quotations' },
       { to: '/contracts', icon: Receipt, label: 'หนังสือสัญญาซื้อขาย', moduleKey: 'contracts' },
       { to: '/payments', icon: CreditCard, label: 'การชำระเงิน', moduleKey: 'payments' },
       { to: '/inventory', icon: Warehouse, label: 'คลังสินค้า', moduleKey: 'inventory' },
-    ],
-  },
-  {
-    label: 'INTELLIGENCE',
-    items: [
       { to: '/forecast', icon: TrendingUp, label: 'พยากรณ์', moduleKey: 'forecast' },
       { to: '/analytics', icon: BarChart3, label: 'วิเคราะห์', moduleKey: 'analytics' },
     ],
   },
   {
-    label: 'SYSTEM',
+    label: 'DEVICES & SERVICE',
     items: [
+      { to: '/install-base', icon: Cpu, label: 'Install Base', moduleKey: 'install-base' },
+      { to: '/consumables', icon: Package, label: 'วัสดุสิ้นเปลือง', moduleKey: 'consumables' },
+      { to: '/maintenance', icon: Wrench, label: 'ซ่อมบำรุง', moduleKey: 'maintenance' },
+      { to: '/qc-stock', icon: ClipboardCheck, label: 'QC สินค้า/สถานะสินค้า', moduleKey: 'qc-stock' },
+    ],
+  },
+  {
+    label: 'TEAM & OPS',
+    items: [
+      { to: '/weekly-plan', icon: CalendarDays, label: 'แผนเยี่ยมรายสัปดาห์', moduleKey: 'weekly-plan' },
+      { to: '/visit-checkin', icon: MapPin, label: 'เช็คอินเยี่ยมลูกค้า', moduleKey: 'visit-checkin' },
+      { to: '/visit-reports', icon: FileText, label: 'รายงานเยี่ยมลูกค้า', moduleKey: 'visit-reports' },
+      { to: '/tasks', icon: ListTodo, label: 'งาน', moduleKey: 'tasks' },
+      { to: '/calendar', icon: Calendar, label: 'ปฏิทิน', moduleKey: 'calendar' },
+      { to: '/work-checkin', icon: Fingerprint, label: 'เช็คอินทำงาน', moduleKey: 'work-checkin' },
+      { to: '/attendance', icon: BarChart, label: 'สรุปการเข้างาน', moduleKey: 'attendance' },
       { to: '/settings', icon: Settings, label: 'ตั้งค่า', moduleKey: 'settings' },
       { to: '/csv-import', icon: FileSpreadsheet, label: 'นำเข้า CSV', moduleKey: 'csv-import' },
       { to: '/user-guide', icon: BookOpen, label: 'คู่มือการใช้งาน', moduleKey: 'settings' },
@@ -262,6 +233,8 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           {children}
         </main>
       </div>
+
+      <FloatingCopilot />
     </div>
   );
 }

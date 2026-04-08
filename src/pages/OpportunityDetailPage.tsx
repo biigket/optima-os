@@ -23,6 +23,8 @@ import ActivityForm from '@/components/opportunity-detail/ActivityForm';
 import ChatSummaryForm from '@/components/opportunity-detail/ChatSummaryForm';
 import FocusPanel from '@/components/opportunity-detail/FocusPanel';
 import HistoryTimeline from '@/components/opportunity-detail/HistoryTimeline';
+import CustomerSidePeek from '@/components/opportunity-detail/CustomerSidePeek';
+import AiNextStepBanner from '@/components/opportunity-detail/AiNextStepBanner';
 
 
 const STAGES: OpportunityStage[] = ['NEW_LEAD', 'CONTACTED', 'DEMO_SCHEDULED', 'DEMO_DONE', 'NEGOTIATION', 'WON', 'LOST'];
@@ -61,6 +63,7 @@ export default function OpportunityDetailPage() {
   const [newContact, setNewContact] = useState({ name: '', role: '', phone: '' });
   const [editingContactId, setEditingContactId] = useState<string | null>(null);
   const [editContactForm, setEditContactForm] = useState({ name: '', role: '' });
+  const [sidePeekOpen, setSidePeekOpen] = useState(false);
 
   const [editForm, setEditForm] = useState({
     expected_value: '', close_date: '', notes: '',
@@ -277,7 +280,12 @@ export default function OpportunityDetailPage() {
       <div className="rounded-xl border bg-card p-4 shadow-sm">
         <div className="flex items-center gap-2 flex-wrap mb-2">
           <Building2 size={16} className="text-muted-foreground" />
-          <h1 className="text-lg font-bold text-foreground">{account?.clinic_name || '-'}</h1>
+          <h1
+            className="text-lg font-bold text-primary cursor-pointer hover:underline"
+            onClick={() => setSidePeekOpen(true)}
+          >
+            {account?.clinic_name || '-'}
+          </h1>
           {account && <StatusBadge status={account.customer_status} />}
           <button onClick={() => navigate(`/leads/${opp.account_id}`)} className="text-xs text-primary hover:underline flex items-center gap-1 ml-auto">
             <ExternalLink size={11} /> Customer Card
@@ -299,6 +307,9 @@ export default function OpportunityDetailPage() {
           {isStuck && <span className="text-destructive flex items-center gap-1"><Clock size={10} /> ค้าง {daysInStage} วัน</span>}
         </div>
       </div>
+
+      {/* AI Next Step Banner */}
+      <AiNextStepBanner opportunity={opp} accountName={account?.clinic_name} />
 
       {/* Stage Path */}
       <div className="rounded-xl border bg-card p-4 shadow-sm">
@@ -743,6 +754,13 @@ export default function OpportunityDetailPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <CustomerSidePeek
+        customerId={opp.account_id}
+        customerName={account?.clinic_name || '-'}
+        isOpen={sidePeekOpen}
+        onClose={() => setSidePeekOpen(false)}
+      />
     </div>
   );
 }
